@@ -157,7 +157,7 @@ function MailboxList() {
     searchQuery, setSearchQuery, setIsSearching,
     searchResults, setSearchResults, openCompose, accountsReady, accounts,
     messagesRefreshToken, layout, setLayout, pageSize, setPageSize, scrollMode,
-    setMobileSidebarOpen, unreadCounts, showContacts, setShowContacts, showCalendar, setShowCalendar,
+    setMobileSidebarOpen, unreadCounts, showCalendar, setShowCalendar,
     threadedView: threadedSetting, expandedThreadId, setExpandedThreadId,
     threadMessages, setThreadMessages, clearThreadMessages, loadingThread, setLoadingThread,
     hoverQuickActions, hoverActionSet, showMobileAvatars, showMessagePreviews,
@@ -2918,25 +2918,6 @@ function MailboxList() {
             </svg>
           </button>
 
-          {/* Contacts */}
-          <button
-            onClick={() => setShowContacts(!showContacts)}
-            aria-label={t('contacts.title')}
-            style={{
-              background: showContacts ? 'var(--bg-hover)' : 'none', border: 'none',
-              color: showContacts ? 'var(--accent)' : 'var(--text-tertiary)',
-              cursor: 'pointer', padding: 0, borderRadius: 7, display: 'flex',
-              alignItems: 'center', justifyContent: 'center',
-              minWidth: 44, minHeight: 44,
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 00-3-3.87"/>
-              <path d="M16 3.13a4 4 0 010 7.75"/>
-            </svg>
-          </button>
 
           {/* Calendar */}
           <button
