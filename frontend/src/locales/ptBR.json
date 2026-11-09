@@ -2503,7 +2503,12 @@
       "untilBeforeStart": "A data final da repetição não pode ser anterior ao início.",
       "countInvalid": "Informe quantas vezes o evento se repete (pelo menos 1).",
       "noWritable": "Nenhum calendário editável está disponível para este evento.",
-      "customHint": "Esta série tem uma regra de repetição personalizada. Ela é mantida como está."
+      "customHint": "Esta série tem uma regra de repetição personalizada. Ela é mantida como está.",
+      "guests": "Convidados",
+      "guestsPlaceholder": "Adicione pessoas por nome ou endereço",
+      "guestsHint": "Os convites são enviados ao salvar.",
+      "invitedBy": "Convite de {{name}}. Só quem organiza pode mudar os convidados.",
+      "removeGuest": "Remover {{name}}"
     },
     "recurrence": {
       "none": "Não se repete",
@@ -2532,7 +2537,11 @@
       "server": "O servidor de calendário recusou a alteração ou está inacessível, então nada foi alterado: {{message}}",
       "generic": "Algo deu errado: {{message}}",
       "load": "Não foi possível carregar os dados do calendário: {{message}}",
-      "noWritable": "Nenhum dos seus calendários aceita novos eventos. Adicione um calendário que não seja somente leitura."
+      "noWritable": "Nenhum dos seus calendários aceita novos eventos. Adicione um calendário que não seja somente leitura.",
+      "noSender": "Nenhuma conta de e-mail envia a partir do endereço da sua agenda, então os convites não podem ser enviados. Adicione esse endereço como conta ou alias.",
+      "notOrganizer": "Só quem organiza pode mudar os convidados.",
+      "inviteNoSender": "O evento foi salvo, mas nenhuma conta de e-mail envia a partir do endereço da sua agenda, então ninguém foi avisado.",
+      "inviteFailed": "O evento foi salvo, mas não foi possível enviar os convites: {{message}}"
     },
     "accounts": {
       "title": "Contas de calendário",
@@ -2566,6 +2575,22 @@
       "fromMailTitle": "Usar uma conta de e-mail",
       "fromMailHint": "Tenta o servidor e a senha da conta de e-mail. Nada é enviado a outros servidores.",
       "fromMailNone": "Nenhum servidor de calendário encontrado em {{host}}: {{error}}"
+    },
+    "reply": {
+      "question": "Vai participar?",
+      "yes": "Sim",
+      "maybe": "Talvez",
+      "no": "Não"
+    },
+    "mail": {
+      "invite": "Convite: {{title}}",
+      "update": "Convite atualizado: {{title}}",
+      "cancel": "Cancelado: {{title}}",
+      "accepted": "Aceito: {{title}}",
+      "declined": "Recusado: {{title}}",
+      "tentative": "Provisório: {{title}}",
+      "when": "Quando",
+      "where": "Onde"
     }
   }
 }

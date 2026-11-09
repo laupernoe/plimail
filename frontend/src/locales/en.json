@@ -2503,7 +2503,12 @@
       "untilBeforeStart": "The repeat end date must not be before the start.",
       "countInvalid": "Enter how many times the event repeats (at least 1).",
       "noWritable": "No writable calendar is available for this event.",
-      "customHint": "This series has a custom repeat rule. It is kept as it is."
+      "customHint": "This series has a custom repeat rule. It is kept as it is.",
+      "guests": "Guests",
+      "guestsPlaceholder": "Add people by name or address",
+      "guestsHint": "Invitations go out when you save.",
+      "invitedBy": "Invited by {{name}}. Only the organizer can change who is invited.",
+      "removeGuest": "Remove {{name}}"
     },
     "recurrence": {
       "none": "Does not repeat",
@@ -2532,7 +2537,11 @@
       "server": "The calendar server refused the change or is unreachable, so nothing was changed: {{message}}",
       "generic": "Something went wrong: {{message}}",
       "load": "Could not load calendar data: {{message}}",
-      "noWritable": "None of your calendars accepts new events. Add a calendar that is not read-only."
+      "noWritable": "None of your calendars accepts new events. Add a calendar that is not read-only.",
+      "noSender": "No mail account can send from your calendar address, so the invitations cannot be sent. Add that address as an account or an alias.",
+      "notOrganizer": "Only the organizer can change who is invited.",
+      "inviteNoSender": "The event is saved, but no mail account sends from your calendar address, so nobody was notified.",
+      "inviteFailed": "The event is saved, but the invitations could not be sent: {{message}}"
     },
     "accounts": {
       "title": "Calendar accounts",
@@ -2566,6 +2575,22 @@
       "fromMailTitle": "Use a mail account",
       "fromMailHint": "Tries the mail account's own server and password. Nothing is sent to any other host.",
       "fromMailNone": "No calendar server was found on {{host}}: {{error}}"
+    },
+    "reply": {
+      "question": "Going?",
+      "yes": "Yes",
+      "maybe": "Maybe",
+      "no": "No"
+    },
+    "mail": {
+      "invite": "Invitation: {{title}}",
+      "update": "Updated invitation: {{title}}",
+      "cancel": "Cancelled: {{title}}",
+      "accepted": "Accepted: {{title}}",
+      "declined": "Declined: {{title}}",
+      "tentative": "Tentative: {{title}}",
+      "when": "When",
+      "where": "Where"
     }
   }
 }

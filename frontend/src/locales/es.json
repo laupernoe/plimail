@@ -2503,7 +2503,12 @@
       "untilBeforeStart": "La fecha final de la repetición no puede ser anterior al inicio.",
       "countInvalid": "Indica cuántas veces se repite el evento (al menos 1).",
       "noWritable": "No hay ningún calendario editable disponible para este evento.",
-      "customHint": "Esta serie tiene una regla de repetición personalizada. Se conserva tal cual."
+      "customHint": "Esta serie tiene una regla de repetición personalizada. Se conserva tal cual.",
+      "guests": "Invitados",
+      "guestsPlaceholder": "Añade personas por nombre o dirección",
+      "guestsHint": "Las invitaciones se envían al guardar.",
+      "invitedBy": "Invitación de {{name}}. Solo quien organiza puede cambiar los invitados.",
+      "removeGuest": "Quitar a {{name}}"
     },
     "recurrence": {
       "none": "No se repite",
@@ -2532,7 +2537,11 @@
       "server": "El servidor del calendario rechazó el cambio o no responde, así que no se cambió nada: {{message}}",
       "generic": "Algo salió mal: {{message}}",
       "load": "No se pudieron cargar los datos del calendario: {{message}}",
-      "noWritable": "Ninguno de tus calendarios admite eventos nuevos. Añade un calendario que no sea de solo lectura."
+      "noWritable": "Ninguno de tus calendarios admite eventos nuevos. Añade un calendario que no sea de solo lectura.",
+      "noSender": "Ninguna cuenta de correo envía desde la dirección de tu calendario, así que no se pueden enviar las invitaciones. Añade esa dirección como cuenta o alias.",
+      "notOrganizer": "Solo quien organiza puede cambiar los invitados.",
+      "inviteNoSender": "El evento está guardado, pero ninguna cuenta de correo envía desde la dirección de tu calendario, así que no se avisó a nadie.",
+      "inviteFailed": "El evento está guardado, pero no se pudieron enviar las invitaciones: {{message}}"
     },
     "accounts": {
       "title": "Cuentas de calendario",
@@ -2566,6 +2575,22 @@
       "fromMailTitle": "Usar una cuenta de correo",
       "fromMailHint": "Prueba el servidor y la contraseña de la cuenta de correo. No se envía nada a ningún otro servidor.",
       "fromMailNone": "No se encontró ningún servidor de calendario en {{host}}: {{error}}"
+    },
+    "reply": {
+      "question": "¿Asistirás?",
+      "yes": "Sí",
+      "maybe": "Quizás",
+      "no": "No"
+    },
+    "mail": {
+      "invite": "Invitación: {{title}}",
+      "update": "Invitación actualizada: {{title}}",
+      "cancel": "Cancelado: {{title}}",
+      "accepted": "Aceptado: {{title}}",
+      "declined": "Rechazado: {{title}}",
+      "tentative": "Provisional: {{title}}",
+      "when": "Cuándo",
+      "where": "Dónde"
     }
   }
 }

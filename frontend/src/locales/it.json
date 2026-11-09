@@ -2503,7 +2503,12 @@
       "untilBeforeStart": "La data di fine della ripetizione non può precedere l'inizio.",
       "countInvalid": "Indica quante volte si ripete l'evento (almeno 1).",
       "noWritable": "Nessun calendario modificabile è disponibile per questo evento.",
-      "customHint": "Questa serie ha una regola di ripetizione personalizzata. Viene mantenuta così com'è."
+      "customHint": "Questa serie ha una regola di ripetizione personalizzata. Viene mantenuta così com'è.",
+      "guests": "Invitati",
+      "guestsPlaceholder": "Aggiungi persone per nome o indirizzo",
+      "guestsHint": "Gli inviti partono al salvataggio.",
+      "invitedBy": "Invito di {{name}}. Solo chi organizza può cambiare gli invitati.",
+      "removeGuest": "Rimuovi {{name}}"
     },
     "recurrence": {
       "none": "Non si ripete",
@@ -2532,7 +2537,11 @@
       "server": "Il server del calendario ha rifiutato la modifica o non è raggiungibile, quindi non è stato modificato nulla: {{message}}",
       "generic": "Qualcosa è andato storto: {{message}}",
       "load": "Impossibile caricare i dati del calendario: {{message}}",
-      "noWritable": "Nessuno dei tuoi calendari accetta nuovi eventi. Aggiungi un calendario che non sia di sola lettura."
+      "noWritable": "Nessuno dei tuoi calendari accetta nuovi eventi. Aggiungi un calendario che non sia di sola lettura.",
+      "noSender": "Nessun account di posta invia dall'indirizzo del tuo calendario, quindi gli inviti non possono partire. Aggiungi quell'indirizzo come account o alias.",
+      "notOrganizer": "Solo chi organizza può cambiare gli invitati.",
+      "inviteNoSender": "L'evento è salvato, ma nessun account di posta invia dall'indirizzo del tuo calendario, quindi nessuno è stato avvisato.",
+      "inviteFailed": "L'evento è salvato, ma non è stato possibile inviare gli inviti: {{message}}"
     },
     "accounts": {
       "title": "Account calendario",
@@ -2566,6 +2575,22 @@
       "fromMailTitle": "Usa un account di posta",
       "fromMailHint": "Prova il server e la password dell'account di posta. Nulla viene inviato ad altri server.",
       "fromMailNone": "Nessun server di calendario trovato su {{host}}: {{error}}"
+    },
+    "reply": {
+      "question": "Partecipi?",
+      "yes": "Sì",
+      "maybe": "Forse",
+      "no": "No"
+    },
+    "mail": {
+      "invite": "Invito: {{title}}",
+      "update": "Invito aggiornato: {{title}}",
+      "cancel": "Annullato: {{title}}",
+      "accepted": "Accettato: {{title}}",
+      "declined": "Rifiutato: {{title}}",
+      "tentative": "Provvisorio: {{title}}",
+      "when": "Quando",
+      "where": "Dove"
     }
   }
 }

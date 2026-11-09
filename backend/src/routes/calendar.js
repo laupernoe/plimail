@@ -11,7 +11,8 @@ import { validateHost } from '../services/hostValidation.js';
 import { getConnectionPolicy } from '../services/connectionPolicy.js';
 import { discoverCalendars, findCalDavServer, getEvent, putEvent, deleteEvent } from '../services/caldavClient.js';
 import { syncAccount, credentialsFor, isSyncing } from '../services/caldavSync.js';
-import { applyEdit, buildEvent, expandResource, removeOccurrence, resourceInfo, seriesMarkers } from '../services/icalEvents.js';
+import { applyEdit, buildEvent, expandResource, inviteInfo, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
+import { forgetScheduling, knownAddresses, mailItip, mailLabels, planInvites } from '../services/calendarInvites.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -22,6 +23,9 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const RID_RE = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z?)?$/;
 const COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 const FREQS = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'];
+const EMAIL_RE = /^[^\s@<>",;:]+@[^\s@<>",;:]+\.[^\s@<>",;:]+$/;
+const MAX_ATTENDEES = 200;
+const PARTSTATS = ['ACCEPTED', 'DECLINED', 'TENTATIVE'];
 const clampInterval = v => Math.max(5, Math.min(1440, parseInt(v) || 15));
 const badRequest = (res, error) => res.status(400).json({ error });
 
@@ -155,6 +159,7 @@ router.patch('/accounts/:id', async (req, res) => {
 });
 
 router.post('/accounts/:id/sync', async (req, res) => {
+  forgetScheduling(req.params.id);
   const account = await loadAccount(req.session.userId, req.params.id);
   if (!account) return res.status(404).json({ error: 'Not found' });
   if (isSyncing(account.id)) return res.status(409).json({ error: 'A sync is already in progress' });
@@ -165,6 +170,7 @@ router.post('/accounts/:id/sync', async (req, res) => {
 router.delete('/accounts/:id', async (req, res) => {
   const r = await query('DELETE FROM caldav_accounts WHERE id = $1 AND user_id = $2', [req.params.id, req.session.userId]);
   if (!r.rowCount) return res.status(404).json({ error: 'Not found' });
+  forgetScheduling(req.params.id);
   res.json({ ok: true });
 });
 
@@ -189,6 +195,14 @@ router.patch('/calendars/:id', async (req, res) => {
   res.json(publicCalendar(c.rows[0]));
 });
 
+// Whether the user organizes an event, and their own answer when someone else does.
+function roleOf(occ, mine) {
+  const organizer = occ.organizer?.email?.toLowerCase() || null;
+  const organizerIsMe = Boolean(organizer && mine.has(organizer));
+  const me = organizerIsMe ? null : (occ.attendees || []).find(a => a.email && mine.has(a.email.toLowerCase()));
+  return { organizerIsMe, myStatus: me ? (me.status || 'NEEDS-ACTION') : null };
+}
+
 router.get('/events', async (req, res) => {
   const fromMs = Date.parse(req.query.from);
   const toMs = Date.parse(req.query.to);
@@ -201,6 +215,7 @@ router.get('/events', async (req, res) => {
      WHERE e.user_id = $1 AND c.visible AND e.range_start < $3 AND (e.range_end IS NULL OR e.range_end > $2)`,
     [req.session.userId, new Date(fromMs), new Date(toMs)],
   );
+  const mine = new Set(await knownAddresses(req.session.userId));
   const events = [];
   for (const [i, row] of r.rows.entries()) {
     // This process also runs the mail engine: a large calendar must not hold it up.
@@ -209,7 +224,7 @@ router.get('/events', async (req, res) => {
       for (const occ of expandResource(row.ical, fromMs, toMs, { floatingTz })) {
         events.push({
           ...occ, id: `${row.id}:${occ.recurrenceId || ''}`, eventId: row.id,
-          calendarId: row.calendar_id, readOnly: row.read_only,
+          calendarId: row.calendar_id, readOnly: row.read_only, ...roleOf(occ, mine),
         });
       }
     } catch (err) {
@@ -263,6 +278,19 @@ function eventInput(body, { requireDates }) {
       if (count != null && (!Number.isInteger(count) || count < 1 || count > 10000)) return { error: 'Invalid recurrence' };
       if (interval != null && (!Number.isInteger(interval) || interval < 1 || interval > 1000)) return { error: 'Invalid recurrence' };
       input.recurrence = { freq, interval: interval || 1, until: until || null, count: count || null };
+    }
+  }
+  if (b.attendees !== undefined) {
+    if (!Array.isArray(b.attendees) || b.attendees.length > MAX_ATTENDEES) return { error: 'Invalid attendees' };
+    const seen = new Set();
+    input.attendees = [];
+    for (const a of b.attendees) {
+      const email = typeof a?.email === 'string' ? a.email.trim().toLowerCase() : '';
+      if (!EMAIL_RE.test(email) || email.length > 320) return { error: 'Invalid attendee address', code: 'bad_attendee' };
+      if (a.name != null && (typeof a.name !== 'string' || a.name.length > 200)) return { error: 'Invalid attendees' };
+      if (seen.has(email)) continue;
+      seen.add(email);
+      input.attendees.push({ email, name: a.name?.trim().replace(/[\r\n]/g, ' ') || null });
     }
   }
   if (b.reminderMinutes !== undefined) {
@@ -345,8 +373,38 @@ async function sendWriteError(res, err, accountId) {
   }
   if (err.notFound) return res.status(404).json({ error: err.message });
   if (err.forbidden) return readOnlyError(res);
+  if (err.code === 'no_organizer') return res.status(400).json({ error: err.message, code: 'no_sender' });
   console.warn(`Calendar: write failed: ${err.message}`);
   return res.status(502).json({ error: err.message });
+}
+
+function mailOptions(req) {
+  const lang = typeof req.body?.lang === 'string' && /^[a-zA-Z-]{2,20}$/.test(req.body.lang) ? req.body.lang : 'en';
+  const timeZone = typeof req.body?.timezone === 'string' && req.body.timezone.length < 100 ? req.body.timezone : 'UTC';
+  return { labels: mailLabels(req.body?.mailLabels), lang, timeZone };
+}
+
+// Mails what a server that does not schedule leaves to the client. The event is saved by now, so a
+// failure here is reported beside the success rather than as one.
+async function mailAfterWrite(userId, plan, messages, opts) {
+  if (plan?.mode !== 'mail' || !plan.organizer) return {};
+  let sent = 0;
+  try {
+    for (const m of messages) {
+      if (!m.to.length) continue;
+      sent += (await mailItip({ userId, from: m.from || plan.organizer.email, ...m, ...opts })).sent;
+    }
+    return sent ? { invitesSent: sent } : {};
+  } catch (err) {
+    return { inviteError: err.message, ...(err.code ? { inviteErrorCode: err.code } : {}) };
+  }
+}
+
+async function planFor(userId, row) {
+  const accountId = row.account_id;
+  const calendarUrl = row.calendar_url || row.url;
+  const creds = await credentialsFor(row);
+  return { creds, plan: await planInvites({ userId, accountId, calendarUrl, username: row.username, creds }) };
 }
 
 router.post('/events', async (req, res) => {
@@ -355,13 +413,23 @@ router.post('/events', async (req, res) => {
   if (calendar.read_only) return readOnlyError(res);
   const { input, error } = eventInput(req.body, { requireDates: true });
   if (error) return badRequest(res, error);
-  const { uid, ical } = buildEvent(input);
-  const href = new URL(`${encodeURIComponent(uid)}.ics`, calendar.url.endsWith('/') ? calendar.url : `${calendar.url}/`).href;
   try {
-    const creds = await credentialsFor(calendar);
+    let creds;
+    let plan = null;
+    if (input.attendees?.length) {
+      ({ creds, plan } = await planFor(req.session.userId, calendar));
+      input.organizer = plan.organizer;
+    } else {
+      creds = await credentialsFor(calendar);
+    }
+    const { uid, ical } = buildEvent(input);
+    const href = new URL(`${encodeURIComponent(uid)}.ics`, calendar.url.endsWith('/') ? calendar.url : `${calendar.url}/`).href;
     const { url } = await putEvent(href, ical, creds, { create: true });
     const eventId = await storeFromServer(calendar.id, calendar.user_id, url, ical, creds);
-    res.json({ ok: true, eventId });
+    const mailed = await mailAfterWrite(req.session.userId, plan, [
+      { to: inviteInfo(ical).attendees, method: 'REQUEST', ics: ical, kind: 'invite' },
+    ], mailOptions(req));
+    res.json({ ok: true, eventId, ...mailed });
   } catch (err) {
     await sendWriteError(res, err, calendar.account_id);
   }
@@ -391,8 +459,22 @@ router.patch('/events/:eventId', async (req, res) => {
   }
 
   try {
+    const before = inviteInfo(event.ical);
+    let creds;
+    let plan = null;
+    if (input.attendees !== undefined || before.attendees.length) {
+      ({ creds, plan } = await planFor(req.session.userId, event));
+      const mine = before.organizer && plan.myEmails.includes(before.organizer);
+      if (before.organizer && !mine) {
+        if (input.attendees !== undefined) return res.status(403).json({ error: 'Only the organizer can change who is invited', code: 'not_organizer' });
+        plan = null;
+      }
+      if (before.organizer && mine) plan.organizer = { ...plan.organizer, email: before.organizer };
+      input.organizer = plan?.organizer;
+    } else {
+      creds = await credentialsFor(event);
+    }
     const ical = applyEdit(event.ical, input, { scope, recurrenceId });
-    const creds = await credentialsFor(event);
     if (target) {
       const base = target.url.endsWith('/') ? target.url : `${target.url}/`;
       const href = new URL(`${crypto.randomUUID()}.ics`, base).href;
@@ -404,7 +486,14 @@ router.patch('/events/:eventId', async (req, res) => {
       await putKeepingMarkers(event.href, ical, creds, event.etag);
       await storeFromServer(event.calendar_id, event.user_id, event.href, ical, creds);
     }
-    res.json({ ok: true });
+    const after = inviteInfo(ical);
+    const removed = before.attendees.filter(e => !after.attendees.includes(e));
+    const onlyReminder = Object.keys(input).every(k => ['reminderMinutes', 'organizer', 'timezone'].includes(k));
+    const mailed = await mailAfterWrite(req.session.userId, plan, [
+      { to: removed, method: 'CANCEL', ics: event.ical, kind: 'cancel', only: removed },
+      { to: onlyReminder ? [] : after.attendees, method: 'REQUEST', ics: ical, kind: before.attendees.length ? 'update' : 'invite' },
+    ], mailOptions(req));
+    res.json({ ok: true, ...mailed });
   } catch (err) {
     await sendWriteError(res, err, event.account_id);
   }
@@ -417,7 +506,16 @@ router.delete('/events/:eventId', async (req, res) => {
   const { scope, recurrenceId } = req.query;
   if (scope === 'this' && (typeof recurrenceId !== 'string' || !RID_RE.test(recurrenceId))) return badRequest(res, 'Invalid occurrence');
   try {
-    const creds = await credentialsFor(event);
+    const before = inviteInfo(event.ical);
+    let creds;
+    let plan = null;
+    if (before.attendees.length && before.organizer) {
+      ({ creds, plan } = await planFor(req.session.userId, event));
+      if (!plan.myEmails.includes(before.organizer)) plan = null;
+      else plan.organizer = { ...plan.organizer, email: before.organizer };
+    } else {
+      creds = await credentialsFor(event);
+    }
     const remaining = scope === 'this' ? removeOccurrence(event.ical, recurrenceId) : null;
     if (remaining) {
       await putEvent(event.href, remaining, creds, { etag: event.etag });
@@ -426,7 +524,33 @@ router.delete('/events/:eventId', async (req, res) => {
       await deleteEvent(event.href, creds, { etag: event.etag });
       await query('DELETE FROM calendar_events WHERE id = $1', [event.id]);
     }
-    res.json({ ok: true });
+    const mailed = await mailAfterWrite(req.session.userId, plan, [remaining
+      ? { to: before.attendees, method: 'REQUEST', ics: remaining, kind: 'update' }
+      : { to: before.attendees, method: 'CANCEL', ics: event.ical, kind: 'cancel' }], mailOptions(req));
+    res.json({ ok: true, ...mailed });
+  } catch (err) {
+    await sendWriteError(res, err, event.account_id);
+  }
+});
+
+// The user's answer to an invitation from someone else, for the whole series.
+router.post('/events/:eventId/reply', async (req, res) => {
+  const event = await loadEvent(req.session.userId, req.params.eventId);
+  if (!event) return res.status(404).json({ error: 'Event not found' });
+  if (event.read_only) return readOnlyError(res);
+  const partstat = req.body?.status;
+  if (!PARTSTATS.includes(partstat)) return badRequest(res, 'Invalid answer');
+  try {
+    const { creds, plan } = await planFor(req.session.userId, event);
+    const { organizer } = inviteInfo(event.ical);
+    if (!organizer || plan.myEmails.includes(organizer)) return badRequest(res, 'This is not an invitation from someone else');
+    const { ical, email } = setReply(event.ical, plan.myEmails, partstat);
+    await putEvent(event.href, ical, creds, { etag: event.etag });
+    await storeFromServer(event.calendar_id, event.user_id, event.href, ical, creds);
+    const mailed = await mailAfterWrite(req.session.userId, { ...plan, organizer: plan.organizer || { email } }, [
+      { from: email, to: [organizer], method: 'REPLY', ics: ical, kind: partstat.toLowerCase(), only: [email] },
+    ], mailOptions(req));
+    res.json({ ok: true, ...mailed });
   } catch (err) {
     await sendWriteError(res, err, event.account_id);
   }

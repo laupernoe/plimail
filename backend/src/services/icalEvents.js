@@ -475,6 +475,119 @@ function applyText(vevent, input) {
   if (input.description !== undefined) setText(vevent, 'description', input.description);
 }
 
+// ── Invitations ───────────────────────────────────────────────────────────────
+
+export const emailOf = prop => String(prop?.getFirstValue() || '').replace(/^mailto:/i, '').trim().toLowerCase();
+
+function personProp(name, { email, name: cn }) {
+  const prop = new ICAL.Property(name);
+  prop.setValue(`mailto:${email}`);
+  if (cn) prop.setParameter('cn', cn);
+  return prop;
+}
+
+// The organizer heads the attendee list, as Thunderbird and Outlook write it. Attendees already on
+// the event keep their parameters, answers included; someone new is asked to answer.
+function setAttendees(vevent, attendees, organizer) {
+  const existing = new Map(vevent.getAllProperties('attendee').map(p => [emailOf(p), p]));
+  vevent.removeAllProperties('attendee');
+  if (!attendees.length) {
+    vevent.removeAllProperties('organizer');
+    return;
+  }
+  let org = vevent.getFirstProperty('organizer');
+  if (!org) {
+    if (!organizer?.email) throw Object.assign(new Error('No address to send invitations from'), { code: 'no_organizer' });
+    org = vevent.addProperty(personProp('organizer', organizer));
+  }
+  const orgEmail = emailOf(org);
+  const list = [{ email: orgEmail, name: org.getParameter('cn') || null }, ...attendees.filter(a => a.email !== orgEmail)];
+  for (const a of list) {
+    let prop = existing.get(a.email);
+    if (!prop) {
+      prop = personProp('attendee', a);
+      prop.setParameter('cutype', 'INDIVIDUAL');
+      prop.setParameter('role', a.email === orgEmail ? 'CHAIR' : 'REQ-PARTICIPANT');
+      prop.setParameter('partstat', a.email === orgEmail ? 'ACCEPTED' : 'NEEDS-ACTION');
+      if (a.email !== orgEmail) prop.setParameter('rsvp', 'TRUE');
+    }
+    vevent.addProperty(prop);
+  }
+}
+
+const timing = vevent => ['dtstart', 'dtend', 'duration', 'rrule', 'rdate', 'exdate']
+  .map(name => vevent.getAllProperties(name).map(p => p.toICALString()).join('|')).join('\n');
+
+// A new time asks everyone again, as RFC 5546 lets the organizer do; their old answer was for another slot.
+function askAgain(vevent) {
+  const orgEmail = emailOf(vevent.getFirstProperty('organizer'));
+  for (const prop of vevent.getAllProperties('attendee')) {
+    if (emailOf(prop) === orgEmail) continue;
+    prop.setParameter('partstat', 'NEEDS-ACTION');
+    prop.setParameter('rsvp', 'TRUE');
+  }
+}
+
+// Who is invited to a resource: the organizer and every attendee across the series and its exceptions.
+export function inviteInfo(ics) {
+  const root = parseRoot(ics);
+  const events = root.getAllSubcomponents('vevent');
+  const organizer = events.map(v => emailOf(v.getFirstProperty('organizer'))).find(Boolean) || null;
+  const attendees = [];
+  for (const v of events) {
+    for (const prop of v.getAllProperties('attendee')) {
+      const email = emailOf(prop);
+      if (email && email !== organizer && !attendees.includes(email)) attendees.push(email);
+    }
+  }
+  const { master } = masterAndOverrides(root);
+  const first = master || events[0];
+  return { organizer, attendees, summary: first ? text(first, 'summary') || '' : '', uid: first?.getFirstPropertyValue('uid') || null };
+}
+
+// One's own answer, on the series and every exception that invites the same address.
+export function setReply(ics, myEmails, partstat) {
+  const root = parseRoot(ics);
+  const mine = new Set(myEmails.map(e => e.toLowerCase()));
+  let email = null;
+  for (const vevent of root.getAllSubcomponents('vevent')) {
+    for (const prop of vevent.getAllProperties('attendee')) {
+      if (!mine.has(emailOf(prop))) continue;
+      email = emailOf(prop);
+      prop.setParameter('partstat', partstat);
+      prop.removeParameter('rsvp');
+    }
+    vevent.updatePropertyWithValue('dtstamp', ICAL.Time.fromJSDate(new Date(), true));
+  }
+  if (!email) throw Object.assign(new Error('You are not invited to this event'), { notFound: true });
+  return { ical: root.toString(), email };
+}
+
+// RFC 6047 message body for an invitation (REQUEST), a cancellation (CANCEL) or an answer (REPLY).
+// Alarms are the sender's own. `only` narrows the attendees: the people a CANCEL removes, or the
+// one answering a REPLY.
+export function itipMessage(ics, method, { only } = {}) {
+  const root = parseRoot(ics);
+  root.removeAllProperties('method');
+  root.addPropertyWithValue('method', method);
+  const keep = only && new Set(only.map(e => e.toLowerCase()));
+  for (const vevent of root.getAllSubcomponents('vevent')) {
+    for (const alarm of vevent.getAllSubcomponents('valarm')) vevent.removeSubcomponent(alarm);
+    if (keep) {
+      const orgEmail = emailOf(vevent.getFirstProperty('organizer'));
+      for (const prop of vevent.getAllProperties('attendee')) {
+        const email = emailOf(prop);
+        if (!keep.has(email) && !(method === 'CANCEL' && email === orgEmail)) vevent.removeProperty(prop);
+      }
+    }
+    if (method === 'CANCEL') {
+      vevent.updatePropertyWithValue('status', 'CANCELLED');
+      vevent.updatePropertyWithValue('sequence', (Number(vevent.getFirstPropertyValue('sequence')) || 0) + 1);
+    }
+  }
+  return root.toString();
+}
+
 export function buildEvent(input, uid = crypto.randomUUID()) {
   const root = new ICAL.Component('vcalendar');
   root.addPropertyWithValue('version', '2.0');
@@ -492,6 +605,7 @@ export function buildEvent(input, uid = crypto.randomUUID()) {
   setBounds(vevent, input, tzid);
   if (input.recurrence) setRecurrence(vevent, input.recurrence, input, tzid, null);
   if (input.reminderMinutes != null) setReminder(vevent, input.reminderMinutes);
+  if (input.attendees?.length) setAttendees(vevent, input.attendees, input.organizer);
   root.addSubcomponent(vevent);
   if (tzid) ensureTimezone(root, tzid);
   return { uid, ical: root.toString() };
@@ -548,9 +662,12 @@ function editOccurrence(root, input, recurrenceId, zones) {
   }
   const current = bounds(target, zones);
   const tzid = input.allDay ? null : (current?.tzid || input.timezone);
+  const before = timing(target);
   applyText(target, input);
   setBounds(target, input, tzid, zones);
   if (input.reminderMinutes !== undefined) setReminder(target, input.reminderMinutes);
+  if (input.attendees !== undefined) setAttendees(target, input.attendees, input.organizer);
+  if (timing(target) !== before) askAgain(target);
   touch(target);
   if (tzid) ensureTimezone(root, tzid);
 }
@@ -609,6 +726,7 @@ function editSeries(root, input, recurrenceId, zones) {
   const { master, overrides } = masterAndOverrides(root);
   if (!master) throw Object.assign(new Error('Event not found'), { notFound: true });
   const b = bounds(master, zones);
+  const before = timing(master);
   applyText(master, input);
   if (input.start !== undefined) {
     // The form holds one occurrence's dates. The series moves by the same amount, from its own start.
@@ -645,6 +763,11 @@ function editSeries(root, input, recurrenceId, zones) {
     setRecurrence(master, input.recurrence, { allDay: b.allDay }, b.tzid, zones);
   }
   if (input.reminderMinutes !== undefined) setReminder(master, input.reminderMinutes);
+  if (input.attendees !== undefined) {
+    setAttendees(master, input.attendees, input.organizer);
+    for (const o of masterAndOverrides(root).overrides) setAttendees(o, input.attendees, input.organizer);
+  }
+  if (timing(master) !== before) askAgain(master);
   touch(master);
 }
 

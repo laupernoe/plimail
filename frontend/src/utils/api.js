@@ -533,8 +533,9 @@ export const api = {
     createEvent:   (data)       => request('POST',   '/calendar/events', data),
     updateEvent:   (id, data)   => request('PATCH',  `/calendar/events/${encodeURIComponent(id)}`, data),
     // scope 'this' names one occurrence of a series by its recurrenceId.
-    deleteEvent:   (id, { scope = 'all', recurrenceId } = {}) => request('DELETE',
-      `/calendar/events/${encodeURIComponent(id)}?scope=${scope}${recurrenceId ? `&recurrenceId=${encodeURIComponent(recurrenceId)}` : ''}`),
+    deleteEvent:   (id, { scope = 'all', recurrenceId } = {}, extra) => request('DELETE',
+      `/calendar/events/${encodeURIComponent(id)}?scope=${scope}${recurrenceId ? `&recurrenceId=${encodeURIComponent(recurrenceId)}` : ''}`, extra),
+    replyEvent:    (id, status, extra) => request('POST', `/calendar/events/${encodeURIComponent(id)}/reply`, { ...extra, status }),
   },
 
   // Image whitelist

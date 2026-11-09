@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import ICAL from 'ical.js';
-import { applyEdit, buildEvent, expandResource, removeOccurrence, resourceInfo, seriesMarkers, vtimezoneBlock } from './icalEvents.js';
+import { applyEdit, buildEvent, expandResource, inviteInfo, itipMessage, removeOccurrence, resourceInfo, seriesMarkers, setReply, vtimezoneBlock } from './icalEvents.js';
 
 const range = (from, to) => [Date.parse(from), Date.parse(to)];
 const cal = (...lines) => ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//t//EN', ...lines, 'END:VCALENDAR'].join('\r\n');
@@ -304,5 +304,87 @@ describe('removeOccurrence', () => {
   it('returns null when the last override of a master-less resource goes', () => {
     const ics = cal('BEGIN:VEVENT', 'UID:s', 'DTSTAMP:20260101T000000Z', 'RECURRENCE-ID:20261103T090000Z', 'DTSTART:20261103T090000Z', 'DTEND:20261103T100000Z', 'END:VEVENT');
     expect(removeOccurrence(ics, '2026-11-03T09:00:00Z')).toBeNull();
+  });
+});
+
+describe('invitations', () => {
+  const me = { email: 'noe@example.com', name: 'Noé' };
+  const timed = { summary: 'Point', allDay: false, start: '2027-03-10T09:00:00Z', end: '2027-03-10T10:00:00Z', timezone: 'Europe/Zurich' };
+  const attendeesOf = ics => expandResource(ics, ...range('2027-03-01T00:00:00Z', '2027-04-01T00:00:00Z'))[0].attendees;
+
+  it('writes the organizer and asks each new attendee to answer', () => {
+    const { ical } = buildEvent({ ...timed, attendees: [{ email: 'ana@example.com', name: 'Ana' }], organizer: me });
+    const occ = expandResource(ical, ...range('2027-03-01T00:00:00Z', '2027-04-01T00:00:00Z'))[0];
+    expect(occ.organizer).toEqual({ name: 'Noé', email: 'noe@example.com' });
+    expect(occ.attendees).toEqual([
+      { name: 'Noé', email: 'noe@example.com', status: 'ACCEPTED' },
+      { name: 'Ana', email: 'ana@example.com', status: 'NEEDS-ACTION' },
+    ]);
+    expect(ical.replace(/\r\n /g, '')).toMatch(/ATTENDEE;[^\r\n]*RSVP=TRUE[^\r\n]*:mailto:ana@example\.com/);
+  });
+
+  it('refuses invitations without an address to send them from', () => {
+    expect(() => buildEvent({ ...timed, attendees: [{ email: 'ana@example.com' }] })).toThrow(/address/);
+  });
+
+  it('keeps answers already given and drops someone taken off the list', () => {
+    const { ical } = buildEvent({ ...timed, attendees: [{ email: 'ana@example.com' }, { email: 'bob@example.com' }], organizer: me });
+    const answered = setReply(ical, ['ana@example.com'], 'ACCEPTED').ical;
+    const edited = applyEdit(answered, { attendees: [{ email: 'ana@example.com' }, { email: 'cy@example.com' }], organizer: me });
+    expect(attendeesOf(edited).map(a => [a.email, a.status])).toEqual([
+      ['noe@example.com', 'ACCEPTED'], ['ana@example.com', 'ACCEPTED'], ['cy@example.com', 'NEEDS-ACTION'],
+    ]);
+  });
+
+  it('asks again when the time changes, not when only the title does', () => {
+    const { ical } = buildEvent({ ...timed, attendees: [{ email: 'ana@example.com' }], organizer: me });
+    const answered = setReply(ical, ['ana@example.com'], 'ACCEPTED').ical;
+    const renamed = applyEdit(answered, { summary: 'Point (salle 2)' });
+    expect(attendeesOf(renamed)[1].status).toBe('ACCEPTED');
+    const moved = applyEdit(answered, { ...timed, start: '2027-03-10T13:00:00Z', end: '2027-03-10T14:00:00Z' });
+    expect(attendeesOf(moved)[1].status).toBe('NEEDS-ACTION');
+    expect(attendeesOf(moved)[0].status).toBe('ACCEPTED');
+  });
+
+  it('turns back into a plain event when the last attendee goes', () => {
+    const { ical } = buildEvent({ ...timed, attendees: [{ email: 'ana@example.com' }], organizer: me });
+    const plain = applyEdit(ical, { attendees: [] });
+    expect(plain).not.toMatch(/ATTENDEE|ORGANIZER/);
+  });
+
+  it('lists who is invited across a series and its exceptions', () => {
+    const series = cal(
+      'BEGIN:VEVENT', 'UID:s1', 'DTSTAMP:20260101T000000Z', 'SUMMARY:Weekly', 'DTSTART:20270301T090000Z', 'DTEND:20270301T100000Z',
+      'RRULE:FREQ=WEEKLY', 'ORGANIZER:mailto:Noe@Example.com', 'ATTENDEE:mailto:noe@example.com', 'ATTENDEE:mailto:ana@example.com', 'END:VEVENT',
+      'BEGIN:VEVENT', 'UID:s1', 'DTSTAMP:20260101T000000Z', 'RECURRENCE-ID:20270308T090000Z', 'DTSTART:20270308T110000Z', 'DTEND:20270308T120000Z',
+      'ORGANIZER:mailto:noe@example.com', 'ATTENDEE:mailto:bob@example.com', 'END:VEVENT',
+    );
+    expect(inviteInfo(series)).toEqual({ organizer: 'noe@example.com', attendees: ['ana@example.com', 'bob@example.com'], summary: 'Weekly', uid: 's1' });
+  });
+
+  it('answers on the series and its exceptions', () => {
+    const series = cal(
+      'BEGIN:VEVENT', 'UID:s2', 'DTSTAMP:20260101T000000Z', 'DTSTART:20270301T090000Z', 'DTEND:20270301T100000Z', 'RRULE:FREQ=WEEKLY',
+      'ORGANIZER:mailto:boss@example.com', 'ATTENDEE;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:noe@example.com', 'END:VEVENT',
+      'BEGIN:VEVENT', 'UID:s2', 'DTSTAMP:20260101T000000Z', 'RECURRENCE-ID:20270308T090000Z', 'DTSTART:20270308T110000Z', 'DTEND:20270308T120000Z',
+      'ORGANIZER:mailto:boss@example.com', 'ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:noe@example.com', 'END:VEVENT',
+    );
+    const { ical, email } = setReply(series, ['NOE@example.com'], 'TENTATIVE');
+    expect(email).toBe('noe@example.com');
+    expect(ical.match(/PARTSTAT=TENTATIVE/g)).toHaveLength(2);
+    expect(ical).not.toMatch(/RSVP/);
+    expect(() => setReply(series, ['someone@example.com'], 'ACCEPTED')).toThrow(/not invited/);
+  });
+
+  it('builds a cancellation for the people taken off, without the alarms', () => {
+    const { ical } = buildEvent({ ...timed, reminderMinutes: 10, attendees: [{ email: 'ana@example.com' }, { email: 'bob@example.com' }], organizer: me });
+    const msg = itipMessage(ical, 'CANCEL', { only: ['bob@example.com'] });
+    expect(msg).toMatch(/METHOD:CANCEL/);
+    expect(msg).toMatch(/STATUS:CANCELLED/);
+    expect(msg).toMatch(/SEQUENCE:1/);
+    expect(msg).toMatch(/mailto:bob@example\.com/);
+    expect(msg).not.toMatch(/mailto:ana@example\.com/);
+    expect(msg).not.toMatch(/VALARM/);
+    expect(itipMessage(ical, 'REQUEST')).toMatch(/METHOD:REQUEST[\s\S]*mailto:ana@example\.com[\s\S]*mailto:bob@example\.com/);
   });
 });

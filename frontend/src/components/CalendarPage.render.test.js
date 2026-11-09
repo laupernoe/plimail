@@ -93,7 +93,7 @@ const callsTo = (name) => calls.filter(c => c[0] === name);
 const refusal = (status, code, message = 'server words') => Object.assign(new Error(message), { status, ...(code ? { code } : {}) });
 
 before(() => {
-  for (const name of ['accounts', 'mailAccounts', 'addFromMail', 'addAccount', 'updateAccount', 'syncAccount', 'removeAccount', 'calendars', 'updateCalendar', 'events', 'createEvent', 'updateEvent', 'deleteEvent']) {
+  for (const name of ['accounts', 'mailAccounts', 'addFromMail', 'addAccount', 'updateAccount', 'syncAccount', 'removeAccount', 'calendars', 'updateCalendar', 'events', 'createEvent', 'updateEvent', 'deleteEvent', 'replyEvent']) {
     api.calendar[name] = (...a) => answer(name, a);
   }
 });
@@ -109,6 +109,7 @@ beforeEach(() => {
     updateEvent: { ok: true },
     createEvent: { ok: true, eventId: 'new' },
     deleteEvent: { ok: true },
+    replyEvent: { ok: true },
   };
 });
 
@@ -265,7 +266,7 @@ describe('the event popover', () => {
     assert.equal(callsTo('deleteEvent').length, 0);
     await click(byText('common.delete', dialog()));
     await settle();
-    assert.deepEqual(callsTo('deleteEvent')[0], ['deleteEvent', 'e1', { scope: 'all', recurrenceId: undefined }]);
+    assert.deepEqual(callsTo('deleteEvent')[0].slice(0, 3), ['deleteEvent', 'e1', { scope: 'all', recurrenceId: undefined }]);
   });
 
   test('deleting one occurrence of a series asks which and names the occurrence', async () => {
@@ -275,7 +276,7 @@ describe('the event popover', () => {
     assert.ok(dialog().textContent.includes('calendar.scope.deleteTitle'));
     await click(byText('calendar.scope.thisOne'));
     await settle();
-    assert.deepEqual(callsTo('deleteEvent')[0], ['deleteEvent', 'e2', { scope: 'this', recurrenceId: 'R1' }]);
+    assert.deepEqual(callsTo('deleteEvent')[0].slice(0, 3), ['deleteEvent', 'e2', { scope: 'this', recurrenceId: 'R1' }]);
   });
 
   test('a failed delete says so in the popover and fetches again', async () => {

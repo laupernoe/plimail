@@ -26,7 +26,30 @@ function PlainText({ text }) {
   );
 }
 
-function Body({ occ, calendar, color, locale, busy, error, onEdit, onDelete, onClose }) {
+const ANSWERS = [['ACCEPTED', 'calendar.reply.yes'], ['TENTATIVE', 'calendar.reply.maybe'], ['DECLINED', 'calendar.reply.no']];
+
+function Reply({ status, busy, onReply }) {
+  const { t } = useTranslation();
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '8px 10px', borderRadius: 8, background: 'var(--bg-tertiary)' }}>
+      <span style={{ flex: '1 0 auto', fontSize: 13, color: 'var(--text-primary)' }}>{t('calendar.reply.question')}</span>
+      <div role="group" aria-label={t('calendar.reply.question')} style={{ display: 'inline-flex', borderRadius: 7, border: '1px solid var(--border)', overflow: 'hidden' }}>
+        {ANSWERS.map(([value, key], i) => {
+          const on = status === value;
+          return (
+            <button key={value} type="button" aria-pressed={on} disabled={busy} onClick={() => !on && onReply(value)} style={{
+              padding: '5px 11px', fontSize: 12, fontFamily: 'inherit', cursor: busy ? 'default' : 'pointer', border: 'none',
+              borderLeft: i ? '1px solid var(--border)' : 'none',
+              background: on ? 'var(--accent)' : 'var(--bg-secondary)', color: on ? 'var(--accent-text)' : 'var(--text-primary)', fontWeight: on ? 600 : 400,
+            }}>{t(key)}</button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function Body({ occ, calendar, color, locale, busy, error, onEdit, onDelete, onReply, onClose }) {
   const { t } = useTranslation();
   const [confirming, setConfirming] = useState(false);
   const recurrence = occ.isRecurring ? recurrenceText(occ, t, locale) : '';
@@ -66,6 +89,7 @@ function Body({ occ, calendar, color, locale, busy, error, onEdit, onDelete, onC
           </div>
         </Row>
       )}
+      {occ.myStatus && !occ.readOnly && onReply && <Reply status={occ.myStatus} busy={busy} onReply={status => onReply(occ, status)} />}
       {occ.url && /^https?:\/\//i.test(occ.url) && (
         <Row icon="note"><a href={occ.url} target="_blank" rel="noopener noreferrer nofollow" style={{ color: 'var(--accent)' }}>{occ.url}</a></Row>
       )}

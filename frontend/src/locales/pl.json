@@ -2522,7 +2522,12 @@
       "untilBeforeStart": "Data końca powtarzania nie może być przed początkiem.",
       "countInvalid": "Podaj, ile razy wydarzenie się powtarza (co najmniej 1).",
       "noWritable": "Brak kalendarza z możliwością zapisu dla tego wydarzenia.",
-      "customHint": "Ta seria ma niestandardową regułę powtarzania. Zostanie zachowana bez zmian."
+      "customHint": "Ta seria ma niestandardową regułę powtarzania. Zostanie zachowana bez zmian.",
+      "guests": "Uczestnicy",
+      "guestsPlaceholder": "Dodaj osoby po nazwie lub adresie",
+      "guestsHint": "Zaproszenia zostaną wysłane po zapisaniu.",
+      "invitedBy": "Zaproszenie od {{name}}. Tylko organizator może zmieniać uczestników.",
+      "removeGuest": "Usuń {{name}}"
     },
     "recurrence": {
       "none": "Nie powtarza się",
@@ -2551,7 +2556,11 @@
       "server": "Serwer kalendarza odrzucił zmianę lub jest niedostępny, więc nic nie zmieniono: {{message}}",
       "generic": "Coś poszło nie tak: {{message}}",
       "load": "Nie udało się wczytać danych kalendarza: {{message}}",
-      "noWritable": "Żaden z Twoich kalendarzy nie przyjmuje nowych wydarzeń. Dodaj kalendarz, który nie jest tylko do odczytu."
+      "noWritable": "Żaden z Twoich kalendarzy nie przyjmuje nowych wydarzeń. Dodaj kalendarz, który nie jest tylko do odczytu.",
+      "noSender": "Żadne konto pocztowe nie wysyła z adresu Twojego kalendarza, więc zaproszeń nie można wysłać. Dodaj ten adres jako konto lub alias.",
+      "notOrganizer": "Tylko organizator może zmieniać uczestników.",
+      "inviteNoSender": "Wydarzenie jest zapisane, ale żadne konto pocztowe nie wysyła z adresu Twojego kalendarza, więc nikt nie został powiadomiony.",
+      "inviteFailed": "Wydarzenie jest zapisane, ale nie udało się wysłać zaproszeń: {{message}}"
     },
     "accounts": {
       "title": "Konta kalendarza",
@@ -2585,6 +2594,22 @@
       "fromMailTitle": "Użyj konta pocztowego",
       "fromMailHint": "Próbuje serwera i hasła konta pocztowego. Nic nie jest wysyłane na inne serwery.",
       "fromMailNone": "Nie znaleziono serwera kalendarza na {{host}}: {{error}}"
+    },
+    "reply": {
+      "question": "Weźmiesz udział?",
+      "yes": "Tak",
+      "maybe": "Może",
+      "no": "Nie"
+    },
+    "mail": {
+      "invite": "Zaproszenie: {{title}}",
+      "update": "Zmienione zaproszenie: {{title}}",
+      "cancel": "Odwołane: {{title}}",
+      "accepted": "Zaakceptowane: {{title}}",
+      "declined": "Odrzucone: {{title}}",
+      "tentative": "Wstępnie: {{title}}",
+      "when": "Kiedy",
+      "where": "Gdzie"
     }
   }
 }

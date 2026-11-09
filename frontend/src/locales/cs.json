@@ -2522,7 +2522,12 @@
       "untilBeforeStart": "Datum konce opakování nesmí být před začátkem.",
       "countInvalid": "Zadejte, kolikrát se událost opakuje (alespoň 1).",
       "noWritable": "Pro tuto událost není k dispozici žádný upravitelný kalendář.",
-      "customHint": "Tato série má vlastní pravidlo opakování. Zůstane beze změny."
+      "customHint": "Tato série má vlastní pravidlo opakování. Zůstane beze změny.",
+      "guests": "Účastníci",
+      "guestsPlaceholder": "Přidejte lidi podle jména nebo adresy",
+      "guestsHint": "Pozvánky se odešlou při uložení.",
+      "invitedBy": "Pozvánka od {{name}}. Účastníky může měnit jen organizátor.",
+      "removeGuest": "Odebrat {{name}}"
     },
     "recurrence": {
       "none": "Neopakuje se",
@@ -2551,7 +2556,11 @@
       "server": "Kalendářový server změnu odmítl nebo je nedostupný, nic se nezměnilo: {{message}}",
       "generic": "Něco se nepodařilo: {{message}}",
       "load": "Data kalendáře se nepodařilo načíst: {{message}}",
-      "noWritable": "Žádný z vašich kalendářů nepřijímá nové události. Přidejte kalendář, který není jen pro čtení."
+      "noWritable": "Žádný z vašich kalendářů nepřijímá nové události. Přidejte kalendář, který není jen pro čtení.",
+      "noSender": "Z adresy vašeho kalendáře neodesílá žádný poštovní účet, proto pozvánky nelze odeslat. Přidejte tuto adresu jako účet nebo alias.",
+      "notOrganizer": "Účastníky může měnit jen organizátor.",
+      "inviteNoSender": "Událost je uložena, ale z adresy vašeho kalendáře neodesílá žádný poštovní účet, takže nikdo nebyl upozorněn.",
+      "inviteFailed": "Událost je uložena, ale pozvánky se nepodařilo odeslat: {{message}}"
     },
     "accounts": {
       "title": "Kalendářové účty",
@@ -2585,6 +2594,22 @@
       "fromMailTitle": "Použít e-mailový účet",
       "fromMailHint": "Zkusí server a heslo e-mailového účtu. Na jiné servery se nic neodesílá.",
       "fromMailNone": "Na {{host}} nebyl nalezen žádný kalendářový server: {{error}}"
+    },
+    "reply": {
+      "question": "Zúčastníte se?",
+      "yes": "Ano",
+      "maybe": "Možná",
+      "no": "Ne"
+    },
+    "mail": {
+      "invite": "Pozvánka: {{title}}",
+      "update": "Změněná pozvánka: {{title}}",
+      "cancel": "Zrušeno: {{title}}",
+      "accepted": "Přijato: {{title}}",
+      "declined": "Odmítnuto: {{title}}",
+      "tentative": "Předběžně: {{title}}",
+      "when": "Kdy",
+      "where": "Kde"
     }
   }
 }

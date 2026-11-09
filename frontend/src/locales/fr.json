@@ -2503,7 +2503,12 @@
       "untilBeforeStart": "La date de fin de répétition ne peut pas précéder le début.",
       "countInvalid": "Indiquez le nombre de répétitions (1 au minimum).",
       "noWritable": "Aucun agenda modifiable n'est disponible pour cet événement.",
-      "customHint": "Cette série a une règle de répétition personnalisée. Elle est conservée telle quelle."
+      "customHint": "Cette série a une règle de répétition personnalisée. Elle est conservée telle quelle.",
+      "guests": "Participants",
+      "guestsPlaceholder": "Ajouter des personnes par nom ou adresse",
+      "guestsHint": "Les invitations partent à l'enregistrement.",
+      "invitedBy": "Invitation de {{name}}. Seul l'organisateur peut changer les participants.",
+      "removeGuest": "Retirer {{name}}"
     },
     "recurrence": {
       "none": "Ne se répète pas",
@@ -2532,7 +2537,11 @@
       "server": "Le serveur d'agenda a refusé la modification ou est injoignable, rien n'a été modifié : {{message}}",
       "generic": "Une erreur est survenue : {{message}}",
       "load": "Impossible de charger les données de l'agenda : {{message}}",
-      "noWritable": "Aucun de vos agendas n'accepte de nouveaux événements. Ajoutez un agenda qui n'est pas en lecture seule."
+      "noWritable": "Aucun de vos agendas n'accepte de nouveaux événements. Ajoutez un agenda qui n'est pas en lecture seule.",
+      "noSender": "Aucun compte mail n'envoie depuis l'adresse de votre agenda : les invitations ne peuvent pas partir. Ajoutez cette adresse comme compte ou comme alias.",
+      "notOrganizer": "Seul l'organisateur peut changer les participants.",
+      "inviteNoSender": "L'événement est enregistré, mais aucun compte mail n'envoie depuis l'adresse de votre agenda : personne n'a été prévenu.",
+      "inviteFailed": "L'événement est enregistré, mais les invitations n'ont pas pu partir : {{message}}"
     },
     "accounts": {
       "title": "Comptes d'agenda",
@@ -2566,6 +2575,22 @@
       "fromMailTitle": "Utiliser un compte mail",
       "fromMailHint": "Essaie le serveur et le mot de passe du compte mail. Rien n'est envoyé à un autre serveur.",
       "fromMailNone": "Aucun serveur d'agenda trouvé sur {{host}} : {{error}}"
+    },
+    "reply": {
+      "question": "Vous participez ?",
+      "yes": "Oui",
+      "maybe": "Peut-être",
+      "no": "Non"
+    },
+    "mail": {
+      "invite": "Invitation : {{title}}",
+      "update": "Invitation modifiée : {{title}}",
+      "cancel": "Annulé : {{title}}",
+      "accepted": "Accepté : {{title}}",
+      "declined": "Refusé : {{title}}",
+      "tentative": "Peut-être : {{title}}",
+      "when": "Quand",
+      "where": "Où"
     }
   }
 }

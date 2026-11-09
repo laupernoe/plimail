@@ -2503,7 +2503,12 @@
       "untilBeforeStart": "Das Enddatum der Wiederholung darf nicht vor dem Beginn liegen.",
       "countInvalid": "Geben Sie an, wie oft der Termin wiederholt wird (mindestens 1).",
       "noWritable": "Für diesen Termin ist kein beschreibbarer Kalender verfügbar.",
-      "customHint": "Diese Serie hat eine benutzerdefinierte Wiederholungsregel. Sie bleibt unverändert."
+      "customHint": "Diese Serie hat eine benutzerdefinierte Wiederholungsregel. Sie bleibt unverändert.",
+      "guests": "Teilnehmende",
+      "guestsPlaceholder": "Personen per Name oder Adresse hinzufügen",
+      "guestsHint": "Die Einladungen werden beim Speichern verschickt.",
+      "invitedBy": "Eingeladen von {{name}}. Nur die organisierende Person kann die Teilnehmenden ändern.",
+      "removeGuest": "{{name}} entfernen"
     },
     "recurrence": {
       "none": "Keine Wiederholung",
@@ -2532,7 +2537,11 @@
       "server": "Der Kalenderserver hat die Änderung abgelehnt oder ist nicht erreichbar, es wurde nichts geändert: {{message}}",
       "generic": "Es ist ein Fehler aufgetreten: {{message}}",
       "load": "Kalenderdaten konnten nicht geladen werden: {{message}}",
-      "noWritable": "Keiner Ihrer Kalender nimmt neue Termine an. Fügen Sie einen Kalender hinzu, der nicht schreibgeschützt ist."
+      "noWritable": "Keiner Ihrer Kalender nimmt neue Termine an. Fügen Sie einen Kalender hinzu, der nicht schreibgeschützt ist.",
+      "noSender": "Kein E-Mail-Konto sendet von Ihrer Kalenderadresse, daher können die Einladungen nicht verschickt werden. Fügen Sie diese Adresse als Konto oder Alias hinzu.",
+      "notOrganizer": "Nur die organisierende Person kann die Teilnehmenden ändern.",
+      "inviteNoSender": "Der Termin ist gespeichert, aber kein E-Mail-Konto sendet von Ihrer Kalenderadresse, daher wurde niemand benachrichtigt.",
+      "inviteFailed": "Der Termin ist gespeichert, aber die Einladungen konnten nicht verschickt werden: {{message}}"
     },
     "accounts": {
       "title": "Kalenderkonten",
@@ -2566,6 +2575,22 @@
       "fromMailTitle": "E-Mail-Konto verwenden",
       "fromMailHint": "Versucht es mit dem Server und Passwort des E-Mail-Kontos. An andere Server wird nichts gesendet.",
       "fromMailNone": "Auf {{host}} wurde kein Kalenderserver gefunden: {{error}}"
+    },
+    "reply": {
+      "question": "Nehmen Sie teil?",
+      "yes": "Ja",
+      "maybe": "Vielleicht",
+      "no": "Nein"
+    },
+    "mail": {
+      "invite": "Einladung: {{title}}",
+      "update": "Geänderte Einladung: {{title}}",
+      "cancel": "Abgesagt: {{title}}",
+      "accepted": "Zugesagt: {{title}}",
+      "declined": "Abgelehnt: {{title}}",
+      "tentative": "Vorläufig: {{title}}",
+      "when": "Wann",
+      "where": "Wo"
     }
   }
 }

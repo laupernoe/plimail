@@ -136,6 +136,45 @@ async function propfindHref(url, prop, key, creds) {
   return parseHref(await dav('PROPFIND', url, creds, { depth: 0, body }), key, url);
 }
 
+// Pure. The mailto addresses of a calendar-user-address-set, lowercased, in the server's order.
+export function parseAddresses(xmlText) {
+  const response = toArray(parser.parse(xmlText)?.multistatus?.response)[0];
+  if (!response) return [];
+  const set = propsOf(response)['calendar-user-address-set'];
+  const out = [];
+  for (const href of toArray(set?.href ?? set)) {
+    const m = /^mailto:(.+)$/i.exec(textOf(href).trim());
+    const email = m && decodeURIComponent(m[1]).trim().toLowerCase();
+    if (email && !out.includes(email)) out.push(email);
+  }
+  return out;
+}
+
+// RFC 6638. Whether the server delivers invitations itself (calendar-auto-schedule), and the
+// addresses an organizer may use there. Anything that fails reads as "the server does not".
+export async function schedulingInfo(calendarUrl, creds) {
+  let serverSchedules = false;
+  try {
+    const res = await request('OPTIONS', calendarUrl, creds);
+    await res.body?.cancel();
+    serverSchedules = res.ok && /(^|[\s,])calendar-auto-schedule([\s,]|$)/i.test(res.headers.get('dav') || '');
+  } catch (err) {
+    if (err.status === 401) throw err;
+  }
+  let addresses = [];
+  try {
+    const principal = await propfindHref(calendarUrl, '<current-user-principal/>', 'current-user-principal', creds);
+    if (principal) {
+      const body = `<?xml version="1.0" encoding="utf-8"?>
+<propfind xmlns="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav"><prop><C:calendar-user-address-set/></prop></propfind>`;
+      addresses = parseAddresses(await dav('PROPFIND', principal, creds, { depth: 0, body }));
+    }
+  } catch (err) {
+    if (err.status === 401) throw err;
+  }
+  return { serverSchedules: serverSchedules && addresses.length > 0, addresses };
+}
+
 // RFC 6764: a domain can name its CalDAV host and path in DNS.
 async function srvCandidate(hostname) {
   try {

@@ -1,7 +1,7 @@
 import http from 'node:http';
 import crypto from 'node:crypto';
 import { afterEach, describe, expect, it } from 'vitest';
-import { digestHeader, discoverCalendars, findCalDavServer, hrefKey, parseCalendars, parseHref, parseResources } from './caldavClient.js';
+import { digestHeader, discoverCalendars, findCalDavServer, hrefKey, parseAddresses, parseCalendars, parseHref, parseResources } from './caldavClient.js';
 
 const BASE = 'https://dav.example.com/cal/noe/';
 
@@ -144,5 +144,14 @@ describe('against a server', () => {
 
   it('offers credentials only to the hosts it is given', async () => {
     await expect(findCalDavServer([null, undefined], { username: 'u', password: 'p' })).rejects.toThrow(/No CalDAV server/);
+  });
+});
+
+describe('parseAddresses', () => {
+  it('keeps the mailto addresses, lowercased, once each', () => {
+    const xml = `<D:multistatus xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav"><D:response><D:href>/p/noe/</D:href><D:propstat><D:prop>
+      <C:calendar-user-address-set><D:href>mailto:Noe@Example.com</D:href><D:href>/p/noe/</D:href><D:href>MAILTO:noe@example.com</D:href><D:href>mailto:n%2Bcal@example.com</D:href></C:calendar-user-address-set>
+      </D:prop><D:status>HTTP/1.1 200 OK</D:status></D:propstat></D:response></D:multistatus>`;
+    expect(parseAddresses(xml)).toEqual(['noe@example.com', 'n+cal@example.com']);
   });
 });

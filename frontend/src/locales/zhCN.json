@@ -2503,7 +2503,12 @@
       "untilBeforeStart": "重复结束日期不能早于开始日期。",
       "countInvalid": "请输入重复次数（至少为 1）。",
       "noWritable": "没有可用于此日程的可写日历。",
-      "customHint": "此系列使用自定义重复规则，将保持原样。"
+      "customHint": "此系列使用自定义重复规则，将保持原样。",
+      "guests": "参与者",
+      "guestsPlaceholder": "按姓名或地址添加",
+      "guestsHint": "保存时会发送邀请。",
+      "invitedBy": "由 {{name}} 邀请。只有组织者可以更改参与者。",
+      "removeGuest": "移除 {{name}}"
     },
     "recurrence": {
       "none": "不重复",
@@ -2532,7 +2537,11 @@
       "server": "日历服务器拒绝了更改或无法连接，未做任何更改：{{message}}",
       "generic": "出错了：{{message}}",
       "load": "无法加载日历数据：{{message}}",
-      "noWritable": "你的日历都不接受新日程。请添加一个非只读的日历。"
+      "noWritable": "你的日历都不接受新日程。请添加一个非只读的日历。",
+      "noSender": "没有任何邮件帐户使用您的日历地址发信，因此无法发送邀请。请将该地址添加为帐户或别名。",
+      "notOrganizer": "只有组织者可以更改参与者。",
+      "inviteNoSender": "活动已保存，但没有任何邮件帐户使用您的日历地址发信，因此未通知任何人。",
+      "inviteFailed": "活动已保存，但邀请发送失败：{{message}}"
     },
     "accounts": {
       "title": "日历账户",
@@ -2566,6 +2575,22 @@
       "fromMailTitle": "使用邮件账户",
       "fromMailHint": "尝试使用邮件账户的服务器和密码。不会向其他服务器发送任何内容。",
       "fromMailNone": "在 {{host}} 上未找到日历服务器：{{error}}"
+    },
+    "reply": {
+      "question": "是否参加？",
+      "yes": "是",
+      "maybe": "可能",
+      "no": "否"
+    },
+    "mail": {
+      "invite": "邀请：{{title}}",
+      "update": "邀请已更新：{{title}}",
+      "cancel": "已取消：{{title}}",
+      "accepted": "已接受：{{title}}",
+      "declined": "已拒绝：{{title}}",
+      "tentative": "暂定：{{title}}",
+      "when": "时间",
+      "where": "地点"
     }
   }
 }

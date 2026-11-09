@@ -8,7 +8,7 @@ import { appLocale } from '../utils/formatDate.js';
 import {
   AGENDA_DAYS, VIEWS, addDays, firstDayOfWeek, formatTitle, monthGrid, shiftAnchor, todayDay, visibleRange, weekDays,
 } from '../utils/calendarDates.js';
-import { describeError, defaultSlot, movePayload, withScope } from './calendar/calendarEvents.js';
+import { describeError, defaultSlot, mailMeta, movePayload, withScope } from './calendar/calendarEvents.js';
 import { useCalendarData } from './calendar/useCalendarData.js';
 import { Btn, ErrorBox, Icon, Modal } from './calendar/calendarUi.jsx';
 import CalendarToolbar from './calendar/CalendarToolbar.jsx';
@@ -123,6 +123,14 @@ function CalendarShell({ active }) {
     if (describeError(err).refetch) refresh();
   }, [formatError, refresh]);
 
+  const meta = useMemo(() => mailMeta(t, locale), [t, locale]);
+  // The event is saved by the time invitations go out, so their failure is a notice, not an error.
+  const inviteNotice = useCallback((res) => {
+    if (res?.inviteError) {
+      setNotice(t(res.inviteErrorCode === 'no_sender' ? 'calendar.errors.inviteNoSender' : 'calendar.errors.inviteFailed', { message: res.inviteError }));
+    }
+  }, [t]);
+
   const track = useCallback(async (fn) => {
     setBusy(b => b + 1);
     try { return await fn(); } finally { setBusy(b => b - 1); }
@@ -159,8 +167,21 @@ function CalendarShell({ active }) {
     setDetailError(null);
     try {
       await track(async () => {
-        await api.calendar.deleteEvent(occ.eventId, { scope, recurrenceId: scope === 'this' ? occ.recurrenceId : undefined });
+        inviteNotice(await api.calendar.deleteEvent(occ.eventId, { scope, recurrenceId: scope === 'this' ? occ.recurrenceId : undefined }, meta));
         closeDetail();
+        await loadEvents();
+      });
+    } catch (err) {
+      setDetailError(formatError(err));
+      if (describeError(err).refetch) refresh();
+    }
+  };
+  const replyOcc = async (occ, status) => {
+    setDetailError(null);
+    try {
+      await track(async () => {
+        inviteNotice(await api.calendar.replyEvent(occ.eventId, status, meta));
+        setDetail(d => (d && d.occ.eventId === occ.eventId ? { ...d, occ: { ...d.occ, myStatus: status } } : d));
         await loadEvents();
       });
     } catch (err) {
@@ -174,7 +195,7 @@ function CalendarShell({ active }) {
     setPreview({ id: occ.id, ...times });
     try {
       await track(async () => {
-        await api.calendar.updateEvent(occ.eventId, movePayload(occ, times, scope));
+        inviteNotice(await api.calendar.updateEvent(occ.eventId, { ...movePayload(occ, times, scope), ...meta }));
         await loadEvents();
       });
     } catch (err) {
@@ -199,8 +220,10 @@ function CalendarShell({ active }) {
   const saveEvent = async (payload) => {
     try {
       await track(async () => {
-        if (form.occ) await api.calendar.updateEvent(form.occ.eventId, withScope(payload, form.occ, form.scope));
-        else await api.calendar.createEvent(payload);
+        const body = { ...payload, ...meta };
+        inviteNotice(form.occ
+          ? await api.calendar.updateEvent(form.occ.eventId, withScope(body, form.occ, form.scope))
+          : await api.calendar.createEvent(body));
         setForm(null);
         await loadEvents();
       });
@@ -342,7 +365,7 @@ function CalendarShell({ active }) {
       {detail && (
         <EventDetail
           occ={detail.occ} rect={detail.rect} isMobile={isMobile} calendar={byId.get(detail.occ.calendarId)} color={colorOf(detail.occ.calendarId)}
-          locale={locale} busy={busy > 0} error={detailError} onClose={closeDetail} onEdit={requestEdit} onDelete={requestDelete}
+          locale={locale} busy={busy > 0} error={detailError} onClose={closeDetail} onEdit={requestEdit} onDelete={requestDelete} onReply={replyOcc}
         />
       )}
       {form && (

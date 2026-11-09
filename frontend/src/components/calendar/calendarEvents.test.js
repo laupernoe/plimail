@@ -100,3 +100,28 @@ describe('form helpers', () => {
     assert.equal(parts.map(p => p.text).join(''), 'Join https://meet.example/x, or javascript:alert(1) now');
   });
 });
+
+describe('guests', () => {
+  it('reads typed and pasted addresses, and keeps what is not one', () => {
+    assert.deepEqual(e.parseGuests('Ana Lima <Ana@Example.com>, bob@example.com; nope'), {
+      people: [{ email: 'ana@example.com', name: 'Ana Lima' }, { email: 'bob@example.com', name: null }],
+      rest: 'nope',
+    });
+  });
+
+  it('adds each person once', () => {
+    const list = e.addGuests([{ email: 'ana@example.com', name: null, status: 'ACCEPTED' }], [{ email: 'ana@example.com', name: 'Ana' }, { email: 'bob@example.com', name: null }]);
+    assert.deepEqual(list.map(g => [g.email, g.status]), [['ana@example.com', 'ACCEPTED'], ['bob@example.com', null]]);
+  });
+
+  it('leaves the organizer out of the form and sends guests only for the organizer', () => {
+    const occ = { organizer: { email: 'Noe@example.com' }, organizerIsMe: true, attendees: [{ email: 'noe@example.com', status: 'ACCEPTED' }, { email: 'ana@example.com', name: 'Ana', status: 'TENTATIVE' }] };
+    assert.deepEqual(e.guestsOf(occ), [{ email: 'ana@example.com', name: 'Ana', status: 'TENTATIVE' }]);
+    assert.equal(e.canInvite(occ), true);
+    assert.equal(e.canInvite({ ...occ, organizerIsMe: false }), false);
+    assert.equal(e.canInvite({ attendees: [] }), true);
+    const form = { ...timed(), summary: 'x', attendees: e.guestsOf(occ) };
+    assert.deepEqual(e.buildPayload(form).payload.attendees, [{ email: 'ana@example.com', name: 'Ana' }]);
+    assert.equal('attendees' in e.buildPayload(form, { invite: false }).payload, false);
+  });
+});

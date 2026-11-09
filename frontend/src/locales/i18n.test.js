@@ -597,6 +597,9 @@ const SAME_VALUE_ALLOWED = {
   'admin.apiTokens.copied':    [['es', 'ptBR']],
 
   // ── Calendar: words the Romance and Germanic languages spell alike ──────────
+  'calendar.mail.cancel': [['es', 'ptBR']],
+  'calendar.mail.when': [['it', 'ptBR']],
+  'calendar.reply.no': [['en', 'es', 'it']],
   'calendar.title': [['es', 'it']],
   'calendar.previous': [['es', 'ptBR']],
   'calendar.showLess': [['es', 'ptBR']],

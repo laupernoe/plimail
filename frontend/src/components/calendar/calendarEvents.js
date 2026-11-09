@@ -11,6 +11,8 @@ export function describeError(err) {
   if (err?.status === 409 && err.code === 'conflict') return { key: 'calendar.errors.conflict', refetch: true };
   if (err?.status === 409) return { key: 'calendar.errors.busy', refetch: false };
   if (err?.status === 403 && err.code === 'read_only') return { key: 'calendar.errors.readOnly', refetch: true };
+  if (err?.code === 'no_sender') return { key: 'calendar.errors.noSender', refetch: false };
+  if (err?.code === 'not_organizer') return { key: 'calendar.errors.notOrganizer', refetch: true };
   if (err?.status === 502) return { key: 'calendar.errors.server', message: err.message, refetch: true };
   return { key: 'calendar.errors.generic', message: err?.message || '', refetch: false };
 }
@@ -18,7 +20,7 @@ export function describeError(err) {
 export function emptyForm({ calendarId, allDay = false, start, end }) {
   const base = {
     summary: '', calendarId, allDay, location: '', description: '',
-    freq: '', interval: 1, ends: 'never', until: '', count: 10, reminder: '',
+    freq: '', interval: 1, ends: 'never', until: '', count: 10, reminder: '', attendees: [],
   };
   if (allDay) {
     const startDay = String(start).slice(0, 10);
@@ -46,6 +48,56 @@ export function formFromOccurrence(occ) {
     until: r?.until ? String(r.until).slice(0, 10) : '',
     count: r?.count || 10,
     reminder: occ.reminderMinutes == null ? '' : String(occ.reminderMinutes),
+    attendees: guestsOf(occ),
+  };
+}
+
+// The people invited, without the organizer, who heads the list on the server.
+export function guestsOf(occ) {
+  const organizer = occ.organizer?.email?.toLowerCase();
+  return (occ.attendees || [])
+    .filter(a => a.email && a.email.toLowerCase() !== organizer)
+    .map(a => ({ email: a.email, name: a.name || null, status: a.status || null }));
+}
+
+// Only the organizer decides who is invited; an event without one is the user's own.
+export const canInvite = occ => !occ || occ.organizerIsMe || !occ.organizer?.email;
+
+const EMAIL_RE = /^[^\s@<>",;:]+@[^\s@<>",;:]+\.[^\s@<>",;:]+$/;
+
+// Typed or pasted text as addresses: "Ana <ana@x.ch>, bob@y.ch". Returns the people and what was not one.
+export function parseGuests(text) {
+  const people = [];
+  const rest = [];
+  for (const part of String(text).split(/[,;\n]+/)) {
+    const raw = part.trim();
+    if (!raw) continue;
+    const m = /^(.*?)<([^>]+)>$/.exec(raw);
+    const email = (m ? m[2] : raw).trim().toLowerCase();
+    const name = m ? m[1].trim().replace(/^"|"$/g, '') || null : null;
+    if (EMAIL_RE.test(email)) people.push({ email, name });
+    else rest.push(raw);
+  }
+  return { people, rest: rest.join(', ') };
+}
+
+export function addGuests(list, people) {
+  const out = [...list];
+  for (const p of people) if (!out.some(g => g.email === p.email)) out.push({ ...p, status: null });
+  return out;
+}
+
+// What invitation mails need from the browser: the language and the words, already translated.
+export function mailMeta(t, lang) {
+  const title = '{title}';
+  return {
+    lang: lang || 'en',
+    mailLabels: {
+      invite: t('calendar.mail.invite', { title }), update: t('calendar.mail.update', { title }),
+      cancel: t('calendar.mail.cancel', { title }), accepted: t('calendar.mail.accepted', { title }),
+      declined: t('calendar.mail.declined', { title }), tentative: t('calendar.mail.tentative', { title }),
+      when: t('calendar.mail.when'), where: t('calendar.mail.where'),
+    },
   };
 }
 
@@ -79,7 +131,7 @@ export function changeStart(form, value) {
 }
 
 // Returns {payload} to send, or {error} naming the locale key of what is wrong.
-export function buildPayload(form, { scope = 'all', recurrenceCustom = false } = {}) {
+export function buildPayload(form, { scope = 'all', recurrenceCustom = false, invite = true } = {}) {
   const summary = form.summary.trim();
   if (!summary) return { error: 'calendar.form.titleRequired' };
   if (!form.calendarId) return { error: 'calendar.form.calendarRequired' };
@@ -91,6 +143,7 @@ export function buildPayload(form, { scope = 'all', recurrenceCustom = false } =
     allDay: form.allDay,
     reminderMinutes: form.reminder === '' ? null : Number(form.reminder),
   };
+  if (invite) payload.attendees = (form.attendees || []).map(({ email, name }) => ({ email, name }));
   if (form.allDay) {
     if (!form.startDay || !form.endDay || form.endDay < form.startDay) return { error: 'calendar.form.endBeforeStart' };
     payload.start = form.startDay;

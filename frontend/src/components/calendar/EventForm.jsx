@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  FREQS, FREQ_KEYS, REMINDER_KEYS, buildPayload, changeStart, emptyForm, formFromOccurrence, offeredCalendars,
+  FREQS, FREQ_KEYS, REMINDER_KEYS, buildPayload, canInvite, changeStart, emptyForm, formFromOccurrence, offeredCalendars,
   reminderOptions, toggleAllDay,
 } from './calendarEvents.js';
 import { Btn, ErrorBox, Modal, inputStyle, labelStyle } from './calendarUi.jsx';
+import AttendeeField from './AttendeeField.jsx';
 
-const Field = ({ label, children, style }) => (
-  <label style={{ display: 'block', ...style }}>
+const Field = ({ label, children, style, as: Tag = 'label' }) => (
+  <Tag style={{ display: 'block', ...style }}>
     <span style={labelStyle}>{label}</span>
     {children}
-  </label>
+  </Tag>
 );
 
 export default function EventForm({ occ, scope, defaults, calendars, isMobile, onSave, onClose, formatError }) {
@@ -27,11 +28,13 @@ export default function EventForm({ occ, scope, defaults, calendars, isMobile, o
   const series = scope !== 'this';
   const custom = editing && occ.recurrenceCustom;
   const reminders = reminderOptions(form.reminder);
+  const inviting = canInvite(occ);
+  const organizer = editing && !inviting ? (occ.organizer.name || occ.organizer.email) : null;
 
   const submit = async (e) => {
     e?.preventDefault();
     if (saving) return;
-    const built = buildPayload(form, { scope, recurrenceCustom: custom });
+    const built = buildPayload(form, { scope, recurrenceCustom: custom, invite: inviting });
     if (built.error) { setError(t(built.error)); return; }
     setError(null);
     setSaving(true);
@@ -84,6 +87,14 @@ export default function EventForm({ occ, scope, defaults, calendars, isMobile, o
 
         <Field label={t('calendar.form.location')}>
           <input value={form.location} onChange={e => set({ location: e.target.value })} style={inputStyle} />
+        </Field>
+        <Field as="div" label={t('calendar.form.guests')}>
+          <AttendeeField value={form.attendees} onChange={attendees => set({ attendees })} disabled={!inviting} />
+          {(organizer || form.attendees.length > 0) && (
+            <span style={{ ...labelStyle, marginTop: 4, marginBottom: 0 }}>
+              {organizer ? t('calendar.form.invitedBy', { name: organizer }) : t('calendar.form.guestsHint')}
+            </span>
+          )}
         </Field>
         <Field label={t('calendar.form.description')}>
           <textarea value={form.description} onChange={e => set({ description: e.target.value })} rows={4} style={{ ...inputStyle, resize: 'vertical' }} />
