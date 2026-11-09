@@ -550,6 +550,33 @@ export const THEMES = {
     }
   },
 
+  // The selfhostr tokens, dark only, with no accent hue: the accent is the ink colour, so the
+  // primary action is light on near-black and colour is left to status and calendars.
+  selfhostr: {
+    label: 'selfhostr',
+    description: 'Near-black, neutral, no accent colour',
+    preview: ['#07080a', '#0b0d10', '#eceef1', '#8a919c'],
+    vars: {
+      '--bg-primary': '#07080a',
+      '--bg-secondary': '#0b0d10',
+      '--bg-tertiary': '#111419',
+      '--bg-elevated': '#111419',
+      '--bg-hover': '#16191e',
+      '--border': '#23272e',
+      '--border-subtle': '#16191e',
+      '--text-primary': '#eceef1',
+      '--text-secondary': '#8a919c',
+      '--text-tertiary': '#7a818c',
+      '--accent': '#eceef1',
+      '--accent-text': '#07080a',
+      '--accent-dim': '#23272e',
+      '--accent-glow': 'rgba(236,238,241,0.08)',
+      '--green': '#2fd17c',
+      '--red': '#ff5c5c',
+      '--amber': '#f2b033',
+    }
+  },
+
   winxp: {
     label: 'Windows XP',
     description: 'Luna blue and silver — early-2000s Windows',

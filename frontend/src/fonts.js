@@ -415,6 +415,18 @@ export const FONT_SETS = {
       '--font-display': "'MS Sans Serif', Tahoma, sans-serif",
     },
   },
+
+  // Bound to the selfhostr theme: Inter for the interface, JetBrains Mono for code and numbers.
+  selfhostr: {
+    label: 'selfhostr',
+    description: 'Inter × JetBrains Mono',
+    preview: { heading: 'Inter', body: 'Inter', mono: 'JetBrains Mono' },
+    vars: {
+      '--font-sans': "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif",
+      '--font-mono': "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+      '--font-display': "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif",
+    },
+  },
 };
 
 // Fonts are self-hosted and declared up front in public/fonts/fonts.css (loaded from
@@ -440,7 +452,7 @@ export function applyFontSize() {}
 
 // Retro themes ship with a period-correct font: selecting the theme auto-applies the
 // matching font set. Any theme not listed here uses the user's chosen font.
-export const THEME_FONT = { winxp: 'winxp', win9x: 'win9x' };
+export const THEME_FONT = { winxp: 'winxp', win9x: 'win9x', selfhostr: 'selfhostr' };
 
 // Retro fonts are theme-bound — they're applied automatically by their theme and must NOT
 // be selectable as standalone choices in the font picker, or they'd become the user's saved

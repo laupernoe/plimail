@@ -20,7 +20,6 @@ import {
   resolveFolderOrderDrop,
 } from '../utils/sidebar.js';
 import { useMobile } from '../hooks/useMobile.js';
-import LogoMark from './LogoMark.jsx';
 import UpcomingPane from './calendar/UpcomingPane.jsx';
 import ProfileModal from './ProfileModal.jsx';
 import { useUiScale, descale } from '../hooks/useUiScale.js';
@@ -904,29 +903,6 @@ export default function Sidebar() {
         justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)',
         minHeight: 56, flexShrink: 0,
       }}>
-        {!sidebarCollapsed && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-            <LogoMark size={24} />
-            <span style={{ display: 'flex', alignItems: 'baseline', gap: 0 }}>
-              <span style={{
-                fontFamily: "'Syne', sans-serif",
-                fontSize: 17, fontWeight: 700,
-                color: 'var(--text-primary)',
-                letterSpacing: '-0.02em', whiteSpace: 'nowrap',
-              }}>
-                Mail
-              </span>
-              <span style={{
-                fontFamily: "'Syne', sans-serif",
-                fontSize: 17, fontWeight: 600,
-                color: 'var(--accent)',
-                letterSpacing: '-0.02em', whiteSpace: 'nowrap',
-              }}>
-                Flow
-              </span>
-            </span>
-          </div>
-        )}
         <button
           onClick={isMobile ? () => setMobileSidebarOpen(false) : toggleSidebar}
           title={t('sidebar.toggleSidebar')}
