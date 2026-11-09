@@ -2444,6 +2444,13 @@
     "newEvent": "Nová událost",
     "allDay": "Celý den",
     "more": "+{{count}} další",
+    "upcoming": {
+      "title": "Nadcházející",
+      "tomorrow": "Zítra",
+      "empty": "Nic v příštích 7 dnech",
+      "now": "Právě teď",
+      "open": "Otevřít kalendář"
+    },
     "showLess": "Zobrazit méně",
     "nothingToday": "Nic není naplánováno. Kliknutím přidáte událost.",
     "agendaEmpty": "V tomto období nejsou žádné události.",

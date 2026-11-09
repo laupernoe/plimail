@@ -21,6 +21,7 @@ import {
 } from '../utils/sidebar.js';
 import { useMobile } from '../hooks/useMobile.js';
 import LogoMark from './LogoMark.jsx';
+import UpcomingPane from './calendar/UpcomingPane.jsx';
 import ProfileModal from './ProfileModal.jsx';
 import { useUiScale, descale } from '../hooks/useUiScale.js';
 import { SNOOZED_FOLDER } from '../utils/snoozeActions.js';
@@ -1699,6 +1700,8 @@ export default function Sidebar() {
           );
         })}
       </nav>
+
+      {!sidebarCollapsed && <UpcomingPane isMobile={isMobile} />}
 
       {/* Bottom — mobile: inline user section; desktop: user menu button */}
       {isMobile ? (

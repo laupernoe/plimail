@@ -2444,6 +2444,13 @@
     "newEvent": "Nowe wydarzenie",
     "allDay": "Cały dzień",
     "more": "+{{count}} więcej",
+    "upcoming": {
+      "title": "Nadchodzące",
+      "tomorrow": "Jutro",
+      "empty": "Nic w ciągu najbliższych 7 dni",
+      "now": "Teraz",
+      "open": "Otwórz kalendarz"
+    },
     "showLess": "Pokaż mniej",
     "nothingToday": "Nic nie zaplanowano. Kliknij, aby dodać wydarzenie.",
     "agendaEmpty": "Brak wydarzeń w tym okresie.",

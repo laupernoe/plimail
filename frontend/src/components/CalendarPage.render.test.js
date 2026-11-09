@@ -134,6 +134,15 @@ afterEach(async () => {
   document.body.innerHTML = '<div id="root"></div>';
 });
 
+describe('coming from the Upcoming section', () => {
+  test('opens the event\'s detail and clears the request', async () => {
+    useStore.setState({ calendarFocus: { day: todayKey, occ: occ({ summary: 'Dentist', location: 'Rue 9' }) } });
+    await mount();
+    assert.ok(dialog().textContent.includes('Dentist'));
+    assert.equal(useStore.getState().calendarFocus, null);
+  });
+});
+
 describe('event colour', () => {
   test('comes from the background alone, with no stripe', async () => {
     await mount();

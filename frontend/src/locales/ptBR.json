@@ -2425,6 +2425,13 @@
     "newEvent": "Novo evento",
     "allDay": "Dia inteiro",
     "more": "+{{count}} mais",
+    "upcoming": {
+      "title": "Próximos compromissos",
+      "tomorrow": "Amanhã",
+      "empty": "Nada nos próximos 7 dias",
+      "now": "Agora",
+      "open": "Abrir calendário"
+    },
     "showLess": "Mostrar menos",
     "nothingToday": "Nada planejado. Clique para adicionar um evento.",
     "agendaEmpty": "Nenhum evento neste período.",

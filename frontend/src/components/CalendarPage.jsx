@@ -77,6 +77,8 @@ function CalendarShell({ active }) {
   const [scopeAsk, setScopeAsk] = useState(null);
   const [accountsOpen, setAccountsOpen] = useState(false);
   const [railOpen, setRailOpen] = useState(false);
+  const calendarFocus = useStore(s => s.calendarFocus);
+  const setCalendarFocus = useStore(s => s.setCalendarFocus);
 
   const range = useMemo(() => visibleRange(view, anchor, firstDay), [view, anchor, firstDay]);
   const data = useCalendarData({ active, from: range.from, to: range.to });
@@ -88,6 +90,19 @@ function CalendarShell({ active }) {
     const timer = setInterval(() => setToday(todayDay()), 60_000);
     return () => clearInterval(timer);
   }, [active]);
+
+  // Entered from the sidebar's Upcoming section: go to that day and show the event.
+  useEffect(() => {
+    if (!active || !calendarFocus || accounts === null) return;
+    const { day, occ } = calendarFocus;
+    setCalendarFocus(null);
+    if (day) setAnchor(day);
+    if (occ) {
+      const x = Math.round(window.innerWidth / 2);
+      setDetailError(null);
+      setDetail({ occ, rect: { left: x, right: x, top: 120, bottom: 120 } });
+    }
+  }, [active, calendarFocus, accounts, setCalendarFocus]);
 
   const byId = useMemo(() => new Map(calendars.map(c => [c.id, c])), [calendars]);
   const colorOf = useCallback((id) => byId.get(id)?.color || 'var(--accent)', [byId]);

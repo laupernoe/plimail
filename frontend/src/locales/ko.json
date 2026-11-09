@@ -2425,6 +2425,13 @@
     "newEvent": "새 일정",
     "allDay": "종일",
     "more": "+{{count}}개 더보기",
+    "upcoming": {
+      "title": "다가오는 일정",
+      "tomorrow": "내일",
+      "empty": "앞으로 7일간 일정이 없습니다",
+      "now": "진행 중",
+      "open": "캘린더 열기"
+    },
     "showLess": "간략히 보기",
     "nothingToday": "예정된 일정이 없습니다. 클릭하여 일정을 추가하세요.",
     "agendaEmpty": "이 기간에는 일정이 없습니다.",

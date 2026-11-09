@@ -2425,6 +2425,13 @@
     "newEvent": "Neuer Termin",
     "allDay": "Ganztägig",
     "more": "+{{count}} weitere",
+    "upcoming": {
+      "title": "Demnächst",
+      "tomorrow": "Morgen",
+      "empty": "Nichts in den nächsten 7 Tagen",
+      "now": "Jetzt",
+      "open": "Kalender öffnen"
+    },
     "showLess": "Weniger anzeigen",
     "nothingToday": "Nichts geplant. Klicken, um einen Termin hinzuzufügen.",
     "agendaEmpty": "Keine Termine in diesem Zeitraum.",

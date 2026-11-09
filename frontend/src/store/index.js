@@ -737,6 +737,10 @@ export const useStore = create((set, get) => ({
   // Calendar view; replaces the mail panes like Contacts, and the two exclude each other.
   showCalendar: false,
   setShowCalendar: (v) => set(v ? { showCalendar: true, showContacts: false } : { showCalendar: false }),
+  // Where the calendar should open when it is entered from the sidebar's Upcoming section:
+  // { day, occ }. CalendarPage takes it and clears it.
+  calendarFocus: null,
+  setCalendarFocus: (focus) => set({ calendarFocus: focus }),
   // The sidebar's element the open calendar draws its controls into, in place of the mail folders.
   calendarRailSlot: null,
   setCalendarRailSlot: (el) => set({ calendarRailSlot: el }),

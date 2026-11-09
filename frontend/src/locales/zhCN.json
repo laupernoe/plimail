@@ -2425,6 +2425,13 @@
     "newEvent": "新建日程",
     "allDay": "全天",
     "more": "还有 {{count}} 项",
+    "upcoming": {
+      "title": "即将到来",
+      "tomorrow": "明天",
+      "empty": "未来 7 天内没有日程",
+      "now": "进行中",
+      "open": "打开日历"
+    },
     "showLess": "收起",
     "nothingToday": "暂无安排。点击添加日程。",
     "agendaEmpty": "此时间段内没有日程。",

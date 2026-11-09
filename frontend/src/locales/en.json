@@ -2425,6 +2425,13 @@
     "newEvent": "New event",
     "allDay": "All day",
     "more": "+{{count}} more",
+    "upcoming": {
+      "title": "Upcoming",
+      "tomorrow": "Tomorrow",
+      "empty": "Nothing in the next 7 days",
+      "now": "Now",
+      "open": "Open calendar"
+    },
     "showLess": "Show less",
     "nothingToday": "Nothing planned. Click to add an event.",
     "agendaEmpty": "No events in this period.",
