@@ -2585,7 +2585,9 @@
       "showInViews": "Mostra nelle viste",
       "listHint": "Rinomina un calendario per vederlo con il tuo nome, scegli il suo colore o decidi se compare nelle tue viste. Un calendario nascosto non viene più sincronizzato e non è mostrato da nessuna parte.",
       "noCalendars": "Ancora nessun calendario. Collega prima un account di calendario.",
-      "goToAccounts": "Vai agli account"
+      "goToAccounts": "Vai agli account",
+      "useMailPassword": "Usa la password di un account di posta",
+      "typePassword": "Digita una password"
     },
     "reply": {
       "question": "Partecipi?",
@@ -2604,5 +2606,12 @@
       "where": "Dove"
     },
     "syncAll": "Sincronizza calendari"
+  },
+  "calendarOffer": {
+    "prompt": "Aggiungi anche i calendari di questo account",
+    "add": "Aggiungi calendari",
+    "adding": "Aggiunta in corso…",
+    "added": "Calendari aggiunti. Compariranno in Calendario dopo la sincronizzazione.",
+    "none": "Nessun server di calendario trovato su {{host}}."
   }
 }

@@ -166,11 +166,24 @@ function MailAccounts({ onAdded }) {
 
 function AddForm({ onAdded, first }) {
   const { t } = useTranslation();
-  const [form, setForm] = useState({ name: '', serverUrl: '', username: '', password: '' });
+  const [form, setForm] = useState({ name: '', serverUrl: '', username: '', password: '', mailAccountId: '' });
+  const [mail, setMail] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const set = (patch) => setForm(f => ({ ...f, ...patch }));
-  const ready = form.serverUrl.trim() && form.username.trim() && form.password;
+  const ready = form.serverUrl.trim() && form.username.trim() && (form.mailAccountId || form.password);
+
+  // Only to list the choices: the passwords stay on the server.
+  useEffect(() => {
+    let live = true;
+    api.calendar.mailAccounts().then(list => { if (live) setMail(list); }).catch(() => {});
+    return () => { live = false; };
+  }, []);
+
+  const pickMail = (id) => {
+    const m = mail.find(x => x.id === id);
+    set({ mailAccountId: id, password: '', ...(m && m.username ? { username: m.username } : {}) });
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -180,9 +193,10 @@ function AddForm({ onAdded, first }) {
     try {
       await api.calendar.addAccount({
         ...(form.name.trim() ? { name: form.name.trim() } : {}),
-        serverUrl: form.serverUrl.trim(), username: form.username.trim(), password: form.password,
+        serverUrl: form.serverUrl.trim(), username: form.username.trim(),
+        ...(form.mailAccountId ? { mailAccountId: form.mailAccountId } : { password: form.password }),
       });
-      setForm({ name: '', serverUrl: '', username: '', password: '' });
+      setForm({ name: '', serverUrl: '', username: '', password: '', mailAccountId: '' });
       await onAdded();
     } catch (err) {
       setError(err.message);
@@ -209,9 +223,20 @@ function AddForm({ onAdded, first }) {
         </label>
         <label>
           <span style={labelStyle}>{t('calendar.accounts.password')}</span>
-          <PasswordInput value={form.password} onChange={e => set({ password: e.target.value })} autoComplete="new-password" style={inputStyle} />
+          {form.mailAccountId
+            ? <input value="••••••••" disabled readOnly aria-label={t('calendar.accounts.password')} style={inputStyle} />
+            : <PasswordInput value={form.password} onChange={e => set({ password: e.target.value })} autoComplete="new-password" style={inputStyle} />}
         </label>
       </div>
+      {mail.length > 0 && (
+        <label>
+          <span style={labelStyle}>{t('calendar.accounts.useMailPassword')}</span>
+          <select value={form.mailAccountId} onChange={e => pickMail(e.target.value)} style={inputStyle}>
+            <option value="">{t('calendar.accounts.typePassword')}</option>
+            {mail.map(m => <option key={m.id} value={m.id}>{m.email}</option>)}
+          </select>
+        </label>
+      )}
       <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: 'var(--text-tertiary)' }}>
         {t('calendar.accounts.appPasswordHint')} {t('calendar.accounts.googleHint')}
       </p>
