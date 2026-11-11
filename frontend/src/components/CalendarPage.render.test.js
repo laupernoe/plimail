@@ -122,7 +122,7 @@ const dialog = () => [...document.querySelectorAll('[role="dialog"]')].pop();
 let root = null;
 async function mount({ mobile = false } = {}) {
   Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: mobile ? 375 : 1280 });
-  useStore.setState({ user: { id: 'u1' }, isLocked: false, showCalendar: true, showContacts: false });
+  useStore.setState({ user: { id: 'u1' }, isLocked: false, showCalendar: true, showContacts: false, showAdmin: false, adminTab: null });
   root = createRoot(document.getElementById('root'));
   await React.act(async () => { root.render(React.createElement(CalendarPage)); });
   await settle();
@@ -183,8 +183,8 @@ describe('without an account', () => {
     assert.ok(document.body.textContent.includes('calendar.empty.body'));
     assert.equal(callsTo('events').length, 0, 'no events are asked for without a calendar');
     await click(byText('calendar.empty.connect'));
-    assert.ok(dialog().textContent.includes('calendar.accounts.googleHint'));
-    assert.ok(dialog().textContent.includes('calendar.accounts.appPasswordHint'));
+    assert.equal(useStore.getState().showAdmin, true, 'accounts are managed in Settings');
+    assert.equal(useStore.getState().adminTab, 'calendar-accounts');
   });
 });
 
@@ -216,7 +216,8 @@ describe('the week view', () => {
     assert.ok(alert);
     assert.ok(alert.textContent.includes('calendar.accounts.bannerTitle'));
     await click(byText('calendar.accounts.manage'));
-    assert.ok(dialog().textContent.includes('calendar.accounts.syncFailed'));
+    assert.equal(useStore.getState().showAdmin, true);
+    assert.equal(useStore.getState().adminTab, 'calendar-accounts');
   });
 
   test('a failed events request is visible and retryable', async () => {
