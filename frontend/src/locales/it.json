@@ -1089,7 +1089,9 @@
       "plugins": "Plugin",
       "backup": "Backup",
       "mailSignIn": "Provider di posta",
-      "calendars": "Calendari"
+      "groupCalendar": "Calendario",
+      "calendarAccounts": "Account",
+      "calendarList": "Calendari"
     },
     "rules": {
       "title": "Regole posta in arrivo",
@@ -2577,11 +2579,13 @@
       "fromMailTitle": "Usa un account di posta",
       "fromMailHint": "Prova il server e la password dell'account di posta. Nulla viene inviato ad altri server.",
       "fromMailNone": "Nessun server di calendario trovato su {{host}}: {{error}}",
-      "calendars": "Calendari",
       "ignore": "Nascondi",
       "restore": "Mostra di nuovo",
       "calendarName": "Nome per {{name}}",
-      "calendarsHint": "Rinomina un calendario per vederlo con un tuo nome. Un calendario nascosto non viene più sincronizzato né mostrato."
+      "showInViews": "Mostra nelle viste",
+      "listHint": "Rinomina un calendario per vederlo con il tuo nome, scegli il suo colore o decidi se compare nelle tue viste. Un calendario nascosto non viene più sincronizzato e non è mostrato da nessuna parte.",
+      "noCalendars": "Ancora nessun calendario. Collega prima un account di calendario.",
+      "goToAccounts": "Vai agli account"
     },
     "reply": {
       "question": "Partecipi?",

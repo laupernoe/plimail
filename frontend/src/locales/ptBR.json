@@ -1089,7 +1089,9 @@
       "plugins": "Plugins",
       "backup": "Backup",
       "mailSignIn": "Provedores de e-mail",
-      "calendars": "Agendas"
+      "groupCalendar": "Calendário",
+      "calendarAccounts": "Contas",
+      "calendarList": "Calendários"
     },
     "rules": {
       "title": "Regras da caixa de entrada",
@@ -2577,11 +2579,13 @@
       "fromMailTitle": "Usar uma conta de e-mail",
       "fromMailHint": "Tenta o servidor e a senha da conta de e-mail. Nada é enviado a outros servidores.",
       "fromMailNone": "Nenhum servidor de calendário encontrado em {{host}}: {{error}}",
-      "calendars": "Agendas",
       "ignore": "Ocultar",
       "restore": "Mostrar novamente",
       "calendarName": "Nome para {{name}}",
-      "calendarsHint": "Renomeie uma agenda para vê-la com seu próprio nome. Uma agenda oculta não é mais sincronizada nem exibida."
+      "showInViews": "Mostrar nas visualizações",
+      "listHint": "Renomeie uma agenda para vê-la com o seu próprio nome, escolha a cor dela ou decida se ela aparece nas suas visualizações. Uma agenda oculta deixa de ser sincronizada e não é exibida em lugar nenhum.",
+      "noCalendars": "Nenhuma agenda ainda. Conecte primeiro uma conta de agenda.",
+      "goToAccounts": "Ir para as contas"
     },
     "reply": {
       "question": "Vai participar?",

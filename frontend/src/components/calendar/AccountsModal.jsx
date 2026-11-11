@@ -1,56 +1,15 @@
 import { useEffect, useState } from 'react';
+import { useStore } from '../../store/index.js';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../utils/api.js';
 import { formatMessageDateTime } from '../../utils/formatDate.js';
 import PasswordInput from '../PasswordInput.jsx';
-import { Btn, ErrorBox, Icon, Modal, inputStyle, labelStyle } from './calendarUi.jsx';
+import { groupCalendarsByAccount } from '../../utils/calendarGroups.js';
+import { Btn, ErrorBox, Icon, PALETTE, inputStyle, labelStyle } from './calendarUi.jsx';
 
 const INTERVALS = [5, 15, 30, 60, 180, 720];
 
-function CalendarRow({ cal, onSaved }) {
-  const { t } = useTranslation();
-  const [name, setName] = useState(cal.displayName || '');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
-  useEffect(() => { setName(cal.displayName || ''); }, [cal.displayName]);
-
-  const save = async (patch) => {
-    setBusy(true);
-    setError(null);
-    try {
-      onSaved(await api.calendar.updateCalendar(cal.id, patch));
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-  const commitName = () => {
-    const next = name.trim();
-    if (next !== (cal.displayName || '')) save({ displayName: next });
-  };
-
-  return (
-    <li style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: cal.ignored ? 0.55 : 1 }}>
-        <span aria-hidden="true" style={{ width: 10, height: 10, borderRadius: 3, flexShrink: 0, background: cal.color }} />
-        <input
-          value={name} placeholder={cal.serverName} disabled={busy || cal.ignored}
-          aria-label={t('calendar.accounts.calendarName', { name: cal.serverName })} title={cal.serverName}
-          onChange={e => setName(e.target.value)} onBlur={commitName}
-          onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') { setName(cal.displayName || ''); } }}
-          style={{ ...inputStyle, padding: '5px 8px', flex: 1, minWidth: 0 }}
-        />
-        <Btn kind="plain" disabled={busy} onClick={() => save({ ignored: !cal.ignored })} style={{ flexShrink: 0 }}>
-          {cal.ignored ? t('calendar.accounts.restore') : t('calendar.accounts.ignore')}
-        </Btn>
-      </div>
-      {error && <ErrorBox>{error}</ErrorBox>}
-    </li>
-  );
-}
-
-function AccountCard({ account, calendars, onCalendar, onChanged }) {
+function AccountCard({ account, onChanged }) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(null);
   const [note, setNote] = useState(null);
@@ -98,16 +57,6 @@ function AccountCard({ account, calendars, onCalendar, onChanged }) {
           {busy === 'sync' ? t('calendar.accounts.syncing') : t('calendar.accounts.syncNow')}
         </Btn>
       </div>
-
-      {calendars.length > 0 && (
-        <div>
-          <span style={labelStyle}>{t('calendar.accounts.calendars')}</span>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {calendars.map(c => <CalendarRow key={c.id} cal={c} onSaved={onCalendar} />)}
-          </ul>
-          <p style={{ margin: '6px 0 0', fontSize: 12, lineHeight: 1.5, color: 'var(--text-tertiary)' }}>{t('calendar.accounts.calendarsHint')}</p>
-        </div>
-      )}
 
       {account.lastError && (
         <ErrorBox>
@@ -276,35 +225,30 @@ function AddForm({ onAdded, first }) {
   );
 }
 
-// The calendar accounts with their calendars, and the forms to add one. Shown in Settings and,
-// for a first account, from the calendar page.
-export function CalendarAccountsPanel({ accounts, onChanged, onFirstAdded }) {
-  const list = accounts || [];
-  const [calendars, setCalendars] = useState([]);
-  const accountKey = list.map(a => `${a.id}:${a.lastSyncAt}`).join(',');
-  useEffect(() => {
-    let live = true;
-    api.calendar.allCalendars().then(cs => { if (live) setCalendars(cs); }).catch(() => {});
-    return () => { live = false; };
-  }, [accountKey]);
-  const onCalendar = (cal) => {
-    setCalendars(cs => cs.map(c => (c.id === cal.id ? cal : c)));
-    onChanged();
-  };
+function PageHeader({ title, hint }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {list.map(a => (
-        <AccountCard key={a.id} account={a} calendars={calendars.filter(c => c.accountId === a.id)} onCalendar={onCalendar} onChanged={onChanged} />
-      ))}
-      {list.length > 0 && <div style={{ borderTop: '1px solid var(--border-subtle)' }} />}
-      <MailAccounts onAdded={onChanged} />
-      <AddForm first={list.length === 0} onAdded={async () => { await onChanged(); if (list.length === 0) onFirstAdded?.(); }} />
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{title}</div>
+      {hint && <p style={{ margin: '4px 0 0', fontSize: 12.5, lineHeight: 1.5, color: 'var(--text-tertiary)' }}>{hint}</p>}
     </div>
   );
 }
 
-// Settings → Calendars: loads the accounts itself, as the calendar page may not be open.
-export function CalendarSettingsTab() {
+// The calendar accounts and the forms to add one.
+export function CalendarAccountsPanel({ accounts, onChanged }) {
+  const list = accounts || [];
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {list.map(a => <AccountCard key={a.id} account={a} onChanged={onChanged} />)}
+      {list.length > 0 && <div style={{ borderTop: '1px solid var(--border-subtle)' }} />}
+      <MailAccounts onAdded={onChanged} />
+      <AddForm first={list.length === 0} onAdded={onChanged} />
+    </div>
+  );
+}
+
+// Loads the calendar accounts itself, as the calendar page may not be open.
+function useCalendarAccounts() {
   const [accounts, setAccounts] = useState(null);
   const [error, setError] = useState(null);
   const load = async () => {
@@ -323,16 +267,136 @@ export function CalendarSettingsTab() {
     const timer = setInterval(load, 4000);
     return () => clearInterval(timer);
   }, [pending]);
-  if (error) return <ErrorBox>{error}</ErrorBox>;
-  if (!accounts) return null;
-  return <CalendarAccountsPanel accounts={accounts} onChanged={load} />;
+  return { accounts, error, load };
 }
 
-export default function AccountsModal({ accounts, isMobile, onClose, onChanged }) {
+// Settings, Calendar, Accounts.
+export function CalendarAccountsTab() {
   const { t } = useTranslation();
+  const { accounts, error, load } = useCalendarAccounts();
   return (
-    <Modal title={t('calendar.accounts.title')} onClose={onClose} width={560} mobile={isMobile}>
-      <CalendarAccountsPanel accounts={accounts} onChanged={onChanged} onFirstAdded={onClose} />
-    </Modal>
+    <div>
+      <PageHeader title={t('calendar.accounts.title')} />
+      {error && <ErrorBox>{error}</ErrorBox>}
+      {accounts && <CalendarAccountsPanel accounts={accounts} onChanged={load} />}
+    </div>
+  );
+}
+
+const hexColor = (c) => (/^#[0-9a-f]{6}$/i.test(c) ? c : '#7c6af7');
+
+function CalendarRow({ cal, onSaved }) {
+  const { t } = useTranslation();
+  const [name, setName] = useState(cal.displayName || '');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [picking, setPicking] = useState(false);
+  useEffect(() => { setName(cal.displayName || ''); }, [cal.displayName]);
+
+  const save = async (patch) => {
+    setBusy(true);
+    setError(null);
+    try {
+      onSaved(await api.calendar.updateCalendar(cal.id, patch));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const commitName = () => {
+    const next = name.trim();
+    if (next !== (cal.displayName || '')) save({ displayName: next });
+  };
+  const pick = (color) => {
+    setPicking(false);
+    if (color.toLowerCase() !== String(cal.color).toLowerCase()) save({ color: hexColor(color) });
+  };
+  const label = cal.displayName || cal.serverName;
+  const dim = { opacity: cal.ignored ? 0.55 : 1 };
+
+  return (
+    <li style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: '1 1 200px', minWidth: 0, ...dim }}>
+          <button type="button" disabled={busy || cal.ignored} onClick={() => setPicking(p => !p)} aria-expanded={picking}
+            aria-label={t('calendar.rail.color', { name: label })} title={t('calendar.rail.color', { name: label })}
+            style={{ width: 24, height: 24, padding: 0, border: 'none', background: 'none', cursor: cal.ignored ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ width: 14, height: 14, borderRadius: '50%', background: cal.color, boxShadow: picking ? '0 0 0 2px var(--bg-primary), 0 0 0 3.5px var(--text-tertiary)' : 'none' }} />
+          </button>
+          <input
+            value={name} placeholder={cal.serverName} disabled={busy || cal.ignored}
+            aria-label={t('calendar.accounts.calendarName', { name: cal.serverName })} title={cal.serverName}
+            onChange={e => setName(e.target.value)} onBlur={commitName}
+            onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') setName(cal.displayName || ''); }}
+            style={{ ...inputStyle, padding: '5px 8px', flex: 1, minWidth: 0 }}
+          />
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--text-secondary)', cursor: cal.ignored ? 'default' : 'pointer', ...dim }}>
+          <input type="checkbox" checked={cal.visible && !cal.ignored} disabled={busy || cal.ignored}
+            onChange={e => save({ visible: e.target.checked })} style={{ accentColor: 'var(--accent)', margin: 0 }} />
+          {t('calendar.accounts.showInViews')}
+        </label>
+        <Btn kind="plain" disabled={busy} onClick={() => save({ ignored: !cal.ignored })} style={{ flexShrink: 0 }}>
+          {cal.ignored ? t('calendar.accounts.restore') : t('calendar.accounts.ignore')}
+        </Btn>
+      </div>
+      {picking && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '0 0 2px 34px', alignItems: 'center' }}>
+          {PALETTE.map(c => (
+            <button key={c} type="button" onClick={() => pick(c)} aria-label={c}
+              style={{ width: 18, height: 18, borderRadius: '50%', background: c, cursor: 'pointer', padding: 0,
+                border: c.toLowerCase() === String(cal.color).toLowerCase() ? '2px solid var(--text-primary)' : '2px solid transparent' }} />
+          ))}
+          <input type="color" value={hexColor(cal.color)} aria-label={t('calendar.rail.customColor')}
+            onChange={e => pick(e.target.value)}
+            style={{ width: 22, height: 22, padding: 0, border: 'none', background: 'none', cursor: 'pointer' }} />
+        </div>
+      )}
+      {error && <ErrorBox>{error}</ErrorBox>}
+    </li>
+  );
+}
+
+// Settings, Calendar, Calendars: every calendar of every account, hidden ones included.
+export function CalendarListTab() {
+  const { t } = useTranslation();
+  const setAdminTab = useStore(s => s.setAdminTab);
+  const { accounts, error } = useCalendarAccounts();
+  const [calendars, setCalendars] = useState(null);
+  const [listError, setListError] = useState(null);
+  useEffect(() => {
+    let live = true;
+    api.calendar.allCalendars().then(cs => { if (live) setCalendars(cs); }).catch(err => { if (live) setListError(err.message); });
+    return () => { live = false; };
+  }, []);
+  const onSaved = (cal) => setCalendars(cs => cs.map(c => (c.id === cal.id ? { ...c, ...cal } : c)));
+
+  const groups = groupCalendarsByAccount(accounts, calendars);
+  return (
+    <div>
+      <PageHeader title={t('admin.tabs.calendarList')} hint={t('calendar.accounts.listHint')} />
+      {(error || listError) && <ErrorBox>{error || listError}</ErrorBox>}
+      {accounts && calendars && groups.length === 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('calendar.accounts.noCalendars')}</span>
+          <Btn onClick={() => setAdminTab('calendar-accounts')}>{t('calendar.accounts.goToAccounts')}</Btn>
+        </div>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+        {groups.map(({ account, calendars: own }) => (
+          <section key={account.id}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6, wordBreak: 'break-word' }}>{account.name || account.username}</div>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, border: '1px solid var(--border)', borderRadius: 10, background: 'var(--bg-primary)' }}>
+              {own.map((c, i) => (
+                <div key={c.id} style={{ borderTop: i ? '1px solid var(--border-subtle)' : 'none' }}>
+                  <CalendarRow cal={c} onSaved={onSaved} />
+                </div>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+    </div>
   );
 }

@@ -1089,7 +1089,9 @@
       "plugins": "插件",
       "backup": "备份",
       "mailSignIn": "邮件服务商",
-      "calendars": "日历"
+      "groupCalendar": "日历",
+      "calendarAccounts": "账户",
+      "calendarList": "日历"
     },
     "rules": {
       "title": "收件箱规则",
@@ -2577,11 +2579,13 @@
       "fromMailTitle": "使用邮件账户",
       "fromMailHint": "尝试使用邮件账户的服务器和密码。不会向其他服务器发送任何内容。",
       "fromMailNone": "在 {{host}} 上未找到日历服务器：{{error}}",
-      "calendars": "日历",
       "ignore": "隐藏",
       "restore": "重新显示",
       "calendarName": "{{name}} 的名称",
-      "calendarsHint": "重命名日历即可用你自己的名称显示。隐藏的日历不再同步，也不再显示。"
+      "showInViews": "在视图中显示",
+      "listHint": "重命名日历即可用自己的名称查看它，也可以选择颜色，或决定是否在视图中显示。隐藏的日历不再同步，也不会在任何地方显示。",
+      "noCalendars": "还没有日历。请先连接日历账户。",
+      "goToAccounts": "前往账户"
     },
     "reply": {
       "question": "是否参加？",

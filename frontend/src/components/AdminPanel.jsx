@@ -49,7 +49,7 @@ import SpamSettings from './SpamSettings.jsx';
 import BackupSettings from './BackupSettings.jsx';
 import PasswordInput from './PasswordInput.jsx';
 import ApiTokensSection from './ApiTokensSection.jsx';
-import { CalendarSettingsTab } from './calendar/AccountsModal.jsx';
+import { CalendarAccountsTab, CalendarListTab } from './calendar/AccountsModal.jsx';
 
 // ─── Shared field component ───────────────────────────────────────────────────
 function Field({ label, required, children }) {
@@ -6974,7 +6974,8 @@ function MailboxCleanupTab() {
 }
 
 const TAB_GROUPS = [
-  { id: 'mail', labelKey: 'admin.tabs.groupMail', tabIds: ['accounts', 'calendars', 'rules', 'categories', 'antispam', 'cleanup'] },
+  { id: 'mail', labelKey: 'admin.tabs.groupMail', tabIds: ['accounts', 'rules', 'categories', 'antispam', 'cleanup'] },
+  { id: 'calendar', labelKey: 'admin.tabs.groupCalendar', tabIds: ['calendar-accounts', 'calendar-list'] },
   { id: 'preferences', labelKey: 'admin.tabs.groupPreferences', tabIds: ['appearance', 'behavior', 'notifications', 'shortcuts', 'security'] },
   { id: 'ai-extensions', labelKey: 'admin.tabs.groupAiExtensions', tabIds: ['ai-actions', 'ai', 'integrations', 'plugins'] },
   { id: 'admin', labelKey: 'admin.tabs.groupAdmin', tabIds: ['users', 'sso', 'mail-signin', 'backup'] },
@@ -6985,10 +6986,6 @@ const TABS = [
   {
     id: 'accounts', labelKey: 'admin.tabs.accounts',
     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
-  },
-  {
-    id: 'calendars', labelKey: 'admin.tabs.calendars',
-    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
   },
   {
     id: 'rules', labelKey: 'admin.tabs.rules',
@@ -7005,6 +7002,15 @@ const TABS = [
   {
     id: 'cleanup', labelKey: 'admin.tabs.cleanup', beta: true,
     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M19 3l-6 6"/><path d="M14 4l6 6"/><path d="M11 8l-7 7c-1 1-1 3 0 4s3 1 4 0l7-7"/><path d="M6 20l-3-3"/></svg>,
+  },
+  // Calendar
+  {
+    id: 'calendar-accounts', labelKey: 'admin.tabs.calendarAccounts',
+    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+  },
+  {
+    id: 'calendar-list', labelKey: 'admin.tabs.calendarList',
+    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>,
   },
   // Preferences
   {
@@ -8654,7 +8660,8 @@ function makeSearchIndex(t) {
   const privCrumb = `${tabLabel('security')} › ${tabLabel('privacy')}`;
   return [
     // Accounts
-    { label: tabLabel('calendars'), keywords: ['calendar', 'caldav', 'agenda', 'events', 'sync', 'rename', 'hide'], tab: 'calendars', breadcrumb: tabLabel('calendars') },
+    { label: tabLabel('calendarAccounts'), keywords: ['calendar', 'caldav', 'agenda', 'accounts', 'sync', 'interval', 'password', 'connect'], tab: 'calendar-accounts', breadcrumb: `${t('admin.tabs.groupCalendar')} › ${tabLabel('calendarAccounts')}` },
+    { label: tabLabel('calendarList'), keywords: ['calendar', 'calendars', 'agenda', 'rename', 'color', 'colour', 'hide', 'show', 'visible'], tab: 'calendar-list', breadcrumb: `${t('admin.tabs.groupCalendar')} › ${tabLabel('calendarList')}` },
     { label: t('admin.accounts.title'), keywords: ['account', 'email', 'imap', 'smtp', 'gmail', 'yahoo', 'icloud', 'password', 'add account', 'connect'], tab: 'accounts', breadcrumb: tabLabel('accounts') },
     { label: t('admin.accounts.signatureSection'), keywords: ['signature', 'sign off', 'footer', 'alias', 'send as'], tab: 'accounts', breadcrumb: tabLabel('accounts') },
     { label: t('admin.accounts.autoRecipientsSection'), keywords: ['cc', 'bcc', 'copy', 'carbon copy', 'blind copy', 'always bcc', 'automatic', 'copy to myself'], tab: 'accounts', breadcrumb: tabLabel('accounts') },
@@ -8833,7 +8840,8 @@ export default function AdminPanel() {
   const tabContent = (
     <>
       {adminTab === 'accounts' && <AccountsTab />}
-      {adminTab === 'calendars' && <CalendarSettingsTab />}
+      {adminTab === 'calendar-accounts' && <CalendarAccountsTab />}
+      {adminTab === 'calendar-list' && <CalendarListTab />}
       {adminTab === 'antispam' && <SpamSettings />}
       {adminTab === 'rules' && <RulesAndBlockListTab initialSubTab={pendingSubTab} />}
       {adminTab === 'categories' && <CategoriesSection initialSubTab={pendingSubTab} />}

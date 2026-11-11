@@ -78,7 +78,7 @@ function CalendarShell({ active }) {
   const setShowAdmin = useStore(s => s.setShowAdmin);
   const setAdminTab = useStore(s => s.setAdminTab);
   const showAdmin = useStore(s => s.showAdmin);
-  const openSettings = () => { setRailOpen(false); setAdminTab('calendars'); setShowAdmin(true); };
+  const openSettings = (tab = 'calendar-accounts') => { setRailOpen(false); setAdminTab(tab); setShowAdmin(true); };
   const [railOpen, setRailOpen] = useState(false);
   const calendarFocus = useStore(s => s.calendarFocus);
   const setCalendarFocus = useStore(s => s.setCalendarFocus);
@@ -288,7 +288,7 @@ function CalendarShell({ active }) {
     <CalendarRail
       compact={compact} sidebar={sidebar} collapsed={sidebar && sidebarCollapsed} anchor={anchor} today={today} firstDay={firstDay} locale={locale} range={rangeInfo} calendars={calendars}
       onPick={pickDay} onToggle={toggleCalendar} onColor={colorCalendar} onNew={createNew}
-      onAddAccount={openSettings} onManage={openSettings}
+      onAddAccount={() => openSettings()} onManage={() => openSettings(accounts?.length ? 'calendar-list' : 'calendar-accounts')}
     />
   );
 

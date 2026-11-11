@@ -1089,7 +1089,9 @@
       "plugins": "Complementos",
       "backup": "Copia de seguridad",
       "mailSignIn": "Proveedores de correo",
-      "calendars": "Calendarios"
+      "groupCalendar": "Calendario",
+      "calendarAccounts": "Cuentas",
+      "calendarList": "Calendarios"
     },
     "rules": {
       "title": "Reglas de bandeja de entrada",
@@ -2577,11 +2579,13 @@
       "fromMailTitle": "Usar una cuenta de correo",
       "fromMailHint": "Prueba el servidor y la contraseña de la cuenta de correo. No se envía nada a ningún otro servidor.",
       "fromMailNone": "No se encontró ningún servidor de calendario en {{host}}: {{error}}",
-      "calendars": "Calendarios",
       "ignore": "Ocultar",
       "restore": "Volver a mostrar",
       "calendarName": "Nombre para {{name}}",
-      "calendarsHint": "Cambia el nombre de un calendario para verlo con tu propio nombre. Un calendario oculto ya no se sincroniza ni se muestra."
+      "showInViews": "Mostrar en las vistas",
+      "listHint": "Cambia el nombre de un calendario para verlo con el tuyo, elige su color o decide si aparece en tus vistas. Un calendario oculto deja de sincronizarse y no se muestra en ningún sitio.",
+      "noCalendars": "Aún no hay ningún calendario. Conecta primero una cuenta de calendario.",
+      "goToAccounts": "Ir a las cuentas"
     },
     "reply": {
       "question": "¿Asistirás?",

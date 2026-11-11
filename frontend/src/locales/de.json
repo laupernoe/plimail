@@ -1089,7 +1089,9 @@
       "plugins": "Plugins",
       "backup": "Sicherung",
       "mailSignIn": "E-Mail-Anbieter",
-      "calendars": "Kalender"
+      "groupCalendar": "Kalender",
+      "calendarAccounts": "Konten",
+      "calendarList": "Kalender"
     },
     "accounts": {
       "title": "E-Mail-Konten",
@@ -2577,11 +2579,13 @@
       "fromMailTitle": "E-Mail-Konto verwenden",
       "fromMailHint": "Versucht es mit dem Server und Passwort des E-Mail-Kontos. An andere Server wird nichts gesendet.",
       "fromMailNone": "Auf {{host}} wurde kein Kalenderserver gefunden: {{error}}",
-      "calendars": "Kalender",
       "ignore": "Ausblenden",
       "restore": "Wieder anzeigen",
       "calendarName": "Name für {{name}}",
-      "calendarsHint": "Benennen Sie einen Kalender um, um ihn unter Ihrem eigenen Namen zu sehen. Ein ausgeblendeter Kalender wird nicht mehr synchronisiert oder angezeigt."
+      "showInViews": "In Ansichten anzeigen",
+      "listHint": "Benennen Sie einen Kalender um, damit er unter Ihrem eigenen Namen erscheint, wählen Sie seine Farbe oder legen Sie fest, ob er in Ihren Ansichten auftaucht. Ein ausgeblendeter Kalender wird nicht mehr synchronisiert und nirgends angezeigt.",
+      "noCalendars": "Noch kein Kalender vorhanden. Verbinden Sie zuerst ein Kalenderkonto.",
+      "goToAccounts": "Zu den Konten"
     },
     "reply": {
       "question": "Nehmen Sie teil?",

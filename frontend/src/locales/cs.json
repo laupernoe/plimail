@@ -1286,7 +1286,9 @@
       "plugins": "Pluginy",
       "backup": "Záloha",
       "mailSignIn": "Poskytovatelé e-mailu",
-      "calendars": "Kalendáře"
+      "groupCalendar": "Kalendář",
+      "calendarAccounts": "Účty",
+      "calendarList": "Kalendáře"
     },
     "categories": {
       "title": "Kategorie e-mailů",
@@ -2596,11 +2598,13 @@
       "fromMailTitle": "Použít e-mailový účet",
       "fromMailHint": "Zkusí server a heslo e-mailového účtu. Na jiné servery se nic neodesílá.",
       "fromMailNone": "Na {{host}} nebyl nalezen žádný kalendářový server: {{error}}",
-      "calendars": "Kalendáře",
       "ignore": "Skrýt",
       "restore": "Znovu zobrazit",
       "calendarName": "Název pro {{name}}",
-      "calendarsHint": "Přejmenujte kalendář, abyste ho viděli pod vlastním názvem. Skrytý kalendář se už nesynchronizuje ani nezobrazuje."
+      "showInViews": "Zobrazit v zobrazeních",
+      "listHint": "Přejmenujte kalendář, aby se zobrazoval pod vaším názvem, vyberte jeho barvu nebo určete, zda se objeví ve vašich zobrazeních. Skrytý kalendář se už nesynchronizuje a nikde se nezobrazuje.",
+      "noCalendars": "Zatím žádný kalendář. Nejprve připojte kalendářový účet.",
+      "goToAccounts": "Přejít na účty"
     },
     "reply": {
       "question": "Zúčastníte se?",

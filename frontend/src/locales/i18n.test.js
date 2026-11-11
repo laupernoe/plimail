@@ -600,7 +600,7 @@ const SAME_VALUE_ALLOWED = {
   'calendar.mail.cancel': [['es', 'ptBR']],
   'calendar.mail.when': [['it', 'ptBR']],
   'calendar.reply.no': [['en', 'es', 'it']],
-  'calendar.accounts.calendars': [['fr', 'ptBR']],
+  'admin.tabs.groupCalendar': [['es', 'it']],
   'calendar.accounts.ignore': [['es', 'ptBR']],
   'calendar.title': [['es', 'it']],
   'calendar.previous': [['es', 'ptBR']],

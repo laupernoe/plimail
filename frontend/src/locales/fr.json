@@ -1089,7 +1089,9 @@
       "plugins": "Extensions",
       "backup": "Sauvegarde",
       "mailSignIn": "Fournisseurs de messagerie",
-      "calendars": "Agendas"
+      "groupCalendar": "Calendrier",
+      "calendarAccounts": "Comptes",
+      "calendarList": "Agendas"
     },
     "rules": {
       "title": "Règles de boîte de réception",
@@ -2577,11 +2579,13 @@
       "fromMailTitle": "Utiliser un compte mail",
       "fromMailHint": "Essaie le serveur et le mot de passe du compte mail. Rien n'est envoyé à un autre serveur.",
       "fromMailNone": "Aucun serveur d'agenda trouvé sur {{host}} : {{error}}",
-      "calendars": "Agendas",
       "ignore": "Masquer",
       "restore": "Réafficher",
       "calendarName": "Nom pour {{name}}",
-      "calendarsHint": "Renommez un agenda pour le voir sous votre propre nom. Un agenda masqué n'est plus synchronisé ni affiché."
+      "showInViews": "Afficher dans les vues",
+      "listHint": "Renommez un agenda pour le voir sous votre propre nom, choisissez sa couleur ou indiquez s'il apparaît dans vos vues. Un agenda masqué n'est plus synchronisé et n'est affiché nulle part.",
+      "noCalendars": "Aucun agenda pour le moment. Connectez d'abord un compte d'agenda.",
+      "goToAccounts": "Aller aux comptes"
     },
     "reply": {
       "question": "Vous participez ?",
