@@ -215,6 +215,18 @@ describe('applyEdit', () => {
     expect(days).toEqual(['Solo:2026-11-02', 'Standup:2026-10-20', 'Standup:2026-11-10', 'Standup:2026-11-17']);
   });
 
+  it('moves a series across a DST change on its own wall clock', () => {
+    const series = cal('BEGIN:VEVENT', 'UID:d', 'DTSTAMP:20260101T000000Z', 'SUMMARY:Standup',
+      'DTSTART;TZID=Europe/Zurich:20261012T090000', 'DTEND;TZID=Europe/Zurich:20261012T093000',
+      'RRULE:FREQ=WEEKLY', 'EXDATE;TZID=Europe/Zurich:20261102T090000', 'END:VEVENT');
+    // The 19 October occurrence (CEST) dragged a week on to 26 October (CET), at the same 09:00.
+    const out = applyEdit(series, { allDay: false, start: '2026-10-26T08:00:00Z', end: '2026-10-26T08:30:00Z' }, { scope: 'all', recurrenceId: '2026-10-19T09:00:00' });
+    expect(out).toContain('DTSTART;TZID=Europe/Zurich:20261019T090000');
+    expect(out).toContain('EXDATE;TZID=Europe/Zurich:20261109T090000');
+    const occ = expandResource(out, ...range('2026-10-19T00:00:00Z', '2026-11-17T00:00:00Z'));
+    expect(occ.map(o => o.start)).toEqual(['2026-10-19T07:00:00.000Z', '2026-10-26T08:00:00.000Z', '2026-11-02T08:00:00.000Z', '2026-11-16T08:00:00.000Z']);
+  });
+
   it('edits the whole series from a moved exception without moving the series or losing its rule', () => {
     const moved = applyEdit(WEEKLY, { allDay: false, start: '2026-10-28T13:00:00Z', end: '2026-10-28T13:30:00Z' }, { scope: 'this', recurrenceId: '2026-10-26T09:00:00' });
     const exception = expandResource(moved, ...range('2026-10-19T00:00:00Z', '2026-11-03T00:00:00Z')).find(o => o.start.startsWith('2026-10-28'));

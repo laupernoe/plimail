@@ -674,11 +674,33 @@ function editOccurrence(root, input, recurrenceId, zones) {
   if (tzid) ensureTimezone(root, tzid);
 }
 
-function shiftTime(prop, value, deltaMs, tzid, zones) {
-  if (value.isDate) {
-    return ICAL.Time.fromDateString(msToDate(dateToMs(isoDate(value)) + deltaMs));
+// A series moves on its own wall clock: a week later at the same time stays at that time across a
+// DST change, which a fixed number of milliseconds would not. A series written in UTC keeps to UTC.
+function seriesShift(b, fromMs, toMs, zones) {
+  if (b.allDay || b.start.zone === ICAL.Timezone.utcTimezone) {
+    const delta = toMs - fromMs;
+    return ms => ms + delta;
   }
-  const ms = toUtcMs(value, tzid, zones) + deltaMs;
+  const wall = (ms) => {
+    const w = utcToWall(ms, b.tzid, zones);
+    return Date.UTC(w.year, w.month - 1, w.day, w.hour, w.minute, w.second);
+  };
+  const delta = wall(toMs) - wall(fromMs);
+  return (ms) => {
+    const d = new Date(wall(ms) + delta);
+    const time = new ICAL.Time({
+      year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate(),
+      hour: d.getUTCHours(), minute: d.getUTCMinutes(), second: d.getUTCSeconds(), isDate: false,
+    });
+    return toUtcMs(time, b.tzid, zones);
+  };
+}
+
+function shiftTime(value, shift, tzid, zones) {
+  if (value.isDate) {
+    return ICAL.Time.fromDateString(msToDate(shift(dateToMs(isoDate(value)))));
+  }
+  const ms = shift(toUtcMs(value, tzid, zones));
   if (value.zone === ICAL.Timezone.utcTimezone) return ICAL.Time.fromJSDate(new Date(ms), true);
   return new ICAL.Time({ ...utcToWall(ms, tzid, zones), isDate: false });
 }
@@ -686,14 +708,14 @@ function shiftTime(prop, value, deltaMs, tzid, zones) {
 // A series whose start moved: its EXDATEs and its overrides' RECURRENCE-IDs name occurrences by
 // their old start, so they move with it, or they would stop matching and the skipped or edited
 // occurrences would come back.
-function shiftSeriesMarkers(master, overrides, deltaMs, tzid, zones) {
+function shiftSeriesMarkers(master, overrides, shift, tzid, zones) {
   for (const prop of master.getAllProperties('exdate')) {
     const ptz = tzidOf(prop) || tzid;
-    prop.setValues(prop.getValues().map(v => shiftTime(prop, v, deltaMs, ptz, zones)));
+    prop.setValues(prop.getValues().map(v => shiftTime(v, shift, ptz, zones)));
   }
   for (const o of overrides) {
     const prop = o.getFirstProperty('recurrence-id');
-    prop.setValue(shiftTime(prop, prop.getFirstValue(), deltaMs, tzidOf(prop) || tzid, zones));
+    prop.setValue(shiftTime(prop.getFirstValue(), shift, tzidOf(prop) || tzid, zones));
   }
 }
 
@@ -746,7 +768,8 @@ function editSeries(root, input, recurrenceId, zones) {
     }
     const inStart = input.allDay ? dateToMs(input.start) : Date.parse(input.start);
     const inEnd = input.allDay ? dateToMs(input.end) : Date.parse(input.end);
-    const newStartMs = b.startMs + (inStart - anchorMs);
+    const shift = seriesShift(b, anchorMs, inStart, zones);
+    const newStartMs = shift(b.startMs);
     const newEndMs = newStartMs + (inEnd - inStart);
     const kindChanged = input.allDay !== b.allDay;
     const moved = input.allDay
@@ -754,9 +777,8 @@ function editSeries(root, input, recurrenceId, zones) {
       : { ...input, start: new Date(kindChanged ? inStart : newStartMs).toISOString(), end: new Date(kindChanged ? inEnd : newEndMs).toISOString() };
     const tzid = input.allDay ? null : (b.tzid || input.timezone);
     if (isSeries(master) && !kindChanged) {
-      const deltaMs = newStartMs - b.startMs;
-      if (deltaMs) {
-        shiftSeriesMarkers(master, overrides, deltaMs, b.tzid, zones);
+      if (newStartMs !== b.startMs) {
+        shiftSeriesMarkers(master, overrides, shift, b.tzid, zones);
         shiftRuleDays(master, b, newStartMs, zones);
       }
     }
