@@ -517,8 +517,38 @@ function setAttendees(vevent, attendees, organizer) {
   }
 }
 
-const timing = vevent => ['dtstart', 'dtend', 'duration', 'rrule', 'rdate', 'exdate']
-  .map(name => vevent.getAllProperties(name).map(p => p.toICALString()).join('|')).join('\n');
+// When an event happens, as instants: the same time written another way (UTC or a zone, DTEND or
+// DURATION) is not a new time and must not ask anyone again.
+function timing(vevent, zones) {
+  const b = bounds(vevent, zones);
+  if (!b) return '';
+  const keys = (name) => {
+    const out = [];
+    for (const prop of vevent.getAllProperties(name)) {
+      for (const value of prop.getValues()) {
+        if (value instanceof ICAL.Time) out.push(occurrenceKey(value, tzidOf(prop) || b.tzid, zones));
+        else out.push(String(value));
+      }
+    }
+    return out.sort();
+  };
+  const rid = vevent.getFirstProperty('recurrence-id');
+  return JSON.stringify([
+    b.allDay, b.startMs, b.endMs - b.startMs,
+    rid ? occurrenceKey(rid.getFirstValue(), tzidOf(rid), zones) : null,
+    vevent.getAllProperties('rrule').map(p => p.getFirstValue().toString()).sort(),
+    keys('rdate'), keys('exdate'),
+  ]);
+}
+
+const isUtc = time => time?.zone === ICAL.Timezone.utcTimezone;
+
+// Whether the form's dates are the ones the event already has, so it can be left as written.
+function sameBounds(current, input) {
+  if (!current || current.allDay !== input.allDay) return false;
+  if (input.allDay) return msToDate(current.startMs) === input.start && msToDate(current.endMs) === input.end;
+  return current.startMs === Date.parse(input.start) && current.endMs === Date.parse(input.end);
+}
 
 // A new time asks everyone again, as RFC 5546 lets the organizer do; their old answer was for another slot.
 function askAgain(vevent) {
@@ -663,15 +693,17 @@ function editOccurrence(root, input, recurrenceId, zones) {
     root.addSubcomponent(target);
   }
   const current = bounds(target, zones);
-  const tzid = input.allDay ? null : (current?.tzid || input.timezone);
-  const before = timing(target);
+  const keepUtc = current && !current.allDay && !input.allDay && isUtc(current.start);
+  const tzid = input.allDay || keepUtc ? null : (current?.tzid || input.timezone);
+  const before = timing(target, zones);
   applyText(target, input);
-  setBounds(target, input, tzid, zones);
+  const moved = !sameBounds(current, input);
+  if (moved) setBounds(target, input, tzid, zones);
   if (input.reminderMinutes !== undefined) setReminder(target, input.reminderMinutes);
   if (input.attendees !== undefined) setAttendees(target, input.attendees, input.organizer);
-  if (timing(target) !== before) askAgain(target);
+  if (timing(target, zones) !== before) askAgain(target);
   touch(target);
-  if (tzid) ensureTimezone(root, tzid);
+  if (moved && tzid) ensureTimezone(root, tzid);
 }
 
 // A series moves on its own wall clock: a week later at the same time stays at that time across a
@@ -750,7 +782,7 @@ function editSeries(root, input, recurrenceId, zones) {
   const { master, overrides } = masterAndOverrides(root);
   if (!master) throw Object.assign(new Error('Event not found'), { notFound: true });
   const b = bounds(master, zones);
-  const before = timing(master);
+  const before = timing(master, zones);
   applyText(master, input);
   if (input.start !== undefined) {
     // The form holds one occurrence's dates. The series moves by the same amount, from its own start.
@@ -775,7 +807,8 @@ function editSeries(root, input, recurrenceId, zones) {
     const moved = input.allDay
       ? { ...input, start: msToDate(kindChanged ? inStart : newStartMs), end: msToDate(kindChanged ? inEnd : newEndMs) }
       : { ...input, start: new Date(kindChanged ? inStart : newStartMs).toISOString(), end: new Date(kindChanged ? inEnd : newEndMs).toISOString() };
-    const tzid = input.allDay ? null : (b.tzid || input.timezone);
+    const tzid = input.allDay || (!kindChanged && isUtc(b.start)) ? null : (b.tzid || input.timezone);
+    const unchanged = !kindChanged && sameBounds(b, moved);
     if (isSeries(master) && !kindChanged) {
       if (newStartMs !== b.startMs) {
         shiftSeriesMarkers(master, overrides, shift, b.tzid, zones);
@@ -787,8 +820,10 @@ function editSeries(root, input, recurrenceId, zones) {
       master.removeAllProperties('exdate');
       overrides.forEach(o => root.removeSubcomponent(o));
     }
-    setBounds(master, moved, tzid, zones);
-    if (tzid) ensureTimezone(root, tzid);
+    if (!unchanged) {
+      setBounds(master, moved, tzid, zones);
+      if (tzid) ensureTimezone(root, tzid);
+    }
     if (input.recurrence !== undefined) setRecurrence(master, input.recurrence, input, tzid, zones);
   } else if (input.recurrence !== undefined) {
     setRecurrence(master, input.recurrence, { allDay: b.allDay }, b.tzid, zones);
@@ -798,7 +833,7 @@ function editSeries(root, input, recurrenceId, zones) {
     setAttendees(master, input.attendees, input.organizer);
     for (const o of masterAndOverrides(root).overrides) setAttendees(o, input.attendees, input.organizer);
   }
-  if (timing(master) !== before) askAgain(master);
+  if (timing(master, zones) !== before) askAgain(master);
   touch(master);
 }
 

@@ -372,6 +372,21 @@ describe('invitations', () => {
     expect(attendeesOf(moved)[0].status).toBe('ACCEPTED');
   });
 
+  it('keeps answers and the way times are written when the form saves the same time', () => {
+    const utc = vevent => cal('BEGIN:VEVENT', 'UID:u', 'DTSTAMP:20260101T000000Z', 'SUMMARY:Point', 'DTSTART:20270310T090000Z', ...vevent,
+      'ORGANIZER:mailto:noe@example.com', 'ATTENDEE;PARTSTAT=ACCEPTED:mailto:noe@example.com', 'ATTENDEE;PARTSTAT=ACCEPTED:mailto:ana@example.com', 'END:VEVENT');
+    for (const ics of [utc(['DTEND:20270310T100000Z']), utc(['DURATION:PT1H'])]) {
+      // The form always sends the dates and the browser's zone.
+      const out = applyEdit(ics, { ...timed, summary: 'Point (salle 2)' }, { scope: 'all' });
+      expect(attendeesOf(out)[1].status).toBe('ACCEPTED');
+      expect(out).toContain('DTSTART:20270310T090000Z');
+      expect(out).not.toContain('TZID');
+    }
+    const later = applyEdit(utc(['DURATION:PT1H']), { ...timed, start: '2027-03-10T13:00:00Z', end: '2027-03-10T14:00:00Z' }, { scope: 'all' });
+    expect(later).toContain('DTSTART:20270310T130000Z');
+    expect(attendeesOf(later)[1].status).toBe('NEEDS-ACTION');
+  });
+
   it('turns back into a plain event when the last attendee goes', () => {
     const { ical } = buildEvent({ ...timed, attendees: [{ email: 'ana@example.com' }], organizer: me });
     const plain = applyEdit(ical, { attendees: [] });
