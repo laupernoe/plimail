@@ -52,6 +52,20 @@ describe('buildPayload', () => {
     assert.equal('recurrence' in e.buildPayload(form, { recurrenceCustom: true }).payload, false);
   });
 
+  it('leaves an edited event\'s rule out unless the form changed it', () => {
+    const occ = {
+      calendarId: 'c1', summary: 'Standup', allDay: false, start: '2026-10-28T13:00:00.000Z', end: '2026-10-28T13:30:00.000Z',
+      recurrence: { freq: 'WEEKLY', interval: 1, until: null, count: null }, recurrenceId: '2026-10-26T09:00:00', isRecurring: true,
+    };
+    const form = e.formFromOccurrence(occ);
+    assert.equal('recurrence' in e.buildPayload({ ...form, summary: 'Renamed' }).payload, false);
+    assert.deepEqual(e.buildPayload({ ...form, interval: 2 }).payload.recurrence, { freq: 'WEEKLY', interval: 2 });
+    assert.equal(e.buildPayload({ ...form, freq: '' }).payload.recurrence, null);
+    const single = e.formFromOccurrence({ ...occ, recurrence: null });
+    assert.equal('recurrence' in e.buildPayload(single).payload, false);
+    assert.deepEqual(e.buildPayload({ ...single, freq: 'DAILY' }).payload.recurrence, { freq: 'DAILY', interval: 1 });
+  });
+
   it('sends the reminder in minutes, null for none', () => {
     assert.equal(e.buildPayload({ ...timed(), summary: 'x', reminder: '0' }).payload.reminderMinutes, 0);
     assert.equal(e.buildPayload({ ...timed(), summary: 'x', reminder: '45' }).payload.reminderMinutes, 45);

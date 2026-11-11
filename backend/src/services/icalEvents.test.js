@@ -215,6 +215,20 @@ describe('applyEdit', () => {
     expect(days).toEqual(['Solo:2026-11-02', 'Standup:2026-10-20', 'Standup:2026-11-10', 'Standup:2026-11-17']);
   });
 
+  it('edits the whole series from a moved exception without moving the series or losing its rule', () => {
+    const moved = applyEdit(WEEKLY, { allDay: false, start: '2026-10-28T13:00:00Z', end: '2026-10-28T13:30:00Z' }, { scope: 'this', recurrenceId: '2026-10-26T09:00:00' });
+    const exception = expandResource(moved, ...range('2026-10-19T00:00:00Z', '2026-11-03T00:00:00Z')).find(o => o.start.startsWith('2026-10-28'));
+    expect(exception.recurrence).toEqual({ freq: 'WEEKLY', interval: 1, until: null, count: null });
+    // What the form sends back for "all occurrences" when only the title changed.
+    const out = applyEdit(moved, {
+      summary: 'Daily sync', allDay: false, start: exception.start, end: exception.end, timezone: 'Europe/Zurich', recurrence: exception.recurrence,
+    }, { scope: 'all', recurrenceId: exception.recurrenceId });
+    expect(out).toContain('DTSTART;TZID=Europe/Zurich:20261019T090000');
+    expect(out).toContain('RRULE:FREQ=WEEKLY');
+    const occ = expandResource(out, ...range('2026-10-19T00:00:00Z', '2026-11-03T00:00:00Z'));
+    expect(occ.map(o => o.start).sort()).toEqual(['2026-10-19T07:00:00.000Z', '2026-10-28T13:00:00.000Z', '2026-11-02T08:00:00.000Z']);
+  });
+
   it('sets and clears a recurrence and a reminder', () => {
     const { ical } = buildEvent({ summary: 'x', allDay: false, start: '2026-11-05T10:00:00Z', end: '2026-11-05T11:00:00Z', timezone: 'Europe/Zurich' });
     const on = applyEdit(ical, { recurrence: { freq: 'DAILY', count: 3 }, reminderMinutes: 60 });

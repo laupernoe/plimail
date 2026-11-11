@@ -278,6 +278,8 @@ export function expandResource(ics, fromMs, toMs, { floatingTz } = {}) {
 
   const overridden = new Set();
   const masterBounds = master ? bounds(master, zones) : null;
+  // An exception is still part of its series, and editing the series from it shows the series' rule.
+  const seriesRule = master && masterBounds && isSeries(master) ? recurrenceOf(master, masterBounds, zones) : { recurrence: null, custom: false };
   for (const override of overrides) {
     const ridProp = override.getFirstProperty('recurrence-id');
     const rid = ridProp.getFirstValue();
@@ -289,7 +291,7 @@ export function expandResource(ics, fromMs, toMs, { floatingTz } = {}) {
     if (!overlaps(b.startMs, b.endMs, b.allDay)) continue;
     const sameZone = rid.isDate || !masterBounds || ridTz === masterBounds.tzid;
     const recurrenceId = sameZone ? rid.toString() : `${new Date(toUtcMs(rid, ridTz, zones)).toISOString().slice(0, 19)}Z`;
-    out.push(describe(override, b, b.startMs, { recurrenceId, isRecurring: true, recurrence: null, recurrenceCustom: false }));
+    out.push(describe(override, b, b.startMs, { recurrenceId, isRecurring: true, recurrence: seriesRule.recurrence, recurrenceCustom: seriesRule.custom }));
   }
 
   if (!master || !masterBounds) return out;
@@ -306,7 +308,7 @@ export function expandResource(ics, fromMs, toMs, { floatingTz } = {}) {
   for (const prop of master.getAllProperties('exdate')) {
     for (const value of prop.getValues()) excluded.add(occurrenceKey(value, tzidOf(prop) || b.tzid, zones));
   }
-  const { recurrence, custom } = recurrenceOf(master, b, zones);
+  const { recurrence, custom } = seriesRule;
   const it = new ICAL.Event(master).iterator();
   let next;
   let n = 0;
@@ -730,10 +732,17 @@ function editSeries(root, input, recurrenceId, zones) {
   applyText(master, input);
   if (input.start !== undefined) {
     // The form holds one occurrence's dates. The series moves by the same amount, from its own start.
+    // An exception shows its own moved start, so a shift is measured from there, not from the slot
+    // its RECURRENCE-ID names.
     let anchorMs = b.startMs;
     if (recurrenceId && isSeries(master)) {
-      const time = ICAL.Time.fromString(recurrenceId);
-      anchorMs = time.isDate ? dateToMs(isoDate(time)) : toUtcMs(time, b.tzid, zones);
+      const exception = findOverride(overrides, ridKey(recurrenceId, b, zones), zones);
+      const shown = exception && bounds(exception, zones);
+      if (shown && shown.allDay === b.allDay) anchorMs = shown.startMs;
+      else {
+        const time = ICAL.Time.fromString(recurrenceId);
+        anchorMs = time.isDate ? dateToMs(isoDate(time)) : toUtcMs(time, b.tzid, zones);
+      }
     }
     const inStart = input.allDay ? dateToMs(input.start) : Date.parse(input.start);
     const inEnd = input.allDay ? dateToMs(input.end) : Date.parse(input.end);

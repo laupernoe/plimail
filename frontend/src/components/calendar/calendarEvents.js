@@ -36,7 +36,7 @@ export function formFromOccurrence(occ) {
   const days = occurrenceDays(occ);
   const form = emptyForm({ calendarId: occ.calendarId, allDay: occ.allDay, start: occ.start, end: occ.end });
   const r = occ.recurrence;
-  return {
+  const filled = {
     ...form,
     summary: occ.summary || '',
     location: occ.location || '',
@@ -50,6 +50,22 @@ export function formFromOccurrence(occ) {
     reminder: occ.reminderMinutes == null ? '' : String(occ.reminderMinutes),
     attendees: guestsOf(occ),
   };
+  // The rule as the form shows it, so a save that leaves it alone does not rewrite it.
+  return { ...filled, shownRecurrence: JSON.stringify(recurrenceOfForm(filled).rec ?? null) };
+}
+
+function recurrenceOfForm(form, startDay = '') {
+  if (!form.freq) return { rec: null };
+  const rec = { freq: form.freq, interval: Math.max(1, Math.floor(Number(form.interval)) || 1) };
+  if (form.ends === 'until') {
+    if (!form.until || form.until < startDay) return { error: 'calendar.form.untilBeforeStart' };
+    rec.until = form.until;
+  } else if (form.ends === 'count') {
+    const count = Math.floor(Number(form.count));
+    if (!(count >= 1)) return { error: 'calendar.form.countInvalid' };
+    rec.count = count;
+  }
+  return { rec };
 }
 
 // The people invited, without the organizer, who heads the list on the server.
@@ -158,20 +174,9 @@ export function buildPayload(form, { scope = 'all', recurrenceCustom = false, in
     payload.timezone = browserZone();
   }
   if (scope !== 'this' && !recurrenceCustom) {
-    if (!form.freq) {
-      payload.recurrence = null;
-    } else {
-      const rec = { freq: form.freq, interval: Math.max(1, Math.floor(Number(form.interval)) || 1) };
-      if (form.ends === 'until') {
-        if (!form.until || form.until < payload.start.slice(0, 10)) return { error: 'calendar.form.untilBeforeStart' };
-        rec.until = form.until;
-      } else if (form.ends === 'count') {
-        const count = Math.floor(Number(form.count));
-        if (!(count >= 1)) return { error: 'calendar.form.countInvalid' };
-        rec.count = count;
-      }
-      payload.recurrence = rec;
-    }
+    const { rec, error } = recurrenceOfForm(form, payload.start.slice(0, 10));
+    if (error) return { error };
+    if (form.shownRecurrence === undefined || JSON.stringify(rec) !== form.shownRecurrence) payload.recurrence = rec;
   }
   return { payload };
 }
