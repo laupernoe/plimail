@@ -528,6 +528,7 @@ export const api = {
     syncAccount:   (id)         => request('POST',   `/calendar/accounts/${encodeURIComponent(id)}/sync`),
     removeAccount: (id)         => request('DELETE', `/calendar/accounts/${encodeURIComponent(id)}`),
     calendars:     ()           => request('GET',    '/calendar/calendars'),
+    allCalendars:  ()           => request('GET',    '/calendar/calendars?all=1'),
     updateCalendar: (id, data)  => request('PATCH',  `/calendar/calendars/${encodeURIComponent(id)}`, data),
     events:        (from, to)   => request('GET',    `/calendar/events?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&tz=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`),
     createEvent:   (data)       => request('POST',   '/calendar/events', data),

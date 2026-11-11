@@ -25,6 +25,7 @@ const COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 const FREQS = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'];
 const EMAIL_RE = /^[^\s@<>",;:]+@[^\s@<>",;:]+\.[^\s@<>",;:]+$/;
 const MAX_ATTENDEES = 200;
+const MAX_NAME = 200;
 const PARTSTATS = ['ACCEPTED', 'DECLINED', 'TENTATIVE'];
 const clampInterval = v => Math.max(5, Math.min(1440, parseInt(v) || 15));
 const badRequest = (res, error) => res.status(400).json({ error });
@@ -55,7 +56,8 @@ async function loadAccount(userId, id) {
 const FALLBACK_COLOR = '#6366f1';
 function publicCalendar(c) {
   return {
-    id: c.id, accountId: c.account_id, accountName: c.account_name, name: c.name,
+    id: c.id, accountId: c.account_id, accountName: c.account_name, name: c.display_name || c.name,
+    serverName: c.name, displayName: c.display_name || null, ignored: Boolean(c.ignored),
     color: c.color || c.server_color || FALLBACK_COLOR, visible: c.visible, readOnly: c.read_only,
   };
 }
@@ -177,20 +179,43 @@ router.delete('/accounts/:id', async (req, res) => {
 const CALENDAR_SELECT = `
   SELECT c.*, a.name AS account_name FROM calendars c JOIN caldav_accounts a ON a.id = c.account_id`;
 
+// Ignored calendars are left out unless asked for, as only the account settings list them.
 router.get('/calendars', async (req, res) => {
-  const r = await query(`${CALENDAR_SELECT} WHERE c.user_id = $1 ORDER BY a.created_at, c.name`, [req.session.userId]);
+  const all = req.query.all === '1';
+  const r = await query(
+    `${CALENDAR_SELECT} WHERE c.user_id = $1 ${all ? '' : 'AND NOT c.ignored'} ORDER BY a.created_at, COALESCE(c.display_name, c.name)`,
+    [req.session.userId],
+  );
   res.json(r.rows.map(publicCalendar));
 });
 
 router.patch('/calendars/:id', async (req, res) => {
-  const { visible, color } = req.body || {};
+  const { visible, color, displayName, ignored } = req.body || {};
   if (color !== undefined && !COLOR_RE.test(color)) return badRequest(res, 'Invalid color');
+  if (displayName !== undefined && displayName !== null && (typeof displayName !== 'string' || displayName.length > MAX_NAME)) {
+    return badRequest(res, 'Invalid name');
+  }
+  if (ignored !== undefined && typeof ignored !== 'boolean') return badRequest(res, 'Invalid value');
+  const name = typeof displayName === 'string' ? displayName.replace(/[\r\n]+/g, ' ').trim() : displayName;
+  const before = await query('SELECT ignored FROM calendars WHERE id = $1 AND user_id = $2', [req.params.id, req.session.userId]);
+  if (!before.rowCount) return res.status(404).json({ error: 'Not found' });
   const r = await query(
-    `UPDATE calendars SET visible = COALESCE($3, visible), color = COALESCE($4, color)
-     WHERE id = $1 AND user_id = $2 RETURNING id`,
-    [req.params.id, req.session.userId, typeof visible === 'boolean' ? visible : null, color ?? null],
+    `UPDATE calendars SET visible = COALESCE($3, visible), color = COALESCE($4, color),
+       display_name = CASE WHEN $5 THEN NULLIF($6, '') ELSE display_name END,
+       ignored = COALESCE($7, ignored),
+       ctag = CASE WHEN $7 IS NOT NULL AND $7 <> ignored THEN NULL ELSE ctag END
+     WHERE id = $1 AND user_id = $2 RETURNING account_id`,
+    [req.params.id, req.session.userId, typeof visible === 'boolean' ? visible : null, color ?? null,
+      displayName !== undefined, name ?? null, ignored ?? null],
   );
   if (!r.rowCount) return res.status(404).json({ error: 'Not found' });
+  const wasIgnored = before.rows[0].ignored;
+  // Ignoring drops the calendar's events; taking it back fetches them again.
+  if (ignored === true && !wasIgnored) await query('DELETE FROM calendar_events WHERE calendar_id = $1', [req.params.id]);
+  if (ignored === false && wasIgnored) {
+    const accountId = r.rows[0].account_id;
+    syncAccount(accountId).catch(err => console.warn(`Calendar: sync of account ${accountId} failed: ${err.message}`));
+  }
   const c = await query(`${CALENDAR_SELECT} WHERE c.id = $1`, [req.params.id]);
   res.json(publicCalendar(c.rows[0]));
 });
@@ -212,7 +237,7 @@ router.get('/events', async (req, res) => {
   const r = await query(
     `SELECT e.id, e.calendar_id, e.ical, c.read_only
      FROM calendar_events e JOIN calendars c ON c.id = e.calendar_id
-     WHERE e.user_id = $1 AND c.visible AND e.range_start < $3 AND (e.range_end IS NULL OR e.range_end > $2)`,
+     WHERE e.user_id = $1 AND c.visible AND NOT c.ignored AND e.range_start < $3 AND (e.range_end IS NULL OR e.range_end > $2)`,
     [req.session.userId, new Date(fromMs), new Date(toMs)],
   );
   const mine = new Set(await knownAddresses(req.session.userId));
@@ -307,7 +332,7 @@ async function loadCalendar(userId, calendarId) {
   const r = await query(
     `SELECT c.*, a.server_url, a.username, a.password
      FROM calendars c JOIN caldav_accounts a ON a.id = c.account_id
-     WHERE c.id = $1 AND c.user_id = $2`,
+     WHERE c.id = $1 AND c.user_id = $2 AND NOT c.ignored`,
     [calendarId, userId],
   );
   return r.rows[0] || null;

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../utils/api.js';
@@ -19,7 +19,6 @@ import AgendaView from './calendar/AgendaView.jsx';
 import EventDetail from './calendar/EventDetail.jsx';
 import EventForm from './calendar/EventForm.jsx';
 import ScopeDialog from './calendar/ScopeDialog.jsx';
-import AccountsModal from './calendar/AccountsModal.jsx';
 
 const VIEW_STORAGE_KEY = 'mailflow:calendar:view';
 
@@ -75,7 +74,11 @@ function CalendarShell({ active }) {
   const [detailError, setDetailError] = useState(null);
   const [form, setForm] = useState(null);
   const [scopeAsk, setScopeAsk] = useState(null);
-  const [accountsOpen, setAccountsOpen] = useState(false);
+  const [syncBusy, setSyncBusy] = useState(false);
+  const setShowAdmin = useStore(s => s.setShowAdmin);
+  const setAdminTab = useStore(s => s.setAdminTab);
+  const showAdmin = useStore(s => s.showAdmin);
+  const openSettings = () => { setRailOpen(false); setAdminTab('calendars'); setShowAdmin(true); };
   const [railOpen, setRailOpen] = useState(false);
   const calendarFocus = useStore(s => s.calendarFocus);
   const setCalendarFocus = useStore(s => s.setCalendarFocus);
@@ -83,6 +86,27 @@ function CalendarShell({ active }) {
   const range = useMemo(() => visibleRange(view, anchor, firstDay), [view, anchor, firstDay]);
   const data = useCalendarData({ active, from: range.from, to: range.to });
   const { accounts, calendars, setCalendars, events, error: loadError, refresh, loadEvents, loadMeta } = data;
+
+  // Settings may have renamed, hidden or added calendars while they were open.
+  const settingsWasOpen = useRef(showAdmin);
+  useEffect(() => {
+    if (settingsWasOpen.current && !showAdmin) refresh();
+    settingsWasOpen.current = showAdmin;
+  }, [showAdmin, refresh]);
+
+  const syncAll = async () => {
+    if (syncBusy || !accounts?.length) return;
+    setSyncBusy(true);
+    setNotice(null);
+    try {
+      const results = await Promise.all(accounts.map(a => api.calendar.syncAccount(a.id).catch(err => ({ ok: false, error: err.message }))));
+      const failed = results.find(r => r && r.ok === false && !r.busy);
+      if (failed) setNotice(t('calendar.errors.syncFailed', { message: failed.error }));
+      await refresh();
+    } finally {
+      setSyncBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (!active) return undefined;
@@ -264,7 +288,7 @@ function CalendarShell({ active }) {
     <CalendarRail
       compact={compact} sidebar={sidebar} collapsed={sidebar && sidebarCollapsed} anchor={anchor} today={today} firstDay={firstDay} locale={locale} range={rangeInfo} calendars={calendars}
       onPick={pickDay} onToggle={toggleCalendar} onColor={colorCalendar} onNew={createNew}
-      onAddAccount={() => { setRailOpen(false); setAccountsOpen(true); }} onManage={() => { setRailOpen(false); setAccountsOpen(true); }}
+      onAddAccount={openSettings} onManage={openSettings}
     />
   );
 
@@ -283,7 +307,7 @@ function CalendarShell({ active }) {
       )
       : <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>{t('common.loading')}</div>;
   } else if (noAccounts) {
-    body = <EmptyState onConnect={() => setAccountsOpen(true)} />;
+    body = <EmptyState onConnect={() => openSettings()} />;
   } else {
     const commonProps = { today, events: shown, colorOf, locale, onOpen: openDetail };
     const dragProps = { onPreview, onMove: requestMove };
@@ -317,7 +341,7 @@ function CalendarShell({ active }) {
         <ErrorBox key={a.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <Icon name="alert" size={16} style={{ marginTop: 1 }} />
           <span style={{ flex: 1 }}><strong>{t('calendar.accounts.bannerTitle', { name: a.name || a.username })}</strong> {a.lastError}</span>
-          <Btn onClick={() => setAccountsOpen(true)}>{t('calendar.accounts.manage')}</Btn>
+          <Btn onClick={() => openSettings()}>{t('calendar.accounts.manage')}</Btn>
         </ErrorBox>
       ))}
       {syncing.map(a => (
@@ -345,7 +369,8 @@ function CalendarShell({ active }) {
         <CalendarToolbar
           title={formatTitle(view, anchor, firstDay, locale)} view={view} onView={setView} isMobile={isMobile}
           onToday={goToday} onPrev={() => setAnchor(a => shiftAnchor(view, a, -1))} onNext={() => setAnchor(a => shiftAnchor(view, a, 1))}
-          busy={busy > 0} onRail={() => setRailOpen(true)} onBack={() => setShowCalendar(false)}
+          busy={busy > 0} onRail={() => setRailOpen(true)}
+          onSync={accounts?.length ? syncAll : null} syncing={syncBusy} onBack={() => setShowCalendar(false)}
         />
         {stack}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0 }}>{body}</div>
@@ -375,7 +400,6 @@ function CalendarShell({ active }) {
         />
       )}
       {scopeAsk && <ScopeDialog kind={scopeAsk.kind} summary={scopeAsk.occ.summary} isMobile={isMobile} onChoose={chooseScope} onClose={cancelScope} />}
-      {accountsOpen && <AccountsModal accounts={accounts} isMobile={isMobile} onClose={() => setAccountsOpen(false)} onChanged={refresh} />}
     </div>
   );
 }

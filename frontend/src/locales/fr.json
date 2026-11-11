@@ -1088,7 +1088,8 @@
       "behavior": "Comportement",
       "plugins": "Extensions",
       "backup": "Sauvegarde",
-      "mailSignIn": "Fournisseurs de messagerie"
+      "mailSignIn": "Fournisseurs de messagerie",
+      "calendars": "Agendas"
     },
     "rules": {
       "title": "Règles de boîte de réception",
@@ -2541,7 +2542,8 @@
       "noSender": "Aucun compte mail n'envoie depuis l'adresse de votre agenda : les invitations ne peuvent pas partir. Ajoutez cette adresse comme compte ou comme alias.",
       "notOrganizer": "Seul l'organisateur peut changer les participants.",
       "inviteNoSender": "L'événement est enregistré, mais aucun compte mail n'envoie depuis l'adresse de votre agenda : personne n'a été prévenu.",
-      "inviteFailed": "L'événement est enregistré, mais les invitations n'ont pas pu partir : {{message}}"
+      "inviteFailed": "L'événement est enregistré, mais les invitations n'ont pas pu partir : {{message}}",
+      "syncFailed": "La synchronisation a échoué : {{message}}"
     },
     "accounts": {
       "title": "Comptes d'agenda",
@@ -2574,7 +2576,12 @@
       "removeConfirm": "Retirer {{name}} de MailFlow ? Ses agendas et événements sont supprimés ici uniquement ; rien n'est supprimé sur le serveur.",
       "fromMailTitle": "Utiliser un compte mail",
       "fromMailHint": "Essaie le serveur et le mot de passe du compte mail. Rien n'est envoyé à un autre serveur.",
-      "fromMailNone": "Aucun serveur d'agenda trouvé sur {{host}} : {{error}}"
+      "fromMailNone": "Aucun serveur d'agenda trouvé sur {{host}} : {{error}}",
+      "calendars": "Agendas",
+      "ignore": "Masquer",
+      "restore": "Réafficher",
+      "calendarName": "Nom pour {{name}}",
+      "calendarsHint": "Renommez un agenda pour le voir sous votre propre nom. Un agenda masqué n'est plus synchronisé ni affiché."
     },
     "reply": {
       "question": "Vous participez ?",
@@ -2591,6 +2598,7 @@
       "tentative": "Peut-être : {{title}}",
       "when": "Quand",
       "where": "Où"
-    }
+    },
+    "syncAll": "Synchroniser les agendas"
   }
 }

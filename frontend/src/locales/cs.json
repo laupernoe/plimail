@@ -1285,7 +1285,8 @@
       "behavior": "Chování",
       "plugins": "Pluginy",
       "backup": "Záloha",
-      "mailSignIn": "Poskytovatelé e-mailu"
+      "mailSignIn": "Poskytovatelé e-mailu",
+      "calendars": "Kalendáře"
     },
     "categories": {
       "title": "Kategorie e-mailů",
@@ -2560,7 +2561,8 @@
       "noSender": "Z adresy vašeho kalendáře neodesílá žádný poštovní účet, proto pozvánky nelze odeslat. Přidejte tuto adresu jako účet nebo alias.",
       "notOrganizer": "Účastníky může měnit jen organizátor.",
       "inviteNoSender": "Událost je uložena, ale z adresy vašeho kalendáře neodesílá žádný poštovní účet, takže nikdo nebyl upozorněn.",
-      "inviteFailed": "Událost je uložena, ale pozvánky se nepodařilo odeslat: {{message}}"
+      "inviteFailed": "Událost je uložena, ale pozvánky se nepodařilo odeslat: {{message}}",
+      "syncFailed": "Synchronizace selhala: {{message}}"
     },
     "accounts": {
       "title": "Kalendářové účty",
@@ -2593,7 +2595,12 @@
       "removeConfirm": "Odebrat {{name}} z MailFlow? Jeho kalendáře a události se smažou jen zde; na serveru se nic nesmaže.",
       "fromMailTitle": "Použít e-mailový účet",
       "fromMailHint": "Zkusí server a heslo e-mailového účtu. Na jiné servery se nic neodesílá.",
-      "fromMailNone": "Na {{host}} nebyl nalezen žádný kalendářový server: {{error}}"
+      "fromMailNone": "Na {{host}} nebyl nalezen žádný kalendářový server: {{error}}",
+      "calendars": "Kalendáře",
+      "ignore": "Skrýt",
+      "restore": "Znovu zobrazit",
+      "calendarName": "Název pro {{name}}",
+      "calendarsHint": "Přejmenujte kalendář, abyste ho viděli pod vlastním názvem. Skrytý kalendář se už nesynchronizuje ani nezobrazuje."
     },
     "reply": {
       "question": "Zúčastníte se?",
@@ -2610,6 +2617,7 @@
       "tentative": "Předběžně: {{title}}",
       "when": "Kdy",
       "where": "Kde"
-    }
+    },
+    "syncAll": "Synchronizovat kalendáře"
   }
 }

@@ -1088,7 +1088,8 @@
       "behavior": "Comportamento",
       "plugins": "Plugin",
       "backup": "Backup",
-      "mailSignIn": "Provider di posta"
+      "mailSignIn": "Provider di posta",
+      "calendars": "Calendari"
     },
     "rules": {
       "title": "Regole posta in arrivo",
@@ -2541,7 +2542,8 @@
       "noSender": "Nessun account di posta invia dall'indirizzo del tuo calendario, quindi gli inviti non possono partire. Aggiungi quell'indirizzo come account o alias.",
       "notOrganizer": "Solo chi organizza può cambiare gli invitati.",
       "inviteNoSender": "L'evento è salvato, ma nessun account di posta invia dall'indirizzo del tuo calendario, quindi nessuno è stato avvisato.",
-      "inviteFailed": "L'evento è salvato, ma non è stato possibile inviare gli inviti: {{message}}"
+      "inviteFailed": "L'evento è salvato, ma non è stato possibile inviare gli inviti: {{message}}",
+      "syncFailed": "Sincronizzazione non riuscita: {{message}}"
     },
     "accounts": {
       "title": "Account calendario",
@@ -2574,7 +2576,12 @@
       "removeConfirm": "Rimuovere {{name}} da MailFlow? I suoi calendari ed eventi vengono eliminati solo qui; sul server non viene cancellato nulla.",
       "fromMailTitle": "Usa un account di posta",
       "fromMailHint": "Prova il server e la password dell'account di posta. Nulla viene inviato ad altri server.",
-      "fromMailNone": "Nessun server di calendario trovato su {{host}}: {{error}}"
+      "fromMailNone": "Nessun server di calendario trovato su {{host}}: {{error}}",
+      "calendars": "Calendari",
+      "ignore": "Nascondi",
+      "restore": "Mostra di nuovo",
+      "calendarName": "Nome per {{name}}",
+      "calendarsHint": "Rinomina un calendario per vederlo con un tuo nome. Un calendario nascosto non viene più sincronizzato né mostrato."
     },
     "reply": {
       "question": "Partecipi?",
@@ -2591,6 +2598,7 @@
       "tentative": "Provvisorio: {{title}}",
       "when": "Quando",
       "where": "Dove"
-    }
+    },
+    "syncAll": "Sincronizza calendari"
   }
 }

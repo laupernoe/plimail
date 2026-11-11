@@ -1088,7 +1088,8 @@
       "behavior": "Verhalten",
       "plugins": "Plugins",
       "backup": "Sicherung",
-      "mailSignIn": "E-Mail-Anbieter"
+      "mailSignIn": "E-Mail-Anbieter",
+      "calendars": "Kalender"
     },
     "accounts": {
       "title": "E-Mail-Konten",
@@ -2541,7 +2542,8 @@
       "noSender": "Kein E-Mail-Konto sendet von Ihrer Kalenderadresse, daher können die Einladungen nicht verschickt werden. Fügen Sie diese Adresse als Konto oder Alias hinzu.",
       "notOrganizer": "Nur die organisierende Person kann die Teilnehmenden ändern.",
       "inviteNoSender": "Der Termin ist gespeichert, aber kein E-Mail-Konto sendet von Ihrer Kalenderadresse, daher wurde niemand benachrichtigt.",
-      "inviteFailed": "Der Termin ist gespeichert, aber die Einladungen konnten nicht verschickt werden: {{message}}"
+      "inviteFailed": "Der Termin ist gespeichert, aber die Einladungen konnten nicht verschickt werden: {{message}}",
+      "syncFailed": "Synchronisierung fehlgeschlagen: {{message}}"
     },
     "accounts": {
       "title": "Kalenderkonten",
@@ -2574,7 +2576,12 @@
       "removeConfirm": "{{name}} aus MailFlow entfernen? Kalender und Termine werden nur hier gelöscht; auf dem Server wird nichts gelöscht.",
       "fromMailTitle": "E-Mail-Konto verwenden",
       "fromMailHint": "Versucht es mit dem Server und Passwort des E-Mail-Kontos. An andere Server wird nichts gesendet.",
-      "fromMailNone": "Auf {{host}} wurde kein Kalenderserver gefunden: {{error}}"
+      "fromMailNone": "Auf {{host}} wurde kein Kalenderserver gefunden: {{error}}",
+      "calendars": "Kalender",
+      "ignore": "Ausblenden",
+      "restore": "Wieder anzeigen",
+      "calendarName": "Name für {{name}}",
+      "calendarsHint": "Benennen Sie einen Kalender um, um ihn unter Ihrem eigenen Namen zu sehen. Ein ausgeblendeter Kalender wird nicht mehr synchronisiert oder angezeigt."
     },
     "reply": {
       "question": "Nehmen Sie teil?",
@@ -2591,6 +2598,7 @@
       "tentative": "Vorläufig: {{title}}",
       "when": "Wann",
       "where": "Wo"
-    }
+    },
+    "syncAll": "Kalender synchronisieren"
   }
 }

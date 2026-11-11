@@ -1088,7 +1088,8 @@
       "behavior": "Behavior",
       "plugins": "Plugins",
       "backup": "Backup",
-      "mailSignIn": "Email providers"
+      "mailSignIn": "Email providers",
+      "calendars": "Calendars"
     },
     "rules": {
       "title": "Inbox rules",
@@ -2541,7 +2542,8 @@
       "noSender": "No mail account can send from your calendar address, so the invitations cannot be sent. Add that address as an account or an alias.",
       "notOrganizer": "Only the organizer can change who is invited.",
       "inviteNoSender": "The event is saved, but no mail account sends from your calendar address, so nobody was notified.",
-      "inviteFailed": "The event is saved, but the invitations could not be sent: {{message}}"
+      "inviteFailed": "The event is saved, but the invitations could not be sent: {{message}}",
+      "syncFailed": "Sync failed: {{message}}"
     },
     "accounts": {
       "title": "Calendar accounts",
@@ -2574,7 +2576,12 @@
       "removeConfirm": "Remove {{name}} from MailFlow? Its calendars and events are deleted here only; nothing is deleted on the server.",
       "fromMailTitle": "Use a mail account",
       "fromMailHint": "Tries the mail account's own server and password. Nothing is sent to any other host.",
-      "fromMailNone": "No calendar server was found on {{host}}: {{error}}"
+      "fromMailNone": "No calendar server was found on {{host}}: {{error}}",
+      "calendars": "Calendars",
+      "ignore": "Hide",
+      "restore": "Show again",
+      "calendarName": "Name for {{name}}",
+      "calendarsHint": "Rename a calendar to see it under your own name. A hidden calendar is no longer synced or shown."
     },
     "reply": {
       "question": "Going?",
@@ -2591,6 +2598,7 @@
       "tentative": "Tentative: {{title}}",
       "when": "When",
       "where": "Where"
-    }
+    },
+    "syncAll": "Sync calendars"
   }
 }

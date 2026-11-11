@@ -8,7 +8,7 @@ export const tint = (color, percent) => `color-mix(in srgb, ${color || 'var(--ac
 
 export const inputStyle = {
   width: '100%', boxSizing: 'border-box', padding: '8px 10px', borderRadius: 7,
-  border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)',
+  border: '1px solid var(--border)', background: 'var(--bg-tertiary)', color: 'var(--text-primary)',
   fontSize: 13, outline: 'none', fontFamily: 'inherit',
 };
 export const labelStyle = { fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 4, display: 'block' };
@@ -60,7 +60,7 @@ export function Btn({ kind = 'ghost', style, disabled, ...props }) {
   );
 }
 
-export function IconBtn({ label, icon, onClick, active, size = 28, iconSize = 16, style, ...rest }) {
+export function IconBtn({ label, icon, onClick, active, size = 28, iconSize = 16, style, iconStyle, ...rest }) {
   return (
     <button type="button" onClick={onClick} aria-label={label} title={label} {...rest}
       onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--bg-tertiary)'; }}
@@ -71,7 +71,7 @@ export function IconBtn({ label, icon, onClick, active, size = 28, iconSize = 16
         background: active ? 'var(--bg-hover)' : 'transparent',
         color: active ? 'var(--accent)' : 'var(--text-secondary)', ...style,
       }}>
-      <Icon name={icon} size={iconSize} />
+      <Icon name={icon} size={iconSize} style={iconStyle} />
     </button>
   );
 }

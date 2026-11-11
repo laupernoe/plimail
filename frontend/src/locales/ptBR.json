@@ -1088,7 +1088,8 @@
       "behavior": "Comportamento",
       "plugins": "Plugins",
       "backup": "Backup",
-      "mailSignIn": "Provedores de e-mail"
+      "mailSignIn": "Provedores de e-mail",
+      "calendars": "Agendas"
     },
     "rules": {
       "title": "Regras da caixa de entrada",
@@ -2541,7 +2542,8 @@
       "noSender": "Nenhuma conta de e-mail envia a partir do endereço da sua agenda, então os convites não podem ser enviados. Adicione esse endereço como conta ou alias.",
       "notOrganizer": "Só quem organiza pode mudar os convidados.",
       "inviteNoSender": "O evento foi salvo, mas nenhuma conta de e-mail envia a partir do endereço da sua agenda, então ninguém foi avisado.",
-      "inviteFailed": "O evento foi salvo, mas não foi possível enviar os convites: {{message}}"
+      "inviteFailed": "O evento foi salvo, mas não foi possível enviar os convites: {{message}}",
+      "syncFailed": "Falha na sincronização: {{message}}"
     },
     "accounts": {
       "title": "Contas de calendário",
@@ -2574,7 +2576,12 @@
       "removeConfirm": "Remover {{name}} do MailFlow? Os calendários e eventos são excluídos apenas aqui; nada é apagado no servidor.",
       "fromMailTitle": "Usar uma conta de e-mail",
       "fromMailHint": "Tenta o servidor e a senha da conta de e-mail. Nada é enviado a outros servidores.",
-      "fromMailNone": "Nenhum servidor de calendário encontrado em {{host}}: {{error}}"
+      "fromMailNone": "Nenhum servidor de calendário encontrado em {{host}}: {{error}}",
+      "calendars": "Agendas",
+      "ignore": "Ocultar",
+      "restore": "Mostrar novamente",
+      "calendarName": "Nome para {{name}}",
+      "calendarsHint": "Renomeie uma agenda para vê-la com seu próprio nome. Uma agenda oculta não é mais sincronizada nem exibida."
     },
     "reply": {
       "question": "Vai participar?",
@@ -2591,6 +2598,7 @@
       "tentative": "Provisório: {{title}}",
       "when": "Quando",
       "where": "Onde"
-    }
+    },
+    "syncAll": "Sincronizar agendas"
   }
 }

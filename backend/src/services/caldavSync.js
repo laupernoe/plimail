@@ -86,6 +86,7 @@ export async function syncAccount(accountId) {
           [account.id, account.user_id, remote.url, remote.name, remote.color, remote.readOnly],
         );
         const calendar = saved.rows[0];
+        if (calendar.ignored) continue;
         if (remote.ctag && calendar.ctag === remote.ctag) continue;
         try {
           await syncCalendar(calendar, remote, creds, startedAt);

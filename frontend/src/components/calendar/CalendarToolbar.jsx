@@ -26,7 +26,7 @@ function Segmented({ view, onView, compact }) {
   );
 }
 
-export default function CalendarToolbar({ title, view, onView, onToday, onPrev, onNext, isMobile, busy, onRail, onBack }) {
+export default function CalendarToolbar({ title, view, onView, onToday, onPrev, onNext, isMobile, busy, onRail, onBack, onSync, syncing }) {
   const { t } = useTranslation();
   const nav = (
     <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -41,6 +41,10 @@ export default function CalendarToolbar({ title, view, onView, onToday, onPrev, 
       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: isMobile ? 1 : '1 1 170px',
     }}>{title}</h1>
   );
+  const sync = onSync ? (
+    <IconBtn label={syncing ? t('calendar.accounts.syncing') : t('calendar.syncAll')} icon="sync" onClick={onSync} disabled={syncing}
+      size={isMobile ? 36 : 30} iconSize={isMobile ? 18 : 15} iconStyle={syncing ? { animation: 'spin 0.8s linear infinite' } : undefined} />
+  ) : null;
   const status = busy ? <span role="status" style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{t('common.saving')}</span> : null;
 
   if (isMobile) {
@@ -54,6 +58,7 @@ export default function CalendarToolbar({ title, view, onView, onToday, onPrev, 
           <IconBtn label={t('calendar.today')} icon="today" onClick={onToday} size={36} iconSize={18} />
           <IconBtn label={t('calendar.previous')} icon="chevL" onClick={onPrev} size={36} />
           <IconBtn label={t('calendar.next')} icon="chevR" onClick={onNext} size={36} />
+          {sync}
           <IconBtn label={t('calendar.calendars')} icon="list" onClick={onRail} size={36} iconSize={18} />
         </div>
         <Segmented view={view} onView={onView} compact />
@@ -65,6 +70,7 @@ export default function CalendarToolbar({ title, view, onView, onToday, onPrev, 
       {nav}
       {heading}
       {status}
+      {sync}
       <Segmented view={view} onView={onView} />
     </div>
   );
