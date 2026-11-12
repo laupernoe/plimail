@@ -275,3 +275,26 @@ describe('PATCH /auth/preferences theme', () => {
     for (const t of ['dark', 'light', 'nord', 'winxp', 'win9x', '', 42]) expect(await store(t)).toBe('system');
   });
 });
+
+describe('PATCH /auth/preferences timeFormat (#758)', () => {
+  const res = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn() });
+
+  for (const value of ['auto', '12', '24']) {
+    it(`stores ${value}`, async () => {
+      await patchPreferences({ session: { userId: 'user-1' }, body: { timeFormat: value } }, res());
+      const [sql, params] = query.mock.calls[0];
+      expect(sql).toContain("jsonb_build_object('timeFormat', $45::text)");
+      expect(params[44]).toBe(value);
+    });
+  }
+
+  it('ignores an unknown value rather than persisting it', async () => {
+    await patchPreferences({ session: { userId: 'user-1' }, body: { timeFormat: '13' } }, res());
+    expect(query.mock.calls[0][1][44]).toBeNull();
+  });
+
+  it('leaves timeFormat alone when it is not sent', async () => {
+    await patchPreferences({ session: { userId: 'user-1' }, body: { pageSize: '50' } }, res());
+    expect(query.mock.calls[0][1][44]).toBeNull();
+  });
+});
