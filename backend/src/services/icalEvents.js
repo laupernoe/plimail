@@ -577,6 +577,19 @@ export function inviteInfo(ics) {
   return { organizer, attendees, summary: first ? text(first, 'summary') || '' : '', uid: first?.getFirstPropertyValue('uid') || null };
 }
 
+// What attendees are told about an event, so an edit that leaves it alone (a reminder, the same
+// time written another way) sends nobody an update.
+export function inviteContent(ics) {
+  const root = parseRoot(ics);
+  const zones = zonesOf(root);
+  return root.getAllSubcomponents('vevent').map(v => JSON.stringify([
+    timing(v, zones),
+    ...['summary', 'location', 'description', 'url', 'status'].map(name => text(v, name)),
+    emailOf(v.getFirstProperty('organizer')),
+    v.getAllProperties('attendee').map(emailOf).sort(),
+  ])).sort().join('\n');
+}
+
 // One's own answer, on the series and every exception that invites the same address.
 export function setReply(ics, myEmails, partstat) {
   const root = parseRoot(ics);

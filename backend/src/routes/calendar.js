@@ -11,7 +11,7 @@ import { validateHost } from '../services/hostValidation.js';
 import { getConnectionPolicy } from '../services/connectionPolicy.js';
 import { discoverCalendars, findCalDavServer, getEvent, putEvent, deleteEvent } from '../services/caldavClient.js';
 import { syncAccount, credentialsFor, isSyncing } from '../services/caldavSync.js';
-import { applyEdit, buildEvent, expandResource, inviteInfo, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
+import { applyEdit, buildEvent, expandResource, inviteContent, inviteInfo, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
 import { forgetScheduling, knownAddresses, mailItip, mailLabels, planInvites } from '../services/calendarInvites.js';
 
 const router = Router();
@@ -513,10 +513,10 @@ router.patch('/events/:eventId', async (req, res) => {
     }
     const after = inviteInfo(ical);
     const removed = before.attendees.filter(e => !after.attendees.includes(e));
-    const onlyReminder = Object.keys(input).every(k => ['reminderMinutes', 'organizer', 'timezone'].includes(k));
+    const changed = inviteContent(ical) !== inviteContent(event.ical);
     const mailed = await mailAfterWrite(req.session.userId, plan, [
       { to: removed, method: 'CANCEL', ics: event.ical, kind: 'cancel', only: removed },
-      { to: onlyReminder ? [] : after.attendees, method: 'REQUEST', ics: ical, kind: before.attendees.length ? 'update' : 'invite' },
+      { to: changed ? after.attendees : [], method: 'REQUEST', ics: ical, kind: before.attendees.length ? 'update' : 'invite' },
     ], mailOptions(req));
     res.json({ ok: true, ...mailed });
   } catch (err) {

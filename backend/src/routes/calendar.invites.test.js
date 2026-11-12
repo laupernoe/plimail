@@ -98,10 +98,24 @@ describe('invitations', () => {
     expect(state.puts[0]).not.toMatch(/bob@/);
   });
 
+  // What the form sends: every field, whether it changed or not.
+  const formBody = extra => ({
+    calendarId: 'c1', summary: 'Point', location: '', description: '', ...times, reminderMinutes: null, scope: 'all',
+    attendees: [{ email: 'ana@example.com', name: null }, { email: 'bob@example.com', name: null }], lang: 'en', ...extra,
+  });
+
   it('sends no update for a change of reminder only', async () => {
     state.event = stored(MINE);
-    await call('PATCH', `/c/events/${EVENT_ID}`, { reminderMinutes: 10 });
+    const r = await call('PATCH', `/c/events/${EVENT_ID}`, formBody({ reminderMinutes: 10 }));
+    expect(r.status).toBe(200);
+    expect(state.puts[0]).toMatch(/VALARM/);
     expect(state.mails).toEqual([]);
+  });
+
+  it('updates everyone when the title changes', async () => {
+    state.event = stored(MINE);
+    await call('PATCH', `/c/events/${EVENT_ID}`, formBody({ summary: 'Point (salle 2)' }));
+    expect(state.mails.map(m => [m.method, m.kind, m.to])).toEqual([['REQUEST', 'update', ['ana@example.com', 'bob@example.com']]]);
   });
 
   it('keeps attendees out of the hands of someone who did not organize', async () => {
