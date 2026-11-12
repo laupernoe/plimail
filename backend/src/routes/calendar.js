@@ -144,9 +144,12 @@ router.get('/mail-accounts', async (req, res) => {
   res.json(r.rows.map(m => ({ id: m.id, email: m.email_address, host: m.imap_host, username: m.auth_user, connected: m.connected })));
 });
 
+// serverUrl (optional): a CalDAV server Add account found for the address (autoconfig or DNS),
+// tried first. The user chose it as they could have typed it, so it is checked like a typed one.
 router.post('/accounts/from-mail', async (req, res) => {
-  const { accountId } = req.body || {};
+  const { accountId, serverUrl } = req.body || {};
   if (!UUID_RE.test(accountId || '')) return res.status(404).json({ error: 'Not found' });
+  if (serverUrl != null && (typeof serverUrl !== 'string' || !serverUrl)) return badRequest(res, 'Invalid server URL');
   const mail = await findOwnedAccount(req.session.userId, accountId, {
     columns: 'email_address, imap_host, smtp_host, auth_user, auth_pass, oauth_provider',
   });
@@ -155,9 +158,18 @@ router.post('/accounts/from-mail', async (req, res) => {
   const username = mail.auth_user;
   const password = decrypt(mail.auth_pass);
   const policy = await getConnectionPolicy();
+  if (serverUrl != null) {
+    const urlErr = await serverUrlError(serverUrl, policy);
+    if (urlErr) return badRequest(res, urlErr);
+  }
   let found;
   try {
-    found = await findCalDavServer([mail.imap_host, mail.smtp_host], { username, password, allowPrivate: policy.allowPrivateHosts });
+    found = serverUrl
+      ? await discoverCalendars({ serverUrl, username, password, allowPrivate: policy.allowPrivateHosts })
+        .then(() => ({ serverUrl }))
+        .catch(() => null)
+      : null;
+    found ||= await findCalDavServer([mail.imap_host, mail.smtp_host], { username, password, allowPrivate: policy.allowPrivateHosts });
   } catch (err) {
     return res.status(400).json({ error: err.message, code: 'no_caldav' });
   }
