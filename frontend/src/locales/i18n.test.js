@@ -135,6 +135,9 @@ const SAME_VALUE_ALLOWED = {
   'admin.accounts.smtpHostPh':              'any', // smtp.gmail.com
   'admin.ai.baseUrlPh':                      'any', // http://localhost:11434/v1
   'admin.ai.chatgptModelPh':                 'any', // gpt-5.6-luna
+  'admin.ai.openrouterKeyPh':                'any', // sk-or-…
+  'admin.ai.openrouterModelPh':              'any', // mistralai/mistral-nemo
+  'admin.ai.connectionMethodOpenrouter': [['es', 'ptBR']], // "OpenRouter (recomendado)"
   'admin.appearance.customCssPlaceholder':   'any', // CSS code snippet, same in all locales
   'admin.integrations.microsoft.clientIdPh':'any', // xxxxxxxx-xxxx-…
   'admin.integrations.google.title':        'any', // Gmail / Google Workspace — brand names

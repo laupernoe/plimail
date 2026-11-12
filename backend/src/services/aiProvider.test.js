@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   AI_PROVIDER_API_KEY,
   AI_PROVIDER_CHATGPT,
+  AI_PROVIDER_OPENROUTER,
   MASKED_API_KEY,
   createAiProvider,
   normalizeAiConfig,
@@ -101,6 +102,7 @@ describe('normalizeAiConfig', () => {
         baseUrl: 'http://ollama:11434/v1', apiKey: 'encrypted:key', model: 'llama3',
       },
       chatgptConfig: { model: 'gpt-5.6-luna' },
+      openrouterConfig: { apiKey: null, model: 'mistralai/mistral-nemo' },
       features: { compose: false, summarize: true },
     });
   });
@@ -116,6 +118,7 @@ describe('normalizeAiConfig', () => {
       provider: AI_PROVIDER_CHATGPT,
       apiKeyConfig: { baseUrl: 'https://api.example/v1', apiKey: null, model: 'api-model' },
       chatgptConfig: { model: 'gpt-5.4' },
+      openrouterConfig: { apiKey: null, model: 'mistralai/mistral-nemo' },
       features: { compose: true, summarize: true },
     });
   });
@@ -604,5 +607,106 @@ describe('status and provider test', () => {
       chatgptConfig: { model: 'gpt-5.4' },
     } });
     await expect(provider.testAiProvider()).resolves.toEqual({ ok: true });
+  });
+});
+
+describe('OpenRouter provider', () => {
+  const OPENROUTER = {
+    enabled: true,
+    provider: AI_PROVIDER_OPENROUTER,
+    openrouterConfig: { apiKey: 'encrypted:sk-or-secret', model: 'mistralai/mistral-nemo' },
+  };
+
+  it('defaults the model to mistralai/mistral-nemo', () => {
+    expect(normalizeAiConfig({ provider: AI_PROVIDER_OPENROUTER }).openrouterConfig)
+      .toEqual({ apiKey: null, model: 'mistralai/mistral-nemo' });
+  });
+
+  it('requires a key, encrypts it and never returns it', async () => {
+    const { provider, settings } = factory();
+    await expect(provider.saveAiConfig({ enabled: true, provider: AI_PROVIDER_OPENROUTER }))
+      .rejects.toMatchObject({ status: 400 });
+    const saved = await provider.saveAiConfig({
+      enabled: true,
+      provider: AI_PROVIDER_OPENROUTER,
+      openrouterConfig: { apiKey: ' sk-or-new ', model: '' },
+    });
+    expect(settings.read().openrouterConfig).toEqual({ apiKey: 'encrypted:sk-or-new', model: 'mistralai/mistral-nemo' });
+    expect(saved.openrouterConfig.apiKey).toBe(MASKED_API_KEY);
+    // Saving the masked value back keeps the stored key.
+    await provider.saveAiConfig({
+      enabled: true,
+      provider: AI_PROVIDER_OPENROUTER,
+      openrouterConfig: { apiKey: MASKED_API_KEY, model: 'anthropic/claude-3.5-haiku' },
+    });
+    expect(settings.read().openrouterConfig).toEqual({ apiKey: 'encrypted:sk-or-new', model: 'anthropic/claude-3.5-haiku' });
+  });
+
+  it('sends completions to OpenRouter with the key and attribution headers, and no user data', async () => {
+    vi.stubEnv('APP_URL', 'https://mail.example.test');
+    vi.stubEnv('APP_NAME', 'Acme Mail');
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({ choices: [{ message: { content: 'hello' } }] }));
+    const { provider } = factory({ initial: OPENROUTER, fetchFn });
+    expect(await provider.completeText([{ role: 'user', content: 'hi' }])).toBe('hello');
+    const [url, init] = fetchFn.mock.calls[0];
+    expect(url).toBe('https://openrouter.ai/api/v1/chat/completions');
+    expect(init.headers).toEqual({
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://mailflow.sh',
+      'X-Title': 'MailFlow',
+      Authorization: 'Bearer sk-or-secret',
+    });
+    expect(JSON.parse(init.body)).toMatchObject({ model: 'mistralai/mistral-nemo', stream: false });
+    vi.unstubAllEnvs();
+  });
+
+  it('never puts the instance address or name in the attribution headers', async () => {
+    vi.stubEnv('APP_URL', '');
+    vi.stubEnv('APP_NAME', '');
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({ choices: [{ message: { content: 'x' } }] }));
+    const { provider } = factory({ initial: OPENROUTER, fetchFn });
+    await provider.completeText([{ role: 'user', content: 'hi' }]);
+    expect(fetchFn.mock.calls[0][1].headers).toMatchObject({ 'HTTP-Referer': 'https://mailflow.sh', 'X-Title': 'MailFlow' });
+    vi.unstubAllEnvs();
+  });
+
+  it('streams through the same endpoint', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(sseResponse([completionEvent('a'), completionEvent('b'), 'data: [DONE]\n\n']));
+    const { provider } = factory({ initial: OPENROUTER, fetchFn });
+    expect(await collect(provider.streamChat([{ role: 'user', content: 'hi' }]))).toEqual(['a', 'b']);
+    expect(fetchFn.mock.calls[0][0]).toBe('https://openrouter.ai/api/v1/chat/completions');
+    expect(fetchFn.mock.calls[0][1].headers['X-Title']).toBeTruthy();
+  });
+
+  it('is enabled in the status only with a key', async () => {
+    expect((await factory({ initial: OPENROUTER }).provider.getAiStatus()).enabled).toBe(true);
+    const noKey = { ...OPENROUTER, openrouterConfig: { model: 'mistralai/mistral-nemo' } };
+    expect((await factory({ initial: noKey }).provider.getAiStatus()).enabled).toBe(false);
+  });
+
+  it('lists models with prices per million tokens, without sending a key', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({ data: [
+      { id: 'z/model', name: 'Z', context_length: 8000, pricing: { prompt: '0.000002', completion: '0.00001' } },
+      { id: 'mistralai/mistral-nemo', name: 'Mistral Nemo', context_length: 131072, pricing: { prompt: '0.00000002', completion: '0.00000004' } },
+      { id: 'free/m', pricing: { prompt: '-1' } },
+      { nope: true },
+    ] }));
+    const { provider } = factory({ initial: OPENROUTER, fetchFn });
+    const models = await provider.listOpenRouterModels();
+    expect(fetchFn.mock.calls[0][0]).toBe('https://openrouter.ai/api/v1/models');
+    expect(fetchFn.mock.calls[0][1].headers.Authorization).toBeUndefined();
+    expect(models).toEqual([
+      { id: 'free/m', name: 'free/m', contextLength: null, promptPrice: null, completionPrice: null },
+      { id: 'mistralai/mistral-nemo', name: 'Mistral Nemo', contextLength: 131072, promptPrice: 0.02, completionPrice: 0.04 },
+      { id: 'z/model', name: 'Z', contextLength: 8000, promptPrice: 2, completionPrice: 10 },
+    ]);
+  });
+
+  it('reports a provider error from the key being rejected', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({ error: { message: 'No auth credentials found sk-or-secret' } }, 401));
+    const { provider } = factory({ initial: OPENROUTER, fetchFn });
+    const error = await provider.testAiProvider().catch(e => e);
+    expect(error.message).toContain('AI provider error (401)');
+    expect(error.message).not.toContain('sk-or-secret');
   });
 });

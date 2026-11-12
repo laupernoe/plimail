@@ -636,6 +636,7 @@ export const api = {
     saveConfig: (data) => request('PATCH', '/admin/ai', data),
     deleteConfig: () => request('DELETE', '/admin/ai'),
     test: () => request('POST', '/admin/ai/test'),
+    openrouterModels: () => request('GET', '/admin/ai/openrouter/models'),
     status: () => request('GET', '/ai/status'),
     chat: streamAiChat,
     codex: {

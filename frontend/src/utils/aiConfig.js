@@ -1,11 +1,18 @@
 export const AI_PROVIDER_API_KEY = 'api-key';
 export const AI_PROVIDER_CHATGPT = 'chatgpt';
+export const AI_PROVIDER_OPENROUTER = 'openrouter';
+export const AI_CONNECTION_METHOD_OPENROUTER = 'openrouter';
 export const AI_CONNECTION_METHOD_API = 'api';
 export const AI_CONNECTION_METHOD_ACCOUNT = 'account';
 export const DEFAULT_CODEX_MODEL = 'gpt-5.6-luna';
+export const DEFAULT_OPENROUTER_MODEL = 'mistralai/mistral-nemo';
+export const OPENROUTER_KEYS_URL = 'https://openrouter.ai/keys';
+export const OPENROUTER_MODELS_URL = 'https://openrouter.ai/models';
 export const OPENAI_MODELS_URL = 'https://developers.openai.com/api/docs/models';
 
+// OpenRouter comes first: one key reaches many models and it is the one we recommend.
 export const AI_CONNECTION_METHOD_OPTIONS = [
+  { value: AI_CONNECTION_METHOD_OPENROUTER, labelKey: 'admin.ai.connectionMethodOpenrouter' },
   { value: AI_CONNECTION_METHOD_API, labelKey: 'admin.ai.connectionMethodApi' },
   { value: AI_CONNECTION_METHOD_ACCOUNT, labelKey: 'admin.ai.connectionMethodAccount' },
 ];
@@ -30,6 +37,9 @@ export function normalizeAiForm(raw = {}) {
   const chatgptConfig = raw.chatgptConfig && typeof raw.chatgptConfig === 'object'
     ? raw.chatgptConfig
     : {};
+  const openrouterConfig = raw.openrouterConfig && typeof raw.openrouterConfig === 'object'
+    ? raw.openrouterConfig
+    : {};
   const explicitConnectionMethod = cleanString(raw.connectionMethod);
   if (explicitConnectionMethod && !CONNECTION_METHODS.has(explicitConnectionMethod)) {
     throw new TypeError(`Unsupported connection method: ${explicitConnectionMethod}`);
@@ -43,7 +53,9 @@ export function normalizeAiForm(raw = {}) {
   );
   const inferredConnectionMethod = ACCOUNT_PROVIDERS.has(raw.provider)
     ? AI_CONNECTION_METHOD_ACCOUNT
-    : raw.provider === AI_PROVIDER_API_KEY || hasLegacyApiConfig
+    : raw.provider === AI_PROVIDER_OPENROUTER
+      ? AI_CONNECTION_METHOD_OPENROUTER
+      : raw.provider === AI_PROVIDER_API_KEY || hasLegacyApiConfig
       ? AI_CONNECTION_METHOD_API
       : '';
   const connectionMethod = explicitConnectionMethod || inferredConnectionMethod;
@@ -61,6 +73,10 @@ export function normalizeAiForm(raw = {}) {
     },
     chatgptConfig: {
       model: cleanString(chatgptConfig.model) || DEFAULT_CODEX_MODEL,
+    },
+    openrouterConfig: {
+      apiKey: typeof openrouterConfig.apiKey === 'string' ? openrouterConfig.apiKey : '',
+      model: cleanString(openrouterConfig.model) || DEFAULT_OPENROUTER_MODEL,
     },
     features: {
       compose: raw.features?.compose !== false,
@@ -80,6 +96,9 @@ export function selectAiConnectionMethod(form, connectionMethod) {
 export function isAiFormValid(form = {}) {
   if (!CONNECTION_METHODS.has(form.connectionMethod)) return false;
   if (form.enabled === false) return true;
+  if (form.connectionMethod === AI_CONNECTION_METHOD_OPENROUTER) {
+    return !!cleanString(form.openrouterConfig?.apiKey) && !!cleanString(form.openrouterConfig?.model);
+  }
   if (form.connectionMethod === AI_CONNECTION_METHOD_API) {
     return !!cleanBaseUrl(form.apiKeyConfig?.baseUrl) && !!cleanString(form.apiKeyConfig?.model);
   }
@@ -99,9 +118,12 @@ export function buildAiSavePayload(form = {}) {
     enabled: normalized.enabled,
     provider: normalized.connectionMethod === AI_CONNECTION_METHOD_ACCOUNT
       ? normalized.accountProvider
-      : AI_PROVIDER_API_KEY,
+      : normalized.connectionMethod === AI_CONNECTION_METHOD_OPENROUTER
+        ? AI_PROVIDER_OPENROUTER
+        : AI_PROVIDER_API_KEY,
     apiKeyConfig: normalized.apiKeyConfig,
     chatgptConfig: normalized.chatgptConfig,
+    openrouterConfig: { ...normalized.openrouterConfig, apiKey: normalized.openrouterConfig.apiKey.trim() },
     features: normalized.features,
     newUsersEnabled: normalized.newUsersEnabled,
   };
@@ -259,4 +281,24 @@ export function createCodexDevicePoller({
   }
 
   return { start, cancel, dispose };
+}
+
+// Prices from /admin/ai/openrouter/models are US dollars per million tokens, shown as "$0.02 / $0.04"
+// (prompt / completion).
+export function formatModelPrice(model) {
+  const one = (n) => {
+    if (n === null || n === undefined) return '?';
+    if (n === 0) return '$0';
+    return `$${Number(n.toFixed(n < 1 ? 3 : 2))}`;
+  };
+  return `${one(model.promptPrice)} / ${one(model.completionPrice)}`;
+}
+
+// The models whose id or name contains every word typed, at most `limit`.
+export function filterOpenRouterModels(models = [], search = '', limit = 50) {
+  const words = cleanString(search).toLowerCase().split(/\s+/).filter(Boolean);
+  const hits = words.length
+    ? models.filter(m => words.every(w => `${m.id} ${m.name}`.toLowerCase().includes(w)))
+    : models;
+  return hits.slice(0, limit);
 }
