@@ -23,6 +23,7 @@ vi.mock('../services/calendarInvites.js', () => ({ forgetScheduling: vi.fn(), kn
 const express = (await import('express')).default;
 const router = (await import('./calendar.js')).default;
 const { syncAccount } = await import('../services/caldavSync.js');
+const { forgetScheduling } = await import('../services/calendarInvites.js');
 
 let server;
 let base;
@@ -47,6 +48,13 @@ beforeEach(() => {
 });
 
 describe('calendar settings', () => {
+  it('leaves an account that is not the user\'s alone when asked to sync it', async () => {
+    forgetScheduling.mockClear();
+    expect((await call('POST', `/c/accounts/${ID}/sync`)).status).toBe(404);
+    expect(forgetScheduling).not.toHaveBeenCalled();
+    expect(syncAccount).not.toHaveBeenCalled();
+  });
+
   it('shows the name the user gave over the server name, and clears it with an empty one', async () => {
     let r = await call('PATCH', `/c/calendars/${ID}`, { displayName: '  Allan\n' });
     expect(r.body).toMatchObject({ name: 'Allan', serverName: '[allan@x.ch] - Calendar', displayName: 'Allan' });

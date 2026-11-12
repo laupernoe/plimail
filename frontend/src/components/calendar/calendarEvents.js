@@ -13,6 +13,7 @@ export function describeError(err) {
   if (err?.status === 403 && err.code === 'read_only') return { key: 'calendar.errors.readOnly', refetch: true };
   if (err?.code === 'no_sender') return { key: 'calendar.errors.noSender', refetch: false };
   if (err?.code === 'not_organizer') return { key: 'calendar.errors.notOrganizer', refetch: true };
+  if (err?.code === 'not_organizer_time') return { key: 'calendar.errors.notOrganizerTime', refetch: true };
   if (err?.status === 502) return { key: 'calendar.errors.server', message: err.message, refetch: true };
   return { key: 'calendar.errors.generic', message: err?.message || '', refetch: false };
 }
@@ -36,7 +37,7 @@ export function formFromOccurrence(occ) {
   const days = occurrenceDays(occ);
   const form = emptyForm({ calendarId: occ.calendarId, allDay: occ.allDay, start: occ.start, end: occ.end });
   const r = occ.recurrence;
-  return {
+  const filled = {
     ...form,
     summary: occ.summary || '',
     location: occ.location || '',
@@ -50,6 +51,22 @@ export function formFromOccurrence(occ) {
     reminder: occ.reminderMinutes == null ? '' : String(occ.reminderMinutes),
     attendees: guestsOf(occ),
   };
+  // The rule as the form shows it, so a save that leaves it alone does not rewrite it.
+  return { ...filled, shownRecurrence: JSON.stringify(recurrenceOfForm(filled).rec ?? null) };
+}
+
+function recurrenceOfForm(form, startDay = '') {
+  if (!form.freq) return { rec: null };
+  const rec = { freq: form.freq, interval: Math.max(1, Math.floor(Number(form.interval)) || 1) };
+  if (form.ends === 'until') {
+    if (!form.until || form.until < startDay) return { error: 'calendar.form.untilBeforeStart' };
+    rec.until = form.until;
+  } else if (form.ends === 'count') {
+    const count = Math.floor(Number(form.count));
+    if (!(count >= 1)) return { error: 'calendar.form.countInvalid' };
+    rec.count = count;
+  }
+  return { rec };
 }
 
 // The people invited, without the organizer, who heads the list on the server.
@@ -62,6 +79,9 @@ export function guestsOf(occ) {
 
 // Only the organizer decides who is invited; an event without one is the user's own.
 export const canInvite = occ => !occ || occ.organizerIsMe || !occ.organizer?.email;
+
+// When it happens is the organizer's to decide too, once anyone else is invited.
+export const canMove = occ => canInvite(occ) || !(occ.attendees || []).length;
 
 const EMAIL_RE = /^[^\s@<>",;:]+@[^\s@<>",;:]+\.[^\s@<>",;:]+$/;
 
@@ -87,11 +107,13 @@ export function addGuests(list, people) {
   return out;
 }
 
-// What invitation mails need from the browser: the language and the words, already translated.
+// What invitation mails need from the browser: the language, the zone to write times in, and the
+// words, already translated. A cancellation or an answer has no form to carry the zone otherwise.
 export function mailMeta(t, lang) {
   const title = '{title}';
   return {
     lang: lang || 'en',
+    timezone: browserZone(),
     mailLabels: {
       invite: t('calendar.mail.invite', { title }), update: t('calendar.mail.update', { title }),
       cancel: t('calendar.mail.cancel', { title }), accepted: t('calendar.mail.accepted', { title }),
@@ -158,20 +180,9 @@ export function buildPayload(form, { scope = 'all', recurrenceCustom = false, in
     payload.timezone = browserZone();
   }
   if (scope !== 'this' && !recurrenceCustom) {
-    if (!form.freq) {
-      payload.recurrence = null;
-    } else {
-      const rec = { freq: form.freq, interval: Math.max(1, Math.floor(Number(form.interval)) || 1) };
-      if (form.ends === 'until') {
-        if (!form.until || form.until < payload.start.slice(0, 10)) return { error: 'calendar.form.untilBeforeStart' };
-        rec.until = form.until;
-      } else if (form.ends === 'count') {
-        const count = Math.floor(Number(form.count));
-        if (!(count >= 1)) return { error: 'calendar.form.countInvalid' };
-        rec.count = count;
-      }
-      payload.recurrence = rec;
-    }
+    const { rec, error } = recurrenceOfForm(form, payload.start.slice(0, 10));
+    if (error) return { error };
+    if (form.shownRecurrence === undefined || JSON.stringify(rec) !== form.shownRecurrence) payload.recurrence = rec;
   }
   return { payload };
 }

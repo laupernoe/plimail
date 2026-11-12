@@ -2543,6 +2543,7 @@
       "noWritable": "Nenhum dos seus calendários aceita novos eventos. Adicione um calendário que não seja somente leitura.",
       "noSender": "Nenhuma conta de e-mail envia a partir do endereço da sua agenda, então os convites não podem ser enviados. Adicione esse endereço como conta ou alias.",
       "notOrganizer": "Só quem organiza pode mudar os convidados.",
+      "notOrganizerTime": "Só quem organiza pode mudar quando acontece.",
       "inviteNoSender": "O evento foi salvo, mas nenhuma conta de e-mail envia a partir do endereço da sua agenda, então ninguém foi avisado.",
       "inviteFailed": "O evento foi salvo, mas não foi possível enviar os convites: {{message}}",
       "syncFailed": "Falha na sincronização: {{message}}"

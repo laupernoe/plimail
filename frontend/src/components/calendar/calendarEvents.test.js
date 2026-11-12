@@ -8,6 +8,12 @@ const e = await import('./calendarEvents.js');
 
 const timed = () => e.emptyForm({ calendarId: 'c1', start: '2026-11-05T08:00:00.000Z', end: '2026-11-05T09:00:00.000Z' });
 
+describe('mailMeta', () => {
+  it('tells the server which zone to write times in', () => {
+    assert.equal(e.mailMeta(k => k, 'fr').timezone, 'Europe/Paris');
+  });
+});
+
 describe('describeError', () => {
   it('tells a conflict, a refusal and an unreachable server apart', () => {
     assert.deepEqual(e.describeError({ status: 409, code: 'conflict' }), { key: 'calendar.errors.conflict', refetch: true });
@@ -50,6 +56,20 @@ describe('buildPayload', () => {
     assert.equal(e.buildPayload({ ...form, ends: 'until', until: '2020-01-01' }).error, 'calendar.form.untilBeforeStart');
     assert.equal('recurrence' in e.buildPayload(form, { scope: 'this' }).payload, false);
     assert.equal('recurrence' in e.buildPayload(form, { recurrenceCustom: true }).payload, false);
+  });
+
+  it('leaves an edited event\'s rule out unless the form changed it', () => {
+    const occ = {
+      calendarId: 'c1', summary: 'Standup', allDay: false, start: '2026-10-28T13:00:00.000Z', end: '2026-10-28T13:30:00.000Z',
+      recurrence: { freq: 'WEEKLY', interval: 1, until: null, count: null }, recurrenceId: '2026-10-26T09:00:00', isRecurring: true,
+    };
+    const form = e.formFromOccurrence(occ);
+    assert.equal('recurrence' in e.buildPayload({ ...form, summary: 'Renamed' }).payload, false);
+    assert.deepEqual(e.buildPayload({ ...form, interval: 2 }).payload.recurrence, { freq: 'WEEKLY', interval: 2 });
+    assert.equal(e.buildPayload({ ...form, freq: '' }).payload.recurrence, null);
+    const single = e.formFromOccurrence({ ...occ, recurrence: null });
+    assert.equal('recurrence' in e.buildPayload(single).payload, false);
+    assert.deepEqual(e.buildPayload({ ...single, freq: 'DAILY' }).payload.recurrence, { freq: 'DAILY', interval: 1 });
   });
 
   it('sends the reminder in minutes, null for none', () => {
@@ -123,5 +143,16 @@ describe('guests', () => {
     const form = { ...timed(), summary: 'x', attendees: e.guestsOf(occ) };
     assert.deepEqual(e.buildPayload(form).payload.attendees, [{ email: 'ana@example.com', name: 'Ana' }]);
     assert.equal('attendees' in e.buildPayload(form, { invite: false }).payload, false);
+  });
+
+  it('leaves the time of someone else\'s invitation to its organizer, drags included', async () => {
+    const { canDrag } = await import('./dragSession.js');
+    const press = { button: 0, pointerType: 'mouse' };
+    const theirs = { organizer: { email: 'boss@example.com' }, organizerIsMe: false, attendees: [{ email: 'noe@example.com' }] };
+    assert.equal(e.canMove(theirs), false);
+    assert.equal(canDrag(press, theirs), false);
+    assert.equal(canDrag(press, { ...theirs, organizerIsMe: true }), true);
+    assert.equal(canDrag(press, { attendees: [] }), true);
+    assert.equal(e.describeError({ status: 403, code: 'not_organizer_time' }).key, 'calendar.errors.notOrganizerTime');
   });
 });

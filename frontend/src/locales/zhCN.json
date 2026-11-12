@@ -2543,6 +2543,7 @@
       "noWritable": "你的日历都不接受新日程。请添加一个非只读的日历。",
       "noSender": "没有任何邮件帐户使用您的日历地址发信，因此无法发送邀请。请将该地址添加为帐户或别名。",
       "notOrganizer": "只有组织者可以更改参与者。",
+      "notOrganizerTime": "只有组织者可以更改时间。",
       "inviteNoSender": "活动已保存，但没有任何邮件帐户使用您的日历地址发信，因此未通知任何人。",
       "inviteFailed": "活动已保存，但邀请发送失败：{{message}}",
       "syncFailed": "同步失败：{{message}}"

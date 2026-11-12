@@ -386,6 +386,8 @@ function* expansion(ics, fromMs, toMs, { floatingTz, limit = Infinity } = {}) {
 
   const overridden = new Set();
   const masterBounds = master ? bounds(master, zones) : null;
+  // An exception is still part of its series, and editing the series from it shows the series' rule.
+  const seriesRule = master && masterBounds && isSeries(master) ? recurrenceOf(master, masterBounds, zones) : { recurrence: null, custom: false };
   for (const override of overrides) {
     const ridProp = override.getFirstProperty('recurrence-id');
     const rid = ridProp.getFirstValue();
@@ -395,9 +397,10 @@ function* expansion(ics, fromMs, toMs, { floatingTz, limit = Infinity } = {}) {
     if (!b) continue;
     if (text(override, 'status') === 'CANCELLED') continue;
     if (!overlaps(b.startMs, b.endMs, b.allDay)) continue;
-    const sameZone = rid.isDate || !masterBounds || ridTz === masterBounds.tzid;
+    // Without a series to read a wall clock against, a zoned RECURRENCE-ID goes out as UTC.
+    const sameZone = rid.isDate || (masterBounds ? ridTz === masterBounds.tzid : !ridTz);
     const recurrenceId = sameZone ? rid.toString() : `${new Date(toUtcMs(rid, ridTz, zones)).toISOString().slice(0, 19)}Z`;
-    out.push(describe(override, b, b.startMs, { recurrenceId, isRecurring: true, recurrence: null, recurrenceCustom: false }));
+    out.push(describe(override, b, b.startMs, { recurrenceId, isRecurring: true, recurrence: seriesRule.recurrence, recurrenceCustom: seriesRule.custom }));
   }
 
   if (!master || !masterBounds || out.length >= limit) return out;
@@ -414,7 +417,7 @@ function* expansion(ics, fromMs, toMs, { floatingTz, limit = Infinity } = {}) {
   for (const prop of master.getAllProperties('exdate')) {
     for (const value of prop.getValues()) excluded.add(occurrenceKey(value, tzidOf(prop) || b.tzid, zones));
   }
-  const { recurrence, custom } = recurrenceOf(master, b, zones);
+  const { recurrence, custom } = seriesRule;
   const it = new ICAL.Event(master).iterator();
   let next;
   let n = 0;
@@ -572,11 +575,13 @@ function setReminder(vevent, minutes) {
   vevent.addSubcomponent(alarm);
 }
 
-function touch(vevent) {
+// SEQUENCE is the organizer's to raise: an attendee's copy that claims a newer revision than the
+// organizer sent would make the organizer's next update look stale.
+function touch(vevent, { asAttendee = false } = {}) {
   const now = ICAL.Time.fromJSDate(new Date(), true);
   vevent.updatePropertyWithValue('dtstamp', now);
   vevent.updatePropertyWithValue('last-modified', now);
-  vevent.updatePropertyWithValue('sequence', (Number(vevent.getFirstPropertyValue('sequence')) || 0) + 1);
+  if (!asAttendee) vevent.updatePropertyWithValue('sequence', (Number(vevent.getFirstPropertyValue('sequence')) || 0) + 1);
 }
 
 function applyText(vevent, input) {
@@ -625,8 +630,38 @@ function setAttendees(vevent, attendees, organizer) {
   }
 }
 
-const timing = vevent => ['dtstart', 'dtend', 'duration', 'rrule', 'rdate', 'exdate']
-  .map(name => vevent.getAllProperties(name).map(p => p.toICALString()).join('|')).join('\n');
+// When an event happens, as instants: the same time written another way (UTC or a zone, DTEND or
+// DURATION) is not a new time and must not ask anyone again.
+function timing(vevent, zones) {
+  const b = bounds(vevent, zones);
+  if (!b) return '';
+  const keys = (name) => {
+    const out = [];
+    for (const prop of vevent.getAllProperties(name)) {
+      for (const value of prop.getValues()) {
+        if (value instanceof ICAL.Time) out.push(occurrenceKey(value, tzidOf(prop) || b.tzid, zones));
+        else out.push(String(value));
+      }
+    }
+    return out.sort();
+  };
+  const rid = vevent.getFirstProperty('recurrence-id');
+  return JSON.stringify([
+    b.allDay, b.startMs, b.endMs - b.startMs,
+    rid ? occurrenceKey(rid.getFirstValue(), tzidOf(rid), zones) : null,
+    vevent.getAllProperties('rrule').map(p => p.getFirstValue().toString()).sort(),
+    keys('rdate'), keys('exdate'),
+  ]);
+}
+
+const isUtc = time => time?.zone === ICAL.Timezone.utcTimezone;
+
+// Whether the form's dates are the ones the event already has, so it can be left as written.
+function sameBounds(current, input) {
+  if (!current || current.allDay !== input.allDay) return false;
+  if (input.allDay) return msToDate(current.startMs) === input.start && msToDate(current.endMs) === input.end;
+  return current.startMs === Date.parse(input.start) && current.endMs === Date.parse(input.end);
+}
 
 // A new time asks everyone again, as RFC 5546 lets the organizer do; their old answer was for another slot.
 function askAgain(vevent) {
@@ -653,6 +688,19 @@ export function inviteInfo(ics) {
   const { master } = masterAndOverrides(root);
   const first = master || events[0];
   return { organizer, attendees, summary: first ? text(first, 'summary') || '' : '', uid: first?.getFirstPropertyValue('uid') || null };
+}
+
+// What attendees are told about an event, so an edit that leaves it alone (a reminder, the same
+// time written another way) sends nobody an update.
+export function inviteContent(ics) {
+  const root = parseRoot(ics);
+  const zones = zonesOf(root);
+  return root.getAllSubcomponents('vevent').map(v => JSON.stringify([
+    timing(v, zones),
+    ...['summary', 'location', 'description', 'url', 'status'].map(name => text(v, name)),
+    emailOf(v.getFirstProperty('organizer')),
+    v.getAllProperties('attendee').map(emailOf).sort(),
+  ])).sort().join('\n');
 }
 
 // One's own answer, on the series and every exception that invites the same address.
@@ -758,7 +806,7 @@ function ridValue(recurrenceId, b, name) {
   return prop;
 }
 
-function editOccurrence(root, input, recurrenceId, zones) {
+function editOccurrence(root, input, recurrenceId, zones, opts) {
   const { master, overrides } = masterAndOverrides(root);
   const b = master ? bounds(master, zones) : null;
   const key = ridKey(recurrenceId, b, zones);
@@ -770,23 +818,51 @@ function editOccurrence(root, input, recurrenceId, zones) {
     target.addProperty(ridValue(recurrenceId, b, 'recurrence-id'));
     root.addSubcomponent(target);
   }
-  const current = bounds(target, zones);
-  const tzid = input.allDay ? null : (current?.tzid || input.timezone);
-  const before = timing(target);
-  applyText(target, input);
-  setBounds(target, input, tzid, zones);
-  if (input.reminderMinutes !== undefined) setReminder(target, input.reminderMinutes);
-  if (input.attendees !== undefined) setAttendees(target, input.attendees, input.organizer);
-  if (timing(target) !== before) askAgain(target);
-  touch(target);
-  if (tzid) ensureTimezone(root, tzid);
+  editComponent(root, target, input, zones, opts);
 }
 
-function shiftTime(prop, value, deltaMs, tzid, zones) {
-  if (value.isDate) {
-    return ICAL.Time.fromDateString(msToDate(dateToMs(isoDate(value)) + deltaMs));
+function editComponent(root, target, input, zones, opts) {
+  const current = bounds(target, zones);
+  const keepUtc = current && !current.allDay && !input.allDay && isUtc(current.start);
+  const tzid = input.allDay || keepUtc ? null : (current?.tzid || input.timezone);
+  const before = timing(target, zones);
+  applyText(target, input);
+  const moved = input.start !== undefined && !sameBounds(current, input);
+  if (moved) setBounds(target, input, tzid, zones);
+  if (input.reminderMinutes !== undefined) setReminder(target, input.reminderMinutes);
+  if (input.attendees !== undefined) setAttendees(target, input.attendees, input.organizer);
+  if (!opts.asAttendee && timing(target, zones) !== before) askAgain(target);
+  touch(target, opts);
+  if (moved && tzid) ensureTimezone(root, tzid);
+}
+
+// A series moves on its own wall clock: a week later at the same time stays at that time across a
+// DST change, which a fixed number of milliseconds would not. A series written in UTC keeps to UTC.
+function seriesShift(b, fromMs, toMs, zones) {
+  if (b.allDay || b.start.zone === ICAL.Timezone.utcTimezone) {
+    const delta = toMs - fromMs;
+    return ms => ms + delta;
   }
-  const ms = toUtcMs(value, tzid, zones) + deltaMs;
+  const wall = (ms) => {
+    const w = utcToWall(ms, b.tzid, zones);
+    return Date.UTC(w.year, w.month - 1, w.day, w.hour, w.minute, w.second);
+  };
+  const delta = wall(toMs) - wall(fromMs);
+  return (ms) => {
+    const d = new Date(wall(ms) + delta);
+    const time = new ICAL.Time({
+      year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate(),
+      hour: d.getUTCHours(), minute: d.getUTCMinutes(), second: d.getUTCSeconds(), isDate: false,
+    });
+    return toUtcMs(time, b.tzid, zones);
+  };
+}
+
+function shiftTime(value, shift, tzid, zones) {
+  if (value.isDate) {
+    return ICAL.Time.fromDateString(msToDate(shift(dateToMs(isoDate(value)))));
+  }
+  const ms = shift(toUtcMs(value, tzid, zones));
   if (value.zone === ICAL.Timezone.utcTimezone) return ICAL.Time.fromJSDate(new Date(ms), true);
   return new ICAL.Time({ ...utcToWall(ms, tzid, zones), isDate: false });
 }
@@ -794,14 +870,14 @@ function shiftTime(prop, value, deltaMs, tzid, zones) {
 // A series whose start moved: its EXDATEs and its overrides' RECURRENCE-IDs name occurrences by
 // their old start, so they move with it, or they would stop matching and the skipped or edited
 // occurrences would come back.
-function shiftSeriesMarkers(master, overrides, deltaMs, tzid, zones) {
+function shiftSeriesMarkers(master, overrides, shift, tzid, zones) {
   for (const prop of master.getAllProperties('exdate')) {
     const ptz = tzidOf(prop) || tzid;
-    prop.setValues(prop.getValues().map(v => shiftTime(prop, v, deltaMs, ptz, zones)));
+    prop.setValues(prop.getValues().map(v => shiftTime(v, shift, ptz, zones)));
   }
   for (const o of overrides) {
     const prop = o.getFirstProperty('recurrence-id');
-    prop.setValue(shiftTime(prop, prop.getFirstValue(), deltaMs, tzidOf(prop) || tzid, zones));
+    prop.setValue(shiftTime(prop.getFirstValue(), shift, tzidOf(prop) || tzid, zones));
   }
 }
 
@@ -832,53 +908,113 @@ function shiftRuleDays(master, b, newStartMs, zones) {
   }
 }
 
-function editSeries(root, input, recurrenceId, zones) {
+// An invitation to some occurrences of someone else's series holds only those, with no series to
+// edit: the whole event is each of them. New dates belong to the one shown, the rest to all.
+function editOverridesOnly(root, overrides, input, recurrenceId, zones, opts) {
+  const key = recurrenceId ? ridKey(recurrenceId, null, zones) : null;
+  const shown = (key != null && findOverride(overrides, key, zones)) || (overrides.length === 1 ? overrides[0] : null);
+  if (!overrides.length || (input.start !== undefined && !shown)) throw Object.assign(new Error('Event not found'), { notFound: true });
+  const rest = { ...input };
+  for (const name of ['allDay', 'start', 'end', 'recurrence']) delete rest[name];
+  for (const o of overrides) editComponent(root, o, o === shown ? { ...rest, allDay: input.allDay, start: input.start, end: input.end } : rest, zones, opts);
+}
+
+// The days a series' EXDATEs fall on, in the series' own zone.
+function exdateDays(master, b, zones) {
+  const days = new Set();
+  for (const prop of master.getAllProperties('exdate')) {
+    const ptz = tzidOf(prop) || b.tzid;
+    for (const v of prop.getValues()) days.add(v.isDate ? isoDate(v) : isoDate(utcToWall(toUtcMs(v, ptz, zones), b.tzid, zones)));
+  }
+  return [...days].sort();
+}
+
+// EXDATEs on those days, in the value type and at the time of day of the series' start.
+function setExdateDays(master, days) {
+  master.removeAllProperties('exdate');
+  const startProp = master.getFirstProperty('dtstart');
+  const start = startProp.getFirstValue();
+  for (const d of days) {
+    const prop = new ICAL.Property('exdate');
+    if (start.isDate) {
+      prop.resetType('date');
+      prop.setValue(ICAL.Time.fromDateString(d));
+    } else {
+      const [year, month, day] = d.split('-').map(Number);
+      const time = new ICAL.Time({ year, month, day, hour: start.hour, minute: start.minute, second: start.second, isDate: false });
+      if (isUtc(start)) time.zone = ICAL.Timezone.utcTimezone;
+      else if (tzidOf(startProp)) prop.setParameter('tzid', tzidOf(startProp));
+      prop.setValue(time);
+    }
+    master.addProperty(prop);
+  }
+}
+
+function editSeries(root, input, recurrenceId, zones, opts) {
   const { master, overrides } = masterAndOverrides(root);
-  if (!master) throw Object.assign(new Error('Event not found'), { notFound: true });
+  if (!master) return editOverridesOnly(root, overrides, input, recurrenceId, zones, opts);
   const b = bounds(master, zones);
-  const before = timing(master);
+  const wasSeries = isSeries(master);
+  const before = timing(master, zones);
   applyText(master, input);
   if (input.start !== undefined) {
     // The form holds one occurrence's dates. The series moves by the same amount, from its own start.
+    // An exception shows its own moved start, so a shift is measured from there, not from the slot
+    // its RECURRENCE-ID names.
     let anchorMs = b.startMs;
     if (recurrenceId && isSeries(master)) {
-      const time = ICAL.Time.fromString(recurrenceId);
-      anchorMs = time.isDate ? dateToMs(isoDate(time)) : toUtcMs(time, b.tzid, zones);
+      const exception = findOverride(overrides, ridKey(recurrenceId, b, zones), zones);
+      const shown = exception && bounds(exception, zones);
+      if (shown && shown.allDay === b.allDay) anchorMs = shown.startMs;
+      else {
+        const time = ICAL.Time.fromString(recurrenceId);
+        anchorMs = time.isDate ? dateToMs(isoDate(time)) : toUtcMs(time, b.tzid, zones);
+      }
     }
     const inStart = input.allDay ? dateToMs(input.start) : Date.parse(input.start);
     const inEnd = input.allDay ? dateToMs(input.end) : Date.parse(input.end);
-    const newStartMs = b.startMs + (inStart - anchorMs);
+    const shift = seriesShift(b, anchorMs, inStart, zones);
+    const newStartMs = shift(b.startMs);
     const newEndMs = newStartMs + (inEnd - inStart);
     const kindChanged = input.allDay !== b.allDay;
     const moved = input.allDay
       ? { ...input, start: msToDate(kindChanged ? inStart : newStartMs), end: msToDate(kindChanged ? inEnd : newEndMs) }
       : { ...input, start: new Date(kindChanged ? inStart : newStartMs).toISOString(), end: new Date(kindChanged ? inEnd : newEndMs).toISOString() };
-    const tzid = input.allDay ? null : (b.tzid || input.timezone);
+    const tzid = input.allDay || (!kindChanged && isUtc(b.start)) ? null : (b.tzid || input.timezone);
+    const unchanged = !kindChanged && sameBounds(b, moved);
     if (isSeries(master) && !kindChanged) {
-      const deltaMs = newStartMs - b.startMs;
-      if (deltaMs) {
-        shiftSeriesMarkers(master, overrides, deltaMs, b.tzid, zones);
+      if (newStartMs !== b.startMs) {
+        shiftSeriesMarkers(master, overrides, shift, b.tzid, zones);
         shiftRuleDays(master, b, newStartMs, zones);
       }
     }
-    if (kindChanged) {
-      // A marker in the old value type no longer names any occurrence.
-      master.removeAllProperties('exdate');
-      overrides.forEach(o => root.removeSubcomponent(o));
+    // An exception in the old value type no longer names any occurrence. Exclusions are kept by day,
+    // or the occurrences deleted from the series would come back.
+    const excludedDays = kindChanged ? exdateDays(master, b, zones) : null;
+    if (kindChanged) overrides.forEach(o => root.removeSubcomponent(o));
+    if (!unchanged) {
+      setBounds(master, moved, tzid, zones);
+      if (tzid) ensureTimezone(root, tzid);
     }
-    setBounds(master, moved, tzid, zones);
-    if (tzid) ensureTimezone(root, tzid);
+    if (excludedDays) setExdateDays(master, excludedDays);
     if (input.recurrence !== undefined) setRecurrence(master, input.recurrence, input, tzid, zones);
   } else if (input.recurrence !== undefined) {
     setRecurrence(master, input.recurrence, { allDay: b.allDay }, b.tzid, zones);
+  }
+  // A series made a single event takes its exclusions, extra dates and exceptions with it, or they
+  // would linger as stray events of an event that no longer repeats.
+  if (input.recurrence === null && wasSeries) {
+    master.removeAllProperties('rdate');
+    master.removeAllProperties('exdate');
+    overrides.forEach(o => root.removeSubcomponent(o));
   }
   if (input.reminderMinutes !== undefined) setReminder(master, input.reminderMinutes);
   if (input.attendees !== undefined) {
     setAttendees(master, input.attendees, input.organizer);
     for (const o of masterAndOverrides(root).overrides) setAttendees(o, input.attendees, input.organizer);
   }
-  if (timing(master) !== before) askAgain(master);
-  touch(master);
+  if (!opts.asAttendee && timing(master, zones) !== before) askAgain(master);
+  touch(master, opts);
 }
 
 // How many exceptions and exclusions a resource holds, to notice a server dropping them.
@@ -888,11 +1024,48 @@ export function seriesMarkers(ics) {
   return overrides.length + excluded;
 }
 
-export function applyEdit(ics, input, { scope = 'all', recurrenceId } = {}) {
+// asAttendee: the user's own copy of someone else's invitation, which keeps the organizer's answers
+// and revision as they are.
+export function applyEdit(ics, input, { scope = 'all', recurrenceId, asAttendee = false } = {}) {
   const root = parseRoot(ics);
   const zones = zonesOf(root, input.timezone);
-  if (scope === 'this') editOccurrence(root, input, recurrenceId, zones);
-  else editSeries(root, input, recurrenceId, zones);
+  const opts = { asAttendee };
+  if (scope === 'this') editOccurrence(root, input, recurrenceId, zones, opts);
+  else editSeries(root, input, recurrenceId, zones, opts);
+  return root.toString();
+}
+
+// When a resource's events happen, however the times are written.
+export function eventTimes(ics) {
+  const root = parseRoot(ics);
+  const zones = zonesOf(root);
+  return root.getAllSubcomponents('vevent').map(v => timing(v, zones)).sort().join('\n');
+}
+
+// What a CANCEL for one occurrence carries (RFC 5546 3.2.5): that occurrence alone, named by its
+// RECURRENCE-ID, so attendees drop it rather than the series.
+export function occurrenceOnly(ics, recurrenceId) {
+  const root = parseRoot(ics);
+  const zones = zonesOf(root);
+  const { master, overrides } = masterAndOverrides(root);
+  const b = master ? bounds(master, zones) : null;
+  const key = ridKey(recurrenceId, b, zones);
+  let target = findOverride(overrides, key, zones);
+  if (!target) {
+    assertOccurs(master, b, key, zones);
+    target = new ICAL.Component(JSON.parse(JSON.stringify(master.toJSON())));
+    for (const name of ['rrule', 'rdate', 'exdate', 'recurrence-id']) target.removeAllProperties(name);
+    const rid = ridValue(recurrenceId, b, 'recurrence-id');
+    target.addProperty(rid);
+    const startMs = typeof key === 'number' ? key : dateToMs(key);
+    const endMs = startMs + (b.endMs - b.startMs);
+    setBounds(target, b.allDay
+      ? { allDay: true, start: msToDate(startMs), end: msToDate(endMs) }
+      : { allDay: false, start: new Date(startMs).toISOString(), end: new Date(endMs).toISOString() },
+    b.allDay || isUtc(b.start) ? null : b.tzid, zones);
+  }
+  for (const v of root.getAllSubcomponents('vevent')) root.removeSubcomponent(v);
+  root.addSubcomponent(target);
   return root.toString();
 }
 

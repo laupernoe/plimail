@@ -299,7 +299,7 @@ describe('the event form', () => {
     await click(byText('common.edit', dialog()));
   };
 
-  test('editing the whole series keeps the occurrence and sends the recurrence', async () => {
+  test('editing the whole series keeps the occurrence and leaves an unchanged rule as written', async () => {
     await mount();
     await openEdit('Gym');
     await click(byText('calendar.scope.editAll'));
@@ -310,7 +310,7 @@ describe('the event form', () => {
     assert.equal(id, 'e2');
     assert.equal(body.scope, 'all');
     assert.equal(body.recurrenceId, 'R1');
-    assert.deepEqual(body.recurrence, { freq: 'WEEKLY', interval: 1 });
+    assert.equal('recurrence' in body, false, 'a rule the form did not change is not rewritten');
     assert.equal(body.reminderMinutes, 45, 'a reminder the form has no preset for is kept');
     assert.equal(body.calendarId, 'c1');
   });

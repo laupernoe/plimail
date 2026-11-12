@@ -2543,6 +2543,7 @@
       "noWritable": "Nessuno dei tuoi calendari accetta nuovi eventi. Aggiungi un calendario che non sia di sola lettura.",
       "noSender": "Nessun account di posta invia dall'indirizzo del tuo calendario, quindi gli inviti non possono partire. Aggiungi quell'indirizzo come account o alias.",
       "notOrganizer": "Solo chi organizza può cambiare gli invitati.",
+      "notOrganizerTime": "Solo l'organizzatore può cambiare data e ora.",
       "inviteNoSender": "L'evento è salvato, ma nessun account di posta invia dall'indirizzo del tuo calendario, quindi nessuno è stato avvisato.",
       "inviteFailed": "L'evento è salvato, ma non è stato possibile inviare gli inviti: {{message}}",
       "syncFailed": "Sincronizzazione non riuscita: {{message}}"

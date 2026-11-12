@@ -22,6 +22,15 @@ export async function schedulingFor(accountId, calendarUrl, creds) {
   if (hit && Date.now() - hit.at < CACHE_MS) return hit.info;
   const info = await schedulingInfo(calendarUrl, creds);
   cache.set(accountId, { at: Date.now(), info });
+  const addresses = [...new Set(info.addresses.map(a => a.toLowerCase()))].sort();
+  try {
+    await query(
+      'UPDATE caldav_accounts SET calendar_addresses = $2 WHERE id = $1 AND calendar_addresses IS DISTINCT FROM $2::text[]',
+      [accountId, addresses],
+    );
+  } catch (err) {
+    console.warn(`Calendar: could not store the addresses of account ${accountId}: ${err.message}`);
+  }
   return info;
 }
 
@@ -40,36 +49,36 @@ export async function ownAddresses(userId) {
 }
 
 // Every address that is the user's: own mail accounts and aliases, CalDAV logins that are
-// addresses, and what their servers listed as the user's calendar addresses.
-export async function knownAddresses(userId) {
-  const [own, accounts] = await Promise.all([
-    ownAddresses(userId),
-    query('SELECT id, lower(username) AS username FROM caldav_accounts WHERE user_id = $1', [userId]),
-  ]);
+// addresses, and what their servers listed as the user's calendar addresses. Whether the user
+// organizes an event or is invited to it is always decided against this one list.
+async function addressesWith(userId, own) {
+  const accounts = await query('SELECT lower(username) AS username, calendar_addresses FROM caldav_accounts WHERE user_id = $1', [userId]);
   const out = new Set(own.map(o => o.email));
   for (const a of accounts.rows) {
     if (a.username.includes('@')) out.add(a.username);
-    for (const email of cache.get(a.id)?.info.addresses || []) out.add(email);
+    for (const email of a.calendar_addresses || []) out.add(email.toLowerCase());
   }
   return [...out];
+}
+
+export async function knownAddresses(userId) {
+  return addressesWith(userId, await ownAddresses(userId));
 }
 
 // Who organizes a new invitation, and how it reaches people. The server's own addresses come
 // first when it schedules, as it only delivers for an organizer it recognizes.
 export async function planInvites({ userId, accountId, calendarUrl, username, creds }) {
-  const [scheduling, own] = await Promise.all([schedulingFor(accountId, calendarUrl, creds), ownAddresses(userId)]);
+  const scheduling = await schedulingFor(accountId, calendarUrl, creds);
+  const own = await ownAddresses(userId);
+  const myEmails = await addressesWith(userId, own);
   const byEmail = new Map(own.map(o => [o.email, o]));
   if (scheduling.serverSchedules) {
     const email = scheduling.addresses.find(a => byEmail.has(a)) || scheduling.addresses[0];
-    return { mode: 'server', organizer: { email, name: byEmail.get(email)?.name || null }, myEmails: [...new Set([...scheduling.addresses, ...byEmail.keys()])] };
+    return { mode: 'server', organizer: { email, name: byEmail.get(email)?.name || null }, myEmails };
   }
   const login = String(username || '').toLowerCase();
   const sender = scheduling.addresses.map(a => byEmail.get(a)).find(Boolean) || byEmail.get(login) || null;
-  return {
-    mode: 'mail',
-    organizer: sender ? { email: sender.email, name: sender.name || null } : null,
-    myEmails: [...new Set([...scheduling.addresses, ...byEmail.keys()])],
-  };
+  return { mode: 'mail', organizer: sender ? { email: sender.email, name: sender.name || null } : null, myEmails };
 }
 
 const LABEL_KEYS = ['invite', 'update', 'cancel', 'accepted', 'declined', 'tentative', 'when', 'where'];
@@ -113,7 +122,8 @@ function whenText(occ, { lang, timeZone }) {
   }
   const zone = (() => { try { new Intl.DateTimeFormat('en', { timeZone }); return timeZone; } catch { return 'UTC'; } })();
   const f = new Intl.DateTimeFormat(locale, { dateStyle: 'full', timeStyle: 'short', timeZone: zone });
-  const t = new Intl.DateTimeFormat(locale, { timeStyle: 'short', timeZone: zone, timeZoneName: 'short' });
+  // timeStyle cannot be combined with timeZoneName: Intl throws.
+  const t = new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit', timeZone: zone, timeZoneName: 'short' });
   return `${f.format(new Date(occ.start))} – ${t.format(new Date(occ.end))}`;
 }
 
@@ -135,9 +145,10 @@ export async function mailItip({ userId, from, to, method, ics, kind, labels, la
   const smtp = await createAccountSmtpTransport(sender.account);
   if (smtp.error) throw new Error(smtp.error);
   const content = itipMessage(ics, method, { only });
-  const occ = firstOccurrence(content);
+  // Read before a CANCEL marks it cancelled, which leaves an exception with no occurrence to show.
+  const occ = firstOccurrence(ics);
   const title = occ?.summary || '';
-  const subject = labels[kind].replace('{title}', title);
+  const subject = labels[kind].replace('{title}', () => title);
   const lines = [subject, ''];
   const when = whenText(occ, { lang, timeZone });
   if (when) lines.push(`${labels.when}: ${when}`);

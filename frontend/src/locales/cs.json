@@ -2562,6 +2562,7 @@
       "noWritable": "Žádný z vašich kalendářů nepřijímá nové události. Přidejte kalendář, který není jen pro čtení.",
       "noSender": "Z adresy vašeho kalendáře neodesílá žádný poštovní účet, proto pozvánky nelze odeslat. Přidejte tuto adresu jako účet nebo alias.",
       "notOrganizer": "Účastníky může měnit jen organizátor.",
+      "notOrganizerTime": "Čas může změnit jen organizátor.",
       "inviteNoSender": "Událost je uložena, ale z adresy vašeho kalendáře neodesílá žádný poštovní účet, takže nikdo nebyl upozorněn.",
       "inviteFailed": "Událost je uložena, ale pozvánky se nepodařilo odeslat: {{message}}",
       "syncFailed": "Synchronizace selhala: {{message}}"

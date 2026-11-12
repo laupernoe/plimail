@@ -11,7 +11,7 @@ import { validateHost } from '../services/hostValidation.js';
 import { getConnectionPolicy } from '../services/connectionPolicy.js';
 import { discoverCalendars, findCalDavServer, getEvent, putEvent, deleteEvent, moveEvent } from '../services/caldavClient.js';
 import { syncAccount, credentialsFor, isSyncing, forgetDiscovery, noteRemoved } from '../services/caldavSync.js';
-import { applyEdit, buildEvent, eventLoopYielder, expandResourceAsync, inviteInfo, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
+import { applyEdit, buildEvent, eventLoopYielder, eventTimes, expandResourceAsync, inviteContent, inviteInfo, occurrenceOnly, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
 import { forgetScheduling, knownAddresses, mailItip, mailLabels, planInvites } from '../services/calendarInvites.js';
 
 const router = Router();
@@ -180,9 +180,9 @@ router.patch('/accounts/:id', async (req, res) => {
 });
 
 router.post('/accounts/:id/sync', async (req, res) => {
-  forgetScheduling(req.params.id);
   const account = await loadAccount(req.session.userId, req.params.id);
   if (!account) return res.status(404).json({ error: 'Not found' });
+  forgetScheduling(account.id);
   if (isSyncing(account.id)) return res.status(409).json({ error: 'A sync is already in progress' });
   const result = await syncAccount(account.id, { discover: true });
   res.json({ ok: result.ok, error: result.error, account: publicAccount(await loadAccount(req.session.userId, account.id)) });
@@ -280,6 +280,14 @@ router.get('/events', async (req, res) => {
   res.json({ events });
 });
 
+// A zone by the name Intl gives it, or null for anything Intl does not know (a CRLF included):
+// the name is written into the event and the mail.
+function zoneName(value) {
+  if (typeof value !== 'string' || !value || value.length > 100) return null;
+  try { return new Intl.DateTimeFormat('en', { timeZone: value }).resolvedOptions().timeZone; } catch { return null; }
+}
+const badZone = body => body?.timezone != null && !zoneName(body.timezone);
+
 function dateValueError(input) {
   const { allDay, start, end } = input;
   if (allDay) {
@@ -314,7 +322,10 @@ function eventInput(body, { requireDates }) {
     const err = dateValueError(input);
     if (err) return { error: err };
   }
-  if (typeof b.timezone === 'string' && b.timezone.length < 100) input.timezone = b.timezone;
+  if (b.timezone != null) {
+    input.timezone = zoneName(b.timezone);
+    if (!input.timezone) return { error: 'Invalid time zone' };
+  }
   if (b.recurrence !== undefined) {
     if (b.recurrence === null) input.recurrence = null;
     else {
@@ -477,24 +488,29 @@ async function sendWriteError(res, err, accountId) {
 
 function mailOptions(req) {
   const lang = typeof req.body?.lang === 'string' && /^[a-zA-Z-]{2,20}$/.test(req.body.lang) ? req.body.lang : 'en';
-  const timeZone = typeof req.body?.timezone === 'string' && req.body.timezone.length < 100 ? req.body.timezone : 'UTC';
+  const timeZone = zoneName(req.body?.timezone) || 'UTC';
   return { labels: mailLabels(req.body?.mailLabels), lang, timeZone };
 }
 
 // Mails what a server that does not schedule leaves to the client. The event is saved by now, so a
-// failure here is reported beside the success rather than as one.
+// failure here is reported beside the success rather than as one, and does not keep the other
+// messages (the update after a cancellation) from going out.
 async function mailAfterWrite(userId, plan, messages, opts) {
   if (plan?.mode !== 'mail' || !plan.organizer) return {};
   let sent = 0;
-  try {
-    for (const m of messages) {
-      if (!m.to.length) continue;
+  let failure = null;
+  for (const m of messages) {
+    if (!m.to.length) continue;
+    try {
       sent += (await mailItip({ userId, from: m.from || plan.organizer.email, ...m, ...opts })).sent;
+    } catch (err) {
+      failure ||= err;
     }
-    return sent ? { invitesSent: sent } : {};
-  } catch (err) {
-    return { inviteError: err.message, ...(err.code ? { inviteErrorCode: err.code } : {}) };
   }
+  return {
+    ...(sent ? { invitesSent: sent } : {}),
+    ...(failure ? { inviteError: failure.message, ...(failure.code ? { inviteErrorCode: failure.code } : {}) } : {}),
+  };
 }
 
 async function planFor(userId, row) {
@@ -559,19 +575,25 @@ router.patch('/events/:eventId', async (req, res) => {
     const before = inviteInfo(event.ical);
     let creds;
     let plan = null;
+    let asAttendee = false;
     if (input.attendees !== undefined || before.attendees.length) {
       ({ creds, plan } = await planFor(req.session.userId, event));
       const mine = before.organizer && plan.myEmails.includes(before.organizer);
       if (before.organizer && !mine) {
         if (input.attendees !== undefined) return res.status(403).json({ error: 'Only the organizer can change who is invited', code: 'not_organizer' });
         plan = null;
+        asAttendee = before.attendees.length > 0;
       }
       if (before.organizer && mine) plan.organizer = { ...plan.organizer, email: before.organizer };
       input.organizer = plan?.organizer;
     } else {
       creds = await credentialsFor(event);
     }
-    const ical = applyEdit(event.ical, input, { scope, recurrenceId });
+    const ical = applyEdit(event.ical, input, { scope, recurrenceId, asAttendee });
+    // An attendee's copy at another time would no longer be the meeting the organizer holds.
+    if (asAttendee && eventTimes(ical) !== eventTimes(event.ical)) {
+      return res.status(403).json({ error: 'Only the organizer can change when this happens', code: 'not_organizer_time' });
+    }
     const etag = await versionOf(event, creds);
     if (target) {
       await moveToCalendar(event, target, ical, creds, etag);
@@ -581,10 +603,10 @@ router.patch('/events/:eventId', async (req, res) => {
     }
     const after = inviteInfo(ical);
     const removed = before.attendees.filter(e => !after.attendees.includes(e));
-    const onlyReminder = Object.keys(input).every(k => ['reminderMinutes', 'organizer', 'timezone'].includes(k));
+    const changed = inviteContent(ical) !== inviteContent(event.ical);
     const mailed = await mailAfterWrite(req.session.userId, plan, [
       { to: removed, method: 'CANCEL', ics: event.ical, kind: 'cancel', only: removed },
-      { to: onlyReminder ? [] : after.attendees, method: 'REQUEST', ics: ical, kind: before.attendees.length ? 'update' : 'invite' },
+      { to: changed ? after.attendees : [], method: 'REQUEST', ics: ical, kind: before.attendees.length ? 'update' : 'invite' },
     ], mailOptions(req));
     res.json({ ok: true, ...mailed });
   } catch (err) {
@@ -597,6 +619,7 @@ router.delete('/events/:eventId', async (req, res) => {
   if (!event) return res.status(404).json({ error: 'Event not found' });
   if (event.read_only) return readOnlyError(res);
   const { scope, recurrenceId } = req.query;
+  if (badZone(req.body)) return badRequest(res, 'Invalid time zone');
   if (scope === 'this' && (typeof recurrenceId !== 'string' || !RID_RE.test(recurrenceId))) return badRequest(res, 'Invalid occurrence');
   try {
     const before = inviteInfo(event.ical);
@@ -611,6 +634,7 @@ router.delete('/events/:eventId', async (req, res) => {
     }
     const remaining = scope === 'this' ? removeOccurrence(event.ical, recurrenceId) : null;
     const etag = await versionOf(event, creds);
+    const cancelled = remaining && plan ? occurrenceOnly(event.ical, recurrenceId) : event.ical;
     if (remaining) {
       await putEvent(event.href, remaining, creds, { etag });
       await storeFromServer(event.calendar_id, event.user_id, event.href, remaining, creds);
@@ -618,9 +642,9 @@ router.delete('/events/:eventId', async (req, res) => {
       await deleteEvent(event.href, creds, { etag });
       await dropLocal(event);
     }
-    const mailed = await mailAfterWrite(req.session.userId, plan, [remaining
-      ? { to: before.attendees, method: 'REQUEST', ics: remaining, kind: 'update' }
-      : { to: before.attendees, method: 'CANCEL', ics: event.ical, kind: 'cancel' }], mailOptions(req));
+    const mailed = await mailAfterWrite(req.session.userId, plan, [
+      { to: inviteInfo(cancelled).attendees, method: 'CANCEL', ics: cancelled, kind: 'cancel' },
+    ], mailOptions(req));
     res.json({ ok: true, ...mailed });
   } catch (err) {
     await sendWriteError(res, err, event.account_id);
@@ -634,6 +658,7 @@ router.post('/events/:eventId/reply', async (req, res) => {
   if (event.read_only) return readOnlyError(res);
   const partstat = req.body?.status;
   if (!PARTSTATS.includes(partstat)) return badRequest(res, 'Invalid answer');
+  if (badZone(req.body)) return badRequest(res, 'Invalid time zone');
   try {
     const { creds, plan } = await planFor(req.session.userId, event);
     const { organizer } = inviteInfo(event.ical);

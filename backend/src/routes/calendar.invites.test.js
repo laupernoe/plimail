@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const state = vi.hoisted(() => ({ event: null, stored: null, plan: null, mails: [], puts: [] }));
+const state = vi.hoisted(() => ({ event: null, stored: null, plan: null, mails: [], puts: [], failing: null }));
 vi.mock('../services/db.js', () => ({
   query: vi.fn(async (sql) => {
     if (/FROM calendars c JOIN caldav_accounts/.test(sql)) {
@@ -23,7 +23,11 @@ vi.mock('../services/calendarInvites.js', () => ({
   knownAddresses: vi.fn(async () => ['noe@example.com']),
   mailLabels: () => ({}),
   planInvites: vi.fn(async () => state.plan),
-  mailItip: vi.fn(async (m) => { state.mails.push(m); return { sent: m.to.length, rejected: [] }; }),
+  mailItip: vi.fn(async (m) => {
+    if (m.method === state.failing) throw new Error('SMTP said no');
+    state.mails.push(m);
+    return { sent: m.to.length, rejected: [] };
+  }),
 }));
 
 const express = (await import('express')).default;
@@ -56,7 +60,7 @@ beforeAll(async () => {
   base = `http://127.0.0.1:${server.address().port}`;
 });
 afterAll(() => new Promise(r => server.close(r)));
-beforeEach(() => Object.assign(state, { event: null, stored: null, plan: MAIL_PLAN, mails: [], puts: [] }));
+beforeEach(() => Object.assign(state, { event: null, stored: null, plan: MAIL_PLAN, mails: [], puts: [], failing: null }));
 
 describe('invitations', () => {
   it('mails an invitation to each attendee when the server does not schedule', async () => {
@@ -84,6 +88,17 @@ describe('invitations', () => {
     expect(state.puts).toEqual([]);
   });
 
+  it('refuses a time zone Intl does not know', async () => {
+    for (const timezone of ['Europe/Zurich\r\nX-INJECTED:1', 'X\r\n/Europe/Zurich', 'Mars/Olympus']) {
+      const r = await call('POST', '/c/events', { calendarId: '22222222-2222-4222-8222-222222222222', summary: 'Point', ...times, timezone });
+      expect(r.status).toBe(400);
+    }
+    state.event = stored(MINE);
+    expect((await call('DELETE', `/c/events/${EVENT_ID}`, { timezone: 'Europe/Zurich\r\n' })).status).toBe(400);
+    expect(state.puts).toEqual([]);
+    expect(state.mails).toEqual([]);
+  });
+
   it('rejects an address that is not one', async () => {
     const r = await call('POST', '/c/events', { calendarId: '22222222-2222-4222-8222-222222222222', summary: 'Point', ...times, attendees: [{ email: 'ana' }] });
     expect(r.status).toBe(400);
@@ -98,10 +113,32 @@ describe('invitations', () => {
     expect(state.puts[0]).not.toMatch(/bob@/);
   });
 
+  it('still updates the others when the cancellation fails to send', async () => {
+    state.event = stored(MINE);
+    state.failing = 'CANCEL';
+    const r = await call('PATCH', `/c/events/${EVENT_ID}`, { attendees: [{ email: 'ana@example.com' }] });
+    expect(r.body).toMatchObject({ ok: true, invitesSent: 1, inviteError: 'SMTP said no' });
+    expect(state.mails.map(m => [m.method, m.to])).toEqual([['REQUEST', ['ana@example.com']]]);
+  });
+
+  // What the form sends: every field, whether it changed or not.
+  const formBody = extra => ({
+    calendarId: 'c1', summary: 'Point', location: '', description: '', ...times, reminderMinutes: null, scope: 'all',
+    attendees: [{ email: 'ana@example.com', name: null }, { email: 'bob@example.com', name: null }], lang: 'en', ...extra,
+  });
+
   it('sends no update for a change of reminder only', async () => {
     state.event = stored(MINE);
-    await call('PATCH', `/c/events/${EVENT_ID}`, { reminderMinutes: 10 });
+    const r = await call('PATCH', `/c/events/${EVENT_ID}`, formBody({ reminderMinutes: 10 }));
+    expect(r.status).toBe(200);
+    expect(state.puts[0]).toMatch(/VALARM/);
     expect(state.mails).toEqual([]);
+  });
+
+  it('updates everyone when the title changes', async () => {
+    state.event = stored(MINE);
+    await call('PATCH', `/c/events/${EVENT_ID}`, formBody({ summary: 'Point (salle 2)' }));
+    expect(state.mails.map(m => [m.method, m.kind, m.to])).toEqual([['REQUEST', 'update', ['ana@example.com', 'bob@example.com']]]);
   });
 
   it('keeps attendees out of the hands of someone who did not organize', async () => {
@@ -112,11 +149,42 @@ describe('invitations', () => {
     expect(state.puts).toEqual([]);
   });
 
+  it('keeps an invitation from someone else at the time they set', async () => {
+    state.event = stored(THEIRS);
+    const r = await call('PATCH', `/c/events/${EVENT_ID}`, { ...times, start: '2027-03-10T11:00:00Z', end: '2027-03-10T12:00:00Z', scope: 'all' });
+    expect(r.status).toBe(403);
+    expect(r.body.code).toBe('not_organizer_time');
+    expect(state.puts).toEqual([]);
+  });
+
+  it('lets an attendee set a reminder without touching the answer or the revision', async () => {
+    state.event = stored(THEIRS.replace('SUMMARY:Point', 'SUMMARY:Point\r\nSEQUENCE:3'));
+    const r = await call('PATCH', `/c/events/${EVENT_ID}`, { summary: 'Point', ...times, reminderMinutes: 10, scope: 'all' });
+    expect(r.status).toBe(200);
+    expect(state.puts[0]).toMatch(/VALARM/);
+    expect(state.puts[0]).toMatch(/SEQUENCE:3\r\n/);
+    expect(state.puts[0]).toMatch(/PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:noe@/);
+    expect(state.mails).toEqual([]);
+  });
+
   it('cancels for everyone when the organizer deletes the event', async () => {
     state.event = stored(MINE);
     const r = await call('DELETE', `/c/events/${EVENT_ID}`);
     expect(r.status).toBe(200);
     expect(state.mails.map(m => [m.method, m.to])).toEqual([['CANCEL', ['ana@example.com', 'bob@example.com']]]);
+  });
+
+  it('cancels just the occurrence deleted from a series', async () => {
+    state.event = stored(MINE.replace('SUMMARY:Point', 'SUMMARY:Point\r\nRRULE:FREQ=WEEKLY;COUNT=4\r\nSEQUENCE:1'));
+    const r = await call('DELETE', `/c/events/${EVENT_ID}?scope=this&recurrenceId=2027-03-17T09:00:00Z`);
+    expect(r.status).toBe(200);
+    expect(state.puts[0]).toMatch(/EXDATE:20270317T090000Z/);
+    expect(state.mails.map(m => [m.method, m.kind, m.to])).toEqual([['CANCEL', 'cancel', ['ana@example.com', 'bob@example.com']]]);
+    const ics = state.mails[0].ics;
+    expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(1);
+    expect(ics).toMatch(/RECURRENCE-ID:20270317T090000Z/);
+    expect(ics).toMatch(/DTSTART:20270317T090000Z/);
+    expect(ics).not.toMatch(/RRULE/);
   });
 
   it('answers the organizer of an invitation', async () => {
