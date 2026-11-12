@@ -1,82 +1,15 @@
+# Plimail: the app, PostgreSQL and Redis. Settings come from .env (see .env.example).
+# HTTP only; put your own reverse proxy in front for HTTPS.
 services:
-
-  # ── Frontend (nginx — serves React SPA + proxies API) ───────────────────────
-  # Default mode: exposes HTTPS on APP_PORT and HTTP on APP_HTTP_PORT.
-  # HTTP is intended for use behind a reverse proxy that terminates TLS.
-  # Production mode (--profile https): Caddy handles TLS instead (see below)
-  frontend:
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile
-      args:
-        VITE_BUILD_SHA: ${GIT_SHA:-dev}
-        VITE_EMAIL_DIV_RENDER: ${VITE_EMAIL_DIV_RENDER:-false}
-        NGINX_BASE: ${NGINX_BASE:-nginx:alpine}
-    container_name: mailflow-frontend
+  plimail:
+    image: ghcr.io/laupernoe/plimail:latest
+    build: .
     restart: unless-stopped
-    ports:
-      - "${APP_PORT:-443}:443"
-      - "${APP_HTTP_PORT:-80}:80"
-    environment:
-      # off: HTTP on port 80 only, behind your own TLS-terminating proxy (#516).
-      NGINX_TLS: ${NGINX_TLS:-}
-    volumes:
-      - ./certs:/etc/nginx/ssl
-    depends_on:
-      backend:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO/dev/null http://127.0.0.1:80/ || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
-    networks:
-      - mailflow
-
-  # ── Backend API ──────────────────────────────────────────────────────────────
-  backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
-      args:
-        BUILD_SHA: ${GIT_SHA:-dev}
-    container_name: mailflow-backend
-    restart: unless-stopped
-    # Room for a send in flight to finish on a restart (the backend waits up to 25 s).
+    # Room for a send in flight to finish on a restart (the app waits up to 25 s).
     stop_grace_period: 30s
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      SESSION_SECRET: ${SESSION_SECRET}
-      APP_URL: ${APP_URL:-}
-      FRONTEND_URL: ${APP_URL:-}
-      DB_HOST: ${DB_HOST:-postgres}
-      DB_PORT: ${DB_PORT:-5432}
-      DB_NAME: ${DB_NAME:-mailflow}
-      DB_USER: ${DB_USER:-mailflow}
-      DB_PASSWORD: ${DB_PASSWORD}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
-      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
-      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
-      VAPID_SUBJECT: ${VAPID_SUBJECT:-}
-      IMAP_MAX_PERSISTENT_PER_HOST: ${IMAP_MAX_PERSISTENT_PER_HOST:-}
-      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-}
-      # false stops offering Plimail's built-in Microsoft app for personal accounts (#674).
-      MS_BUILTIN_APP: ${MS_BUILTIN_APP:-}
-      # Your own OAuth apps (#676). Values saved under Settings > Email providers take
-      # precedence, field by field; an empty value here counts as not set.
-      MS_CLIENT_ID: ${MS_CLIENT_ID:-}
-      MS_CLIENT_SECRET: ${MS_CLIENT_SECRET:-}
-      MS_TENANT_ID: ${MS_TENANT_ID:-}
-      MS_REDIRECT_URI: ${MS_REDIRECT_URI:-}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
-      # The image proxy's cache of fitted images: per user, at most this many MB, kept for a month.
-      IMAGE_CACHE_DIR: /var/cache/mailflow/images
-      IMAGE_CACHE_MAX_MB: ${IMAGE_CACHE_MAX_MB:-512}
+    env_file: .env
+    ports:
+      - "${HTTP_PORT:-3000}:3000"
     volumes:
       - image_cache:/var/cache/mailflow/images
     depends_on:
@@ -84,89 +17,38 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
-    networks:
-      - mailflow
 
-  # ── PostgreSQL ───────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    container_name: mailflow-postgres
     restart: unless-stopped
-    # PUID/PGID default to 0:0 (root), identical to the image's normal behaviour.
-    # Set them (e.g. 99:100 on Unraid) only when bind-mounting POSTGRES_DATA to a host
-    # share, and chown that share to the same uid:gid first.
-    user: "${PUID:-0}:${PGID:-0}"
     environment:
       POSTGRES_DB: ${DB_NAME:-mailflow}
       POSTGRES_USER: ${DB_USER:-mailflow}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
     volumes:
-      - ${POSTGRES_DATA:-postgres_data}:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mailflow -d mailflow"]
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 20s
-    networks:
-      - mailflow
 
-  # ── Redis (sessions + caching) ───────────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    container_name: mailflow-redis
     restart: unless-stopped
-    user: "${PUID:-0}:${PGID:-0}"
     command: redis-server --save 60 1 --loglevel warning
     volumes:
-      - ${REDIS_DATA:-redis_data}:/data
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
       start_period: 10s
-    networks:
-      - mailflow
 
-  # ── Caddy (automatic HTTPS via Let's Encrypt — production only) ──────────────
-  # Use docker-compose.https.yml to avoid the port conflict with the frontend:
-  #   docker compose -f docker-compose.yml -f docker-compose.https.yml --profile https up -d --build
-  # Requires DOMAIN, ACME_EMAIL, and APP_URL to be set in .env, and ports 80/443 to be open.
-  caddy:
-    profiles: ["https"]
-    image: caddy:2-alpine
-    container_name: mailflow-caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    environment:
-      DOMAIN: ${DOMAIN:-localhost}
-      ACME_EMAIL: ${ACME_EMAIL:-}
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - frontend
-    networks:
-      - mailflow
-
+# The volume names are the ones earlier versions used, so an existing install keeps its data.
 volumes:
   postgres_data:
   redis_data:
   image_cache:
-  caddy_data:
-  caddy_config:
-
-networks:
-  mailflow:
-    driver: bridge

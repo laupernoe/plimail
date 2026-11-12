@@ -20,7 +20,7 @@ What should have happened instead.
 
 **Environment**
 - Plimail version (Settings → About):
-- Install method: Docker (pre-built images / built from source), native, desktop app, Android app
+- Install method: Docker image (`ghcr.io/laupernoe/plimail`) or built from source
 - Mail provider(s) involved (Gmail, Microsoft 365, iCloud, other IMAP):
 - Browser and OS, if it's a web issue:
 

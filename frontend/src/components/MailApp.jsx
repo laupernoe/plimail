@@ -40,7 +40,6 @@ const WindowLayer  = lazy(() => import('./WindowLayer.jsx'));
 
 const ComposeModal = lazy(() => import('./ComposeModal.jsx'));
 const AdminPanel   = lazy(() => import('./AdminPanel.jsx'));
-const ElectronNotificationBridge = lazy(() => import('./ElectronNotificationBridge.jsx'));
 
 const lazyFallback = (
   <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
@@ -110,7 +109,6 @@ export default function MailApp() {
   }, [autoLockMinutes, lockScreen]);
 
   const scale = fontSize / 100;
-  const hasNativeBridge = Boolean(window.mailflowNative || window.Capacitor?.isNativePlatform?.());
 
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -493,7 +491,6 @@ export default function MailApp() {
       if (showAppBadge && total > 0) navigator.setAppBadge(total).catch(() => {});
       else navigator.clearAppBadge().catch(() => {});
     }
-    window.mailflowNative?.badges?.setUnreadCount?.(total).catch(() => {});
   }, [unreadCounts, selectedAccountId, showAppBadge, showFaviconBadge]);
 
   // ── Global keyboard shortcut listener ──────────────────────────────────────
@@ -511,46 +508,6 @@ export default function MailApp() {
   useEffect(() => { mobileSidebarOpenRef.current = mobileSidebarOpen; }, [mobileSidebarOpen]);
   useEffect(() => { showShortcutHelpRef.current = showShortcutHelp; }, [showShortcutHelp]);
   useEffect(() => { paletteOpenRef.current = paletteOpen; }, [paletteOpen]);
-
-  useEffect(() => {
-    window.__mailflowHandleAndroidBack = () => {
-      if (composingRef.current) {
-        useStore.getState().closeCompose();
-        return true;
-      }
-
-      if (showAdminRef.current) {
-        setShowAdmin(false);
-        return true;
-      }
-
-      if (paletteOpenRef.current) {
-        setPaletteOpen(false);
-        return true;
-      }
-
-      if (showShortcutHelpRef.current) {
-        setShowShortcutHelp(false);
-        return true;
-      }
-
-      if (mobileSidebarOpenRef.current) {
-        setMobileSidebarOpen(false);
-        return true;
-      }
-
-      if (selectedMessageIdRef.current) {
-        setSelectedMessage(null);
-        return true;
-      }
-
-      return false;
-    };
-
-    return () => {
-      if (window.__mailflowHandleAndroidBack) delete window.__mailflowHandleAndroidBack;
-    };
-  }, [setMobileSidebarOpen, setSelectedMessage, setShowAdmin]);
 
   useEffect(() => {
     if (isMobile) return;
@@ -899,7 +856,6 @@ export default function MailApp() {
       <Suspense fallback={lazyFallback}>{showAdmin && <AdminPanel />}</Suspense>
       {/* Detached message windows (#219) — desktop only. */}
       {!isMobile && <Suspense fallback={null}><WindowLayer /></Suspense>}
-      <Suspense fallback={null}>{hasNativeBridge && <ElectronNotificationBridge />}</Suspense>
       <NotificationToasts />
       <CommandPalette open={paletteOpen} labelPickerMessage={labelPickerMessage}
         onClose={() => { setPaletteOpen(false); setLabelPickerMessage(null); }} />

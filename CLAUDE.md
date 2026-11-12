@@ -5,7 +5,9 @@ identifiers (`MAILFLOW_*` env vars, database names, storage keys, `data-mailflow
 original name on purpose.
 
 A self-hosted, unified webmail client, licensed AGPL-3.0. Node/Express backend, React frontend, PostgreSQL
-and Redis, shipped as Docker images.
+and Redis, shipped as one Docker image (`ghcr.io/laupernoe/plimail`, root `Dockerfile`) that runs
+next to `postgres` and `redis` in `docker-compose.yml`. There is no plugin platform, no native or
+desktop app and no TLS inside the image: HTTPS is the operator's reverse proxy.
 
 This file is context for coding agents and for anyone new to the project. It says what
 MailFlow is for and how to decide what belongs in it. The mechanics live elsewhere and are
@@ -45,10 +47,18 @@ work take precedence over new features.
 | Message parsing and sanitizing | `backend/src/services/messageParser.js`, `emailSanitizer.js` |
 | Migrations | `backend/migrations/` |
 | Frontend (React) | `frontend/src/` |
-| Desktop and mobile shells | `frontend/packages/` |
+| Serving the built frontend, security headers, compression | `backend/src/middleware/webApp.js` |
+| Image, compose, CI | `Dockerfile`, `docker-compose.yml`, `.github/workflows/` |
 
 ## How it fits together
 
+- **One process serves everything over HTTP on port 3000.** The image builds the frontend with
+  Vite into `/app/public`, and `webApp.js` serves it: index.html for client-side routes (never
+  cached), year-long caching for fingerprinted `assets/` and `pdfjs/<version>/`, gzip, and the
+  CSP and other security headers on every response, API included. They used to come from an
+  nginx container, so keep them when changing either. `TRUST_PROXY_HOPS` (default 1, 0 for
+  direct access) decides `req.secure`, hence Secure cookies and HSTS, and `req.ip`, hence the
+  login rate limit.
 - **One process owns every IMAP connection.** `index.js` creates a single `ImapManager`,
   gives it to routes as `app.get('imapManager')`. Each account holds a
   persistent IDLE connection plus a small pool (`acquirePooledClient`, `withFreshClient`) for
@@ -117,8 +127,8 @@ MAILFLOW_TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/mailflow_
 least 32 characters), `DB_PASSWORD` and a 64-hex-character `ENCRYPTION_KEY` are set, and it
 applies pending migrations before it listens. Postgres and Redis default to the compose
 hostnames (`DB_HOST`, `REDIS_URL` override them). The Vite dev server on port 5173 proxies
-`/api` and `/ws` to `http://backend:3000`, which is hard-coded, so outside compose `backend`
-has to resolve.
+`/api`, `/ws`, `/oauth`, `/auth/oidc` and `/carddav` to `http://localhost:3000`
+(`BACKEND_URL` overrides it).
 
 ## Working on this codebase
 
@@ -146,8 +156,8 @@ places where a mistake is expensive, invisible until much later, or both:
 - encryption, sessions and the auth routes
 - `backend/migrations/`, which run against live user data and are not reversible in practice
 - the connection lifecycle in `imapManager.js`: budgets, IDLE, reconnect, health checks
-- workflows, the release script, Dockerfiles and compose, which decide what ships to every
-  self-hosted install
+- workflows, the `Dockerfile` and compose, which decide what ships to every self-hosted
+  install. `publish.yml` pushes `latest` on every push to `main`, so main must stay releasable
 
 ## Sharp edges
 

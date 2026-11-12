@@ -12,7 +12,7 @@ vi.mock('../services/authLimiter.js', () => ({ authLimiterConfig: { maxRequests:
 
 import express from 'express';
 import bcrypt from 'bcryptjs';
-import carddavRouter from './carddav.js';
+import carddavRouter, { CARDDAV_BODY_LIMIT_BYTES } from './carddav.js';
 import { query } from '../services/db.js';
 
 const BOOK_ID = 'e5e5e5e5-5555-4555-8555-e5e5e5e5e5e5';
@@ -69,5 +69,13 @@ describe('CardDAV address book ownership', () => {
   it.each(requests)('serves %s to its owner', async (_name, method, path, body, status) => {
     const res = await dav('owner', method, path, body);
     expect(res.status).toBe(status);
+  });
+});
+
+describe('CardDAV request body limit', () => {
+  it('refuses a body over the limit with a 413 and writes nothing', async () => {
+    const res = await dav('owner', 'PUT', 'c1.vcf', 'a'.repeat(CARDDAV_BODY_LIMIT_BYTES + 1));
+    expect(res.status).toBe(413);
+    expect(writes).toEqual([]);
   });
 });

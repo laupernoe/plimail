@@ -37,7 +37,7 @@ function largeUnlessToken(largeParser) {
 }
 
 // Reads off and discards the rest of the body, then calls back, as body-parser does before it
-// reports an error. nginx and the Vite dev proxy send Connection: close, and Node closing such a
+// reports an error. Reverse proxies and the Vite dev proxy may send Connection: close, and Node closing such a
 // socket with body data still unread resets the connection, which can lose the answer before the
 // client reads it.
 function discardBody(req, callback) {

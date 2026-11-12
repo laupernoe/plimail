@@ -5,9 +5,8 @@
 // clipboard object is undefined, so `navigator.clipboard.writeText(...)` throws
 // "Cannot read properties of undefined (reading 'writeText')" and the button does
 // nothing (#416). Tailscale's CGNAT range is not a trustworthy origin: only loopback
-// gets that exemption. The bundled Caddy service is Let's Encrypt only and needs a
-// public domain with ports 80/443 open, so a secure context is not something every
-// self-hoster can reach. The app has to work without one.
+// gets that exemption. Plimail serves plain HTTP and leaves HTTPS to a reverse proxy, so
+// a secure context is not something every self-hoster has. The app has to work without one.
 //
 // Feature-detecting rather than sniffing the protocol also means this holds up if the
 // API is missing for some other reason, such as a disabled browser pref.

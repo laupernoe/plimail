@@ -1,8 +1,0 @@
-{
-  "appId": "sh.mailflow.app",
-  "appName": "Plimail",
-  "webDir": "../dist",
-  "android": {
-    "path": "android"
-  }
-}

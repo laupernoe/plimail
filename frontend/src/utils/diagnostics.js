@@ -72,10 +72,9 @@ export function scrubReport(obj) {
 }
 
 export function collectEnvironment({ locale, theme, uiScale }) {
-  const native = typeof window !== 'undefined' ? window.mailflowNative : null;
   const { browser, os } = coarsenUserAgent(typeof navigator !== 'undefined' ? navigator.userAgent : '');
   return {
-    platform: native ? (native.platform || 'native') : 'web',
+    platform: 'web',
     browser,
     os,
     locale: locale || 'en',

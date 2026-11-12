@@ -1,97 +1,106 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="media/plimail-logo-light.png">
-    <img src="media/plimail-logo-dark.png" width="320" alt="plimail">
+    <img src="media/plimail-logo-dark.png" width="320" alt="Plimail">
   </picture>
 </p>
 
-<p align="center">A lighter, self-hosted unified webmail client with calendars.</p>
+# Plimail
 
-<p align="center">
-  <a href="LICENSE">AGPL-3.0</a> ·
-  <a href="https://github.com/laupernoe/plimail">Source code</a> ·
-  <a href="https://github.com/laupernoe/plimail/issues">Issues</a>
-</p>
+A self-hosted, unified webmail client with calendars, shipped as one Docker image.
 
-Plimail puts every IMAP mailbox you own in one inbox, and keeps your calendars next to it. It runs
-as a handful of Docker containers on your own server (Node/Express backend, React frontend,
-PostgreSQL, Redis), and your mail stays on your mail servers: Plimail caches headers and bodies
-for speed, and sends flag changes, moves and deletes back to IMAP.
+## Why this fork
 
-> Plimail is a fork of MailFlow by Matt (https://github.com/maathimself/mailflow), licensed AGPL-3.0.
-> See [NOTICE](NOTICE) for what changed.
+Plimail is a fork of [MailFlow](https://github.com/maathimself/mailflow), created because it lacked
+functionality and responsiveness for our needs. It keeps only what is necessary and aims for a
+simple stack: CalDAV calendars and invitations were added; plugins, extra themes, integrations,
+antispam and the mobile and desktop apps were removed.
 
-## What it does
+## Features
 
-- **Unified inbox** across any number of IMAP/SMTP accounts, with OAuth sign-in for Google and Microsoft
-- **Threads, search, snooze, rules, categories, unsubscribe, scheduled send, drafts**
-- **Calendars** over CalDAV, with their own settings and an upcoming-events pane
-- **Contacts**, served to phones and desktop apps as a CardDAV address book, with autocomplete learned from sent mail
-- **Themes, layouts, keyboard shortcuts and 11 interface languages**
-- **PWA, desktop (Electron) and Android shells**, web push notifications
-- **Single sign-on** (OIDC), TOTP, invite-only registration, API tokens
-- Remote images are proxied, and message HTML is sanitized before it is stored
+- Unified inbox across any number of IMAP/SMTP accounts, with OAuth for Google and Microsoft
+- Threads, search, snooze, rules, categories, scheduled send, drafts
+- CalDAV calendars and meeting invitations
+- Contacts, also served as a CardDAV address book
+- Web push notifications, keyboard shortcuts, 11 interface languages
+- Single sign-on (OIDC), TOTP, invite-only registration, API tokens
+- Message HTML sanitized before it is stored; remote images proxied
 
-## Run it
+## Quick start
 
 You need Docker with the compose plugin.
 
 ```bash
-git clone https://github.com/laupernoe/plimail.git
-cd plimail
-cp .env.example .env
+curl -O https://raw.githubusercontent.com/laupernoe/plimail/main/docker-compose.yml
+curl -o .env https://raw.githubusercontent.com/laupernoe/plimail/main/.env.example
 ```
 
-Edit `.env` and set at least:
-
-| Variable | What |
-|---|---|
-| `SESSION_SECRET` | at least 32 random characters (`openssl rand -hex 32`) |
-| `DB_PASSWORD` | password for the bundled PostgreSQL |
-| `ENCRYPTION_KEY` | exactly 64 hex characters (`openssl rand -hex 32`). Lose it and stored account passwords cannot be decrypted |
-| `APP_URL` | the URL you will open Plimail at |
+Fill in `.env`: `openssl rand -hex 32` for `SESSION_SECRET` and `ENCRYPTION_KEY`,
+`openssl rand -hex 16` for `DB_PASSWORD`, and set `APP_URL`. Then:
 
 ```bash
-docker compose up -d --build
+docker compose up -d
 ```
 
-Open `https://localhost` (or the port you set with `APP_PORT`) and create the first account,
-which becomes the administrator. Plimail's nginx serves a self-signed certificate unless you set
-`NGINX_TLS=off` behind your own reverse proxy, or run `docker compose --profile https up -d` for
-automatic Let's Encrypt certificates through Caddy (set `DOMAIN` and `ACME_EMAIL`). Every setting
-is documented in `.env.example`.
+Open `http://your-host:3000` and create the first account, which becomes the administrator.
 
-`docker-compose.ghcr.yml` is the same stack from prebuilt `ghcr.io/laupernoe/plimail-*` images.
+## HTTPS
 
-### Updating and backups
+Plimail serves plain HTTP on port 3000; put your own reverse proxy (Caddy, Traefik, nginx…) in
+front of it for HTTPS, forwarding `X-Forwarded-For` and `X-Forwarded-Proto` and WebSocket
+upgrades on `/ws`.
+
+## Configuration
+
+Everything is set in `.env`.
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `SESSION_SECRET` | yes | Signs session cookies, at least 32 characters |
+| `DB_PASSWORD` | yes | Password of the bundled PostgreSQL |
+| `ENCRYPTION_KEY` | yes | 64 hex characters, encrypts stored account credentials. Keep it safe: if it changes, every account must be signed in again |
+| `APP_URL` | yes | The URL people open, e.g. `https://mail.example.com`. WebSocket and sign-in redirects only accept this origin |
+| `TRUST_PROXY_HOPS` | no | Reverse proxies in front of Plimail: `1` (default) or `0` when browsers connect directly. With `1`, make sure only the proxy can reach the port |
+| `HTTP_PORT` | no | Host port, default `3000`; `127.0.0.1:3000` when the proxy is on the same host |
+
+Session cookies are marked `Secure` only when the browser reached Plimail over HTTPS (as reported
+by a trusted proxy), so plain HTTP on a LAN still works.
+
+Optional settings, also read from `.env`:
+
+- `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`: web push (`npx web-push generate-vapid-keys`)
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`: your own Google OAuth app (also settable in Settings, Email providers)
+- `MS_CLIENT_ID`, `MS_CLIENT_SECRET`, `MS_TENANT_ID`, `MS_REDIRECT_URI`, `MS_BUILTIN_APP`: Microsoft OAuth
+- `IMAP_MAX_PERSISTENT_PER_HOST`: cap always-on IMAP connections per mail server (others are polled)
+- `IMAGE_CACHE_MAX_MB`: size of the image proxy cache per user (default 512)
+- `ALLOW_PRIVATE_IMAP_HOSTS=true`: allow mail servers on private addresses
+- `SMTP_EHLO_NAME`, `LOG_LEVEL`, `UPDATE_CHECK_DISABLED=true`
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `REDIS_URL`: external PostgreSQL or Redis (database and user default to `mailflow`)
+
+## Updating
 
 ```bash
-git pull
-docker compose up -d --build
+docker compose pull && docker compose up -d
 ```
 
-Migrations are applied at startup. Admins can download and restore a full backup under
-Settings, Administration, Backup. Keep your `ENCRYPTION_KEY` with the backup.
-
-> Existing installs: the environment variables (`MAILFLOW_*`), database name, Docker volumes and
-> network keep their original `mailflow` names, so an install of MailFlow upgrades in place.
+Migrations run at startup. Admins can download and restore a full backup under Settings,
+Administration, Backup; keep `ENCRYPTION_KEY` with it.
 
 ## Development
 
-Node 22.
+Node 22. With PostgreSQL and Redis on localhost (database and user `mailflow`) and the required
+variables plus `DB_HOST=localhost` and `REDIS_URL=redis://localhost:6379` in `backend/.env`:
 
 ```bash
-cd backend  && npm ci && npm test && npm run lint
-cd frontend && npm ci && npm test && npm run lint && npm run build
+cd backend && npm ci && npm run dev      # API on :3000
+cd frontend && npm ci && npm run dev     # app on http://localhost:5173
 ```
 
-See `CLAUDE.md` and `CONTRIBUTING.md` for how the code fits together and how to contribute.
+Tests and lint: `npm test` and `npm run lint` in each directory. See `CLAUDE.md` for how the code
+fits together.
 
-## License and source
+## License
 
-Plimail is free software under the [GNU AGPL-3.0](LICENSE). If you run a modified version for other
-people, section 13 requires you to offer them its source; the Settings, About page links to
-https://github.com/laupernoe/plimail for that.
-
-Plimail is a fork of MailFlow by Matt (https://github.com/maathimself/mailflow), licensed AGPL-3.0.
-The original copyright notices are kept; the modifications are listed in [NOTICE](NOTICE).
+[AGPL-3.0](LICENSE). Plimail is based on MailFlow by Matt; the original copyright notices are
+kept and the changes are listed in [NOTICE](NOTICE). If you run a modified version for other
+people, section 13 requires you to offer them its source.

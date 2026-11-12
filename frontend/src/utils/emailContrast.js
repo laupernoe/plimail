@@ -1,8 +1,7 @@
 // How readable the text of a rendered email is (#228): the contrast of each piece of visible text
 // against what is actually painted behind it.
 //
-// Used by the dark-mode audit harness (scripts/dark-audit) to score each way of showing a body, and
-// meant for dark email bodies to check their own result before showing it. Runs on a laid-out
+// Meant for dark email bodies to check their own result before showing it. Runs on a laid-out
 // document (the frame's), because only the browser knows an element's final colors after the
 // email's CSS, inheritance and MailFlow's own styles have all applied.
 //

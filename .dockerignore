@@ -3,6 +3,7 @@
 **/.env
 **/.env.*
 !**/.env.example
-certs
-*.local
 .git
+.github
+.claude
+*.local

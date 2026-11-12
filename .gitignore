@@ -11,10 +11,6 @@ node_modules/
 # Build output
 frontend/dist/
 frontend/.vite/
-frontend/packages/release/
-
-# TLS certs (generated locally or via Let's Encrypt)
-certs/
 
 # Logs
 *.log

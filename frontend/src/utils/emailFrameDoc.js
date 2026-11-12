@@ -1,7 +1,7 @@
 // The document an email body is rendered in: the sandboxed frame's srcDoc (MessageBodyView).
 //
-// A plain function so the dark-mode audit harness (scripts/dark-audit) renders exactly what the
-// reader does, from the same code.
+// A plain function, so anything that needs the frame's document builds exactly what the reader
+// sees, from the same code.
 //
 // The body always renders as sent first: forced light, as every body was before #228. Showing it
 // dark happens afterwards, in place, by utils/darkBody.js, which needs the light rendering to

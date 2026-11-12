@@ -87,8 +87,8 @@ router.post('/restore', async (req, res) => {
   }
   restoring = true;
   // Node cuts off a request still arriving after server.requestTimeout (five minutes by default),
-  // and a restore upload arrives for as long as the file takes to send and write. nginx in
-  // front bounds a stalled client with its own timeouts.
+  // and a restore upload arrives for as long as the file takes to send and write. Only admins
+  // reach this, and a reverse proxy in front bounds a stalled client with its own timeouts.
   const server = req.socket.server;
   const requestTimeout = server.requestTimeout;
   server.requestTimeout = 0;

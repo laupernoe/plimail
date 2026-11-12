@@ -1,5 +1,5 @@
-// Contrast of rendered email text (#228): the color math. What counts as visible text is checked in
-// a real browser by the dark-mode audit harness's self-test (scripts/dark-audit), as it needs layout.
+// Contrast of rendered email text (#228): the color math. What counts as visible text needs a real
+// browser's layout, so it is not covered here.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseColor, composite, contrastRatio, summarize, paintsImage, brightShare } from './emailContrast.js';
