@@ -1040,8 +1040,8 @@ describe('a conversation row in the grouped list', () => {
 // #228: a body that can be shown dark gets a toggle in a dark theme; the setting picks the default.
 describe('dark email bodies', () => {
   const realFetch = globalThis.fetch;
-  after(() => { globalThis.fetch = realFetch; useStore.setState({ theme: 'dark', darkEmailBodies: false }); });
-  const open = async (id, bodyJson, { theme = 'dark', setting = false } = {}) => {
+  after(() => { globalThis.fetch = realFetch; useStore.setState({ theme: 'selfhostr', darkEmailBodies: false }); });
+  const open = async (id, bodyJson, { theme = 'selfhostr', setting = false } = {}) => {
     globalThis.fetch = async (url) => (String(url).includes(`/messages/${id}/body`)
       ? { ok: true, status: 200, json: async () => ({ attachments: [], ...bodyJson }) }
       : realFetch(url));
@@ -1088,7 +1088,7 @@ describe('dark email bodies', () => {
   });
 
   test('no toggle in a light theme; HTML that asks to stay light has one', async () => {
-    await open('dark-text-3', { text: 'plain words' }, { theme: 'light', setting: true });
+    await open('dark-text-3', { text: 'plain words' }, { theme: 'selfhostr-light', setting: true });
     assert.equal(toggle(), undefined);
     assert.equal(textCard().style.background, 'white');
     await open('dark-html-1', { html: '<p>plain html</p>', text: '', lightOnly: true }, { setting: true });

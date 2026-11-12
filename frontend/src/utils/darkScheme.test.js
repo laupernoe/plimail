@@ -46,7 +46,7 @@ describe('shown dark', () => {
   });
 
   test('never in a light theme', () => {
-    assert.equal(showDark({ body: TEXT, themeKey: 'light', setting: true }), false);
-    assert.equal(showDark({ body: DARK_DESIGN, themeKey: 'parchment', setting: true, override: 'dark' }), false);
+    assert.equal(showDark({ body: TEXT, themeKey: 'selfhostr-light', setting: true }), false);
+    assert.equal(showDark({ body: DARK_DESIGN, themeKey: 'selfhostr-light', setting: true, override: 'dark' }), false);
   });
 });
