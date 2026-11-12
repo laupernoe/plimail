@@ -5,12 +5,14 @@ import cors from 'cors';
 import { corsExceptDav } from './middleware/corsExceptDav.js';
 import { createServer } from 'http';
 import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 import RedisStore from 'connect-redis';
 import 'dotenv/config';
 import { redisClient } from './services/redis.js';
 import { parseTrustProxyHops } from './utils/trustProxy.js';
 import { buildSessionOptions } from './utils/sessionConfig.js';
 import { mountApiAuth } from './middleware/apiChain.js';
+import { compress, mountWebApp, securityHeaders } from './middleware/webApp.js';
 
 import sendRoutes from './routes/send.js';
 import draftRoutes from './routes/draft.js';
@@ -57,13 +59,13 @@ try {
 export const APP_VERSION = (process.env.APP_VERSION || buildMeta.version || packageMeta.version).replace(/^v[.]?/, '');
 
 const app = express();
-// Trust the nginx reverse proxy so req.secure reflects HTTPS correctly.
-// Without this, express-session sees HTTP (from nginx) and refuses to set
-// the Secure cookie, meaning the session cookie is never sent to the browser.
-// The hop count also decides req.ip, which keys the login rate limit.
+// Trust the operator's reverse proxy so req.secure reflects HTTPS correctly: behind a
+// TLS-terminating proxy the connection itself is plain HTTP, and without this express-session
+// would never mark the session cookie Secure. The hop count also decides req.ip, which keys the
+// login rate limit.
 const trustProxyHops = parseTrustProxyHops(process.env.TRUST_PROXY_HOPS);
 if (trustProxyHops === null) {
-  console.error(`FATAL: TRUST_PROXY_HOPS must be a whole number of at least 1 (the reverse proxies in front of the backend, counting nginx), got "${process.env.TRUST_PROXY_HOPS}". Exiting.`);
+  console.error(`FATAL: TRUST_PROXY_HOPS must be a whole number (the reverse proxies in front of Plimail, 0 for none), got "${process.env.TRUST_PROXY_HOPS}". Exiting.`);
   process.exit(1);
 }
 app.set('trust proxy', trustProxyHops);
@@ -101,7 +103,7 @@ const sessionMiddleware = session(
 
 // Not for /carddav, whose own OPTIONS answer tells contact apps it serves address books.
 app.use(corsExceptDav(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || process.env.APP_URL || 'http://localhost:5173',
   credentials: true
 })));
 
@@ -121,13 +123,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Security headers on every response
-app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('Referrer-Policy', 'same-origin');
-  next();
-});
+app.use(securityHeaders);
+app.use(compress);
 // Who a request is and whether it may go on: API tokens, the body parsers, the session, the CSRF
 // header check, the screen lock and the token guards, in that order (middleware/apiChain.js, so
 // the tests run the same chain).
@@ -175,6 +172,9 @@ app.get('/api/update', async (_req, res) => {
   try { res.json(await getUpdateStatus(APP_VERSION)); }
   catch { res.json({ current: APP_VERSION, latest: null, updateAvailable: false, disabled: false }); }
 });
+
+// The built web app, in the image; in development the Vite dev server serves it instead.
+mountWebApp(app, fileURLToPath(new URL('../public', import.meta.url)));
 
 // Catch unhandled errors thrown (or rejected) inside async route handlers.
 // The `express-async-errors` import above patches Express 4 to forward async
@@ -278,9 +278,8 @@ process.on('SIGTERM', () => {
 });
 
 // A restore has replaced the rows every IMAP connection, scheduler and cache was built from,
-// so the process starts over. The exit code is non-zero because systemd's Restart=on-failure
-// (contrib/mailflow.service) leaves a clean exit down; Docker's unless-stopped and pm2 restart
-// either way.
+// so the process starts over. The exit code is non-zero so that a supervisor restarting only on
+// failure (systemd's Restart=on-failure) brings it back; Docker's unless-stopped restarts either way.
 export function restartAfterRestore() {
   console.log('Restore complete — restarting so every connection and cache starts from the restored data');
   exitAfterClose(3, { wsCode: 1012, wsReason: 'Restarting' });
