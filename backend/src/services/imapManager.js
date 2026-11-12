@@ -2745,7 +2745,7 @@ export class ImapManager {
     this._syncErrorState = new Map();
     this._accountErrorStreak = new Map(); // accountId -> consecutive recoverable failures not yet surfaced
     this._errorForgets = new Map(); // accountId -> times forgetAccountError ran (see there)
-    this.onDemandSyncing = new Set(); // `${accountId}:${folder}` — prevent duplicate on-demand syncs
+    this.onDemandSyncing = new Map(); // `${accountId}:${folder}` -> the running on-demand or spam sync (_claimFolderSync)
     this.syncingAccounts = new Set(); // prevent overlapping interval syncs
     this.syncStartedAt = new Map();   // accountId -> ms when the current sync tick began (hung-sync detection)
     this.syncThrottleSkips = new Map(); // accountId -> remaining ticks to skip when throttled
@@ -6408,28 +6408,55 @@ export class ImapManager {
   }
 
   // Syncs the most recent messages in a specific folder on demand.
-  // Called when the user navigates to a folder that has no local messages yet.
-  // Uses a pooled connection — does NOT touch the main sync connection.
+  // Called when the user navigates to a folder that has no local messages yet, and after a change
+  // whose result only a sync can cache (a COPY or APPEND without a UID, a move that dropped the row).
+  // Uses a pooled connection — does NOT touch the main sync connection. Resolves once a pass that
+  // started after this call has finished, and rejects when that pass fails.
   async syncFolderOnDemand(account, folder) {
     const key = `${account.id}:${folder}`;
-    if (this.onDemandSyncing.has(key)) {
-      console.log(`syncFolderOnDemand skipped (already running): ${logAccount(account)}/${folder}`);
-      return;
+    const active = this.onDemandSyncing.get(key);
+    if (active) {
+      // The running pass may have read the folder before the change this caller needs to see, so
+      // returning now would leave that change uncached until a periodic sync. One more pass after
+      // it is shared by every caller that arrives meanwhile.
+      console.log(`syncFolderOnDemand queued behind the running pass: ${logAccount(account)}/${folder}`);
+      active.followUp ??= active.done.then(() => this.syncFolderOnDemand(account, folder));
+      return active.followUp;
     }
-    this.onDemandSyncing.add(key);
-    console.log(`syncFolderOnDemand start: ${logAccount(account)}/${folder}`);
-    try {
-      await withFreshClient(account, async (client) => {
-        await this.syncMessages(account, client, folder, 100, false, true);
-      });
+    return this._claimFolderSync(key, async () => {
+      console.log(`syncFolderOnDemand start: ${logAccount(account)}/${folder}`);
+      try {
+        await this._syncFolderViaPool(account, folder);
+      } catch (err) {
+        console.error(`On-demand sync error ${logAccount(account)}/${folder}:`, err.message);
+        throw err;
+      }
       console.log(`syncFolderOnDemand done: ${logAccount(account)}/${folder}`);
       // sync_complete fires mailflow:refresh in the frontend, reloading the message list
       this.broadcast({ type: 'sync_complete', accountId: account.id }, account.user_id);
-    } catch (err) {
-      console.error(`On-demand sync error ${logAccount(account)}/${folder}:`, err.message);
-    } finally {
-      this.onDemandSyncing.delete(key);
-    }
+    });
+  }
+
+  async _syncFolderViaPool(account, folder, limit = 100) {
+    await withFreshClient(account, async (client) => {
+      await this.syncMessages(account, client, folder, limit, false, true);
+    });
+  }
+
+  // Runs `work` as the one sync of this folder, with a claim that syncFolderOnDemand waits on.
+  // The claim is released before `done` settles, so a follow-up pass never finds its own claim.
+  _claimFolderSync(key, work) {
+    const entry = { followUp: null };
+    const task = (async () => {
+      try {
+        return await work();
+      } finally {
+        if (this.onDemandSyncing.get(key) === entry) this.onDemandSyncing.delete(key);
+      }
+    })();
+    entry.done = task.then(() => {}, () => {});
+    this.onDemandSyncing.set(key, entry);
+    return task;
   }
 
   // Periodically pull new mail into the special-use spam/Junk folder. Server-side spam filtering
@@ -6457,22 +6484,22 @@ export class ImapManager {
     if (!spamPath) return;
     const key = `${account.id}:${spamPath}`;
     if (this.onDemandSyncing.has(key)) return;
-    this.onDemandSyncing.add(key);
     const host = (account.imap_host || '').toLowerCase();
     try {
+      // Claimed only once a host slot is held: an on-demand sync of this folder waits on the
+      // claim, and it should not wait behind a backfill queue as well.
       await this._bgConnSem.acquire(host);
       try {
-        await withFreshClient(account, async (client) => {
-          await this.syncMessages(account, client, spamPath, 50, false, true);
+        if (this.onDemandSyncing.has(key)) return;
+        await this._claimFolderSync(key, async () => {
+          await this._syncFolderViaPool(account, spamPath, 50);
+          this.broadcast({ type: 'folders_synced', accountId: account.id }, account.user_id);
         });
-        this.broadcast({ type: 'folders_synced', accountId: account.id }, account.user_id);
       } finally {
         this._bgConnSem.release(host);
       }
     } catch (err) {
       console.warn(`Periodic spam sync failed for ${logAccount(account)}/${spamPath}:`, err.message);
-    } finally {
-      this.onDemandSyncing.delete(key);
     }
   }
 

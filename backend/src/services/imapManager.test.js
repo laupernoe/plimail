@@ -1332,6 +1332,71 @@ describe('syncMessages — unread_count recompute ordering (folder badge fix)', 
   });
 });
 
+describe('syncFolderOnDemand — a request during a running pass', () => {
+  const account = { id: 'a1', user_id: 'u1' };
+  const deferred = () => { let resolve, reject; const promise = new Promise((res, rej) => { resolve = res; reject = rej; }); return { promise, resolve, reject }; };
+  const manager = () => Object.assign(Object.create(ImapManager.prototype), {
+    onDemandSyncing: new Map(), broadcast: vi.fn(), _syncFolderViaPool: vi.fn(),
+  });
+  beforeEach(() => vi.spyOn(console, 'log').mockImplementation(() => {}));
+  afterEach(() => vi.restoreAllMocks());
+
+  it('runs one more pass after the running one, and resolves only when that pass is done', async () => {
+    const mgr = manager();
+    const first = deferred();
+    const second = deferred();
+    mgr._syncFolderViaPool.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    const owner = mgr.syncFolderOnDemand(account, 'Todo');
+    let settled = false;
+    const caller = mgr.syncFolderOnDemand(account, 'Todo').then(() => { settled = true; });
+    first.resolve();
+    await owner;
+    await vi.waitFor(() => expect(mgr._syncFolderViaPool).toHaveBeenCalledTimes(2));
+    expect(settled).toBe(false);
+    second.resolve();
+    await caller;
+    expect(mgr.onDemandSyncing.size).toBe(0);
+    expect(mgr.broadcast).toHaveBeenCalledTimes(2);
+  });
+
+  it('shares that one follow-up pass among every caller that arrives meanwhile', async () => {
+    const mgr = manager();
+    const first = deferred();
+    mgr._syncFolderViaPool.mockReturnValueOnce(first.promise).mockResolvedValue();
+    const owner = mgr.syncFolderOnDemand(account, 'Todo');
+    const callers = [1, 2, 3].map(() => mgr.syncFolderOnDemand(account, 'Todo'));
+    first.resolve();
+    await Promise.all([owner, ...callers]);
+    expect(mgr._syncFolderViaPool).toHaveBeenCalledTimes(2);
+  });
+
+  it('rejects with the failure of the pass, and still gives a waiting caller its own pass', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const mgr = manager();
+    const first = deferred();
+    const error = new Error('synthetic FETCH failure');
+    mgr._syncFolderViaPool.mockReturnValueOnce(first.promise).mockResolvedValue();
+    const owner = mgr.syncFolderOnDemand(account, 'Todo');
+    const caller = mgr.syncFolderOnDemand(account, 'Todo');
+    first.reject(error);
+    await expect(owner).rejects.toBe(error);
+    await expect(caller).resolves.toBeUndefined();
+    expect(mgr._syncFolderViaPool).toHaveBeenCalledTimes(2);
+    expect(mgr.onDemandSyncing.size).toBe(0);
+  });
+
+  it('waits for a running spam poll of the folder before its own pass', async () => {
+    const mgr = manager();
+    const spam = deferred();
+    mgr._syncFolderViaPool.mockReturnValueOnce(spam.promise).mockResolvedValue();
+    const poll = mgr._claimFolderSync('a1:Junk', () => mgr._syncFolderViaPool(account, 'Junk', 50));
+    const caller = mgr.syncFolderOnDemand(account, 'Junk');
+    spam.resolve();
+    await Promise.all([poll, caller]);
+    expect(mgr._syncFolderViaPool).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe('_syncSpamFolder — periodic spam poll guards', () => {
   const account = { id: 'a1', user_id: 'u1', folder_mappings: null, imap_host: 'imap.example.com' };
 
