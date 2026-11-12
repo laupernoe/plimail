@@ -1,10 +1,5 @@
 // Attachment file extensions by risk tier, for the download warning in attachmentRisk.js.
 //
-// A bundled copy of backend/src/services/attachmentExtensions.js, which is canonical and which
-// antispam also reads: the frontend image flattens frontend/ into /app and cannot import from
-// backend/src. Change both. backend/src/services/attachmentExtensions.test.js fails CI when they
-// differ, and it loads this file without frontend/node_modules, so keep it free of imports.
-//
 //   BLOCK  — run code, install something or hand over the machine when opened
 //   WARN   — can carry active content (macros, HTML or SVG login pages) the user has to enable or open
 //   NOTICE — archives, whose contents nothing here inspects

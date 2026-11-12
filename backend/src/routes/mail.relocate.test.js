@@ -70,11 +70,12 @@ describe('relocate reinsert column lists', () => {
 
   it('reads the messages schema out of the migrations', () => {
     // Baseline CREATE TABLE, single ALTER, multi-clause ALTER, and a column added then dropped.
-    for (const col of ['subject', 'reply_to', 'spam_details', 'forwarded_via']) {
+    for (const col of ['subject', 'reply_to', 'list_unsubscribe', 'forwarded_via']) {
       expect(schemaCols).toContain(col);
     }
     expect(schemaCols).not.toContain('gtd_gist');
     expect(schemaCols).not.toContain('plugin_annotations');
+    expect(schemaCols).not.toContain('spam_details');
   });
 
   it('carries every messages column the migrations add, apart from the explicit exclusions', () => {

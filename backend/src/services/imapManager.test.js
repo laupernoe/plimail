@@ -11,7 +11,6 @@ vi.mock('./pushNotifications.js', () => ({ sendPushToUser: vi.fn() }));
 vi.mock('../utils/redact.js', () => ({ redactEmail: vi.fn() }));
 vi.mock('./hostValidation.js', () => ({ resolveForConnection: vi.fn(), createPinnedLookup: vi.fn() }));
 vi.mock('./connectionPolicy.js', () => ({ getConnectionPolicy: vi.fn() }));
-vi.mock('./spamPipeline.js', () => ({ classifyAndTagMessage: vi.fn() }));
 vi.mock('./mailAccess.js', () => ({ getAccountAddresses: vi.fn(async () => []) }));
 
 import { ImapManager, PREFETCH_MAX_CONSECUTIVE_ERRORS, INLINE_IMAGE_REPEAT_BUDGET, hasIdlePooledClient, shouldPrewarmPool, acquirePooledClient, releasePooledClient, MIN_SYNC_INTERVAL_MS, AUTO_IDLE_DELAY_MS, countMissingInboxCopies, fetchBackfillBatch, providerProfile, makeClientCfg, insertCopiedSibling, ensureMailbox, createKeyedSemaphore, isConnectionRefusal, connectCooldownMs, effectiveSyncIntervalMs, folderSyncDue, planModseqSync, connectStaggerFor, walkStructure, extractBodyFromMsg, attachmentsFromStructure, contentLocationFromMimeHeader, bodyFallbackApplies, parsePersistentCap, resolvePersistentCap, persistentEligible, shouldRetryIPv4, classifyMoveBySearch, pairMovedCopies, computeThreadId, noteDraftsChanged } from './imapManager.js';
@@ -25,7 +24,6 @@ import { query } from './db.js';
 import { resolveForConnection } from './hostValidation.js';
 import { getConnectionPolicy } from './connectionPolicy.js';
 import { parseMessage, decodeMimeWords } from './messageParser.js';
-import { classifyAndTagMessage } from './spamPipeline.js';
 import { getAccountAddresses } from './mailAccess.js';
 
 const account = (imap_host, oauth_provider = null) => ({ imap_host, oauth_provider });
@@ -1199,51 +1197,17 @@ describe('syncMessages — empty local cache vs nonempty server (wiring)', () =>
       .mockResolvedValueOnce({ ...base, uid: 501, messageId: '<moved@x>', subject: 'Moved', date: new Date('2026-11-04T10:00:00Z'), isRead: false, flags: [] })
       .mockResolvedValueOnce({ ...base, uid: 502, messageId: '<fresh@x>', subject: 'Fresh', date: new Date('2026-11-04T11:00:00Z'), isRead: true, flags: ['\\Seen'] });
     clearCarries();
-    rememberDroppedRows('Archive', [{ account_id: 'acct-sync-carry', message_id: '<moved@x>', date: '2026-11-04T10:00:00Z', spam_analyzed_at: '2026-11-04T10:00:05Z', spam_user_override: 'ham', category: 'social' }]);
-    const mgr = { maybeClassifyNewMessage: vi.fn(), broadcast: vi.fn() };
+    rememberDroppedRows('Archive', [{ account_id: 'acct-sync-carry', message_id: '<moved@x>', date: '2026-11-04T10:00:00Z', category: 'social' }]);
+    const mgr = { broadcast: vi.fn() };
 
     const result = await ImapManager.prototype.syncMessages.call(mgr, account, client, 'Archive', 50, false, true);
 
     expect(result).toEqual(expect.objectContaining({ insertedCount: 2 }));
-    const carry = query.mock.calls.find(([sql]) => sql.startsWith('UPDATE messages SET spam_'));
-    expect(carry).toEqual(['UPDATE messages SET spam_analyzed_at = $2, spam_user_override = $3, category = $4 WHERE id = $1', ['row-501', '2026-11-04T10:00:05Z', 'ham', 'social']]);
-    // Only the fresh message is classified; the moved one, though unread, raises no new mail.
-    expect(mgr.maybeClassifyNewMessage).toHaveBeenCalledTimes(1);
-    expect(mgr.maybeClassifyNewMessage.mock.calls[0][1]).toBe('row-502');
+    const carry = query.mock.calls.find(([sql]) => sql.startsWith('UPDATE messages SET category'));
+    expect(carry).toEqual(['UPDATE messages SET category = $2 WHERE id = $1', ['row-501', 'social']]);
+    // The moved message, though unread, raises no new mail.
     expect(mgr.broadcast.mock.calls.filter(([m]) => m?.type === 'new_messages')).toEqual([]);
     expect(hasCarries()).toBe(false);
-  });
-
-  // A rule can move a message before its spam check lands; the re-filed copy still gets one.
-  it('still spam-checks a message filed again before it was ever analyzed', async () => {
-    const account = { id: 'acct-sync-carry2', user_id: 'user-1', email_address: 'me@example.com', categorization_enabled: false, imap_host: 'imap.example.com' };
-    const client = {
-      noop: vi.fn(async () => true),
-      getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
-      mailbox: { exists: 1, uidValidity: 100, highestModseq: 500n },
-      fetch: vi.fn(async function* () { yield { uid: 501 }; }),
-    };
-    query.mockImplementation((sql, params) => {
-      if (sql.includes('SELECT uid_validity, highest_modseq FROM folders')) return Promise.resolve({ rows: [{ uid_validity: 100, highest_modseq: '500' }] });
-      if (sql.includes('COUNT(*) FILTER (WHERE is_read = false)')) return Promise.resolve({ rows: [{ n: 0 }] });
-      if (sql.includes('COALESCE(MAX(uid), 0)')) return Promise.resolve({ rows: [{ max_uid: 0 }] });
-      if (sql.includes('INSERT INTO messages')) return Promise.resolve({ rows: [{ id: `row-${params[1]}`, is_new: true }] });
-      return Promise.resolve({ rows: [] });
-    });
-    parseMessage.mockResolvedValueOnce({
-      uid: 501, messageId: '<early@x>', subject: 'Early', fromName: 'Them', fromEmail: 'them@example.com', to: [], cc: [], replyTo: [],
-      inReplyTo: null, references: null, date: new Date('2026-11-04T10:00:00Z'), snippet: 'hi', isRead: false, isStarred: false,
-      hasAttachments: false, flags: [], isBulk: false, parsedHeaders: {},
-    });
-    clearCarries();
-    rememberDroppedRows('Archive', [{ account_id: 'acct-sync-carry2', message_id: '<early@x>', date: '2026-11-04T10:00:00Z', spam_analyzed_at: null, category: 'social' }]);
-    const mgr = { maybeClassifyNewMessage: vi.fn(), broadcast: vi.fn() };
-
-    await ImapManager.prototype.syncMessages.call(mgr, account, client, 'Archive', 50, false, true);
-
-    expect(mgr.maybeClassifyNewMessage).toHaveBeenCalledTimes(1);
-    expect(mgr.maybeClassifyNewMessage.mock.calls[0][1]).toBe('row-501');
-    expect(mgr.broadcast.mock.calls.filter(([m]) => m?.type === 'new_messages')).toEqual([]);
   });
 
   it('populated cache keeps the old UID-watermark behavior', async () => {
@@ -1610,7 +1574,6 @@ describe('walkStructure attached messages', () => {
     expect(results.attachments).toEqual([{
       part: '2', filename: 'Fwd.eml', type: 'message/rfc822', encoding: '7bit', size: 5120,
       disposition: 'attachment',
-      contains: [{ filename: 'inner.pdf', type: 'application/pdf' }],
     }]);
   });
 
@@ -1637,40 +1600,6 @@ describe('walkStructure attached messages', () => {
     });
     expect(results.attachments).toEqual([]);
     expect(results.textParts.map(p => p.part)).toEqual(['1', '3']);
-  });
-
-  it('records files nested in a forward of a forward, flattened and capped', () => {
-    const innerForward = {
-      part: '2.2', type: 'message/rfc822', encoding: '7bit', disposition: 'attachment',
-      envelope: { subject: 'Deeper' },
-      childNodes: [{ part: '2.2', type: 'multipart/mixed', childNodes: [
-        { part: '2.2.1', type: 'text/plain', encoding: '7bit' },
-        { part: '2.2.2', type: 'application/octet-stream', encoding: 'base64',
-          disposition: 'attachment', dispositionParameters: { filename: 'invoice.pdf.exe' } },
-      ] }],
-    };
-    const results = walk(forwarded({ disposition: 'attachment' }, [innerBodyAndPdf[0], innerForward]));
-    expect(results.attachments).toHaveLength(1);
-    // Risky files are listed first (see the cap below).
-    expect(results.attachments[0].contains).toEqual([
-      { filename: 'invoice.pdf.exe', type: 'application/octet-stream' },
-      { filename: 'Deeper.eml', type: 'message/rfc822' },
-    ]);
-
-    const many = Array.from({ length: 80 }, (_, i) => ({
-      part: `2.${i + 2}`, type: 'image/png', encoding: 'base64',
-      disposition: 'attachment', dispositionParameters: { filename: `p${i}.png` },
-    }));
-    const capped = walk(forwarded({ disposition: 'attachment' }, [innerBodyAndPdf[0], ...many]));
-    expect(capped.attachments[0].contains).toHaveLength(50);
-
-    // Padding the forward with harmless files must not push a program past the cap.
-    const padded = walk(forwarded({ disposition: 'attachment' }, [innerBodyAndPdf[0], ...many, {
-      part: '2.99', type: 'application/octet-stream', encoding: 'base64',
-      disposition: 'attachment', dispositionParameters: { filename: 'payload.exe' },
-    }]));
-    expect(padded.attachments[0].contains).toHaveLength(50);
-    expect(padded.attachments[0].contains[0]).toEqual({ filename: 'payload.exe', type: 'application/octet-stream' });
   });
 
   it('strips bidi overrides and control characters from the derived name', () => {
@@ -3453,13 +3382,13 @@ describe('hung IMAP transport recovery', () => {
   });
   it('applies a settings change made while connected on the next tick', async () => {
     const { mgr } = setup();
-    const held = { ...acct, antispam_enabled: false };
+    const held = { ...acct, categorization_enabled: false };
     query.mockImplementation(async (sql) => (sql.startsWith('SELECT * FROM email_accounts')
-      ? { rows: [{ ...acct, enabled: true, antispam_enabled: true }] } : { rows: [] }));
-    mgr.syncMessages = vi.fn(async (account) => { expect(account.antispam_enabled).toBe(true); return {}; });
+      ? { rows: [{ ...acct, enabled: true, categorization_enabled: true }] } : { rows: [] }));
+    mgr.syncMessages = vi.fn(async (account) => { expect(account.categorization_enabled).toBe(true); return {}; });
     await mgr._syncTick(held);
     expect(mgr.syncMessages).toHaveBeenCalledOnce();
-    expect(held.antispam_enabled).toBe(true);
+    expect(held.categorization_enabled).toBe(true);
   });
   it('disconnects an account removed or disabled while connected, instead of syncing it', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -3588,7 +3517,6 @@ describe('Gmail label memberships (#418)', () => {
   });
   afterEach(() => { vi.clearAllTimers(); vi.useRealTimers(); vi.restoreAllMocks(); });
   const manager = () => ({ backfillRunning: new Set(), broadcast: vi.fn(), _secondaryConnectBlocked: () => null, _noteSecondaryRefusal: vi.fn(),
-    maybeClassifyNewMessage: vi.fn(),
     // A re-sync of cached rows now routes flags through the bulk path (#495) instead of
     // re-upserting each row, so the bare-object manager needs the real method.
     _applyFlagUpdates: ImapManager.prototype._applyFlagUpdates });
@@ -3926,114 +3854,6 @@ describe('backfill optional metadata fallback', () => {
     const client = { fetch: vi.fn(async function* () { yield {uid:1}; throw new Error('Disconnected'); }) };
     await expect(collect(fetchBackfillBatch(client,[1,2],query))).rejects.toThrow('Disconnected');
     expect(client.fetch).toHaveBeenCalledTimes(1);
-  });
-});
-
-// ── v0.2 antispam ingest hook (shared by syncMessages and backfillMessages) ──
-
-describe('maybeClassifyNewMessage — antispam ingest hook', () => {
-  beforeEach(() => { classifyAndTagMessage.mockReset(); });
-
-  it('does nothing for accounts with antispam disabled', () => {
-    const mgr = new ImapManager(null);
-    mgr.maybeClassifyNewMessage({ id: 'acct', antispam_enabled: false }, 'msg-1', { parsedHeaders: {} });
-    expect(classifyAndTagMessage).not.toHaveBeenCalled();
-  });
-
-  it('hands the new message to the pipeline with headers and the imap facade', () => {
-    const mgr = new ImapManager(null);
-    classifyAndTagMessage.mockResolvedValue({ verdict: 'spam' });
-    mgr.maybeClassifyNewMessage(
-      { id: 'acct', antispam_enabled: true }, 'msg-1',
-      { parsedHeaders: { 'authentication-results': 'mx.example.com; dkim=fail' } },
-    );
-    expect(classifyAndTagMessage).toHaveBeenCalledTimes(1);
-    const [messageId, opts] = classifyAndTagMessage.mock.calls[0];
-    expect(messageId).toBe('msg-1');
-    expect(opts.headers).toEqual({ 'authentication-results': 'mx.example.com; dkim=fail' });
-    expect(typeof opts.imap.moveMessage).toBe('function');
-    expect(typeof opts.imap.broadcast).toBe('function');
-    expect(typeof opts.imap._guardMoveUid).toBe('function');
-    expect(typeof opts.imap._unguardMoveUid).toBe('function');
-  });
-
-  it('defaults to an empty header list when the parsed message has none', () => {
-    const mgr = new ImapManager(null);
-    classifyAndTagMessage.mockResolvedValue(null);
-    mgr.maybeClassifyNewMessage({ id: 'acct', antispam_enabled: 1 }, 'msg-2', undefined);
-    expect(classifyAndTagMessage).toHaveBeenCalledWith('msg-2', expect.objectContaining({ headers: [] }));
-  });
-
-  it('swallows pipeline failures — sync must never break on classification', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const mgr = new ImapManager(null);
-    classifyAndTagMessage.mockRejectedValue(new Error('boom'));
-    expect(() => mgr.maybeClassifyNewMessage({ id: 'acct', antispam_enabled: true }, 'msg-3', {})).not.toThrow();
-    await new Promise(r => setTimeout(r, 0));
-    expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
-  });
-
-  it('does not defer the auto-move on normal ingest (the sync path)', () => {
-    const mgr = new ImapManager(null);
-    classifyAndTagMessage.mockResolvedValue({ verdict: 'spam' });
-    mgr.maybeClassifyNewMessage({ id: 'acct', antispam_enabled: true }, 'msg-4', {});
-    expect(classifyAndTagMessage.mock.calls[0][1].deferAutoMove).toBe(false);
-  });
-
-  it('forwards deferAutoMove for the backfill path', () => {
-    const mgr = new ImapManager(null);
-    classifyAndTagMessage.mockResolvedValue({ verdict: 'spam' });
-    mgr.maybeClassifyNewMessage(
-      { id: 'acct', antispam_enabled: true }, 'msg-5', {}, { deferAutoMove: true },
-    );
-    expect(classifyAndTagMessage.mock.calls[0][1].deferAutoMove).toBe(true);
-  });
-
-  it('serializes auto-moves per account — one in flight, the rest queued', async () => {
-    const mgr = new ImapManager(null);
-    let releaseFirst;
-    const firstStarted = new Promise(resolve => { releaseFirst = resolve; });
-    const started = [];
-    const move = vi.spyOn(mgr, 'moveMessage').mockImplementation(async (_acct, uid) => {
-      started.push(uid);
-      if (uid === 1) await firstStarted;
-      return uid + 1000;
-    });
-    classifyAndTagMessage.mockResolvedValue({ verdict: 'spam' });
-    mgr.maybeClassifyNewMessage({ id: 'acct', antispam_enabled: true }, 'msg-6', {});
-    mgr.maybeClassifyNewMessage({ id: 'acct', antispam_enabled: true }, 'msg-7', {});
-    const facades = classifyAndTagMessage.mock.calls.map(call => call[1].imap);
-
-    const p1 = facades[0].moveMessage({ id: 'acct' }, 1, 'INBOX', 'Junk');
-    const p2 = facades[1].moveMessage({ id: 'acct' }, 2, 'INBOX', 'Junk');
-    await new Promise(r => setTimeout(r, 0));
-    // Only the first move reached the pool: the second is waiting for the slot, so a
-    // burst of classified messages cannot fan out concurrent moves (and overflow logins).
-    expect(started).toEqual([1]);
-
-    releaseFirst();
-    await expect(p1).resolves.toBe(1001);
-    await expect(p2).resolves.toBe(1002);
-    expect(started).toEqual([1, 2]);
-    expect(mgr._autoMoveSem.activeCount('acct')).toBe(0);
-    move.mockRestore();
-  });
-
-  it('releases the per-account slot after a failed move', async () => {
-    const mgr = new ImapManager(null);
-    const move = vi.spyOn(mgr, 'moveMessage')
-      .mockRejectedValueOnce(new Error('IMAP down'))
-      .mockResolvedValue(42);
-    classifyAndTagMessage.mockResolvedValue({ verdict: 'spam' });
-    mgr.maybeClassifyNewMessage({ id: 'acct', antispam_enabled: true }, 'msg-8', {});
-    const { imap } = classifyAndTagMessage.mock.calls[0][1];
-
-    await expect(imap.moveMessage({ id: 'acct' }, 1, 'INBOX', 'Junk')).rejects.toThrow('IMAP down');
-    expect(mgr._autoMoveSem.activeCount('acct')).toBe(0);
-    // A failed move must not wedge the account: the next one goes through.
-    await expect(imap.moveMessage({ id: 'acct' }, 2, 'INBOX', 'Junk')).resolves.toBe(42);
-    move.mockRestore();
   });
 });
 
@@ -4474,7 +4294,7 @@ describe('ingest paths pass isBulk to computeThreadId (#649)', () => {
     });
     parseMessage.mockResolvedValue(parsedMessage(isBulk));
 
-    await ImapManager.prototype.syncMessages.call({ maybeClassifyNewMessage: vi.fn() }, account, client, 'Watch', 50, false, true);
+    await ImapManager.prototype.syncMessages.call({}, account, client, 'Watch', 50, false, true);
 
     expect(query.mock.calls.some(([sql]) => sql.includes('INSERT INTO messages'))).toBe(true);
     expect(subjectFallbackRan()).toBe(!isBulk);
@@ -4510,7 +4330,6 @@ describe('ingest paths pass isBulk to computeThreadId (#649)', () => {
     parseMessage.mockResolvedValue(parsedMessage(isBulk));
 
     const mgr = new ImapManager({ clients: new Set() });
-    mgr.maybeClassifyNewMessage = vi.fn();
     await mgr.backfillMessages(account, 'INBOX');
 
     expect(error).not.toHaveBeenCalled();
@@ -4590,7 +4409,7 @@ describe('backfill — a reconnect that cannot succeed', () => {
   let acct, serverUids;
   const TEN_MINUTES = 10 * 60 * 1000;
   const manager = () => ({ backfillRunning: new Set(), broadcast: vi.fn(),
-    _secondaryConnectBlocked: () => null, _noteSecondaryRefusal: vi.fn(), maybeClassifyNewMessage: vi.fn() });
+    _secondaryConnectBlocked: () => null, _noteSecondaryRefusal: vi.fn() });
   // The whole walk, with the real backoff so the walk's own refusal is what its finally sees.
   // The follow-up jobs are spies: what matters is whether they start.
   const walkManager = () => ({ ...manager(), backfillAllRunning: new Set(), _bgConnSem: createKeyedSemaphore(2),
@@ -6757,7 +6576,7 @@ describe('syncMessages — tells the client when a Drafts folder gained rows', (
     });
     // An unread arrival also schedules a body prefetch (setImmediate) and classification; stub
     // both, or the prefetch throws after the test has finished.
-    const mgr = { broadcast: vi.fn(), prefetchNewMessageBodies: vi.fn(async () => {}), maybeClassifyNewMessage: vi.fn() };
+    const mgr = { broadcast: vi.fn(), prefetchNewMessageBodies: vi.fn(async () => {}) };
     await ImapManager.prototype.syncMessages.call(mgr, account, client, folder, 100, false, true);
     return mgr.broadcast.mock.calls.map(([event, userId]) => [event.type, event.accountId, userId]);
   }

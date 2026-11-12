@@ -21,11 +21,9 @@ import { resolveForConnection, createPinnedLookup } from './hostValidation.js';
 import { getConnectionPolicy } from './connectionPolicy.js';
 import { applyInboxRules, applyBlockList, newMailAlerts, newMailPushPayload } from './inboxRules.js';
 import { carryUpdate, hasCarries, rememberDroppedRows, takeCarry } from './movedRowCarry.js';
-import { classifyAndTagMessage } from './spamPipeline.js';
 import { generateVCard } from '../utils/vcard.js';
 import { mimeToExtension, standardImageType, rasterImageTypeOfName, sniffImageType } from '../utils/inlineImages.js';
 import { truncateFilename } from '../utils/contentDisposition.js';
-import { BLOCK, WARN } from './attachmentExtensions.js';
 import { randomBytes, randomUUID } from 'crypto';
 
 
@@ -196,27 +194,6 @@ export function createKeyedSemaphore(limit) {
 // (IDLE + the periodic interval) is separate and always flows. Keyed by host, so other
 // providers/accounts are unaffected. See _bgConnSem.
 const BACKGROUND_CONN_MAX_PER_HOST = 2;
-
-// Concurrent auto-moves (spamPipeline's move to the spam folder) allowed per account.
-//
-// The classification itself is cheap and stays concurrent; only the IMAP move is queued. A move
-// goes through the pooled connection, and a burst of classifications used to fan out that many
-// concurrent moves and fresh logins on a single account — the connection-storm pattern providers
-// throttle accounts for. Bursts are real: an ingest pass classifies up to 100 new messages at
-// once on the folder-status/reindex-driven paths. Serializing per account keeps at most one
-// auto-move in flight, with the rest queued FIFO on the same connection budget the user's own
-// work uses. PR review, 2026-09-15.
-//
-// The fan-out this describes is gone as of #474: a full pool now queues rather than opening a
-// connection per waiter. This limit stays regardless. It bounds the QUEUE as well as the
-// sockets, so a 100-message classification burst cannot occupy every pooled connection and
-// starve the reader's own clicks behind it.
-const AUTO_MOVE_MAX_CONCURRENT_PER_ACCOUNT = 1;
-
-// How long a queued auto-move waits for its per-account slot before giving up. The verdict is
-// already persisted by then, so a timeout only means "tagged, not moved" — the message keeps its
-// badge and stays where it is rather than the queue growing without bound behind a stuck move.
-const AUTO_MOVE_QUEUE_TIMEOUT_MS = 120 * 1000;
 
 // Consecutive recoverable failures before an account is shown as broken in the UI.
 //
@@ -595,8 +572,6 @@ const BIDI_OVERRIDE_RE = /[\u202A-\u202E\u2066-\u2069\u200F\u061C]/g;
 
 // The attachment list from the BODYSTRUCTURE sync fetches for every new message, without any body
 // part. It is the walk fetchMessageBody runs, so opening the message later stores the same list.
-// New mail is classified for spam at insert, before any body is fetched, and with the list left
-// empty the attachment rules and flags never saw a file (#457).
 export function attachmentsFromStructure(msg) {
   if (!msg?.bodyStructure) return [];
   const results = { textParts: [], attachments: [] };
@@ -1217,31 +1192,11 @@ function isAttachedMessage(node, type) {
     || Boolean(node.dispositionParameters?.filename || node.parameters?.name);
 }
 
-// Inner files are only listed by name and type, on the .eml itself, so the attachment list shows one
-// file while the antispam attachment rules still see a program hidden inside the forward (#457). The
-// list is capped to keep the stored row small; risky files go first, so padding a forward with
-// harmless files cannot push a program past the cap.
-const MAX_CONTAINED_ATTACHMENTS = 50;
-
-function isRiskyAttachmentName(filename) {
-  const name = String(filename || '');
-  const dot = name.lastIndexOf('.');
-  const ext = dot > 0 ? name.slice(dot + 1).toLowerCase() : '';
-  return BLOCK.has(ext) || WARN.has(ext);
-}
-
 function pushAttachedMessage(node, results) {
   const rawFilename = node.dispositionParameters?.filename || node.parameters?.name
     || `${truncateFilename(node.envelope?.subject || 'message', 80)}.eml`;
   // eslint-disable-next-line no-control-regex -- a folded subject can carry CR/LF and other controls
   const filename = rawFilename.replace(BIDI_OVERRIDE_RE, '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim() || 'message.eml';
-  const inner = { textParts: [], attachments: [], inlineImages: [], calendarParts: [] };
-  for (const child of node.childNodes) walkStructure(child, inner);
-  const all = inner.attachments.flatMap(att => [{ filename: att.filename, type: att.type }, ...(att.contains || [])]);
-  const contains = [
-    ...all.filter(entry => isRiskyAttachmentName(entry.filename)),
-    ...all.filter(entry => !isRiskyAttachmentName(entry.filename)),
-  ].slice(0, MAX_CONTAINED_ATTACHMENTS);
   results.attachments.push({
     part: node.part || '1',
     filename,
@@ -1249,7 +1204,6 @@ function pushAttachedMessage(node, results) {
     encoding: node.encoding || '7bit',
     size: node.dispositionParameters?.size ? parseInt(node.dispositionParameters.size) : node.size || 0,
     disposition: (node.disposition || '').toLowerCase(),
-    ...(contains.length ? { contains } : {}),
   });
 }
 
@@ -1584,8 +1538,7 @@ export async function insertCopiedSibling(accountId, uid, fromFolder, toFolder, 
       reply_to, in_reply_to, date, snippet, is_read, is_starred,
       has_attachments, flags, body_html, body_text, attachments,
       thread_references, thread_id, is_bulk,
-      read_changed_at, star_changed_at, spam_score_sa, spam_score_ml,
-      spam_verdict, spam_analyzed_at, spam_details, spam_user_override,
+      read_changed_at, star_changed_at,
       category, list_unsubscribe, list_unsubscribe_post, unsubscribed_at, delivery_addresses, sender_name, sender_email,
       forwarded_from_name, forwarded_from_email, forwarded_via, bcc_addresses, provider_msgid
     )
@@ -1595,8 +1548,7 @@ export async function insertCopiedSibling(accountId, uid, fromFolder, toFolder, 
       reply_to, in_reply_to, date, snippet, is_read, is_starred,
       has_attachments, flags, body_html, body_text, attachments,
       thread_references, thread_id, is_bulk,
-      read_changed_at, star_changed_at, spam_score_sa, spam_score_ml,
-      spam_verdict, spam_analyzed_at, spam_details, spam_user_override,
+      read_changed_at, star_changed_at,
       category, list_unsubscribe, list_unsubscribe_post, unsubscribed_at, delivery_addresses, sender_name, sender_email,
       forwarded_from_name, forwarded_from_email, forwarded_via, bcc_addresses, provider_msgid
     FROM messages
@@ -2762,9 +2714,6 @@ export class ImapManager {
     this.backfillRunning = new Set(); // `${accountId}:${folder}` — prevent duplicate folder backfills
     this.backfillAllRunning = new Set(); // accountId — prevent concurrent full backfill sequences
     this._bgConnSem = createKeyedSemaphore(BACKGROUND_CONN_MAX_PER_HOST); // cap concurrent background IMAP conns (backfill + snippet indexer) per provider host
-    // Serializes antispam auto-moves per account (keyed by account id) — see
-    // AUTO_MOVE_MAX_CONCURRENT_PER_ACCOUNT. Classification stays concurrent.
-    this._autoMoveSem = createKeyedSemaphore(AUTO_MOVE_MAX_CONCURRENT_PER_ACCOUNT);
     this._replyDraftSem = createKeyedSemaphore(1);
     this._replyDraftQueries = new Map();
     this._connectCooldown = new Map(); // accountId -> { until: ms, failures: number } after connection refusals
@@ -4663,60 +4612,6 @@ export class ImapManager {
   // Used for the periodic sync interval so slow servers like purelymail.com don't time out
   // fetching 3+ body parts × 50 messages.  Snippets come from backfill or on-demand fetches.
 
-  /**
-   * v0.2 antispam: hand a freshly-inserted message to the classification
-   * pipeline. Fire-and-forget — the sync/backfill loop must never be blocked by
-   * a classifier failure, and only accounts with antispam_enabled take part
-   * (the pipeline re-checks the per-user master switch as well).
-   *
-   * Shared by BOTH ingest paths: syncMessages (new mail via IDLE/poll, with the
-   * body) and backfillMessages (initial population, manual reindex, UIDVALIDITY
-   * recovery — subject/attachment signals only, since the backfill may not have
-   * fetched bodies). Without the backfill call site a reindex-classified mailbox
-   * silently skipped classification entirely.
-   *
-   * The backfill passes `deferAutoMove`, so a reindex tags its whole history
-   * without moving any of it: hundreds of concurrent moves would compete for the
-   * 2 pooled connections (each overflow loser opening a fresh login). The verdict
-   * and the deferred intent are persisted; the move stays a property of normal
-   * ingest. PR review, 2026-09-15.
-   *
-   * @param {Object} account — the account row (needs id + antispam_enabled)
-   * @param {string} messageId — messages.id of the inserted row
-   * @param {Object} parsed — parsed message (parsedHeaders feed the auth gate)
-   * @param {Object} [opts]
-   *   @param {boolean} [opts.deferAutoMove=false] — tag only, never move (backfill)
-   */
-  maybeClassifyNewMessage(account, messageId, parsed, { deferAutoMove = false } = {}) {
-    if (!account?.antispam_enabled) return;
-    classifyAndTagMessage(messageId, {
-      headers: parsed?.parsedHeaders || [],
-      deferAutoMove,
-      imap: {
-        // Serialized per account (AUTO_MOVE_MAX_CONCURRENT_PER_ACCOUNT): the
-        // classification above keeps running concurrently, only the IMAP move is
-        // queued, so a burst of classified messages cannot fan out that many
-        // moves — and fresh overflow logins — at the provider.
-        moveMessage: async (acct, uid, fromFolder, toFolder) => {
-          const key = acct?.id || account.id;
-          await this._autoMoveSem.acquire(key, { timeoutMs: AUTO_MOVE_QUEUE_TIMEOUT_MS });
-          try {
-            return await this.moveMessage(acct, uid, fromFolder, toFolder);
-          } finally {
-            this._autoMoveSem.release(key);
-          }
-        },
-        // With this account's full row, which the pool needs to log in.
-        syncFolderOnDemand: (_acct, folder) => this.syncFolderOnDemand(account, folder),
-        broadcast: (...args) => this.broadcast(...args),
-        _guardMoveUid: (...args) => this._guardMoveUid(...args),
-        _unguardMoveUid: (...args) => this._unguardMoveUid(...args),
-      },
-    }).catch(err => {
-      console.warn(`spam auto-classification failed (msg ${messageId}):`, err.message);
-    });
-  }
-
   async syncMessages(account, client, folder = 'INBOX', limit = 50, prefetchBody = true, noBodyParts = false) {
     const provider = providerProfile(account);
 
@@ -4975,14 +4870,11 @@ export class ImapManager {
               insertedCount++;
               const update = carryUpdate(result.rows[0].id, carried);
               if (update) await query(update.text, update.params);
-              // A row moved before its spam check finished still gets one.
-              if (carried.spam_analyzed_at == null) this.maybeClassifyNewMessage(account, result.rows[0].id, parsed);
             } else if (result.rows[0]?.is_new) {
               insertedCount++;
               if (!parsed.isRead) {
                 newMessages.push({ ...parsed, id: result.rows[0].id, accountId: account.id, folder });
               }
-              this.maybeClassifyNewMessage(account, result.rows[0].id, parsed);
             }
             // Propagate resolved thread_id to any earlier messages that used this
             // message as a provisional thread root (out-of-order delivery / sync).
@@ -5575,7 +5467,7 @@ export class ImapManager {
                   } catch { /* non-fatal */ }
                 }
 
-                const bfInsert = await query(`
+                await query(`
                   INSERT INTO messages (
                     account_id, uid, folder, message_id, subject,
                     from_name, from_email, to_addresses, cc_addresses,
@@ -5647,7 +5539,6 @@ export class ImapManager {
                       forwarded_from_name = COALESCE(EXCLUDED.forwarded_from_name, messages.forwarded_from_name),
                       forwarded_from_email = COALESCE(EXCLUDED.forwarded_from_email, messages.forwarded_from_email),
                       forwarded_via = COALESCE(EXCLUDED.forwarded_via, messages.forwarded_via)
-                  RETURNING id, (xmax = 0) as is_new
                 `, [
                   account.id, parsed.uid, folder,
                   bfMsgId, sanitizeStr(parsed.subject),
@@ -5667,16 +5558,6 @@ export class ImapManager {
                   providerProfile(account).labelStore ? parsed.providerMsgid || null : null,
                 ]);
                 backfilledRows++;
-                // v0.2 antispam: classify genuinely-new rows — the same hook the
-                // sync path uses, so a manual reindex (or the initial population
-                // of a mailbox that just enabled antispam) is classified too.
-                // The backfill may not have fetched the body, in which case the
-                // classifier works from the subject/flag signals it does have.
-                // deferAutoMove: a reindex classifies the WHOLE mailbox at once,
-                // so moving is left to normal ingest — see maybeClassifyNewMessage.
-                if (bfInsert?.rows[0]?.is_new) {
-                  this.maybeClassifyNewMessage(account, bfInsert.rows[0].id, parsed, { deferAutoMove: true });
-                }
                 // Same statement as the sync path's propagation, same constraints: no
                 // is_deleted filter (deleted rows still feed computeThreadId), served by
                 // the non-partial idx_messages_account_thread (#495).
@@ -8019,8 +7900,8 @@ export class ImapManager {
       try {
         // The move announces the message to the destination folder, whose sync can file it under
         // its new uid before the row below is repointed. Kept for that sync (see movedRowCarry):
-        // it then takes this row's state (spam decision, category, annotations) and does not
-        // treat the message as new mail: no rules, alerts or spam check for a snoozed message.
+        // it then takes this row's state (category, unsubscribe) and does not treat the message
+        // as new mail: no rules or alerts for a snoozed message.
         const { rows: [snoozedRow] } = await query(
           'SELECT * FROM messages WHERE account_id = $1 AND folder = $2 AND uid = $3 AND message_id = $4',
           [row.account_id, row.snoozed_folder, row.uid, row.message_id_header]);

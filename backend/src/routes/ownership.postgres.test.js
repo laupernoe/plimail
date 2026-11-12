@@ -56,7 +56,7 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('ownership lookups thro
         in_reply_to text, thread_references text, date timestamptz, snippet text, is_read boolean DEFAULT false,
         is_starred boolean DEFAULT false, has_attachments boolean DEFAULT false, category text,
         list_unsubscribe text, list_unsubscribe_post text, unsubscribed_at timestamptz, delivery_addresses jsonb,
-        spam_verdict text, spam_user_override text, spam_score_ml real, is_deleted boolean DEFAULT false);
+        is_deleted boolean DEFAULT false);
       CREATE TEMP TABLE address_books (id uuid PRIMARY KEY, user_id text, source text, sync_token text, updated_at timestamptz);
       CREATE TEMP TABLE contacts (id uuid PRIMARY KEY, user_id text, address_book_id uuid, uid text,
         display_name text, first_name text, last_name text, primary_email text, emails jsonb, phones jsonb,

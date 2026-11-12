@@ -24,8 +24,6 @@ import { resolveAccountScope } from '../services/unifiedInbox.js';
 import { validateHost } from '../services/hostValidation.js';
 import { safeFetch } from '../services/safeFetch.js';
 import { safeFilename, attachmentDisposition, truncateFilename } from '../utils/contentDisposition.js';
-import { tokenize, extractFlagFeatures } from '../services/spamTokenizer.js';
-import { updateIncrementalForUser } from '../services/spamModelStore.js';
 import { findOwnedAccount, findOwnedMessage, findOwnedMessages } from '../services/ownership.js';
 
 const router = Router();
@@ -81,8 +79,7 @@ const RELOCATE_COPY_COLS = [
   'message_id', 'provider_msgid', 'subject', 'from_name', 'from_email', 'to_addresses', 'cc_addresses',
   'reply_to', 'in_reply_to', 'date', 'snippet', 'is_read', 'is_starred', 'has_attachments',
   'flags', 'body_html', 'body_text', 'attachments', 'thread_references', 'thread_id', 'is_bulk',
-  'read_changed_at', 'star_changed_at', 'spam_score_sa', 'spam_score_ml', 'spam_verdict',
-  'spam_analyzed_at', 'spam_details', 'spam_user_override', 'category', 'list_unsubscribe',
+  'read_changed_at', 'star_changed_at', 'category', 'list_unsubscribe',
   'list_unsubscribe_post', 'unsubscribed_at', 'delivery_addresses',
   'sender_name', 'sender_email', 'forwarded_from_name', 'forwarded_from_email', 'forwarded_via',
   'bcc_addresses',
@@ -93,8 +90,7 @@ export const RELOCATE_INSERT_COLS = ['account_id', 'uid', 'folder', ...RELOCATE_
 export const RELOCATE_SELECT_COLS = ['d.account_id', 'u.new_uid', '$4', ...RELOCATE_COPY_COLS.map(c => `d.${c}`)].join(', ');
 
 // On a uid a sync already filed, the synced row is kept with what it read from the server, and
-// takes from the moved row what only MailFlow knew (a "Not spam" decision, the category, an
-// unsubscribe), which the sync had no carry to restore from. A column the moved row never had
+// takes from the moved row what only MailFlow knew (the category, an unsubscribe), which the sync had no carry to restore from. A column the moved row never had
 // keeps the synced row's value.
 const RELOCATE_CONFLICT_SET = CARRIED_COLUMNS.map(c => `${c} = COALESCE(EXCLUDED.${c}, messages.${c})`).join(', ');
 
@@ -204,7 +200,6 @@ router.get('/messages/:id', async (req, res) => {
              m.date, m.snippet, m.is_read, m.is_starred,
              m.has_attachments, m.account_id, m.category,
              m.list_unsubscribe, m.list_unsubscribe_post, m.unsubscribed_at, m.delivery_addresses,
-             m.spam_verdict, m.spam_user_override, m.spam_score_ml,
              a.name AS account_name, a.email_address AS account_email,
              a.color AS account_color`,
       live: true,
@@ -238,7 +233,6 @@ router.get('/resolve-message', async (req, res) => {
              m.date, m.snippet, m.is_read, m.is_starred,
              m.has_attachments, m.account_id, m.category,
              m.list_unsubscribe, m.list_unsubscribe_post, m.unsubscribed_at, m.delivery_addresses,
-             m.spam_verdict, m.spam_user_override, m.spam_score_ml,
              a.name AS account_name, a.email_address AS account_email,
              a.color AS account_color`;
   try {
@@ -2461,103 +2455,15 @@ router.delete('/messages/:id', async (req, res) => {
   }
 });
 
-// ── Antispam (v0.1) ─────────────────────────────────────────────────────────
-// Manual "Mark as Spam" / "Mark as Not Spam" endpoints.
-// They move the message to the account's spam folder (or back to INBOX for
-// ham) via IMAP, persist the user override in messages.spam_user_override,
-// and log the decision to spam_training_log so future releases can train
-// per-user models on it.
-//
-// No automatic classification runs here — that ships in v0.2 (ML) and v0.3 (SA).
-
-// Helper: build the v0.2 feature payload for a messages row at mark time.
-// Shape matches spam_training_log (migration 0048) + spamModelStore inputs.
-function extractSpamFeatures(message) {
-  const attachments = Array.isArray(message.attachments) ? message.attachments : [];
-  const attachmentNames = attachments
-    .map(a => a?.filename || a?.name)
-    .filter(Boolean)
-    .map(f => { const dot = String(f).lastIndexOf('.'); return dot > 0 ? String(f).slice(dot + 1).toLowerCase() : null; })
-    .filter(Boolean);
-
-  const msg = {
-    subject: message.subject || '',
-    body: message.body_text || '',
-    bodyHtml: message.body_html || '',
-    from: message.from_email ? `<${message.from_email}>` : null,
-    replyTo: null,
-    headers: [],
-    attachments,
-  };
-
-  return {
-    subject: msg.subject,
-    body_text: message.body_text || null,
-    body_html: message.body_html || null,
-    token_counts: countTokens(tokenize(msg)),
-    flag_features: extractFlagFeatures(msg),
-    sender_domain: message.from_email ? message.from_email.split('@').pop()?.toLowerCase() || null : null,
-    attachment_types: attachmentNames.length ? attachmentNames : null,
-  };
-}
-
-// count token occurrences into {word: n}
-function countTokens(tokens) {
-  const counts = {};
-  for (const t of tokens) counts[t] = (counts[t] || 0) + 1;
-  return counts;
-}
-
-// Log one training decision with its v0.2 features, then feed the ML model.
-async function logSpamTraining(userId, message, folder, label, features) {
-  await query(
-    `INSERT INTO spam_training_log
-       (user_id, account_id, message_id_header, message_uid, folder, label, source,
-        subject, body_text, body_html, token_counts, flag_features, sender_domain, attachment_types)
-     VALUES ($1, $2, $3, $4, $5, $6, 'manual', $7, $8, $9, $10, $11, $12, $13)
-     ON CONFLICT DO NOTHING`,
-    [
-      userId, message.account_id, message.message_id || null, message.uid, folder, label,
-      features.subject, features.body_text, features.body_html,
-      JSON.stringify(features.token_counts), JSON.stringify(features.flag_features),
-      features.sender_domain, features.attachment_types ?? null,
-    ]
-  );
-  // Incremental training: update the user's Naive Bayes model in <1s.
-  // Non-blocking on failure — user feedback must never break the HTTP path.
-  try {
-    await updateIncrementalForUser(userId, {
-      subject: features.subject,
-      body: features.body_text || '',
-      bodyHtml: features.body_html || '',
-      from: message.from_email ? `<${message.from_email}>` : null,
-      attachments: Array.isArray(message.attachments) ? message.attachments : [],
-    }, label);
-  } catch (err) {
-    console.warn(`spam incremental training failed for user ${userId}:`, err.message);
-  }
-}
-
-// Helper: move a single message to a destination folder, update DB, log to
-// training_log, and broadcast folder_updated. Shared between /spam and /ham.
+// ── Mark as spam / not spam ─────────────────────────────────────────────────
+// Move the message to the account's spam folder, or back to INBOX, via IMAP. Shared between
+// /spam and /ham.
 async function moveForSpamLabel(messageId, userId, destinationFolder, label) {
   const message = await findOwnedMessage(userId, messageId, { columns: 'm.*, a.user_id, a.folder_mappings' });
   if (!message) return { ok: false, status: 404, error: 'Message not found' };
 
-  // v0.2: extract token/flag features at mark time (Solution C, migration
-  // 0048) and feed the per-user Naive Bayes model incrementally. The stored
-  // features make the retrain path independent of message persistence.
-  const spamFeatures = extractSpamFeatures(message);
-
   // No-op: message already in the destination folder.
   if (message.folder === destinationFolder) {
-    // Still record the training label so the user's intent is captured
-    // (e.g. re-confirming a verdict), but skip the IMAP move.
-    await logSpamTraining(userId, message, destinationFolder, label, spamFeatures);
-    await query(
-      `UPDATE messages SET spam_user_override = $1, spam_verdict = $1, spam_analyzed_at = NOW() WHERE id = $2`,
-      [label, messageId]
-    );
     return { ok: true, status: 200, body: { ok: true, alreadyInFolder: true, folder: destinationFolder } };
   }
 
@@ -2578,21 +2484,13 @@ async function moveForSpamLabel(messageId, userId, destinationFolder, label) {
     if (newUid != null) {
       await query('DELETE FROM messages WHERE account_id = $1 AND uid = $2 AND folder = $3 AND id != $4',
         [account.id, newUid, destinationFolder, messageId]);
-      await query(
-        `UPDATE messages SET folder = $1, uid = $2,
-            spam_user_override = $3, spam_verdict = $3, spam_analyzed_at = NOW()
-         WHERE id = $4`,
-        [destinationFolder, newUid, label, messageId]
-      );
+      await query('UPDATE messages SET folder = $1, uid = $2 WHERE id = $3', [destinationFolder, newUid, messageId]);
     } else {
       // The new uid is not known (see moveMessage). The source uid can belong to another
       // message in the destination, so the row is dropped rather than kept on it, and a sync of
       // the destination files the message under its real uid; its counts come from that sync.
-      // The decision this move makes goes with it, so the destination's sync files the
-      // message with the user's verdict and does not classify it again.
       const dropped = await query('DELETE FROM messages WHERE id = $1 RETURNING *', [messageId]);
-      rememberDroppedRows(destinationFolder, dropped.rows,
-        { spam_user_override: label, spam_verdict: label, spam_analyzed_at: new Date() });
+      rememberDroppedRows(destinationFolder, dropped.rows);
       imapManager.syncFolderOnDemand(account, destinationFolder)
         .catch(err => console.warn(`Sync of ${destinationFolder} after a move without a new uid failed: ${err.message}`));
     }
@@ -2604,16 +2502,6 @@ async function moveForSpamLabel(messageId, userId, destinationFolder, label) {
   const wasUnread = !message.is_read ? 1 : 0;
   adjustFolderCounts(account.id, message.folder, -1, -wasUnread);
   if (newUid != null) adjustFolderCounts(account.id, destinationFolder, 1, wasUnread);
-
-  // Training log: capture the decision for future model training. Record the UID that now
-  // lives in the destination folder: the row was re-keyed to newUid above, so message.uid (the
-  // pre-move source UID) would no longer match the messages row. Without a new uid there is no
-  // row to match, and the source uid is recorded as before.
-  await logSpamTraining(
-    userId,
-    { ...message, uid: newUid ?? message.uid, account_id: account.id },
-    destinationFolder, label, spamFeatures,
-  );
 
   // If folder_mappings.spam is not yet configured, learn from the discovered folder.
   if (label === 'spam' && !account.folder_mappings?.spam) {
@@ -2635,9 +2523,7 @@ async function moveForSpamLabel(messageId, userId, destinationFolder, label) {
 }
 
 // POST /api/mail/messages/:id/spam
-// Moves the message to the account's spam/junk folder and records the user
-// override as spam. Coexists with the future ML/SA auto-classification:
-// spam_user_override always wins over auto verdicts.
+// Moves the message to the account's spam/junk folder.
 router.post('/messages/:id/spam', async (req, res) => {
   const { id } = req.params;
   if (!UUID_RE.test(id)) return res.status(400).json({ error: 'Invalid message id' });
@@ -2790,9 +2676,8 @@ router.post('/messages/:id/unsubscribe', async (req, res) => {
 });
 
 // POST /api/mail/messages/:id/ham
-// Moves a message back from the spam folder to INBOX and records the override
-// as ham (not spam). Only meaningful when the message is currently in a
-// spam-like folder; returns 400 otherwise.
+// Moves a message back from the spam folder to INBOX. Only meaningful when the message is
+// currently in a spam-like folder; returns 400 otherwise.
 router.post('/messages/:id/ham', async (req, res) => {
   const { id } = req.params;
   if (!UUID_RE.test(id)) return res.status(400).json({ error: 'Invalid message id' });

@@ -15,7 +15,6 @@ vi.mock('../services/connectionPolicy.js', () => ({ getConnectionPolicy: vi.fn(a
 vi.mock('./oauth.js', () => ({ refreshMicrosoftToken: vi.fn(), refreshGoogleToken: vi.fn() }));
 vi.mock('../services/pushNotifications.js', () => ({ sendPushToUser: vi.fn() }));
 vi.mock('../services/aiProvider.js', () => ({ getAiStatus: vi.fn(), completeText: vi.fn() }));
-vi.mock('../services/spamPipeline.js', () => ({ classifyAndTagMessage: vi.fn() }));
 vi.mock('../services/redis.js', () => ({ redisClient: {} }));
 vi.mock('../services/encryption.js', () => ({ decrypt: vi.fn(() => 'pw'), encrypt: vi.fn(v => v) }));
 vi.mock('../services/messageBodyStore.js', async (importOriginal) => {

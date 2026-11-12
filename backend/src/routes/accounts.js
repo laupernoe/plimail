@@ -7,7 +7,6 @@ import { encrypt } from '../services/encryption.js';
 import { sanitizeSignature } from '../services/emailSanitizer.js';
 import { validateHost } from '../services/hostValidation.js';
 import { getConnectionPolicy } from '../services/connectionPolicy.js';
-import { normalizeAuthservId } from '../services/spamParser.js';
 import { createKeyedSerializer } from '../utils/keyedSerializer.js';
 import { isUuid, uuidParam } from '../utils/uuid.js';
 import { normalizeAddressList } from '../utils/addressList.js';
@@ -77,12 +76,12 @@ export const SAFE_FIELDS = [
   'auth_user', 'smtp_auth_user', 'oauth_provider', 'oauth_public_client', 'enabled',
   'include_in_unified_inbox',
   'last_sync', 'sync_error', 'sync_error_code', 'sort_order', 'folder_mappings',
-  'signature', 'signature_enabled', 'created_at', 'categorization_enabled', 'antispam_enabled',
-  'trusted_authserv_id', 'auto_cc_addresses', 'auto_bcc_addresses',
+  'signature', 'signature_enabled', 'created_at', 'categorization_enabled',
+  'auto_cc_addresses', 'auto_bcc_addresses',
 ];
 // Columns PUT /:id may write. The settings form sends back what GET returned, so every
 // non-secret one must be in SAFE_FIELDS or saving an unrelated edit would write it as empty.
-export const ACCOUNT_UPDATE_FIELDS = ['name', 'sender_name', 'color', 'icon', 'enabled', 'include_in_unified_inbox', 'auth_user', 'auth_pass', 'sort_order', 'imap_host', 'imap_port', 'imap_tls', 'imap_skip_tls_verify', 'smtp_host', 'smtp_port', 'smtp_tls', 'smtp_auth_user', 'smtp_auth_pass', 'folder_mappings', 'signature', 'signature_enabled', 'categorization_enabled', 'antispam_enabled', 'trusted_authserv_id', 'auto_cc_addresses', 'auto_bcc_addresses'];
+export const ACCOUNT_UPDATE_FIELDS = ['name', 'sender_name', 'color', 'icon', 'enabled', 'include_in_unified_inbox', 'auth_user', 'auth_pass', 'sort_order', 'imap_host', 'imap_port', 'imap_tls', 'imap_skip_tls_verify', 'smtp_host', 'smtp_port', 'smtp_tls', 'smtp_auth_user', 'smtp_auth_pass', 'folder_mappings', 'signature', 'signature_enabled', 'categorization_enabled', 'auto_cc_addresses', 'auto_bcc_addresses'];
 // What an API token sees of an account (#617): enough to name it, pick a From and draft as the
 // composer does (signature on or off, the automatic Cc and Bcc), and nothing of its settings:
 // no hosts, ports, TLS or login names, signatures or folder mappings.
@@ -291,24 +290,6 @@ router.put('/:id', async (req, res) => {
   }
 
   if ('imap_port' in updates) updates.imap_tls = Number(updates.imap_port) % 1000 === 993;
-
-  // Trusted Authentication-Results authserv-id: store the normalized token, or
-  // NULL to trust nothing (the default). Reject junk before it reaches the DB —
-  // the value is only ever compared against a header token, so a strict shape is
-  // enough (letters/digits plus the hostname punctuation seen in the wild).
-  if ('trusted_authserv_id' in updates) {
-    const rawId = updates.trusted_authserv_id;
-    if (rawId === null || rawId === undefined || String(rawId).trim() === '') {
-      updates.trusted_authserv_id = null;
-    } else if (typeof rawId !== 'string' || rawId.trim().length > 255
-      || !/^[A-Za-z0-9._:/-]+$/.test(rawId.trim())) {
-      return res.status(400).json({
-        error: 'trusted_authserv_id must be a single hostname-like token (letters, digits, ".", "-", "_", "/", ":")',
-      });
-    } else {
-      updates.trusted_authserv_id = normalizeAuthservId(rawId);
-    }
-  }
 
   try {
     if ('auto_cc_addresses' in updates) updates.auto_cc_addresses = normalizeAddressList(updates.auto_cc_addresses, 'Automatic Cc');

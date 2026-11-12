@@ -174,12 +174,6 @@ Things that will bite you if you do not know them.
 - **There are two email renderers.** The default renders the sanitized body in an iframe; an
   experimental div-based renderer sits behind `VITE_EMAIL_DIV_RENDER`, default false, and
   compiles away when it is off. Anything touching body rendering has to hold for both.
-- **The attachment extension list exists twice.** `backend/src/services/attachmentExtensions.js`
-  is canonical and feeds antispam. The frontend image cannot import from `backend/`, so
-  `frontend/src/utils/attachmentExtensions.js` keeps a copy for the download warning, and
-  `attachmentExtensions.test.js` fails CI when the two differ. Change both together. Keep the
-  frontend copy free of imports, because the backend CI job loads it without
-  `frontend/node_modules`.
 - **A host with no provider profile is not a host without quirks.** `providerProfile()` in
   `imapManager.js` has entries for google, yahoo, apple, microsoft, purelymail and strato.
   Everything else, Zoho included, falls through to `generic`.

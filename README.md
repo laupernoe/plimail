@@ -53,7 +53,7 @@ If you contribute code, please read the [Contributor License Agreement](CLA.md).
 - **Mark-as-read behavior** — choose immediate (on open), after a configurable delay in seconds, or manual (button only) per-user preference
 - **Inbox rules** — automate actions (move, archive, delete, mark read, star) based on sender, subject, recipient, headers, body, or attachments
 - **Block list** — automatically move mail from blocked senders to trash before inbox rules run
-- **Spam reporting** — mark messages as spam or not spam from the context menu, toolbar, or bulk actions; feedback will feed into automated filtering in a future release
+- **Spam reporting** — mark messages as spam or not spam from the context menu, toolbar, or bulk actions, which moves them to or from the spam folder
 - **Snooze** — snooze messages until a chosen time; they reappear at the top of the inbox
 - **AI assistant** — use an OpenAI-compatible API provider or a ChatGPT Codex subscription; summarize threads, draft replies, ask questions about a message; admins choose which users may use it
 - **Password recovery** — recover your account via a recovery email address configured in profile settings
@@ -548,7 +548,7 @@ git pull && \
 
 ## Backup and Restore
 
-Settings → Backup (admin only) downloads a backup of the installation's data: users, email accounts, rules, contacts, settings and antispam training. Cached mail is downloaded again from the mail servers after a restore, unless **Include cached mail** is on, which adds the local copy of every synced message to the file. Without it, the newest unread messages in each inbox arrive as new mail after a restore, so inbox rules, forwarding included, run on them again.
+Settings → Backup (admin only) downloads a backup of the installation's data: users, email accounts, rules, contacts and settings. Cached mail is downloaded again from the mail servers after a restore, unless **Include cached mail** is on, which adds the local copy of every synced message to the file. Without it, the newest unread messages in each inbox arrive as new mail after a restore, so inbox rules, forwarding included, run on them again.
 
 The file does not hold what is set in `.env`. A new server needs the same `ENCRYPTION_KEY`, and the same VAPID keys and OAuth client settings if they are set there; with new VAPID keys, push notifications stop until each browser subscribes again.
 
