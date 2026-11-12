@@ -75,7 +75,7 @@ export async function fetchProxiedImage(url, {
       // No cookies, no referrer: a fresh request that says only what it is.
       headers: {
         Accept: 'image/avif,image/webp,image/png,image/jpeg,image/gif,image/*;q=0.8',
-        'User-Agent': 'Mozilla/5.0 (compatible; MailFlow image proxy)',
+        'User-Agent': 'Mozilla/5.0 (compatible; Plimail image proxy)',
       },
     });
   } catch {

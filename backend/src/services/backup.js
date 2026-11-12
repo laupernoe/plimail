@@ -329,40 +329,40 @@ function parseLine(line) {
     const value = JSON.parse(line);
     if (value && typeof value === 'object' && !Array.isArray(value)) return value;
   } catch { /* fall through */ }
-  throw new BackupFileError('This is not a MailFlow backup file.');
+  throw new BackupFileError('This is not a Plimail backup file.');
 }
 
 function checkManifest(manifest, currentVersion) {
   if (manifest.mailflow !== 'backup' || !Number.isInteger(manifest.format)) {
-    throw new BackupFileError('This is not a MailFlow backup file.');
+    throw new BackupFileError('This is not a Plimail backup file.');
   }
   if (manifest.format > BACKUP_FORMAT) {
-    throw new BackupFileError('This backup was made by a newer version of MailFlow. Update MailFlow, then restore it.');
+    throw new BackupFileError('This backup was made by a newer version of Plimail. Update Plimail, then restore it.');
   }
   if (manifest.format < BACKUP_FORMAT) {
-    throw new BackupFileError('This backup uses an earlier file format, which this version of MailFlow does not read. Update MailFlow on the server it came from, make a new backup there, and restore that.');
+    throw new BackupFileError('This backup uses an earlier file format, which this version of Plimail does not read. Update Plimail on the server it came from, make a new backup there, and restore that.');
   }
   const sequences = manifest.sequences ?? {};
   if (!BACKUP_SCOPES.includes(manifest.scope) || typeof manifest.schemaVersion !== 'string'
     || !Array.isArray(manifest.tables) || !manifest.tables.every(t => typeof t === 'string')
     || typeof manifest.keyCheck !== 'string' || !sequences || typeof sequences !== 'object' || Array.isArray(sequences)
     || !Object.values(sequences).every(v => typeof v === 'string' && /^\d+$/.test(v))) {
-    throw new BackupFileError('This is not a MailFlow backup file.');
+    throw new BackupFileError('This is not a Plimail backup file.');
   }
   const madeBy = typeof manifest.app === 'string' && /^[\w.+-]{1,40}$/.test(manifest.app) ? ` (${manifest.app})` : '';
   // Migration versions are zero-padded ("0061_..."), so they order as strings.
   if (manifest.schemaVersion > currentVersion) {
-    throw new BackupFileError(`This backup was made by a newer version of MailFlow${madeBy}. Update MailFlow, then restore it.`);
+    throw new BackupFileError(`This backup was made by a newer version of Plimail${madeBy}. Update Plimail, then restore it.`);
   }
   // An update converts existing data as it migrates; rows restored into a newer schema would
   // skip that, so an older backup goes back onto its own version and is updated from there.
   if (manifest.schemaVersion < currentVersion) {
-    throw new BackupFileError(`This backup was made by an older version of MailFlow${madeBy}. Restore it on that version, then update MailFlow.`);
+    throw new BackupFileError(`This backup was made by an older version of Plimail${madeBy}. Restore it on that version, then update Plimail.`);
   }
   // decrypt() passes a value without the enc: prefix through unchanged, so a key check that was
   // never encrypted would otherwise match under any key.
   if (!isEncrypted(manifest.keyCheck) || decrypt(manifest.keyCheck) !== KEY_CHECK_PLAINTEXT) {
-    throw new BackupFileError('This backup was made on a server with a different ENCRYPTION_KEY. Set that key in .env and restart MailFlow before restoring it.');
+    throw new BackupFileError('This backup was made on a server with a different ENCRYPTION_KEY. Set that key in .env and restart Plimail before restoring it.');
   }
 }
 
@@ -399,7 +399,7 @@ async function restoreLines(client, reader, { beforeWrite, onProgress }) {
       return done ? null : value;
     } catch (err) {
       if (err instanceof BackupFileError) throw err;
-      throw new BackupFileError(`The file could not be read as a MailFlow backup (${err.message}).`);
+      throw new BackupFileError(`The file could not be read as a Plimail backup (${err.message}).`);
     }
   };
 
@@ -437,7 +437,7 @@ async function restoreLines(client, reader, { beforeWrite, onProgress }) {
         footer = entry;
         continue;
       }
-      if (typeof entry.table !== 'string' || !Array.isArray(entry.rows)) throw new BackupFileError('This is not a MailFlow backup file.');
+      if (typeof entry.table !== 'string' || !Array.isArray(entry.rows)) throw new BackupFileError('This is not a Plimail backup file.');
       if (!manifestTables.has(entry.table)) throw new BackupFileError(`The backup file has rows for a table its manifest does not list: ${entry.table}.`);
       if (!entry.rows.length) continue;
       const rowColumns = Object.keys(entry.rows[0]);
@@ -467,7 +467,7 @@ async function restoreLines(client, reader, { beforeWrite, onProgress }) {
       if (onProgress) onProgress({ table: entry.table, rows: Object.values(inserted).reduce((a, b) => a + b, 0) });
     }
     if (!footer) throw new BackupFileError('The backup file ends early. Its download was probably interrupted.');
-    if (!footer.rowCounts || typeof footer.rowCounts !== 'object') throw new BackupFileError('This is not a MailFlow backup file.');
+    if (!footer.rowCounts || typeof footer.rowCounts !== 'object') throw new BackupFileError('This is not a Plimail backup file.');
     for (const [table, count] of Object.entries(footer.rowCounts)) {
       if (!manifestTables.has(table) || inserted[table] !== count) {
         throw new BackupFileError(`The backup file is inconsistent: ${table} should have ${count} rows, the file holds ${inserted[table] ?? 0}.`);

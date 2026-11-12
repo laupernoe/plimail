@@ -13,12 +13,12 @@ const GMAIL = '22222222-2222-4222-8222-222222222222';
 const ID1 = 'a1a1a1a1-1111-4111-8111-a1a1a1a1a1a1';
 const ID2 = 'b2b2b2b2-2222-4222-8222-b2b2b2b2b2b2';
 
-const MOVE_ERROR = 'API tokens cannot move mail into Trash, Junk, Drafts, Snoozed or folders MailFlow does not sync';
+const MOVE_ERROR = 'API tokens cannot move mail into Trash, Junk, Drafts, Snoozed or folders Plimail does not sync';
 const DRAFT_SOURCE_ERROR = 'API tokens cannot move or archive drafts';
 const PLAIN_TEXT_ERROR = 'API token drafts must be plain text';
-const ALL_MAIL_ERROR = "API tokens cannot archive into Gmail's All Mail, where the mail drops out of MailFlow. "
+const ALL_MAIL_ERROR = "API tokens cannot archive into Gmail's All Mail, where the mail drops out of Plimail. "
   + "Create a Gmail label named Archive, or choose an archive folder in the account's settings.";
-const ARCHIVE_ERROR = 'API tokens cannot archive into Trash, Junk, Drafts, Snoozed or folders MailFlow does not sync: '
+const ARCHIVE_ERROR = 'API tokens cannot archive into Trash, Junk, Drafts, Snoozed or folders Plimail does not sync: '
   + "check the account's archive folder setting.";
 
 // The database: which accounts the ids are in (and whether one is a draft, or one of `drafts` is
@@ -137,7 +137,7 @@ describe('bulk-move with a token', () => {
     expect(await move({ ids: [ID1], folder: path })).toMatchObject({ status: 403, body: { error: MOVE_ERROR } });
   });
 
-  it.each(['[Gmail]/Important', '[Gmail]/Starred', '[Gmail]/All Mail'])('refuses Gmail\'s %s, which MailFlow does not sync', async (path) => {
+  it.each(['[Gmail]/Important', '[Gmail]/Starred', '[Gmail]/All Mail'])('refuses Gmail\'s %s, which Plimail does not sync', async (path) => {
     sources = [{ id: GMAIL, imap_host: 'imap.gmail.com', oauth_provider: null, has_draft: false }];
     folders[GMAIL] = { [path]: {} };
     expect(await move({ ids: [ID1], folder: path })).toMatchObject({ status: 403, body: { error: MOVE_ERROR } });
@@ -196,7 +196,7 @@ describe('bulk-archive with a token', () => {
       archives[GMAIL] = '[Gmail]/All Mail';
     });
 
-    it('refuses an archive into All Mail, which MailFlow does not sync', async () => {
+    it('refuses an archive into All Mail, which Plimail does not sync', async () => {
       expect(await archive({ ids: [ID1] })).toMatchObject({ status: 403, body: { error: ALL_MAIL_ERROR } });
     });
 

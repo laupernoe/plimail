@@ -43,7 +43,7 @@ describe('where an API token may not move mail', () => {
   });
 
   it.each(['[Gmail]/All Mail', '[Gmail]/Starred', '[Gmail]/Important', '[Google Mail]/All Mail', '[gmail]/important'])(
-    'a Gmail folder MailFlow does not sync: %s',
+    'a Gmail folder Plimail does not sync: %s',
     (path) => {
       expect(isProtected(path, {}, gmail)).toBe(true);
     },

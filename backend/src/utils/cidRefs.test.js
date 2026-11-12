@@ -49,7 +49,7 @@ describe('the settled marker', () => {
     expect(settledEarlier(body)).toBe(false);
     expect(settledEarlier(null)).toBe(false);
   });
-  it('never leaves MailFlow', () => {
+  it('never leaves Plimail', () => {
     expect(withoutCidMarker(settleCids(body, true))).toBe(body);
     expect(withoutCidMarker(null)).toBe(null);
   });

@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Something in MailFlow doesn't work as expected
+about: Something in Plimail doesn't work as expected
 title: ''
 labels: ''
 assignees: ''
@@ -19,7 +19,7 @@ A clear description of the bug.
 What should have happened instead.
 
 **Environment**
-- MailFlow version (Settings → About):
+- Plimail version (Settings → About):
 - Install method: Docker (pre-built images / built from source), native, desktop app, Android app
 - Mail provider(s) involved (Gmail, Microsoft 365, iCloud, other IMAP):
 - Browser and OS, if it's a web issue:

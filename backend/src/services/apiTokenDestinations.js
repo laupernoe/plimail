@@ -8,7 +8,7 @@ import { SNOOZED_FOLDER } from './messageService.js';
 // out of every view. The roles come from folderRoles in utils/mailUtils.js, built from the SQL the
 // rest of the server decides them by.
 export const PROTECTED_DESTINATION_ERROR =
-  'API tokens cannot move mail into Trash, Junk, Drafts, Snoozed or folders MailFlow does not sync';
+  'API tokens cannot move mail into Trash, Junk, Drafts, Snoozed or folders Plimail does not sync';
 
 const PROTECTED_SPECIAL_USE = new Set(['\\trash', '\\junk', '\\drafts', '\\all', '\\flagged']);
 

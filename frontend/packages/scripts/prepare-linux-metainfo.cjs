@@ -17,9 +17,9 @@ function escapeXml(value) {
 }
 
 const releaseDate = new Date().toISOString().slice(0, 10);
-const productName = packageJson.productName || 'MailFlow';
+const productName = packageJson.productName || 'Plimail';
 const description = packageJson.description || 'A self-hosted, unified webmail client.';
-const homepage = packageJson.homepage || 'https://mailflow.sh';
+const homepage = packageJson.homepage || 'https://github.com/laupernoe/plimail';
 const license = packageJson.license || 'GPL-3.0';
 
 const metainfo = `<?xml version="1.0" encoding="UTF-8"?>
@@ -32,7 +32,7 @@ const metainfo = `<?xml version="1.0" encoding="UTF-8"?>
   <developer_name>${escapeXml(packageJson.author && packageJson.author.name ? packageJson.author.name : productName)}</developer_name>
   <url type="homepage">${escapeXml(homepage)}</url>
   <url type="bugtracker">${escapeXml(packageJson.bugs && packageJson.bugs.url ? packageJson.bugs.url : `${homepage}/docs`)}</url>
-  <launchable type="desktop-id">MailFlow.desktop</launchable>
+  <launchable type="desktop-id">Plimail.desktop</launchable>
   <categories>
     <category>Network</category>
     <category>Email</category>

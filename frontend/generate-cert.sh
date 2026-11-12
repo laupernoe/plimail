@@ -23,7 +23,7 @@ mkdir -p /etc/nginx/ssl 2>/dev/null
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
   -keyout "$KEY" \
   -out "$CERT" \
-  -subj "/C=US/ST=Local/L=Local/O=MailFlow/CN=localhost" \
+  -subj "/C=US/ST=Local/L=Local/O=Plimail/CN=localhost" \
   -addext "subjectAltName=IP:127.0.0.1,DNS:localhost" 2>/dev/null
 
 if [ -f "$CERT" ] && [ -f "$KEY" ]; then

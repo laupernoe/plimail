@@ -79,7 +79,7 @@ describe('the email frame and blocked remote images', () => {
     assert.match(policy, /^script-src 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; style-src 'unsafe-inline';/, 'the rest unchanged');
   });
 
-  test('loads images from MailFlow alone when they come through the image proxy', async () => {
+  test('loads images from Plimail alone when they come through the image proxy', async () => {
     const policy = csp(await frameDoc({ html: '<p>x</p>', remoteImagesProxied: true }));
     // MailFlow's origin named too: Firefox does not count it as 'self' in a srcdoc frame.
     assert.match(policy, /img-src 'self' https:\/\/mail\.example\.invalid data: blob:;/);

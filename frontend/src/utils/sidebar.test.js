@@ -371,7 +371,7 @@ describe('existingHiddenPaths', () => {
 describe('moveHiddenPaths', () => {
   const tree = [{ path: 'Work', delimiter: '.' }, { path: 'Work.Old', delimiter: '.' }];
 
-  it('drops only the folder MailFlow deleted', () => {
+  it('drops only the folder Plimail deleted', () => {
     assert.deepEqual(moveHiddenPaths(['Work', 'Work.Old', 'Other'], 'Work', null, tree), ['Work.Old', 'Other']);
   });
 

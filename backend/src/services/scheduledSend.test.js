@@ -259,7 +259,7 @@ describe('a claimed message', () => {
     expect(params.slice(0, 5)).toEqual(['m1', 't1', 'paused', 'overdue', 'overdue']);
     expect(broadcast).toHaveBeenCalledWith({ type: 'scheduled_changed', id: 'm1', status: 'paused' }, 'u1');
     expect(push).toHaveBeenCalledWith('u1', expect.objectContaining({
-      title: 'Scheduled message', body: expect.stringMatching(/^Not sent: was scheduled for .*MailFlow was offline/), url: '/?scheduled=m1',
+      title: 'Scheduled message', body: expect.stringMatching(/^Not sent: was scheduled for .*Plimail was offline/), url: '/?scheduled=m1',
     }));
   });
 });

@@ -698,7 +698,7 @@
       "deleted": "Eliminado"
     },
     "reason": {
-      "overdue": "Llegaba más de 6 horas tarde, así que MailFlow lo retuvo. Envíalo ahora o elige otra hora.",
+      "overdue": "Llegaba más de 6 horas tarde, así que Plimail lo retuvo. Envíalo ahora o elige otra hora.",
       "restored": "Se pausó al restaurar una copia de seguridad.",
       "editAbandoned": "Estaba abierto para editar cuando le tocaba enviarse.",
       "accountDisabled": "Su cuenta está desactivada.",
@@ -713,18 +713,18 @@
       "aliasMissing": "La dirección desde la que debía enviarse ya no existe.",
       "decryptFailed": "No se pudo descifrar en este servidor.",
       "accountMissing": "Su cuenta ya no existe.",
-      "gaveUp": "El servidor de correo siguió fallando, así que MailFlow dejó de intentarlo.",
+      "gaveUp": "El servidor de correo siguió fallando, así que Plimail dejó de intentarlo.",
       "failed": "No se pudo enviar.",
-      "uncertain": "MailFlow se detuvo mientras lo enviaba. Puede que se haya entregado o no. Revisa tu carpeta Enviados.",
+      "uncertain": "Plimail se detuvo mientras lo enviaba. Puede que se haya entregado o no. Revisa tu carpeta Enviados.",
       "retrying": "El último intento falló. Próximo intento: {{when}}.",
       "deleted": "Se puede restaurar hasta {{when}}."
     },
     "sent": {
       "markedSent": "Lo marcaste como enviado.",
       "late": "Enviado tarde: programado para {{scheduled}}, enviado {{sent}}.",
-      "lateOffline": "Enviado tarde: programado para {{scheduled}}, enviado {{sent}} porque MailFlow estaba sin conexión.",
+      "lateOffline": "Enviado tarde: programado para {{scheduled}}, enviado {{sent}} porque Plimail estaba sin conexión.",
       "refused": "Rechazado por el servidor de correo para: {{list}}",
-      "deferred": "No se entregó a {{list}}: su servidor pidió reintentarlo más tarde y MailFlow no vuelve a intentarlo. Envíaselo de nuevo.",
+      "deferred": "No se entregó a {{list}}: su servidor pidió reintentarlo más tarde y Plimail no vuelve a intentarlo. Envíaselo de nuevo.",
       "noSentFolder": "No se guardó ninguna copia: la cuenta no tiene carpeta Enviados.",
       "noSentCopy": "No se pudo guardar una copia en Enviados."
     },
@@ -753,14 +753,14 @@
     },
     "confirm": {
       "uncertainTitle": "Puede que ya se haya entregado",
-      "uncertainBody": "MailFlow se detuvo mientras lo enviaba. Revisa primero tu carpeta Enviados. ¿Enviarlo de nuevo de todos modos?",
+      "uncertainBody": "Plimail se detuvo mientras lo enviaba. Revisa primero tu carpeta Enviados. ¿Enviarlo de nuevo de todos modos?",
       "restoredTitle": "Pausado al restaurar una copia",
       "restoredBody": "Se pausó al restaurar una copia de seguridad. Si el servidor antiguo sigue funcionando, también podría enviarlo. ¿Enviarlo desde aquí?",
       "restoredGo": "Enviar desde aquí",
       "sendAnywayTitle": "¿Enviarlo de nuevo?",
-      "sendAnywayBody": "Puede que ya se haya entregado: MailFlow se detuvo mientras lo enviaba. Revisa primero tu carpeta Enviados. Si salió, los destinatarios lo recibirán dos veces.",
+      "sendAnywayBody": "Puede que ya se haya entregado: Plimail se detuvo mientras lo enviaba. Revisa primero tu carpeta Enviados. Si salió, los destinatarios lo recibirán dos veces.",
       "markSentTitle": "¿Marcarlo como enviado?",
-      "markSentBody": "Hazlo si lo encontraste en tu carpeta Enviados. MailFlow borra su contenido y no lo envía nunca.",
+      "markSentBody": "Hazlo si lo encontraste en tu carpeta Enviados. Plimail borra su contenido y no lo envía nunca.",
       "deleteTitle": "¿Eliminarlo definitivamente?",
       "deleteBody": "No se enviará y no se podrá recuperar."
     },
@@ -1255,7 +1255,7 @@
     },
     "folderMappings": {
       "title": "Asignación de carpetas",
-      "description": "Asigna cada función de correo a una carpeta específica. Selecciona Detección automática para que MailFlow use la carpeta que tu servidor ha designado para esa función.",
+      "description": "Asigna cada función de correo a una carpeta específica. Selecciona Detección automática para que Plimail use la carpeta que tu servidor ha designado para esa función.",
       "loading": "Cargando carpetas…",
       "autoDetect": "Detección automática",
       "autoDetectNone": "Detección automática (ninguna encontrada)",
@@ -1269,7 +1269,7 @@
     },
     "aliases": {
       "title": "Alias",
-      "description": "Los alias te permiten enviar desde un nombre o dirección diferente usando las credenciales SMTP de esta cuenta. Selecciona un alias en el campo De al redactar. MailFlow responderá automáticamente desde un alias si un mensaje fue dirigido a él.",
+      "description": "Los alias te permiten enviar desde un nombre o dirección diferente usando las credenciales SMTP de esta cuenta. Selecciona un alias en el campo De al redactar. Plimail responderá automáticamente desde un alias si un mensaje fue dirigido a él.",
       "addButton": "Añadir alias",
       "empty": "Aún no hay alias",
       "newTitle": "Nuevo alias",
@@ -1294,7 +1294,7 @@
       "title": "Apariencia",
       "description": "Elige un tema de color para la interfaz",
       "darkEmailBodies": "Cuerpo de correo oscuro",
-      "darkEmailBodiesDesc": "Con un tema oscuro, muestra también los correos HTML en colores oscuros: con el diseño oscuro del remitente si lo tiene y, si no, recoloreados por MailFlow. Un correo se ve como se envió cuando lo pide o cuando mostrarlo oscuro haría el texto difícil de leer. Puedes cambiar cada mensaje por separado.",
+      "darkEmailBodiesDesc": "Con un tema oscuro, muestra también los correos HTML en colores oscuros: con el diseño oscuro del remitente si lo tiene y, si no, recoloreados por Plimail. Un correo se ve como se envió cuando lo pide o cuando mostrarlo oscuro haría el texto difícil de leer. Puedes cambiar cada mensaje por separado.",
       "layout": "Diseño",
       "layoutDescription": "Elige cómo se organizan la barra lateral, la lista de mensajes y el panel de lectura",
       "language": "Idioma",
@@ -1339,9 +1339,9 @@
       "swipeDisabled": "Desactivado",
       "swipeDisabledDesc": "Desactivar esta dirección de deslizamiento",
       "syncFrequency": "Frecuencia de sincronización de correo",
-      "syncFrequencyDesc": "Con qué frecuencia MailFlow comprueba nuevos correos",
+      "syncFrequencyDesc": "Con qué frecuencia Plimail comprueba nuevos correos",
       "folderSyncFrequency": "Frecuencia de sincronización de carpetas",
-      "folderSyncFrequencyDesc": "Con qué frecuencia MailFlow actualiza la lista de carpetas de cada cuenta desde el servidor (carpetas creadas en otras aplicaciones)",
+      "folderSyncFrequencyDesc": "Con qué frecuencia Plimail actualiza la lista de carpetas de cada cuenta desde el servidor (carpetas creadas en otras aplicaciones)",
       "threadingMode": "Agrupación por conversación",
       "threadingOff": "Desactivado",
       "threadingOffDesc": "Cada mensaje se muestra individualmente",
@@ -1378,8 +1378,8 @@
       "markReadManual": "Manualmente",
       "markReadManualDesc": "Nunca marcar correos como leídos automáticamente. Usa el botón de marcar como leído.",
       "defaultMailApp": "App de correo predeterminada",
-      "defaultMailAppDesc": "Haz que MailFlow abra los enlaces mailto: en este navegador. El navegador te pedirá que confirmes. Funciona en Firefox y Chrome/Edge; no disponible en iOS.",
-      "defaultMailAppBtn": "Registrar MailFlow",
+      "defaultMailAppDesc": "Haz que Plimail abra los enlaces mailto: en este navegador. El navegador te pedirá que confirmes. Funciona en Firefox y Chrome/Edge; no disponible en iOS.",
+      "defaultMailAppBtn": "Registrar Plimail",
       "defaultMailAppOk": "Confirma el aviso en tu navegador para finalizar.",
       "defaultMailAppError": "Tu navegador bloqueó la solicitud.",
       "markReadDelayLabel": "Retraso",
@@ -1427,7 +1427,7 @@
     },
     "push": {
       "title": "Notificaciones push",
-      "description": "Recibe notificaciones nativas de correo nuevo aunque MailFlow no esté abierto.",
+      "description": "Recibe notificaciones nativas de correo nuevo aunque Plimail no esté abierto.",
       "enable": "Activar",
       "disable": "Desactivar",
       "statusOn": "Notificaciones push activadas",
@@ -1435,7 +1435,7 @@
       "statusDenied": "Permiso denegado",
       "permissionDenied": "El permiso de notificación fue denegado. Actívalo en la configuración del navegador o del sistema.",
       "notSupported": "Las notificaciones push no son compatibles con este navegador.",
-      "iosHint": "Para recibir notificaciones push en iOS, primero añade MailFlow a tu pantalla de inicio: pulsa el botón Compartir y luego «Añadir a la pantalla de inicio».",
+      "iosHint": "Para recibir notificaciones push en iOS, primero añade Plimail a tu pantalla de inicio: pulsa el botón Compartir y luego «Añadir a la pantalla de inicio».",
       "notConfigured": "Las notificaciones push no están configuradas en este servidor. Añade claves VAPID al archivo .env para activarlas.",
       "loading": "Procesando…"
     },
@@ -1539,7 +1539,7 @@
     },
     "apiTokens": {
       "title": "Tokens de API",
-      "description": "Los tokens permiten que scripts y herramientas, como un servidor MCP, usen MailFlow sin tu contraseña. Un token solo puede hacer lo que permiten sus ámbitos y nunca puede enviar, eliminar ni cambiar ajustes.",
+      "description": "Los tokens permiten que scripts y herramientas, como un servidor MCP, usen Plimail sin tu contraseña. Un token solo puede hacer lo que permiten sus ámbitos y nunca puede enviar, eliminar ni cambiar ajustes.",
       "loadFailed": "No se pudieron cargar los tokens de API: {{message}}",
       "disabledNotice": "Los tokens de API están desactivados en este servidor. Un administrador tiene que activarlos para que puedas crear uno.",
       "disabledNoticeAdmin": "Los tokens de API están desactivados en este servidor. Actívalos con el interruptor de arriba para poder crear uno.",
@@ -1657,7 +1657,7 @@
       "edit": "Editar",
       "editTitle": "Editar {{username}}",
       "username": "Nombre de usuario",
-      "usernameHint": "Se usa para iniciar sesión en MailFlow.",
+      "usernameHint": "Se usa para iniciar sesión en Plimail.",
       "recoveryEmail": "Correo de recuperación",
       "recoveryEmailHint": "Recibe el enlace de \"¿Olvidaste tu contraseña?\". Déjalo vacío para quitarlo.",
       "newPassword": "Nueva contraseña",
@@ -1785,7 +1785,7 @@
       "gtdRevealDesc": "Muestra abajo los ajustes de GTD por cuenta; cada cuenta conserva su propio interruptor."
     },
     "gtd": {
-      "description": "Convierte Mailflow en un sistema GTD. Actívalo por cuenta y asigna cada estado a la carpeta IMAP que contiene su etiqueta.",
+      "description": "Convierte Plimail en un sistema GTD. Actívalo por cuenta y asigna cada estado a la carpeta IMAP que contiene su etiqueta.",
       "noAccounts": "Añade primero una cuenta de correo para configurar GTD.",
       "enableDesc": "GTD está activado. Las etiquetas se sincronizan como carpetas y los estados cambian automáticamente.",
       "enableHint": "Activa las etiquetas GTD y los cambios de estado automáticos para esta cuenta.",
@@ -1838,7 +1838,7 @@
     },
     "sso": {
       "title": "Inicio de sesión único",
-      "description": "Cómo inician sesión las personas en MailFlow, a través del proveedor de identidad de tu organización (OIDC). La conexión de buzones está en Proveedores de correo.",
+      "description": "Cómo inician sesión las personas en Plimail, a través del proveedor de identidad de tu organización (OIDC). La conexión de buzones está en Proveedores de correo.",
       "empty": "Aún no hay proveedores SSO configurados.",
       "addProvider": "+ Añadir proveedor SSO",
       "templatePickerTitle": "Elegir una plantilla de proveedor",
@@ -1864,7 +1864,7 @@
       "domainsPh": "ejemplo.com, corp.ejemplo.com",
       "provisioning": "Modo de aprovisionamiento",
       "provisioningDisabled": "Desactivado — las identidades vinculadas existentes pueden seguir iniciando sesión, pero no se crean nuevos vínculos",
-      "provisioningExisting": "Coincidir existente — vincular a una cuenta MailFlow con un correo coincidente",
+      "provisioningExisting": "Coincidir existente — vincular a una cuenta Plimail con un correo coincidente",
       "provisioningOpen": "Abierto — crear una nueva cuenta automáticamente en el primer inicio de sesión SSO",
       "enabled": "Proveedor activado",
       "requireEmailVerified": "Requerir correo verificado",
@@ -1884,7 +1884,7 @@
       "allowInsecure": "Permitir conexiones locales / autofirmadas",
       "allowInsecureDesc": "Omite la validación del host y las verificaciones de certificados TLS. Usar solo para proveedores de solo LAN (p. ej., pocketid.internal). No recomendado para despliegues expuestos a internet.",
       "rpLogout": "Cierre de sesión SSO (RP-initiated)",
-      "rpLogoutDesc": "Al cerrar sesión, también finaliza la sesión en este proveedor redirigiendo a su end-session endpoint, no solo la cookie de MailFlow. Requiere que el proveedor exponga un end_session_endpoint y que la URL de inicio de sesión de MailFlow (…/login) esté registrada como post-logout redirect URI.",
+      "rpLogoutDesc": "Al cerrar sesión, también finaliza la sesión en este proveedor redirigiendo a su end-session endpoint, no solo la cookie de Plimail. Requiere que el proveedor exponga un end_session_endpoint y que la URL de inicio de sesión de Plimail (…/login) esté registrada como post-logout redirect URI.",
       "adminGroupClaim": "Claim de grupo de administrador",
       "adminGroupClaimPh": "groups",
       "adminGroupClaimDesc": "Nombre del claim JWT que contiene los grupos del usuario (p. ej., groups). Dejar en blanco para desactivar la asignación de administrador basada en grupos.",
@@ -1892,7 +1892,7 @@
       "adminGroupValuePh": "mailflow-admins",
       "adminGroupValueDesc": "El nombre del grupo que otorga acceso de administrador. Los usuarios de este grupo se convierten en administradores en cada inicio de sesión SSO; los usuarios que no están en este grupo pierden el acceso de administrador.",
       "loginMatchClaim": "Asociar cuentas existentes por",
-      "loginMatchClaimDesc": "Reclamación (claim) de OIDC que se compara con el nombre de usuario de cada cuenta de MailFlow al vincular por primera vez un inicio de sesión SSO con una cuenta existente (modo de aprovisionamiento «solo iniciar sesión en cuentas existentes»). El valor predeterminado es email. Usa preferred_username, upn, etc. para proveedores de identidad cuyos nombres de usuario no son direcciones de correo, solo si tu proveedor garantiza que esa reclamación es única y no editable por el usuario.",
+      "loginMatchClaimDesc": "Reclamación (claim) de OIDC que se compara con el nombre de usuario de cada cuenta de Plimail al vincular por primera vez un inicio de sesión SSO con una cuenta existente (modo de aprovisionamiento «solo iniciar sesión en cuentas existentes»). El valor predeterminado es email. Usa preferred_username, upn, etc. para proveedores de identidad cuyos nombres de usuario no son direcciones de correo, solo si tu proveedor garantiza que esa reclamación es única y no editable por el usuario.",
       "passwordLoginDisableMsg": "Los usuarios solo podrán iniciar sesión mediante SSO. Si tu proveedor SSO deja de estar disponible, se necesitará acceso directo a la base de datos para volver a habilitar el inicio de sesión con contraseña. Se eliminan los tokens de API que no se confirmaron con SSO.",
       "passwordLoginDisableTitle": "¿Desactivar inicio de sesión con contraseña?",
       "passwordLoginDisabled": "El inicio de sesión con contraseña está desactivado",
@@ -1983,7 +1983,7 @@
         "lastSync": "Última sincronización: {{when}}",
         "summary": "{{contacts}} contactos en {{books}} libretas",
         "syncFailed": "La última sincronización falló: {{error}}",
-        "help": "Usa una contraseña de aplicación de Nextcloud, no la de inicio de sesión: los usuarios de SSO deben crear una en Ajustes → Seguridad. Los contactos se sincronizan en un solo sentido y son de solo lectura en MailFlow."
+        "help": "Usa una contraseña de aplicación de Nextcloud, no la de inicio de sesión: los usuarios de SSO deben crear una en Ajustes → Seguridad. Los contactos se sincronizan en un solo sentido y son de solo lectura en Plimail."
       }
     },
     "ssoLinked": {
@@ -2003,22 +2003,10 @@
       "backendBuild": "Build del backend",
       "frontendBuild": "Build del frontend",
       "license": "Licencia",
-      "website": "Sitio web",
       "sourceCode": "Código fuente",
-      "sponsor": "Apoyar el desarrollo",
-      "kofi": "Ko-fi",
-      "githubSponsors": "GitHub Sponsors",
-      "businessLicense": "Licencia para empresas",
-      "sponsorBlurb": "MailFlow lo desarrolla y mantiene una sola persona. Los patrocinios pagan el tiempo dedicado a correcciones, revisiones y nuevas versiones."
+      "upstream": "Basado en MailFlow"
     },
-    "businessNotice": {
-      "title": "¿Usas MailFlow en una empresa?",
-      "body": "MailFlow es gratuito bajo la AGPL y lo desarrolla una sola persona. Pedimos a las empresas que dependen de él que compren una licencia para empresas, 100 $ por instancia al año, impuestos no incluidos. Es voluntaria y MailFlow no la comprueba.",
-      "learnMore": "Ver la licencia para empresas",
-      "haveOne": "Ya tenemos una",
-      "notBusiness": "No es una empresa",
-      "later": "Recordármelo más tarde"
-    },
+    "businessNotice": {},
     "search": {
       "placeholder": "Buscar ajustes…",
       "noResults": "Sin resultados para «{{query}}»",
@@ -2047,26 +2035,26 @@
     },
     "backup": {
       "title": "Copia de seguridad y restauración",
-      "intro": "Una copia de seguridad contiene los datos de este MailFlow: usuarios, cuentas de correo, reglas, contactos, ajustes, datos de complementos y entrenamiento antispam. El correo en caché se descarga de nuevo desde tus servidores de correo tras una restauración, salvo que lo incluyas. El archivo no contiene lo que está definido en .env: un servidor nuevo necesita la misma ENCRYPTION_KEY y, si las definiste ahí, las mismas claves VAPID y los mismos ajustes de cliente OAuth.",
+      "intro": "Una copia de seguridad contiene los datos de este Plimail: usuarios, cuentas de correo, reglas, contactos, ajustes, datos de complementos y entrenamiento antispam. El correo en caché se descarga de nuevo desde tus servidores de correo tras una restauración, salvo que lo incluyas. El archivo no contiene lo que está definido en .env: un servidor nuevo necesita la misma ENCRYPTION_KEY y, si las definiste ahí, las mismas claves VAPID y los mismos ajustes de cliente OAuth.",
       "sensitive": "El archivo contiene hashes de contraseñas, enlaces de invitación pendientes y las credenciales de tus cuentas. Las credenciales están cifradas con la ENCRYPTION_KEY de este servidor; el resto se puede leer, igual que todos los mensajes si se incluye el correo en caché. Guarda el archivo en un lugar seguro. Solo puede restaurarse en un servidor que use la misma clave.",
       "includeMail": "Incluir el correo en caché",
       "includeMailDesc": "Guarda también la copia local de cada mensaje sincronizado, lo que hace el archivo mucho más grande. Sin ella, una restauración vuelve a descargar el correo, y los mensajes no leídos más recientes de cada bandeja de entrada llegan como correo nuevo: las reglas de la bandeja de entrada se aplican otra vez, también los reenvíos. La elección se mantiene para todas las copias hasta que la cambies.",
       "includeMailSaveError": "No se pudo guardar el ajuste.",
       "create": "Descargar copia de seguridad",
       "restoreTitle": "Restaurar una copia de seguridad",
-      "restoreIntro": "Restaurar sustituye todos los usuarios, cuentas, ajustes y mensajes en caché de este servidor por el contenido del archivo. Después MailFlow se reinicia. Se cierra la sesión de quien no tenga cuenta en la copia de seguridad, y las contraseñas pasan a ser las de la copia. La restauración también elimina todos los tokens de API, así que las herramientas que usaban uno necesitarán uno nuevo.",
-      "versionNote": "Una copia de seguridad solo se restaura en una versión de MailFlow con el mismo esquema de base de datos que la versión que la creó. Si el esquema de esta versión es más reciente, restaura la copia en la versión que la creó y luego actualiza.",
+      "restoreIntro": "Restaurar sustituye todos los usuarios, cuentas, ajustes y mensajes en caché de este servidor por el contenido del archivo. Después Plimail se reinicia. Se cierra la sesión de quien no tenga cuenta en la copia de seguridad, y las contraseñas pasan a ser las de la copia. La restauración también elimina todos los tokens de API, así que las herramientas que usaban uno necesitarán uno nuevo.",
+      "versionNote": "Una copia de seguridad solo se restaura en una versión de Plimail con el mismo esquema de base de datos que la versión que la creó. Si el esquema de esta versión es más reciente, restaura la copia en la versión que la creó y luego actualiza.",
       "chooseFile": "Elegir un archivo de copia de seguridad",
       "restore": "Restaurar…",
       "confirmWarn": "Todo lo que hay en este servidor será sustituido por {{name}}. Esto no se puede deshacer.",
       "confirmYes": "Restaurar y reiniciar",
       "restoring": "Restaurando… filas escritas: {{rows}}",
-      "done": "Restauración completada. MailFlow se está reiniciando; esta página se recargará cuando vuelva a estar disponible.",
-      "restartTimeout": "MailFlow no ha vuelto tras dos minutos. Inícialo de nuevo y luego recarga esta página.",
+      "done": "Restauración completada. Plimail se está reiniciando; esta página se recargará cuando vuelva a estar disponible.",
+      "restartTimeout": "Plimail no ha vuelto tras dos minutos. Inícialo de nuevo y luego recarga esta página.",
       "failed": "La restauración ha fallado: {{message}}",
       "downloadFailed": "No se pudo iniciar la copia de seguridad.",
-      "connectionLost": "La conexión se perdió durante la restauración, así que se desconoce el resultado. Esta página se recargará cuando MailFlow vuelva a responder; comprueba entonces que tus datos son los restaurados.",
-      "tooLarge": "El archivo es más grande de lo que permite el proxy situado delante de MailFlow."
+      "connectionLost": "La conexión se perdió durante la restauración, así que se desconoce el resultado. Esta página se recargará cuando Plimail vuelva a responder; comprueba entonces que tus datos son los restaurados.",
+      "tooLarge": "El archivo es más grande de lo que permite el proxy situado delante de Plimail."
     },
     "plugins": {
       "title": "Complementos",
@@ -2303,20 +2291,20 @@
     "signIn": {
       "title": "Vuelve a iniciar sesión en Microsoft",
       "titleGoogle": "Vuelve a iniciar sesión en Google",
-      "body": "El inicio de sesión que MailFlow guardó para esta cuenta dejó de funcionar. Esto ocurre tras un cambio de contraseña, tras mucho tiempo sin uso o cuando se retiró el acceso en la configuración de tu cuenta."
+      "body": "El inicio de sesión que Plimail guardó para esta cuenta dejó de funcionar. Esto ocurre tras un cambio de contraseña, tras mucho tiempo sin uso o cuando se retiró el acceso en la configuración de tu cuenta."
     },
     "appConfig": {
       "title": "El inicio de sesión de esta cuenta no está bien configurado",
-      "bodyUser": "El proveedor de correo rechazó la aplicación con la que MailFlow inicia sesión. Pide a tu administrador que revise la configuración de inicio de sesión.",
-      "bodyAdmin": "El proveedor de correo rechazó la aplicación con la que MailFlow inicia sesión. Revisa su configuración en Proveedores de correo. En los detalles de abajo se ve lo que respondió el proveedor."
+      "bodyUser": "El proveedor de correo rechazó la aplicación con la que Plimail inicia sesión. Pide a tu administrador que revise la configuración de inicio de sesión.",
+      "bodyAdmin": "El proveedor de correo rechazó la aplicación con la que Plimail inicia sesión. Revisa su configuración en Proveedores de correo. En los detalles de abajo se ve lo que respondió el proveedor."
     },
     "authFailed": {
       "title": "El servidor rechazó la contraseña",
       "body": "El servidor de correo no aceptó el usuario o la contraseña de esta cuenta. Si cambiaste la contraseña o usas una contraseña de aplicación, actualízala con Editar cuenta."
     },
     "connection": {
-      "title": "MailFlow no puede conectarse a esta cuenta",
-      "body": "MailFlow sigue intentándolo por su cuenta. En los detalles de abajo se ve lo que respondió el servidor."
+      "title": "Plimail no puede conectarse a esta cuenta",
+      "body": "Plimail sigue intentándolo por su cuenta. En los detalles de abajo se ve lo que respondió el servidor."
     },
     "action": {
       "openOutlook": "Abrir Outlook.com",
@@ -2329,7 +2317,7 @@
     "signInDialog": {
       "title": "Volver a iniciar sesión",
       "body": "Inicia sesión como {{email}} para volver a conectar esta cuenta.",
-      "success": "Sesión iniciada. MailFlow está volviendo a conectar esta cuenta.",
+      "success": "Sesión iniciada. Plimail está volviendo a conectar esta cuenta.",
       "continueGoogle": "Continuar a Google",
       "waitingGoogle": "Termina de iniciar sesión en la página de Google y luego vuelve aquí."
     },
@@ -2373,28 +2361,28 @@
     "copied": "Copiado",
     "waiting": "Esperando a que termines de iniciar sesión en la página de Microsoft…",
     "starting": "Obteniendo un código de Microsoft…",
-    "checking": "Comprobando que MailFlow puede llegar a tu buzón…",
+    "checking": "Comprobando que Plimail puede llegar a tu buzón…",
     "connected": "{{email}} está conectada. Tu correo se está sincronizando.",
-    "stillConnecting": "Sesión iniciada como {{email}}. MailFlow sigue conectando y lo intenta por su cuenta. La lista de cuentas muestra cuándo está lista.",
+    "stillConnecting": "Sesión iniciada como {{email}}. Plimail sigue conectando y lo intenta por su cuenta. La lista de cuentas muestra cuándo está lista.",
     "declined": "Cancelaste el inicio de sesión en la página de Microsoft.",
     "expired": "El código caducó antes de terminar el inicio de sesión. Los códigos duran 15 minutos.",
     "error": "El inicio de sesión de Microsoft no funcionó.",
     "newCode": "Obtener un código nuevo",
     "startOver": "Empezar de nuevo",
     "done": "Listo",
-    "finePrintShared": "Microsoft puede mostrar MailFlow como una aplicación no verificada. Es lo esperado: la aplicación compartida de MailFlow solo identifica a MailFlow ante Microsoft. Inicias sesión en la propia página de Microsoft, y Microsoft envía el acceso directamente a este servidor.",
+    "finePrintShared": "Microsoft puede mostrar Plimail como una aplicación no verificada. Es lo esperado: la aplicación compartida de Plimail solo identifica a Plimail ante Microsoft. Inicias sesión en la propia página de Microsoft, y Microsoft envía el acceso directamente a este servidor.",
     "finePrintOwn": "Inicias sesión en la propia página de Microsoft, y Microsoft envía el acceso directamente a este servidor.",
     "continueMicrosoft": "Continuar a Microsoft",
     "redirectWaiting": "Termina de iniciar sesión en la página de Microsoft que se abrió y luego vuelve aquí.",
     "useCode": "Usar un código en su lugar",
     "useRedirect": "Iniciar sesión en la página de Microsoft en su lugar",
     "back": "Atrás",
-    "lost": "MailFlow perdió el rastro de este inicio de sesión, por ejemplo porque el servidor se reinició. Si terminaste de iniciar sesión en la página de Microsoft, puede que la cuenta ya esté en tu lista.",
+    "lost": "Plimail perdió el rastro de este inicio de sesión, por ejemplo porque el servidor se reinició. Si terminaste de iniciar sesión en la página de Microsoft, puede que la cuenta ya esté en tu lista.",
     "checkAccounts": "Revisar tus cuentas"
   },
   "mailSignIn": {
     "title": "Proveedores de correo",
-    "description": "Cómo se conecta MailFlow a los buzones de Microsoft y Google. Es distinto del inicio de sesión único (SSO), que es cómo se inicia sesión en MailFlow. Cada persona añade sus propias cuentas en Cuentas > Añadir cuenta.",
+    "description": "Cómo se conecta Plimail a los buzones de Microsoft y Google. Es distinto del inicio de sesión único (SSO), que es cómo se inicia sesión en Plimail. Cada persona añade sus propias cuentas en Cuentas > Añadir cuenta.",
     "required": "Rellena primero los campos obligatorios.",
     "redirectRequired": "Google necesita un URI de redirección: el registrado en el cliente OAuth, que termina en /oauth/google/callback.",
     "saved": "Guardado.",
@@ -2402,12 +2390,12 @@
       "title": "Microsoft",
       "description": "Buzones de Outlook.com, Hotmail, Live, MSN y Microsoft 365",
       "personalTitle": "Cuentas personales (Outlook.com, Hotmail, Live, MSN)",
-      "statusShared": "Usa la aplicación compartida de MailFlow",
+      "statusShared": "Usa la aplicación compartida de Plimail",
       "statusOwn": "Usa tu propia aplicación",
       "statusOff": "Desactivado",
-      "sharedSwitch": "Permitir iniciar sesión con la aplicación compartida de MailFlow",
+      "sharedSwitch": "Permitir iniciar sesión con la aplicación compartida de Plimail",
       "sharedSwitchDesc": "No requiere configuración. Las cuentas ya conectadas siguen funcionando si la desactivas.",
-      "ownHandlesPersonal": "Tu propia aplicación gestiona las cuentas personales, así que no se usa la aplicación compartida de MailFlow.",
+      "ownHandlesPersonal": "Tu propia aplicación gestiona las cuentas personales, así que no se usa la aplicación compartida de Plimail.",
       "workTitle": "Cuentas de trabajo y escuela (Microsoft 365)",
       "workOff": "Sin configurar",
       "setupToggle": "Configurar tu propia aplicación de Microsoft Entra"
@@ -2463,7 +2451,7 @@
       "customColor": "Color personalizado"
     },
     "empty": {
-      "title": "Trae tus calendarios a MailFlow",
+      "title": "Trae tus calendarios a Plimail",
       "body": "Conecta un calendario CalDAV, como Nextcloud, Fastmail, iCloud o Radicale. Los eventos se sincronizan en ambas direcciones y se quedan en tu propio servidor, junto a tu correo.",
       "connect": "Conectar un calendario"
     },
@@ -2587,7 +2575,7 @@
       "changePassword": "Cambiar contraseña",
       "newPassword": "Nueva contraseña",
       "passwordSaved": "Contraseña actualizada.",
-      "removeConfirm": "¿Quitar {{name}} de MailFlow? Sus calendarios y eventos se eliminan solo aquí; no se borra nada en el servidor.",
+      "removeConfirm": "¿Quitar {{name}} de Plimail? Sus calendarios y eventos se eliminan solo aquí; no se borra nada en el servidor.",
       "fromMailTitle": "Usar una cuenta de correo",
       "fromMailHint": "Prueba el servidor y la contraseña de la cuenta de correo. No se envía nada a ningún otro servidor.",
       "fromMailNone": "No se encontró ningún servidor de calendario en {{host}}: {{error}}",

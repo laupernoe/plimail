@@ -275,7 +275,7 @@ describe('a token that fails', () => {
     const res = await post('/api/mail/messages/bulk-read', { ids: [ID1], read: true }, headers);
     expect(res.status).toBe(401);
     expect(await res.json()).toEqual({ error: 'Invalid or expired API token' });
-    expect(res.headers.get('www-authenticate')).toBe('Bearer realm="MailFlow", error="invalid_token"');
+    expect(res.headers.get('www-authenticate')).toBe('Bearer realm="Plimail", error="invalid_token"');
     // Only what could be a guess spends a slot of its address's failure budget.
     expect(failures()).toBe(kind === 'expired' ? 0 : 1);
     const [event] = failEvents();
@@ -290,7 +290,7 @@ describe('a token that fails', () => {
     for (let i = 0; i < 25; i++) {
       const res = await get('/api/mail/messages', bearer('expired'));
       expect(res.status).toBe(401);
-      expect(res.headers.get('www-authenticate')).toBe('Bearer realm="MailFlow", error="invalid_token"');
+      expect(res.headers.get('www-authenticate')).toBe('Bearer realm="Plimail", error="invalid_token"');
     }
     // Logged, but not 25 times over.
     expect(failEvents()).toHaveLength(20);
@@ -406,7 +406,7 @@ describe('CSRF and token requests', () => {
     const refused = await post('/api/mail/messages/bulk-read', body, { cookie });
     expect(refused.status).toBe(403);
     expect(await refused.json()).toEqual({ error: 'Missing required X-Requested-With header' });
-    expect((await post('/api/mail/messages/bulk-read', body, { cookie, 'X-Requested-With': 'MailFlow' })).status).toBe(200);
+    expect((await post('/api/mail/messages/bulk-read', body, { cookie, 'X-Requested-With': 'Plimail' })).status).toBe(200);
   });
 
   it('only a token that authenticated is exempt, not an Authorization header', async () => {
@@ -437,7 +437,7 @@ describe('an Authorization header that is not an API token', () => {
 
   it.each([true, false])('still lets the browser sign in, tokens on: %s', async (enabled) => {
     db.enabled = enabled;
-    const res = await post('/api/auth/login', { username: 'u2' }, { ...JWT, 'X-Requested-With': 'MailFlow' });
+    const res = await post('/api/auth/login', { username: 'u2' }, { ...JWT, 'X-Requested-With': 'Plimail' });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ signedIn: 'u2' });
     expect(cookieFrom(res)).toMatch(/^connect\.sid=/);

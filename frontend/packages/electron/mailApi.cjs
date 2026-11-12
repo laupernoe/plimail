@@ -10,7 +10,7 @@ function sendMailFlowApiRequest(url, { method, body, cookies } = {}) {
         Accept: 'application/json',
         Cookie: cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join('; '),
         // The API's CSRF gate rejects a mutating request without this header.
-        'X-Requested-With': 'MailFlow',
+        'X-Requested-With': 'Plimail',
         ...(body ? { 'Content-Type': 'application/json' } : {}),
       },
     }, (response) => {

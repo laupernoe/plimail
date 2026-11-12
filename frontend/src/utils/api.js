@@ -7,7 +7,7 @@ const BASE = '/api';
 // triggers a CORS preflight the server rejects. Any raw fetch() to /api elsewhere
 // in the app must include this same header (see CSRF_HEADER).
 export const CSRF_HEADER = 'X-Requested-With';
-export const CSRF_VALUE = 'MailFlow';
+export const CSRF_VALUE = 'Plimail';
 const messageBodyRequests = new Map();
 // Hover prefetches of bodies under way (prefetchMessageBody), by the same keys.
 const prefetchRequests = new Map();
@@ -284,8 +284,6 @@ export const api = {
     unlinkUserIdentity: (id, identityId) => request('DELETE', `/admin/users/${id}/identities/${identityId}`),
     getSettings: () => request('GET', '/admin/settings'),
     updateSettings: (data) => request('PATCH', '/admin/settings', data),
-    getBusinessNotice: () => request('GET', '/admin/business-notice'),
-    setBusinessNotice: (choice) => request('POST', '/admin/business-notice', { choice }),
     getInvites: (params) => request('GET', '/admin/invites' + (params ? '?' + new URLSearchParams(params) : '')),
     createInvite: (email) => request('POST', '/admin/invites', { email }),
     deleteInvite: (id) => request('DELETE', `/admin/invites/${id}`),

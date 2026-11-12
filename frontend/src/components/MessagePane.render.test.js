@@ -1120,7 +1120,7 @@ describe('dark email bodies', () => {
     assert.equal(toggle().getAttribute('aria-label'), 'message.showOriginal');
   });
 
-  test('HTML without its own dark design can be shown dark too: MailFlow recolors it', async () => {
+  test('HTML without its own dark design can be shown dark too: Plimail recolors it', async () => {
     await open('dark-html-plain', { html: '<p>plain html</p>', text: '' });
     assert.equal(toggle().getAttribute('aria-label'), 'message.showDark');
     await click(toggle());
@@ -1498,7 +1498,7 @@ describe('List first back bar', () => {
       globalThis.history = realHistory;
     }
   });
-  test('without the opened message\'s history entry, Back closes it instead of leaving MailFlow', async () => {
+  test('without the opened message\'s history entry, Back closes it instead of leaving Plimail', async () => {
     // Opened before switching to List first, or restored after unlocking: no entry was pushed.
     const realHistory = globalThis.history;
     let backs = 0;

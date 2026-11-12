@@ -82,7 +82,7 @@ describe('scrubReport (safety net)', () => {
     expect(counters.hitsRedacted).toBeGreaterThanOrEqual(6);
   });
 
-  it('redacts a MailFlow API token, which no other pattern catches', () => {
+  it('redacts a Plimail API token, which no other pattern catches', () => {
     const token = `mfat_${'Ab3_-x'.repeat(7)}z`;
     const { scrubbed } = scrubReport({ bare: token, inText: `token was ${token}`, header: `Bearer ${token}` });
     expect(scrubbed).toEqual({ bare: '[redacted]', inText: '[redacted]', header: '[redacted]' });

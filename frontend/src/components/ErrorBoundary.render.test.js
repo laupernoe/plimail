@@ -77,7 +77,7 @@ describe('ErrorBoundary (#441)', () => {
     try {
       const host = await mount(React.createElement(Boom));
       assert.notEqual(host.textContent.trim(), '', 'boundary left the page blank');
-      assert.match(host.textContent, /MailFlow hit an error and stopped/);
+      assert.match(host.textContent, /Plimail hit an error and stopped/);
     } finally {
       console.error = realError;
     }
@@ -181,7 +181,7 @@ describe('ErrorBoundary (#441)', () => {
     test('reloads into the new version once the server answers', async () => {
       const { host, reloads } = await mountStale();
       assert.deepEqual(reloads, ['reload']);
-      assert.match(host.textContent, /MailFlow has been updated/);
+      assert.match(host.textContent, /Plimail has been updated/);
       assert.doesNotMatch(host.textContent, /hit an error and stopped/);
     });
 
@@ -208,7 +208,7 @@ describe('ErrorBoundary (#441)', () => {
         const host = await mount(React.createElement(Boom), { probeServer: async () => true, storage: memoryStorage(), reloadPage: () => reloads.push('reload') });
         await React.act(async () => { await new Promise(r => setTimeout(r, 0)); });
         assert.deepEqual(reloads, []);
-        assert.match(host.textContent, /MailFlow hit an error and stopped/);
+        assert.match(host.textContent, /Plimail hit an error and stopped/);
       } finally {
         console.error = realError;
       }

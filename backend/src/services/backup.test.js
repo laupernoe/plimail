@@ -379,22 +379,22 @@ describe('restoreBackup', () => {
 
   it.each([
     ['a file that is not gzip', () => Readable.from([Buffer.from('plain text')]), /could not be read/],
-    ['a gzip that is not JSON lines', () => file(['not json']), /not a MailFlow backup/],
+    ['a gzip that is not JSON lines', () => file(['not json']), /not a Plimail backup/],
     ['an empty file', () => file([]), /empty/],
     ['a newer file format', () => file([manifest({ format: BACKUP_FORMAT + 1 })]), /newer version/],
     // Format 1 carried json and jsonb parsed, where a JSON null had already become SQL NULL.
     ['the first file format', () => file([manifest({ format: 1 })]), /earlier file format/],
-    ['a newer schema', () => file([manifest({ schemaVersion: '0999_future' })]), /newer version of MailFlow \(3\.6\.0\)\. Update MailFlow/],
+    ['a newer schema', () => file([manifest({ schemaVersion: '0999_future' })]), /newer version of Plimail \(3\.6\.0\)\. Update Plimail/],
     // An update converts existing data as it migrates, so an older backup belongs on its own version.
-    ['an older schema', () => file([manifest({ schemaVersion: '0040_older' })]), /older version of MailFlow \(3\.6\.0\)\. Restore it on that version, then update/],
-    ['an older schema from an unnamed version', () => file([manifest({ schemaVersion: '0040_older', app: '<b>odd</b>' })]), /older version of MailFlow\. Restore/],
+    ['an older schema', () => file([manifest({ schemaVersion: '0040_older' })]), /older version of Plimail \(3\.6\.0\)\. Restore it on that version, then update/],
+    ['an older schema from an unnamed version', () => file([manifest({ schemaVersion: '0040_older', app: '<b>odd</b>' })]), /older version of Plimail\. Restore/],
     ['a different ENCRYPTION_KEY', () => file([manifest({ keyCheck: 'enc:something-else' })]), /different ENCRYPTION_KEY/],
     ['a key check that was never encrypted', () => file([manifest({ keyCheck: 'mailflow-backup-key-check' })]), /different ENCRYPTION_KEY/],
-    ['a manifest without a key check', () => file([manifest({ keyCheck: undefined })]), /not a MailFlow backup/],
-    ['malformed sequence positions', () => file([manifest({ sequences: { folder_status_revision: 'abc' } })]), /not a MailFlow backup/],
+    ['a manifest without a key check', () => file([manifest({ keyCheck: undefined })]), /not a Plimail backup/],
+    ['malformed sequence positions', () => file([manifest({ sequences: { folder_status_revision: 'abc' } })]), /not a Plimail backup/],
     ['a table this installation does not have', () => file([manifest({ tables: ['users', 'old_table'] })]), /does not have: old_table/],
     ['a table that is never restored', () => file([manifest({ tables: ['schema_migrations'] })]), /does not have: schema_migrations/],
-    ['a manifest without a table list', () => file([manifest({ tables: 'users' })]), /not a MailFlow backup/],
+    ['a manifest without a table list', () => file([manifest({ tables: 'users' })]), /not a Plimail backup/],
   ])('rejects %s before touching the database', async (_label, input, message) => {
     const client = restoreClient();
     const beforeWrite = vi.fn();

@@ -256,7 +256,7 @@ describe('syncUser in merge mode', () => {
   });
 
   it.each([
-    ['as MailFlow generated it', generateVCard(alice)],
+    ['as Plimail generated it', generateVCard(alice)],
     ['as a phone stored it', phoneCard],
     ['as a phone stored it under a UID other than its file name', phoneCard.replace('UID:local-uid', 'UID:5F2C9E1A:ABPerson')],
     ['under a UID the remote card has too', generateVCard({ ...alice, uid: 'nc-alice' }), 'nc-alice'],

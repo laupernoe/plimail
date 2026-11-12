@@ -22,13 +22,13 @@ const newMailNotifications = createNotificationRetainer();
 
 const CONFIG_FILE = 'mailflow-host.json';
 const UPDATE_STATUS_CHANNEL = 'mailflow:updates:status';
-const UPDATE_RELEASE_URL = 'https://api.github.com/repos/maathimself/mailflow/releases/latest';
+const UPDATE_RELEASE_URL = 'https://api.github.com/repos/laupernoe/plimail/releases/latest';
 
 /* Old dev fork url
 const UPDATE_RELEASE_URL = 'https://api.github.com/repos/dcoffin88/mailflow/releases/latest';
 */
 
-const UPDATE_ERROR_MESSAGE = 'Could not check for MailFlow updates. Please visit the website instead.';
+const UPDATE_ERROR_MESSAGE = 'Could not check for Plimail updates. Please visit the website instead.';
 const NATIVE_ACTION_CHANNEL = 'mailflow:native-action';
 const NATIVE_ACTION_ARG = '--mailflow-action=';
 const NEW_MAIL_NOTIFICATION_MAX_LENGTH = 240;
@@ -40,7 +40,7 @@ const REWRITE_ERROR_PATTERNS = [
 ];
 const HOST_UNAVAILABLE_STATUS_CODES = new Set([404, 502, 503, 504]);
 const LINUX_BADGE_DESKTOP_IDS = [
-  'MailFlow.desktop',
+  'Plimail.desktop',
   'mailflow.desktop',
   'sh.mailflow.app.desktop',
   'mailflow-frontend.desktop',
@@ -66,12 +66,15 @@ function isAllowedExternalUrl(url) {
 const pendingNativeActions = new Map();
 const pendingProtocolUrls = [];
 
-app.setName('MailFlow');
+app.setName('Plimail');
+// The saved server address lives in userData, which is named after the app. Keep the folder
+// the app was installed with, so a rename does not forget which server it talks to.
+app.setPath('userData', path.join(app.getPath('appData'), 'MailFlow'));
 if (process.platform === 'win32') {
   app.setAppUserModelId('sh.mailflow.app');
 }
 if (process.platform === 'linux' && typeof app.setDesktopName === 'function') {
-  app.setDesktopName('MailFlow.desktop');
+  app.setDesktopName('Plimail.desktop');
 }
 
 if (process.platform === 'linux' && process.env.APPIMAGE) {
@@ -109,15 +112,15 @@ function registerWindowsMailtoCapabilities() {
     const exePath = process.execPath;
     const command = `"${exePath}" "%1"`;
 
-    writeCurrentUserRegValue('HKCU\\Software\\RegisteredApplications', 'MailFlow', 'Software\\Clients\\Mail\\MailFlow\\Capabilities');
-    writeCurrentUserRegValue('HKCU\\Software\\Clients\\Mail\\MailFlow', '', 'MailFlow');
-    writeCurrentUserRegValue('HKCU\\Software\\Clients\\Mail\\MailFlow\\Capabilities', 'ApplicationName', 'MailFlow');
-    writeCurrentUserRegValue('HKCU\\Software\\Clients\\Mail\\MailFlow\\Capabilities', 'ApplicationDescription', 'A self-hosted, unified webmail client.');
-    writeCurrentUserRegValue('HKCU\\Software\\Clients\\Mail\\MailFlow\\Capabilities\\URLAssociations', 'mailto', 'MailFlow.mailto');
-    writeCurrentUserRegValue('HKCU\\Software\\Classes\\MailFlow.mailto', '', 'URL:MailFlow MailTo Protocol');
-    writeCurrentUserRegValue('HKCU\\Software\\Classes\\MailFlow.mailto', 'URL Protocol', '');
-    writeCurrentUserRegValue('HKCU\\Software\\Classes\\MailFlow.mailto\\DefaultIcon', '', `${exePath},0`);
-    writeCurrentUserRegValue('HKCU\\Software\\Classes\\MailFlow.mailto\\shell\\open\\command', '', command);
+    writeCurrentUserRegValue('HKCU\\Software\\RegisteredApplications', 'Plimail', 'Software\\Clients\\Mail\\Plimail\\Capabilities');
+    writeCurrentUserRegValue('HKCU\\Software\\Clients\\Mail\\Plimail', '', 'Plimail');
+    writeCurrentUserRegValue('HKCU\\Software\\Clients\\Mail\\Plimail\\Capabilities', 'ApplicationName', 'Plimail');
+    writeCurrentUserRegValue('HKCU\\Software\\Clients\\Mail\\Plimail\\Capabilities', 'ApplicationDescription', 'A self-hosted, unified webmail client.');
+    writeCurrentUserRegValue('HKCU\\Software\\Clients\\Mail\\Plimail\\Capabilities\\URLAssociations', 'mailto', 'Plimail.mailto');
+    writeCurrentUserRegValue('HKCU\\Software\\Classes\\Plimail.mailto', '', 'URL:Plimail MailTo Protocol');
+    writeCurrentUserRegValue('HKCU\\Software\\Classes\\Plimail.mailto', 'URL Protocol', '');
+    writeCurrentUserRegValue('HKCU\\Software\\Classes\\Plimail.mailto\\DefaultIcon', '', `${exePath},0`);
+    writeCurrentUserRegValue('HKCU\\Software\\Classes\\Plimail.mailto\\shell\\open\\command', '', command);
 
     return true;
   } catch (error) {
@@ -179,7 +182,7 @@ function requestJson(url) {
     const request = https.get(url, {
       headers: {
         Accept: 'application/vnd.github+json',
-        'User-Agent': `MailFlow/${app.getVersion()}`,
+        'User-Agent': `Plimail/${app.getVersion()}`,
       },
     }, (response) => {
       if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
@@ -290,7 +293,7 @@ function getInstalledLinuxPackageType() {
 function getLinuxPackageManagerVersion(packageType) {
   if (process.platform !== 'linux' || !['deb', 'rpm'].includes(packageType)) return null;
 
-  const packageNames = ['mailflow', 'MailFlow', 'mailflow-frontend'];
+  const packageNames = ['mailflow', 'Plimail', 'mailflow-frontend'];
   for (const packageName of packageNames) {
     try {
       const args = packageType === 'rpm'
@@ -663,7 +666,7 @@ function notifyCheckingUpdate(verbose) {
   sendUpdateStatus({ type: 'checking' });
   notifyUpdateStatus({
     title: 'Checking for update',
-    message: 'Checking for new MailFlow updates.',
+    message: 'Checking for new Plimail updates.',
   });
 }
 
@@ -682,7 +685,7 @@ function notifyUpToDate(verbose) {
   sendUpdateStatus({ type: 'up-to-date' });
   notifyUpdateStatus({
     title: 'Up to date',
-    message: 'Your version of MailFlow is up to date.',
+    message: 'Your version of Plimail is up to date.',
     type: 'positive',
   });
 }
@@ -716,7 +719,7 @@ function notifyUpdateAvailable(verbose = true, { autoDownload = true } = {}) {
     if (verbose || releaseVersion !== lastNotifiedManualUpdateVersion) {
       showInAppNotification({
         title: 'Update Available',
-        message: 'A new version of MailFlow is available.',
+        message: 'A new version of Plimail is available.',
         type: 'info',
         actionLabel: 'View Release',
         action: 'open-update-release',
@@ -735,7 +738,7 @@ function notifyUpdateAvailable(verbose = true, { autoDownload = true } = {}) {
 
   notifyUpdateStatus({
     title: 'Update Available',
-    message: 'MailFlow is downloading the newest version for you.',
+    message: 'Plimail is downloading the newest version for you.',
   });
 }
 
@@ -743,7 +746,7 @@ function notifyUpdateDownloaded() {
   const linuxInstallCommand = getLinuxUpdateInstallCommand(downloadedUpdate);
   const isLinuxManualInstall = Boolean(linuxInstallCommand);
   const linuxInstallMessage = linuxInstallCommand
-    ? `MailFlow downloaded and verified the update. Install it from a terminal with:\n${linuxInstallCommand}`
+    ? `Plimail downloaded and verified the update. Install it from a terminal with:\n${linuxInstallCommand}`
     : null;
 
   sendUpdateStatus({
@@ -761,7 +764,7 @@ function notifyUpdateDownloaded() {
   });
   showInAppNotification({
     title: 'Update Ready',
-    message: linuxInstallMessage || 'MailFlow downloaded the update.',
+    message: linuxInstallMessage || 'Plimail downloaded the update.',
     type: 'positive',
     actionLabel: isLinuxManualInstall ? 'Copy & Quit' : 'Install',
     action: isLinuxManualInstall ? 'copy-update-command-and-quit' : 'install-update',
@@ -899,7 +902,7 @@ function verifyPlatformSignature(filePath) {
     const installed = readWindowsSignature(process.execPath);
     const downloaded = readWindowsSignature(filePath);
     if (!hasMatchingWindowsPublisher(installed, downloaded)) {
-      throw new Error('The update is not signed by the installed MailFlow publisher.');
+      throw new Error('The update is not signed by the installed Plimail publisher.');
     }
     return;
   }
@@ -918,7 +921,7 @@ function verifyPlatformSignature(filePath) {
     const installed = readMacSignatureDetails(process.execPath);
     const downloaded = readMacSignatureDetails(filePath);
     if (!hasMatchingMacTeam(installed, downloaded)) {
-      throw new Error('The update is not signed by the installed MailFlow team.');
+      throw new Error('The update is not signed by the installed Plimail team.');
     }
   }
 }
@@ -1045,7 +1048,7 @@ async function checkForUpdates(verbose = false) {
     }
 
     if (!asset) {
-      notifyUpdateError('A MailFlow update is available, but no installer was found for this platform.');
+      notifyUpdateError('A Plimail update is available, but no installer was found for this platform.');
       return { updateAvailable: true, downloadAvailable: false };
     }
 
@@ -1143,7 +1146,7 @@ function installDownloadedUpdate() {
 
         console.error('Could not launch downloaded update:', launchError);
         shell.showItemInFolder(downloadedUpdate);
-        notifyUpdateError('The update was downloaded, but MailFlow could not start the installer.');
+        notifyUpdateError('The update was downloaded, but Plimail could not start the installer.');
         resolve({ installed: false, reason: 'launch-failed', error: launchError.message });
       }
     });
@@ -1307,7 +1310,7 @@ function changeMailFlowHost() {
 function fileMenuItems() {
   return [
     {
-      label: 'Change MailFlow Host',
+      label: 'Change Plimail Host',
       accelerator: 'CmdOrCtrl+,',
       click: changeMailFlowHost,
     },
@@ -1370,16 +1373,16 @@ function helpMenuItems() {
   return [
     {
       label: 'Learn More',
-      click: () => shell.openExternal('https://mailflow.sh'),
+      click: () => shell.openExternal('https://github.com/laupernoe/plimail'),
     },
     { type: 'separator' },
     {
       label: 'Help',
-      click: () => shell.openExternal('https://mailflow.sh/docs'),
+      click: () => shell.openExternal('https://github.com/laupernoe/plimail#readme'),
     },
     {
       label: 'Report Issue',
-      click: () => shell.openExternal('https://github.com/maathimself/mailflow/issues'),
+      click: () => shell.openExternal('https://github.com/laupernoe/plimail/issues'),
     },
     { type: 'separator' },
     {
@@ -1597,7 +1600,7 @@ function refreshTrayMenu() {
     ...nativeActionMenuItems(),
     { type: 'separator' },
     {
-      label: isWindowVisible ? 'Hide MailFlow' : 'Show MailFlow',
+      label: isWindowVisible ? 'Hide Plimail' : 'Show Plimail',
       click: () => {
         if (isWindowVisible) {
           saveWindowBounds();
@@ -1609,7 +1612,7 @@ function refreshTrayMenu() {
     },
     { type: 'separator' },
     {
-      label: 'Change MailFlow Host',
+      label: 'Change Plimail Host',
       click: () => {
         clearHost();
         showMainWindow();
@@ -1631,7 +1634,7 @@ function createTray() {
   if (trayIcon.isEmpty()) return;
 
   tray = new Tray(trayIcon);
-  tray.setToolTip('MailFlow');
+  tray.setToolTip('Plimail');
   tray.on('click', () => {
     refreshTrayMenu();
     showMainWindow({ reload: true });
@@ -1654,7 +1657,7 @@ function setupTaskbarTasks() {
       iconPath: getWindowIconPath(),
       iconIndex: 0,
       title: 'New Mail',
-      description: 'Compose a new MailFlow message',
+      description: 'Compose a new Plimail message',
     },
     {
       program: process.execPath,
@@ -1662,7 +1665,7 @@ function setupTaskbarTasks() {
       iconPath: getWindowIconPath(),
       iconIndex: 0,
       title: 'Sync',
-      description: 'Sync MailFlow mail',
+      description: 'Sync Plimail mail',
     },
   ]);
 }
@@ -1672,7 +1675,7 @@ function createWindow() {
     ...getDefaultWindowBounds(),
     ...getSavedWindowBounds(),
     show: false,
-    title: 'MailFlow',
+    title: 'Plimail',
     icon: getWindowIconPath(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
@@ -1826,12 +1829,12 @@ ipcMain.handle('mailflow:saveHost', async (_event, host) => {
       defaultId: 1,
       cancelId: 1,
       noLink: true,
-      title: 'Unencrypted MailFlow connection',
-      message: 'Traffic to this MailFlow server is not encrypted.',
+      title: 'Unencrypted Plimail connection',
+      message: 'Traffic to this Plimail server is not encrypted.',
       detail: 'Your session cookie and email data can be read or changed by anyone who can observe this network. Continue only on a private network you trust.',
     });
     if (result.response !== 0) {
-      throw new Error('The unencrypted MailFlow host was not saved.');
+      throw new Error('The unencrypted Plimail host was not saved.');
     }
   }
 

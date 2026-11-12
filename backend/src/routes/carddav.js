@@ -78,14 +78,14 @@ const refuse = (res, reason) => res.status(403).set('Content-Type', 'text/plain'
 async function cardavAuth(req, res, next) {
   const auth = req.headers['authorization'] || '';
   if (!auth.startsWith('Basic ')) {
-    res.setHeader('WWW-Authenticate', 'Basic realm="MailFlow CardDAV"');
+    res.setHeader('WWW-Authenticate', 'Basic realm="Plimail CardDAV"');
     return res.status(401).end();
   }
 
   const decoded = Buffer.from(auth.slice(6), 'base64').toString('utf8');
   const colon   = decoded.indexOf(':');
   if (colon < 0) {
-    res.setHeader('WWW-Authenticate', 'Basic realm="MailFlow CardDAV"');
+    res.setHeader('WWW-Authenticate', 'Basic realm="Plimail CardDAV"');
     return res.status(401).end();
   }
 
@@ -118,7 +118,7 @@ async function cardavAuth(req, res, next) {
     }
     const authFail = () => {
       logAuthEvent('carddav_auth_fail', { username: username || null, ip: req.ip, success: false });
-      res.setHeader('WWW-Authenticate', 'Basic realm="MailFlow CardDAV"');
+      res.setHeader('WWW-Authenticate', 'Basic realm="Plimail CardDAV"');
       return res.status(401).end();
     };
     if (!user || !user.password_hash) {

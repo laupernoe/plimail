@@ -57,7 +57,7 @@ describe('summarize', () => {
 });
 
 describe('paintsImage', () => {
-  test('an image or gradient paints; none, and images MailFlow blocked, do not', () => {
+  test('an image or gradient paints; none, and images Plimail blocked, do not', () => {
     assert.equal(paintsImage('url("https://example.invalid/a.png")'), true);
     assert.equal(paintsImage('linear-gradient(rgb(0, 0, 0), rgb(255, 255, 255))'), true);
     assert.equal(paintsImage('none'), false);

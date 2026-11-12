@@ -10,7 +10,7 @@ test('blocked: no remote image, font or media at all', () => {
 
 // Firefox does not count the page's origin as 'self' inside a srcdoc frame, and refused every
 // proxied image; naming the origin fixes it there and changes nothing elsewhere.
-test('proxied: images from MailFlow, named by origin as well as self', () => {
+test('proxied: images from Plimail, named by origin as well as self', () => {
   assert.equal(proxiedRemoteLoads('https://mail.example.invalid'), "img-src 'self' https://mail.example.invalid data: blob:; font-src data:; media-src data: blob:;");
   assert.equal(remoteLoadsCsp(false, true, 'http://127.0.0.1:8080'), " img-src 'self' http://127.0.0.1:8080 data: blob:; font-src data:; media-src data: blob:;");
 });

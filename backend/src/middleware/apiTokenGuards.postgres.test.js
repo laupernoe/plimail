@@ -17,11 +17,11 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('API token guards Postg
   const ACCOUNT = '22222222-2222-4222-8222-222222222222';
   const GMAIL = '33333333-3333-4333-8333-333333333333';
   const THEIRS = '44444444-4444-4444-8444-444444444444';
-  const MOVE_ERROR = 'API tokens cannot move mail into Trash, Junk, Drafts, Snoozed or folders MailFlow does not sync';
+  const MOVE_ERROR = 'API tokens cannot move mail into Trash, Junk, Drafts, Snoozed or folders Plimail does not sync';
   const DRAFT_ERROR = 'API tokens cannot move or archive drafts';
-  const ALL_MAIL_ERROR = "API tokens cannot archive into Gmail's All Mail, where the mail drops out of MailFlow. "
+  const ALL_MAIL_ERROR = "API tokens cannot archive into Gmail's All Mail, where the mail drops out of Plimail. "
     + "Create a Gmail label named Archive, or choose an archive folder in the account's settings.";
-  const ARCHIVE_ERROR = 'API tokens cannot archive into Trash, Junk, Drafts, Snoozed or folders MailFlow does not sync: '
+  const ARCHIVE_ERROR = 'API tokens cannot archive into Trash, Junk, Drafts, Snoozed or folders Plimail does not sync: '
     + "check the account's archive folder setting.";
   let nextId = 1;
   const newId = () => `00000000-0000-4000-8000-${String(nextId++).padStart(12, '0')}`;
@@ -122,7 +122,7 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('API token guards Postg
     for (const folder of ['Old', 'Filtered', 'Wip']) expect(await move([id], folder), folder).toBe(MOVE_ERROR);
   });
 
-  it('refuses a Gmail folder MailFlow does not sync', async () => {
+  it('refuses a Gmail folder Plimail does not sync', async () => {
     expect(await move([await message({ account: GMAIL })], '[Gmail]/Important')).toBe(MOVE_ERROR);
   });
 

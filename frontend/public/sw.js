@@ -30,7 +30,7 @@ self.addEventListener('push', (event) => {
   }
 
   const {
-    title       = 'MailFlow',
+    title       = 'Plimail',
     body        = 'New message',
     icon        = '/icon-512.png',
     badge       = '/badge-96.png',
@@ -138,7 +138,7 @@ function apiRequest(method, path, body) {
   return fetch(path, {
     method,
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'MailFlow' },
+    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'Plimail' },
     body: JSON.stringify(body),
   });
 }

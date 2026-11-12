@@ -73,33 +73,8 @@ export function normalizeTheme(name) {
   return Object.prototype.hasOwnProperty.call(THEMES, name) ? name : 'system';
 }
 
-// ── Color helpers ────────────────────────────────────────────────────────────
-
-function hexToRgb(hex) {
-  return [
-    parseInt(hex.slice(1, 3), 16),
-    parseInt(hex.slice(3, 5), 16),
-    parseInt(hex.slice(5, 7), 16),
-  ];
-}
-
-function lighten(hex, t) {
-  return '#' + hexToRgb(hex)
-    .map(c => Math.min(255, Math.round(c + (255 - c) * t)).toString(16).padStart(2, '0'))
-    .join('');
-}
-
-function darken(hex, t) {
-  return '#' + hexToRgb(hex)
-    .map(c => Math.round(c * (1 - t)).toString(16).padStart(2, '0'))
-    .join('');
-}
-
-function buildFaviconSvg(accent, count = 0) {
-  const light = lighten(accent, 0.25);
-  const dark  = darken(accent, 0.30);
-  const [dr, dg, db] = hexToRgb(dark);
-
+// The favicon is the monochrome Plimail mark on a near-black tile; it does not follow the accent.
+function buildFaviconSvg(_accent, count = 0) {
   let badge = '';
   if (count > 0) {
     const label = count > 99 ? '99+' : String(count);
@@ -112,29 +87,12 @@ function buildFaviconSvg(accent, count = 0) {
             `fill="white" font-family="system-ui,sans-serif" font-weight="800" font-size="${fs}">${label}</text>`;
   }
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${light}"/>
-      <stop offset="100%" stop-color="${dark}"/>
-    </linearGradient>
-    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="rgba(255,255,255,0.14)"/>
-      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-    </linearGradient>
-    <clipPath id="ec">
-      <rect x="5" y="10.5" width="22" height="15" rx="2.5"/>
-    </clipPath>
-  </defs>
-  <rect width="32" height="32" rx="7.5" fill="url(#bg)"/>
-  <rect width="32" height="16" rx="7.5" fill="url(#shine)"/>
-  <rect x="5" y="11.5" width="22" height="15" rx="2.5" fill="rgba(0,0,0,0.18)"/>
-  <rect x="5" y="10.5" width="22" height="15" rx="2.5" fill="white"/>
-  <path d="M5,10.5 L16,20.5 L27,10.5 Z" fill="rgba(${dr},${dg},${db},0.10)" clip-path="url(#ec)"/>
-  <path d="M5,10.5 L16,20.5 L27,10.5" fill="none" stroke="rgba(${dr},${dg},${db},0.38)" stroke-width="1.4" stroke-linejoin="round" clip-path="url(#ec)"/>
-  <line x1="5" y1="25.5" x2="13" y2="20" stroke="rgba(${dr},${dg},${db},0.16)" stroke-width="1.1"/>
-  <line x1="27" y1="25.5" x2="19" y2="20" stroke="rgba(${dr},${dg},${db},0.16)" stroke-width="1.1"/>
-  ${badge}
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="32" height="32">
+  <rect width="48" height="48" rx="11" fill="#07080a"/>
+  <g transform="translate(0 -1.5)" fill="none" stroke="#eceef1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 13a2 2 0 0 1 2-2h21l9 9v15a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2z"/><path d="M31 11v9h9"/><path d="M8 15l16 12 7-5.3"/>
+  </g>
+  <g transform="scale(1.5)">${badge}</g>
 </svg>`;
 }
 

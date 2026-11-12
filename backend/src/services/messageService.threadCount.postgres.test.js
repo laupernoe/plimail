@@ -84,7 +84,7 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('threaded Inbox message
       expect(row.subject).toBe('Question');
     });
 
-    it(`counts a conversation started from MailFlow after the first reply (${scope} Inbox)`, async () => {
+    it(`counts a conversation started from Plimail after the first reply (${scope} Inbox)`, async () => {
       await insert('Sent', '<s@me>', '<s@me>', '2026-10-01T09:00Z', 'Proposal');
       await insert('INBOX', '<r1@ext>', '<s@me>', '2026-10-01T12:00Z', 'Re: Proposal');
 

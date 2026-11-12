@@ -35,7 +35,7 @@ describe('scrubReport (client safety net)', () => {
     assert.ok(counters.hitsRedacted >= 3);
   });
 
-  it('redacts a MailFlow API token (#617), which no other pattern catches', () => {
+  it('redacts a Plimail API token (#617), which no other pattern catches', () => {
     // Shaped like a real one: mfat_ and 43 base64url characters, mixed case, no long hex run.
     const token = 'mfat_q7Vf3kLmN0pR2sT4uW6yZ8aC1eG3iK5mO7qS9uX_w2Y';
     const { scrubbed } = scrubReport({ note: `tool config had ${token}`, ok: 'mfa_enforcement' });

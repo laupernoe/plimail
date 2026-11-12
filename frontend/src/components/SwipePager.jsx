@@ -173,7 +173,7 @@ export default function SwipePager({ enabled, prev, next, navKey, onNavigate, on
         </div>
         {next && <Peek row={next} side="next" />}
       </div>
-      {/* The back swipe's edge: over the frame, so its touches stay in MailFlow's page. */}
+      {/* The back swipe's edge: over the frame, so its touches stay in Plimail's page. */}
       <div data-swipe-edge="" aria-hidden="true" style={{
         position: 'absolute', left: 0, top: 0, bottom: 0, width: 16, zIndex: 2, touchAction: 'pan-y',
       }} />

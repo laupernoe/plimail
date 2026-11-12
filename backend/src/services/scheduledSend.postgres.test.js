@@ -287,7 +287,7 @@ describe.skipIf(!ADMIN_URL)('scheduled sender on PostgreSQL (#543)', () => {
       expect(await rowOf(late.id)).toMatchObject({ status: 'sent', sent_late: true });
       expect(h.sent.map(s => s.opts.messageId)).toEqual([late.messageId]);
       expect(sendPushToUser).toHaveBeenCalledTimes(1);
-      expect(sendPushToUser.mock.calls[0][1].body).toMatch(/^Not sent: was scheduled for .*MailFlow was offline/);
+      expect(sendPushToUser.mock.calls[0][1].body).toMatch(/^Not sent: was scheduled for .*Plimail was offline/);
     });
 
     it('ends as the error says: retry, failed, paused or uncertain', async () => {
@@ -631,7 +631,7 @@ describe.skipIf(!ADMIN_URL)('scheduled sender on PostgreSQL (#543)', () => {
       expect(sendPushToUser).not.toHaveBeenCalled();
     });
 
-    it('a send a crash cut off before SMTP is late because MailFlow was offline, and held past the grace', async () => {
+    it('a send a crash cut off before SMTP is late because Plimail was offline, and held past the grace', async () => {
       const left = { status: 'sending', claim_token: randomUUID(), claimed_at: new Date(Date.now() - 3_600_000), attempts: 1 };
       const recent = await schedule({ sendAt: new Date(Date.now() - 20 * 60_000), state: left });
       const old = await schedule({ sendAt: new Date(Date.now() - 7 * 3_600_000), state: { ...left, claim_token: randomUUID() } });
@@ -644,7 +644,7 @@ describe.skipIf(!ADMIN_URL)('scheduled sender on PostgreSQL (#543)', () => {
       expect(await rowOf(old.id)).toMatchObject({ status: 'paused', pause_reason: 'overdue' });
       expect(h.sent.map(m => m.opts.messageId)).toEqual([recent.messageId]);
       expect(sendPushToUser).toHaveBeenCalledOnce();
-      expect(sendPushToUser.mock.calls[0][1].body).toMatch(/MailFlow was offline/);
+      expect(sendPushToUser.mock.calls[0][1].body).toMatch(/Plimail was offline/);
     });
 
     it('calls a late first send offline only when it fell due before the sender started', async () => {

@@ -721,7 +721,7 @@ router.get('/messages/:id/body', async (req, res) => {
     // that MailFlow is already backing off, instead of the raw server string.
     if (err.providerRefusing || isConnectionRefusal(msg)) {
       return res.status(503).json({
-        error: 'The mail server is limiting connections for this account. MailFlow is backing off and will retry automatically; please try again shortly.',
+        error: 'The mail server is limiting connections for this account. Plimail is backing off and will retry automatically; please try again shortly.',
         providerLimited: true,
       });
     }
@@ -2899,7 +2899,7 @@ router.post('/messages/:id/unsubscribe', async (req, res) => {
       // internal address. (The validateHost above stays as a fast pre-check.)
       const unsub = await safeFetch(httpsUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'Mailflow/1.0' },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'Plimail/1.0' },
         body: 'List-Unsubscribe=One-Click',
         signal: AbortSignal.timeout(10000),
       });

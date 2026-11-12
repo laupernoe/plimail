@@ -1,751 +1,98 @@
 <p align="center">
-  <img src="media/mailflow-logo.png" width="200" alt="MailFlow Logo">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="media/plimail-logo-light.png">
+    <img src="media/plimail-logo-dark.png" width="320" alt="plimail">
+  </picture>
 </p>
+
+<p align="center">A lighter, self-hosted unified webmail client with calendars.</p>
 
 <p align="center">
-  A self-hosted, unified webmail client. Connect multiple IMAP/SMTP accounts and manage them all in one clean interface.
+  <a href="LICENSE">AGPL-3.0</a> ·
+  <a href="https://github.com/laupernoe/plimail">Source code</a> ·
+  <a href="https://github.com/laupernoe/plimail/issues">Issues</a>
 </p>
 
-<p align="center">
-  <a href="#installation">Quick Start</a> ·
-  <a href="#email-provider-setup">Setup Guide</a> ·
-  <a href="#supporters">Support MailFlow</a> ·
-  <a href="https://mailflow.sh/#roadmap">Roadmap</a>
-</p>
+Plimail puts every IMAP mailbox you own in one inbox, and keeps your calendars next to it. It runs
+as a handful of Docker containers on your own server (Node/Express backend, React frontend,
+PostgreSQL, Redis), and your mail stays on your mail servers: Plimail caches headers and bodies
+for speed, and sends flag changes, moves and deletes back to IMAP.
 
-## Licensing
+> Plimail is a fork of MailFlow by Matt (https://github.com/maathimself/mailflow), licensed AGPL-3.0.
+> See [NOTICE](NOTICE) for what changed.
 
-Licensing and paid options:
+## What it does
 
-- **[AGPL-3.0](LICENSE)**: free for everyone, individuals and businesses, to self-host. If you modify MailFlow and let others use it over a network, you must publish your changes under the same license.
-- **Business License**: $100 per instance per year, plus tax. MailFlow is free for everyone under the AGPL, including businesses. If you use it in a business, we ask you to buy a yearly license to support development. It isn't legally required or enforced. [Buy one here](https://mailflow.sh/#pricing), or sponsor at $40/month on [GitHub Sponsors](https://github.com/sponsors/maathimself), which includes one.
-- **[Private modifications license](LICENSE-COMMERCIAL)** (commercial license): $500 per installation, one-time, plus tax. Only for a business that wants to modify MailFlow and run it without publishing its changes; most businesses don't need it. [Purchase here](https://mailflow.sh/#pricing).
-- **Hosting providers and MSPs**: partner plans for offering MailFlow to your customers: a revenue share for hosting platforms, or MSP plans: Starter at $500 per year for 5 client instances, and Partner at $1,200 per year for 20 (plus tax). Partners are listed on mailflow.sh and get an email before each security release with its date and severity; the fix itself is public to everyone at the same time. [Details](https://mailflow.sh/#pricing), or get in touch at contact@mailflow.sh.
-- **Business support**: from $600 per year, plus tax, for teams that rely on MailFlow, with help setting up, priority answers and a say in the roadmap. Includes a business license. Get in touch at contact@mailflow.sh.
+- **Unified inbox** across any number of IMAP/SMTP accounts, with OAuth sign-in for Google and Microsoft
+- **Threads, search, snooze, rules, categories, unsubscribe, scheduled send, drafts**
+- **Calendars** over CalDAV, with their own settings and an upcoming-events pane
+- **Contacts** from CardDAV, with autocomplete learned from sent mail
+- **Themes, layouts, keyboard shortcuts and 11 interface languages**
+- **PWA, desktop (Electron) and Android shells**, web push notifications
+- **Plugins** through a sandboxed API (see `backend/src/plugins/README.md`)
+- **Single sign-on** (OIDC), TOTP, invite-only registration, API tokens
+- Remote images are proxied, and message HTML is sanitized before it is stored
 
-**Personal self-hosting is free and always will be.**
+## Run it
 
-If you contribute code, please read the [Contributor License Agreement](CLA.md). By submitting a pull request you agree to its terms.
-
-
-## Features
-
-- **Unified inbox** — all accounts merged in one view, sorted by date
-- **Sender imagery** — real manual/CardDAV contact photos take priority, with optional domain favicons proxied and cached through Twenty Icons and deterministic initials as the offline fallback; disable sender favicons under Appearance to prevent lookups for your user
-- **Email categorization** — automatic inbox tabs (Primary, Newsletters, Social, Notifications, Other) sort incoming mail by type using header detection and sender heuristics; AI reclassify button for misclassifications
-- **Unsubscribe** — one-click unsubscribe button appears in the message pane for detected newsletters; sends the request or opens the unsubscribe URL automatically
-- **Conversation threads** — messages grouped into reply chains with inline sent replies
-- **Rich text compose** — WYSIWYG editor with font family, size, color, highlight, tables, emoji, links, attachments, image resize handles, and Excel table paste
-- **Attachments** — send and receive file attachments across all accounts
-- **Multiple layouts** — classic, compact, wide reader, vertical split, and more
-- **Multiple themes** — dark, light, and several color schemes; custom CSS field for per-user style overrides
-- **Multi-language UI** — English, French, Spanish, Italian, German, Russian, Simplified Chinese, Polish, Czech, Brazilian Portuguese, and Korean
-- **Full-text search** — across all connected accounts simultaneously
-- **Real-time notifications** — WebSocket-powered new-mail toasts and web push notifications
-- **PWA** — installable as a desktop or mobile app with push notification support
-- **Command palette** — Cmd+K / Ctrl+K quick-access for actions and navigation
-- **Keyboard shortcuts** — full shortcut set, fully customizable per user
-- **Smart contact autocomplete** — learns from sent mail to rank suggestions
-- **Reply / Forward / Compose** — correct per-account SMTP routing; font family groups, email priority
-- **Folder navigation** — expand any account to browse folders
-- **Folder-structure sync** — folders created or renamed in other clients appear automatically, on a configurable interval or on demand
-- **Star, archive, delete, mark read/unread** — synced back to IMAP
-- **Mark-as-read behavior** — choose immediate (on open), after a configurable delay in seconds, or manual (button only) per-user preference
-- **Inbox rules** — automate actions (move, archive, delete, mark read, star) based on sender, subject, recipient, headers, body, or attachments
-- **Block list** — automatically move mail from blocked senders to trash before inbox rules run
-- **Spam reporting** — mark messages as spam or not spam from the context menu, toolbar, or bulk actions; feedback will feed into automated filtering in a future release
-- **Snooze** — snooze messages until a chosen time; they reappear at the top of the inbox
-- **AI assistant** — use an OpenAI-compatible API provider or a ChatGPT Codex subscription; summarize threads, draft replies, ask questions about a message; admins choose which users may use it
-- **Password recovery** — recover your account via a recovery email address configured in profile settings
-- **User management** — admin panel, invite-only registration, invite emails
-- **Two-factor authentication** — TOTP (any authenticator app), email OTP fallback, persistent device trust; admin-configurable enforcement policy
-- **SSO / OIDC** — single sign-on via any OpenID Connect provider; group claims from the IdP can be mapped to the MailFlow admin role, with optional RP-initiated (end-session) logout to sign out of the provider too
-- **Microsoft 365 / OAuth2** — work accounts via Azure App Registration; personal Outlook.com via device code flow
-- **Todoist integration** — create tasks directly from emails; tasks include a deep link back to the original message
-- **Calendars (CalDAV)** — connect any number of CalDAV servers (Nextcloud, iCloud, Fastmail, Radicale, ...) with month, week, day and agenda views; events, recurring series and single occurrences are created, edited and deleted in two-way sync
-- **CardDAV** — expose your MailFlow contacts as a CardDAV address book for sync with phone and desktop contact apps; contact photos sync and appear as sender avatars in the message list
-- **GTD workflow** — optional Getting-Things-Done rail: label threads Todo / Watch / Delegated / Someday / Reference (each backed by a real IMAP folder) with the t / w / d keys; opt in per account, see below
-
----
-
-## GTD (Getting Things Done)
-
-An optional Getting-Things-Done workflow, off by default and enabled per account
-under Settings → Categories → GTD. When on, a rail beside the message list
-groups threads into five states, each backed by a real IMAP folder — so the labels
-are just server-side folders that sync to every mail client and survive MailFlow
-itself:
-
-- **Todo** / **Someday** — things you need to act on; the label clears itself once your latest non-draft reply is sent.
-- **Watch** / **Delegated** — things you're waiting on; kept until you remove the label or mark the thread done.
-- **Reference** — kept until you remove the label or mark the thread done.
-
-Label the selected thread from the keyboard — **t** for Todo, **w** for Watch,
-**d** for Delegated, **v** for Reference, **b** for Someday, and **Shift+E** for Done
-(all remappable in the keyboard-shortcut settings) — or from the context menu. Each state's folder name is
-configurable per account. Applying a GTD state preserves every member in the target before removing the
-thread's old GTD copies. Inbox and ordinary labels remain intact. A state switch
-ends pending Undo windows; an initial classification still offers Undo when supported. Accounts
-with GTD off behave exactly as before.
-
----
-
-## Screenshots
-
-<table>
-  <tr>
-    <td align="center"><img src="media/mailflow-ss-default.png" alt="Default dark theme"><br><sub>Default dark theme</sub></td>
-    <td align="center"><img src="media/mailflow-ss-light.png" alt="Light theme"><br><sub>Light theme</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="media/mailflow-ss-catppuccin.png" alt="Catppuccin theme"><br><sub>Catppuccin theme</sub></td>
-    <td align="center"><img src="media/mailflow-ss-gruvbox.png" alt="Gruvbox theme"><br><sub>Gruvbox theme</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="media/mailflow-ss-compose.png" alt="Compose window"><br><sub>Compose window</sub></td>
-    <td align="center"><img src="media/mailflow-ss-collapsed-sidebar.png" alt="Collapsed sidebar"><br><sub>Collapsed sidebar</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="media/mailflow-ss-accounts.png" alt="Account management"><br><sub>Account management</sub></td>
-    <td align="center"><img src="media/mailflow-ss-accounts-expanded.png" alt="Folder navigation"><br><sub>Folder navigation</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="media/mailflow-ss-layout.png" alt="Layout options"><br><sub>Layout options</sub></td>
-    <td align="center"><img src="media/mailflow-ss-appearance.png" alt="Appearance settings"><br><sub>Appearance settings</sub></td>
-  </tr>
-</table>
-
----
-
-## Installation
-
-There are three ways to run MailFlow. The pre-built image method is recommended for most users.
-
----
-
-## Option A — Pre-built images (recommended)
-
-No cloning or building required. Docker pulls the pre-built images directly from GHCR.
-
-### Prerequisites
-
-- A server with Docker and Docker Compose installed
-
-### 1. Download the compose file and default config
+You need Docker with the compose plugin.
 
 ```bash
-curl -o docker-compose.yml https://raw.githubusercontent.com/maathimself/mailflow/main/docker-compose.ghcr.yml
-curl -o .env               https://raw.githubusercontent.com/maathimself/mailflow/main/.env.example
-```
-
-### 2. Configure environment
-
-Edit `.env` — the required fields are:
-
-| Variable | Description |
-|---|---|
-| `APP_URL` | Full URL, e.g. `https://mail.example.com` |
-| `SESSION_SECRET` | `openssl rand -hex 32` |
-| `DB_PASSWORD` | `openssl rand -hex 16` |
-| `ENCRYPTION_KEY` | `openssl rand -hex 32` |
-
-### 3. Start
-
-```bash
-docker compose up -d
-```
-
-MailFlow will be available on port 443 (HTTPS, self-signed certificate) and port 80 (HTTP).
-
-**Ports are configurable in `.env`:**
-
-| Variable | Default | Description |
-|---|---|---|
-| `APP_PORT` | `443` | HTTPS port |
-| `APP_HTTP_PORT` | `80` | HTTP port |
-| `NGINX_TLS` | `on` | `off` stops serving HTTPS on `APP_PORT` (see below) |
-
-**Optional — automatic HTTPS via Let's Encrypt:** set `DOMAIN` and `ACME_EMAIL` in `.env`, download the HTTPS overlay, then restart:
-
-```bash
-curl -o docker-compose.https.yml https://raw.githubusercontent.com/maathimself/mailflow/main/docker-compose.https.yml
-docker compose -f docker-compose.yml -f docker-compose.https.yml --profile https up -d
-```
-
-This adds a Caddy reverse proxy that handles certificate issuance and renewal automatically. Requires Docker Compose 2.21+, a public domain with DNS pointing at the server, and ports 80/443 open.
-
-**Optional — behind your own reverse proxy:** point your proxy at port 80. Set `APP_HTTP_PORT` in `.env` if you need a different host port. Your proxy should forward `X-Forwarded-Proto: https` so that session cookies are marked Secure correctly. To stop MailFlow's nginx serving HTTPS on port 443 and generating a certificate, set `NGINX_TLS=off` in `.env`. This needs a writable `/etc/nginx/conf.d`, so on a read-only filesystem mount a certificate in `/etc/nginx/ssl` instead. The `--profile https` setup always keeps HTTPS on, because Caddy connects to it.
-
-If clients can reach MailFlow only through your proxy, also set `TRUST_PROXY_HOPS=2` in `.env`, so the login rate limit sees each client's address rather than the proxy's. Docker publishes `APP_PORT` and `APP_HTTP_PORT` on every interface, and firewalls such as ufw do not filter them, so first bind both to an address only your proxy can reach, for example `APP_HTTP_PORT=127.0.0.1:8080` and `APP_PORT=127.0.0.1:8443` for a proxy on the same host. Without that, leave `TRUST_PROXY_HOPS` unset: a client that connects directly could choose the address it is rate-limited and logged under. If your `docker-compose.yml` has no `TRUST_PROXY_HOPS` line, download it again with the first command in step 1, or the setting never reaches the backend.
-
-### 4. Create your admin account
-
-Open `https://your-domain.com` in a browser. The **first account registered becomes
-the admin**. After registering, you can close registration and manage users from the
-settings panel → Users tab.
-
-### 5. Add your email accounts
-
-In the settings panel → Accounts → Add Account.
-Select a preset (Gmail, iCloud) or Custom for any IMAP server.
-
-### Updating
-
-```bash
-docker compose pull
-docker compose up -d
-```
-
-To pin to a specific version instead of `latest`, add `MAILFLOW_VERSION=4.0.4` to your `.env`.
-
----
-
-## Option B — Build from source
-
-### Prerequisites
-
-- A server with Docker and Docker Compose installed
-
-### 1. Get the code
-
-```bash
-git clone https://github.com/maathimself/mailflow.git mailflow
-cd mailflow
-```
-
-### 2. Configure environment
-
-```bash
+git clone https://github.com/laupernoe/plimail.git
+cd plimail
 cp .env.example .env
 ```
 
-Edit `.env` — the required fields are:
+Edit `.env` and set at least:
 
-| Variable | Description |
+| Variable | What |
 |---|---|
-| `APP_URL` | Full URL, e.g. `https://mail.example.com` |
-| `SESSION_SECRET` | `openssl rand -hex 32` |
-| `DB_PASSWORD` | `openssl rand -hex 16` |
-| `ENCRYPTION_KEY` | `openssl rand -hex 32` |
-
-### 3. Build and start
+| `SESSION_SECRET` | at least 32 random characters (`openssl rand -hex 32`) |
+| `DB_PASSWORD` | password for the bundled PostgreSQL |
+| `ENCRYPTION_KEY` | exactly 64 hex characters (`openssl rand -hex 32`). Lose it and stored account passwords cannot be decrypted |
+| `APP_URL` | the URL you will open Plimail at |
 
 ```bash
 docker compose up -d --build
 ```
 
-First build takes 2–3 minutes. MailFlow will be available on port 443 (HTTPS, self-signed certificate) and port 80 (HTTP).
+Open `https://localhost` (or the port you set with `APP_PORT`) and create the first account,
+which becomes the administrator. Plimail's nginx serves a self-signed certificate unless you set
+`NGINX_TLS=off` behind your own reverse proxy, or run `docker compose --profile https up -d` for
+automatic Let's Encrypt certificates through Caddy (set `DOMAIN` and `ACME_EMAIL`). Every setting
+is documented in `.env.example`.
 
-**Optional — automatic HTTPS via Let's Encrypt:** set `DOMAIN` and `ACME_EMAIL` in `.env`, then start with the HTTPS overlay (requires Docker Compose 2.21+):
+`docker-compose.ghcr.yml` is the same stack from prebuilt `ghcr.io/laupernoe/plimail-*` images.
 
-```bash
-docker compose -f docker-compose.yml -f docker-compose.https.yml --profile https up -d --build
-```
-
-**Optional — behind your own reverse proxy:** point your proxy at port 80. Your proxy should forward `X-Forwarded-Proto: https` so that session cookies are marked Secure correctly. To stop MailFlow's nginx serving HTTPS on port 443 and generating a certificate, set `NGINX_TLS=off` in `.env`. This needs a writable `/etc/nginx/conf.d`, so on a read-only filesystem mount a certificate in `/etc/nginx/ssl` instead. The `--profile https` setup always keeps HTTPS on, because Caddy connects to it.
-
-If clients can reach MailFlow only through your proxy, also set `TRUST_PROXY_HOPS=2` in `.env`, so the login rate limit sees each client's address rather than the proxy's. Docker publishes `APP_PORT` and `APP_HTTP_PORT` on every interface, and firewalls such as ufw do not filter them, so first bind both to an address only your proxy can reach, for example `APP_HTTP_PORT=127.0.0.1:8080` and `APP_PORT=127.0.0.1:8443` for a proxy on the same host. Without that, leave `TRUST_PROXY_HOPS` unset: a client that connects directly could choose the address it is rate-limited and logged under.
-
-### 4. Create your admin account
-
-Open `https://your-domain.com` in a browser. The **first account registered becomes
-the admin**. After registering, you can close registration and manage users from the
-settings panel → Users tab.
-
-### 5. Add your email accounts
-
-In the settings panel → Accounts → Add Account.
-Select a preset (Gmail, iCloud) or Custom for any IMAP server.
-
----
-
-## Option C — Native install (no Docker)
-
-Run MailFlow directly on any Linux, macOS, or BSD machine using Node.js, PostgreSQL, and Redis.
-No container runtime required. The steps below use Ubuntu/Debian; adapt package manager commands for other platforms.
-
-### Prerequisites
-
-- **Node.js 22 (LTS)** — [nodejs.org](https://nodejs.org) or via your package manager. Newer majors break the backend: Node's built-in `fetch` conflicts with the pinned `undici` dispatcher.
-- **PostgreSQL 16+**
-- **Redis 7+**
-- **nginx** — serves the built frontend and proxies API/WebSocket requests to the backend
-
-### 1. Install system dependencies
-
-**Ubuntu / Debian:**
-```bash
-# Node.js 22 via NodeSource
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt-get install -y nodejs postgresql redis-server nginx
-```
-
-**macOS (Homebrew):**
-```bash
-brew install node@22 postgresql@16 redis nginx
-brew services start postgresql@16
-brew services start redis
-```
-
-### 2. Create the database
+### Updating and backups
 
 ```bash
-sudo -u postgres psql <<'SQL'
-CREATE USER mailflow WITH PASSWORD 'replace-with-a-strong-password';
-CREATE DATABASE mailflow OWNER mailflow;
-SQL
-```
-
-### 3. Get the code
-
-```bash
-git clone https://github.com/maathimself/mailflow.git /opt/mailflow
-cd /opt/mailflow
-```
-
-### 4. Configure environment
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env`. In addition to the required secrets, set these for a native install:
-
-| Variable | Value |
-|---|---|
-| `APP_URL` | Full URL, e.g. `https://mail.example.com` |
-| `SESSION_SECRET` | `openssl rand -hex 32` |
-| `DB_HOST` | `localhost` |
-| `DB_PORT` | `5432` — override for a Postgres server on a non-standard port |
-| `DB_NAME` | `mailflow` |
-| `DB_USER` | `mailflow` |
-| `DB_PASSWORD` | password you set in step 2 |
-| `REDIS_URL` | `redis://localhost:6379` — or `redis+unix:///path/to/redis.sock` for a Unix socket |
-
-For Docker installs, the bundled Postgres/Redis work out of the box. To point at **external** database or cache servers (any host/port), or to store data on a host **bind mount** (e.g. an Unraid appdata share with `PUID`/`PGID`), see the "Database & Redis" and "Storage & permissions" sections of [`.env.example`](.env.example).
-| `ENCRYPTION_KEY` | `openssl rand -hex 32` |
-
-### 5. Build the frontend
-
-```bash
-cd /opt/mailflow/frontend
-npm ci
-npm run build
-# Built files are written to /opt/mailflow/frontend/dist
-```
-
-### 6. Install backend dependencies
-
-```bash
-cd /opt/mailflow/backend
-npm ci --omit=dev
-```
-
-### 7. Configure nginx
-
-A ready-to-use nginx config is provided in `contrib/nginx.conf`. Copy it, update the `root` path, then enable it:
-
-```bash
-sudo mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
-sudo cp /opt/mailflow/contrib/nginx.conf /etc/nginx/sites-available/mailflow
-```
-
-Open `/etc/nginx/sites-available/mailflow` and replace `/path/to/mailflow/frontend/dist` with `/opt/mailflow/frontend/dist`.
-
-The provided config listens on port 80 for use behind a TLS-terminating reverse proxy (Nginx/Caddy/Traefik). If clients can reach nginx only through that proxy, set `TRUST_PROXY_HOPS=2` in `.env`, so the login rate limit sees each client's address rather than the proxy's. With the proxy on the same host, you can ensure that by changing `listen 80;` to `listen 127.0.0.1:8080;` and pointing the proxy there. Without that, leave `TRUST_PROXY_HOPS` unset: a client that connects to nginx directly could choose the address it is rate-limited and logged under. If you want nginx to terminate TLS directly, uncomment the HTTPS server block in the file and set your certificate paths. A quick self-signed cert:
-
-```bash
-sudo mkdir -p /etc/ssl/mailflow
-sudo openssl req -x509 -nodes -newkey rsa:4096 -days 3650 \
-  -keyout /etc/ssl/mailflow/key.pem \
-  -out    /etc/ssl/mailflow/cert.pem \
-  -subj "/CN=mailflow"
-```
-
-Enable the site and reload nginx:
-
-```bash
-sudo ln -sf /etc/nginx/sites-available/mailflow /etc/nginx/sites-enabled/mailflow
-sudo rm -f /etc/nginx/sites-enabled/default
-sudo nginx -t && sudo systemctl reload nginx
-```
-
-### 8. Run the backend
-
-**Option A — systemd (recommended for production):**
-
-```bash
-sudo cp /opt/mailflow/contrib/mailflow.service /etc/systemd/system/mailflow.service
-# Edit the service file if your install path or user differs from the defaults
-sudo systemctl daemon-reload
-sudo systemctl enable --now mailflow
-sudo systemctl status mailflow
-```
-
-**Option B — PM2:**
-
-```bash
-sudo npm install -g pm2
-cd /opt/mailflow/backend
-pm2 start src/index.js --name mailflow
-pm2 save
-pm2 startup   # follow the printed command to register auto-start on boot
-```
-
-**Option C — foreground (testing only):**
-
-```bash
-cd /opt/mailflow/backend
-node src/index.js
-```
-
-### 9. Create your admin account
-
-Open the app in a browser. The **first account registered becomes the admin**. After registering, close open registration from Settings → Users.
-
-### 10. Add your email accounts
-
-In the settings panel → Accounts → Add Account.
-
-### Updating
-
-```bash
-cd /opt/mailflow
 git pull
-cd frontend && npm ci && npm run build && cd ..
-cd backend && npm ci --omit=dev && cd ..
-sudo systemctl restart mailflow   # or: pm2 restart mailflow
-```
-
----
-
-## Email Provider Setup
-
-### Gmail
-
-Gmail requires an **App Password** (not your normal password):
-
-1. Enable 2-step verification on your Google account
-2. Go to [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
-3. Create a new App Password — name it "MailFlow"
-4. Use the 16-character password in the MailFlow account form
-
-| Setting | Value |
-|---|---|
-| IMAP Host | `imap.gmail.com` |
-| IMAP Port | `993` |
-| SMTP Host | `smtp.gmail.com` |
-| SMTP Port | `587` |
-| Username | your Gmail address |
-
-### iCloud / Apple Mail
-
-1. Go to [appleid.apple.com](https://appleid.apple.com) → Sign-In and Security → App-Specific Passwords
-2. Generate a password — name it "MailFlow"
-
-| Setting | Value |
-|---|---|
-| IMAP Host | `imap.mail.me.com` |
-| IMAP Port | `993` |
-| SMTP Host | `smtp.mail.me.com` |
-| SMTP Port | `587` |
-| Username | your full iCloud email (`you@icloud.com`) |
-
-### Microsoft 365 / Outlook (OAuth2)
-
-Microsoft has disabled basic (password) auth for Outlook.com, Hotmail, and most
-Microsoft 365 accounts, so they connect with **Sign in with Microsoft**: in **Settings →
-Accounts → Add account**, type the address or pick **Outlook.com, Hotmail, Live, MSN** or
-**Microsoft 365 (work or school)**. Administrators configure how this works under
-**Settings → Email providers**.
-
-**Personal accounts (Outlook.com, Hotmail, Live, MSN) need no setup.** MailFlow shows a
-code; open [microsoft.com/devicelogin](https://microsoft.com/devicelogin) on any device
-and enter it. In Outlook.com, IMAP must be allowed first: **Settings → Mail → Forwarding
-and IMAP → Let devices and apps use IMAP**. When your instance has no Microsoft app of
-its own that accepts personal accounts, this sign-in uses MailFlow's registered public
-app, which accepts personal Microsoft accounts only. The app only identifies MailFlow to Microsoft: you
-sign in on Microsoft's own page in your browser, Microsoft sends the tokens straight
-to your server, and MailFlow's maintainers never see your mail or tokens. Microsoft
-may label the app **"unverified"** on the consent screen; that refers to the
-publisher verification status of the app registration and does not change what the
-app can access.
-
-To stop offering the shared app, turn off **Let people sign in with MailFlow's shared
-app** in Settings → Email providers, or set `MS_BUILTIN_APP=false` in `.env`.
-Once the switch has been used, its setting takes precedence over `MS_BUILTIN_APP`.
-Turning it off stops new sign-ins through the shared app; accounts already connected
-through it keep refreshing through it. Personal accounts then need your own app
-registration, as below.
-
-**Your own app registration** is needed for work / school accounts, and is an
-option for admins who prefer not to use the shared app. Once its Client ID is saved,
-work and school sign-ins use it, and so do personal ones if its tenant admits them
-(`common` or `consumers`); with a tenant limited to organizations, personal accounts keep
-using the shared app while it is on. Personal accounts already connected
-through MailFlow's shared app keep working through it when you add your own app,
-because each account remembers the app it was connected with. It is a one-time
-setup: you create a free [Microsoft Entra app registration](https://portal.azure.com)
-once, and the same app then serves every account and user on your instance. If you
-later replace the app with a different one, reconnect the accounts that were connected
-through the old one.
-
-**1. Register the app.** In the Azure portal, go to **Microsoft Entra ID → App
-registrations → New registration**. Under **Supported account types**, choose
-**"Accounts in any organizational directory and personal Microsoft accounts"** so it
-covers both Outlook.com/Hotmail and work/school accounts. After creating it, copy the
-**Application (client) ID**.
-
-**2. Grant the mail permissions.** Open the app's **API permissions** page and add
-both of these, then follow the consent note:
-
-- **Add a permission → APIs my organization uses → Office 365 Exchange Online →
-  Delegated permissions**, and add **`IMAP.AccessAsUser.All`** and **`SMTP.Send`**
-  (if Exchange Online is not listed, type "Exchange" in the search box).
-- **Add a permission → Microsoft Graph → Delegated permissions**, and add
-  **`offline_access`**, **`openid`**, **`email`**, and **`profile`**.
-- For **work / school** accounts, click **Grant admin consent for your
-  organization**. Personal accounts consent at sign-in and can skip this.
-
-> This step is required. Without these permissions the account still "connects" and
-> is added, but no mail loads and sending fails with a credentials error, because
-> Outlook's IMAP and SMTP servers reject a token that lacks the mail scopes.
-
-Then follow the steps for your account type:
-
-**Personal accounts with your own app** (public client, device code):
-
-1. In the Azure app, open **Authentication** and set **"Allow public client flows"**
-   to **Yes**. No client secret or redirect URI is needed.
-2. In Settings → Email providers → **Set up your own Microsoft Entra app**, enter the
-   **Application (client) ID** and **Directory (tenant) ID** (`common`), leave Client
-   secret and Redirect URI blank, then save.
-3. People then add their accounts under Accounts → Add account, which shows the code to
-   enter at [microsoft.com/devicelogin](https://microsoft.com/devicelogin).
-
-**Work / school accounts (Microsoft 365)** (confidential client):
-
-1. In the Azure app, open **Authentication → Add a platform → Web**, and set the
-   redirect URI to `https://<your-mailflow-host>/oauth/microsoft/callback` (the exact
-   value is shown under Settings → Email providers).
-2. Under **Certificates & secrets → New client secret**, create a secret and copy its
-   **Value** (not the Secret ID).
-3. In Settings → Email providers, enter the Application (client) ID, Directory (tenant) ID,
-   Client secret and Redirect URI, then save. People then add their accounts under
-   Accounts → Add account → **Microsoft 365 (work or school)**, which signs in on
-   Microsoft's page.
-
-### Custom IMAP
-
-Any standard IMAP/SMTP server works. Use port 993 for IMAP (TLS) and
-587 (STARTTLS) or 465 (TLS) for SMTP.
-
----
-
-## Management
-
-```bash
-# View all logs
-docker compose logs -f
-
-# View backend logs only
-docker compose logs -f backend
-
-# Stop
-docker compose down
-
-# Stop and delete all data (destructive)
-docker compose down -v
-
-# Update to latest images (pre-built install)
-docker compose pull && docker compose up -d
-
-# Rebuild after a code change (Docker build-from-source install)
 docker compose up -d --build
-
-# Update a native install
-git pull && \
-  cd frontend && npm ci && npm run build && cd .. && \
-  cd backend && npm ci --omit=dev && cd .. && \
-  sudo systemctl restart mailflow   # or: pm2 restart mailflow
 ```
 
-## Backup and Restore
+Migrations are applied at startup. Admins can download and restore a full backup under
+Settings, Administration, Backup. Keep your `ENCRYPTION_KEY` with the backup.
 
-Settings → Backup (admin only) downloads a backup of the installation's data: users, email accounts, rules, contacts, settings, plugin data and antispam training. Cached mail is downloaded again from the mail servers after a restore, unless **Include cached mail** is on, which adds the local copy of every synced message to the file. Without it, the newest unread messages in each inbox arrive as new mail after a restore, so inbox rules, forwarding included, run on them again.
+> Existing installs: the environment variables (`MAILFLOW_*`), database name, Docker volumes and
+> network keep their original `mailflow` names, so an install of MailFlow upgrades in place.
 
-The file does not hold what is set in `.env`. A new server needs the same `ENCRYPTION_KEY`, and the same VAPID keys and OAuth client settings if they are set there; with new VAPID keys, push notifications stop until each browser subscribes again.
+## Development
 
-The file holds password hashes, pending invite links and the accounts' credentials. The credentials are encrypted with `ENCRYPTION_KEY`; the rest is readable, and so is every message when cached mail is included, so keep the file safe.
-
-Restoring replaces everything on the server with the file's contents, then MailFlow restarts. Docker, pm2 and the systemd unit in `contrib/` start it again; a MailFlow started by hand has to be started again the same way. Anyone whose account is not in the backup is signed out, and the passwords are the ones in the backup. A backup restores only on a MailFlow version with the same database schema as the one that made it; releases with no migration between them share one. To move to a version with a newer schema, restore the backup on the version that made it, then update, so the update converts its data as usual.
-
-If your own reverse proxy sits in front of MailFlow, let `/api/admin/backup` through without a request size limit, without buffering and with long timeouts, as `frontend/nginx.conf` does. A native install set up before this version needs that location copied from `contrib/nginx.conf` into its nginx config.
-
-The database can also be copied as-is with a dump:
+Node 22.
 
 ```bash
-# Backup database
-docker exec mailflow-postgres pg_dump -U mailflow mailflow \
-  > mailflow-$(date +%Y%m%d).sql
-
-# Restore database
-cat mailflow-YYYYMMDD.sql | \
-  docker exec -i mailflow-postgres psql -U mailflow -d mailflow
+cd backend  && npm ci && npm test && npm run lint
+cd frontend && npm ci && npm test && npm run lint && npm run build
 ```
 
----
+See `CLAUDE.md` and `CONTRIBUTING.md` for how the code fits together and how to contribute.
 
-## Architecture
+## License and source
 
-### Default deployment (self-signed HTTPS)
+Plimail is free software under the [GNU AGPL-3.0](LICENSE). If you run a modified version for other
+people, section 13 requires you to offer them its source; the Settings, About page links to
+https://github.com/laupernoe/plimail for that.
 
-```
-Browser (HTTPS / HTTP)
-  │
-  ▼
-nginx  (frontend container — ports 443 + 80)
-  │
-  ├── /api/*  → Node.js backend (port 3000)
-  ├── /oauth/ → Node.js backend (port 3000)
-  └── /ws     → Node.js backend WebSocket (port 3000)
-                    │
-                    ├── PostgreSQL  (messages, accounts, users)
-                    ├── Redis       (sessions)
-                    └── IMAP        (outbound to mail servers)
-```
-
-nginx and the backend communicate on an internal Docker network. PostgreSQL and Redis are not exposed outside that network.
-
-### With your own reverse proxy
-
-```
-Browser (HTTPS)
-  │
-  ▼
-Your proxy  (Nginx / Traefik / Caddy / etc. — TLS termination)
-  │  X-Forwarded-Proto: https
-  ▼
-nginx  (frontend container — port 80)
-  │
-  └── backend, PostgreSQL, Redis (internal network, unchanged)
-```
-
-### With automatic HTTPS (--profile https)
-
-```
-Browser (HTTPS)
-  │
-  ▼
-Caddy  (ports 80/443 — TLS termination, auto Let's Encrypt)
-  │
-  ▼
-nginx  (frontend container — internal only)
-  │
-  └── backend, PostgreSQL, Redis (internal network, unchanged)
-```
-
-## Desktop and Android apps
-
-MailFlow remains a self-hosted web app, but the repository includes native wrappers for users who prefer an installed desktop or mobile application:
-
-- Windows, macOS, and Linux use Electron-based packages.
-- Android uses a Capacitor WebView wrapper.
-- On first launch, the native wrapper prompts for the MailFlow server URL, such as `https://mail.your-domain.com`, stores it locally, and connects to that server.
-- Native package sources live under `frontend/packages`.
-
-> **Note:** Prebuilt, signed native apps are not published yet — they are in development and will be attached to a future MailFlow release. For now you can build them locally from source:
-
-```bash
-cd frontend
-npm ci
-npm run electron:dist   # desktop installers (.exe / .dmg / .deb / .rpm)
-npm run android:dist    # Android package (.apk / .aab)
-```
-
-## Supporters
-
-MailFlow is free and open source, and built and maintained by one person. Sponsorships pay for the time that goes into fixes, reviews and releases. Sponsors appear below; businesses that sponsor get their logo here and on mailflow.sh.
-
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support_MailFlow-FF5E5B?logo=ko-fi&logoColor=white&style=for-the-badge)](https://ko-fi.com/mailflow)
-[![GitHub Sponsors](https://img.shields.io/badge/GitHub_Sponsors-Sponsor-ea4aaa?logo=github-sponsors&logoColor=white&style=for-the-badge)](https://github.com/sponsors/maathimself)
-
-### GitHub Sponsors
-
-<!-- SPONSORS-START -->
-#### Sponsors
-
-<a href="https://github.com/phillip9933" title="phillip9933"><img src="https://avatars.githubusercontent.com/u/19641186?s=192&amp;u=f5eed97c62db0fed8c5274adcf7fd750e42bcd93&amp;v=4" width="48" height="48" alt="phillip9933" style="border-radius:50%;margin:4px"></a>
-<a href="https://github.com/Samuarcher" title="Samuarcher"><img src="https://avatars.githubusercontent.com/u/3508826?s=192&amp;u=b51d075a84fc497706806bb220253de08683bf1c&amp;v=4" width="48" height="48" alt="Samuarcher" style="border-radius:50%;margin:4px"></a>
-
-#### Past supporters
-
-<sub><a href="https://github.com/Rainson12">Rene Steen</a>, <a href="https://github.com/rahhing">rahh</a>, <a href="https://github.com/MikeScanlan5">Mike Scanlan</a>, <a href="https://github.com/lindstrm">Joachim Lindström</a>, <a href="https://github.com/shamoon">shamoon</a>, <a href="https://github.com/chip-well">Christopher Hipwell</a></sub>
-<!-- SPONSORS-END -->
-
----
-
-## Star History
-
-[![Stargazers over time](.github/assets/star-history.svg)](https://github.com/maathimself/mailflow/stargazers)
-
----
-
-## Upgrading
-
-From v3 on, each release's notes on [GitHub Releases](https://github.com/maathimself/mailflow/releases) list its upgrade steps. The notes below cover older versions.
-
-### GTD
-
-GTD is opt-in per account (**Settings → Categories → GTD**). Migrations for the new schema are additive and apply automatically on first startup. No operator action needed.
-
-### v2.5.0 – v2.7.0
-
-No manual migration steps required. All schema changes apply automatically on first startup.
-
-### v2.2.0 – v2.4.1
-
-No manual migration steps required. All schema changes apply automatically on first startup.
-
-### v2.1.0
-
-No manual migration steps required. All schema changes apply automatically on first startup.
-
-### v2.0.0
-
-No manual migration steps required. All schema changes apply automatically on first startup.
-
-`ENCRYPTION_KEY` is now required at startup. The server will refuse to start if the variable is missing or not exactly 64 hex characters. Generate one with `openssl rand -hex 32` before upgrading if you have not already set this.
-
-### v1.9.0
-
-Two database migrations (`0019_user_integrations`, `0020_mfa_device_trust`) run automatically on startup. No manual steps required.
-
-2FA is off by default. Existing users are unaffected unless an admin enables enforcement under **Settings → Security**.
-
-### Mail Server Connection Policy (earlier releases)
-
-**Breaking change for accounts with "Skip TLS verification" enabled.**
-
-An earlier release introduced an admin-controlled connection policy (Settings → Security → Mail Server Connection Policy). TLS verification is now enforced by default at the server level.
-
-If any accounts were configured with **Skip TLS verification** (e.g. for a self-signed certificate on a local IMAP server), those accounts will stop syncing after upgrading from an older version. To restore connectivity, an admin must enable **Allow insecure TLS** in Settings → Security before or immediately after deploying.
-
----
-
-## Security notes
-
-To report a vulnerability, see [SECURITY.md](SECURITY.md). Please don't open a public issue.
-
-- The first registered user becomes the admin automatically
-- Close open registration in Settings → Users once you've set up your accounts
-- Use the invite system to onboard additional users
-- Enable two-factor authentication in Settings → Security — supports TOTP (authenticator app), email OTP fallback, and persistent device trust. TOTP codes are one-time and cannot be replayed within their validity window
-- Session cookies are `HttpOnly`, `SameSite=Lax`, with a 7-day TTL. The `Secure` flag is set automatically when the connection is HTTPS (direct or via a proxy that forwards `X-Forwarded-Proto: https`)
-- Passwords are bcrypt-hashed (cost factor 12)
-- Login and registration endpoints are rate-limited (10 attempts per 15 minutes per IP)
-- Password reset tokens are consumed atomically — concurrent reset requests cannot both succeed
-- Database and Redis are not exposed outside the Docker network
-- IMAP/SMTP credentials are stored at rest in the database (standard for webmail clients — protect access to your server and database volume accordingly)
-- Responses set a strict `Content-Security-Policy`, clickjacking protection via `X-Frame-Options`, and a restrictive `Referrer-Policy`
-- Email HTML is sanitized before rendering, including stripping external `url()` references from CSS style blocks to prevent tracking
+Plimail is a fork of MailFlow by Matt (https://github.com/maathimself/mailflow), licensed AGPL-3.0.
+The original copyright notices are kept; the modifications are listed in [NOTICE](NOTICE).
