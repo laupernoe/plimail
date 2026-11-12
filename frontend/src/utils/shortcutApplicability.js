@@ -14,11 +14,22 @@ const WINDOW_ACTIONS = new Set([
   'printMessage', 'markUnread', 'openLabelPicker',
 ]);
 
+// The mail list and pane stay mounted (display: none) under the calendar and
+// contacts pages, so these would otherwise act on a message the user cannot see.
+const MAIL_VIEW_ACTIONS = new Set([
+  ...SELECTED_ACTIONS, 'archive', 'delete', 'nextMessage', 'prevMessage', 'openMessage',
+  'gtdTodo', 'gtdWatch', 'gtdDelegated', 'gtdReference', 'gtdSomeday', 'gtdDone',
+]);
+
 export function canRunGlobalAction(action, { rightSidebarApplicable }) {
   return action !== 'toggleRightSidebar' || Boolean(rightSidebarApplicable);
 }
 
 export function canRunSelectedAction(action, state) {
+  if ((state?.showCalendar || state?.showContacts) && MAIL_VIEW_ACTIONS.has(action)) {
+    // A pop-out message window is still visible over those pages.
+    if (!(WINDOW_ACTIONS.has(action) && topOpenMessageWindow(state))) return false;
+  }
   if (canDispatchHoveredGtdShortcut(action, state)) return true;
   if (['gtdTodo', 'gtdWatch', 'gtdDelegated', 'gtdReference', 'gtdSomeday', 'gtdDone'].includes(action)) {
     return Boolean(resolveGtdHotkeyTarget(state));

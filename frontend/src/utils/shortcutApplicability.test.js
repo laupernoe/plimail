@@ -50,3 +50,13 @@ test('GTD shortcuts only capture keys for an active plugin and eligible live sel
     assert.equal(canRunSelectedAction(action, { ...active, selectedMessageId: 'removed-rail' }), false, action);
   }
 });
+
+test('mail-message shortcuts do not act on a hidden selection under calendar or contacts', () => {
+  for (const page of ['showCalendar', 'showContacts']) {
+    for (const action of ['delete', 'archive', 'toggleRead', 'reply', 'nextMessage', 'gtdTodo']) {
+      assert.equal(canRunSelectedAction(action, { ...selected, [page]: true }), false, `${page} ${action}`);
+    }
+    assert.equal(canRunSelectedAction('compose', { ...selected, [page]: true }), true);
+  }
+  assert.equal(canRunSelectedAction('toggleRead', selected), true);
+});

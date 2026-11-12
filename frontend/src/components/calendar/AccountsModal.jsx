@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../../store/index.js';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../utils/api.js';
@@ -285,13 +285,29 @@ export function CalendarAccountsTab() {
 
 const hexColor = (c) => (/^#[0-9a-f]{6}$/i.test(c) ? c : '#7c6af7');
 
-function CalendarRow({ cal, onSaved }) {
+function CalendarRow({ cal, onSaved, style }) {
   const { t } = useTranslation();
   const [name, setName] = useState(cal.displayName || '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [picking, setPicking] = useState(false);
   useEffect(() => { setName(cal.displayName || ''); }, [cal.displayName]);
+  // The native colour input fires `input` on every drag in the picker and `change` once on commit.
+  // React's onChange is the former, so the save listens to the native `change` through a ref.
+  const [custom, setCustom] = useState(hexColor(cal.color));
+  const customRef = useRef(null);
+  useEffect(() => { setCustom(hexColor(cal.color)); }, [cal.color]);
+  const commitCustom = useRef(null);
+  commitCustom.current = (value) => {
+    if (value.toLowerCase() !== String(cal.color).toLowerCase()) save({ color: hexColor(value) });
+  };
+  useEffect(() => {
+    const el = customRef.current;
+    if (!el) return undefined;
+    const onCommit = () => commitCustom.current(el.value);
+    el.addEventListener('change', onCommit);
+    return () => el.removeEventListener('change', onCommit);
+  }, [picking]);
 
   const save = async (patch) => {
     setBusy(true);
@@ -316,7 +332,7 @@ function CalendarRow({ cal, onSaved }) {
   const dim = { opacity: cal.ignored ? 0.55 : 1 };
 
   return (
-    <li style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 12px' }}>
+    <li style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 12px', ...style }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: '1 1 200px', minWidth: 0, ...dim }}>
           <button type="button" disabled={busy || cal.ignored} onClick={() => setPicking(p => !p)} aria-expanded={picking}
@@ -348,8 +364,8 @@ function CalendarRow({ cal, onSaved }) {
               style={{ width: 18, height: 18, borderRadius: '50%', background: c, cursor: 'pointer', padding: 0,
                 border: c.toLowerCase() === String(cal.color).toLowerCase() ? '2px solid var(--text-primary)' : '2px solid transparent' }} />
           ))}
-          <input type="color" value={hexColor(cal.color)} aria-label={t('calendar.rail.customColor')}
-            onChange={e => pick(e.target.value)}
+          <input ref={customRef} type="color" value={custom} aria-label={t('calendar.rail.customColor')}
+            onChange={e => setCustom(e.target.value)}
             style={{ width: 22, height: 22, padding: 0, border: 'none', background: 'none', cursor: 'pointer' }} />
         </div>
       )}
@@ -389,9 +405,7 @@ export function CalendarListTab() {
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6, wordBreak: 'break-word' }}>{account.name || account.username}</div>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, border: '1px solid var(--border)', borderRadius: 10, background: 'var(--bg-primary)' }}>
               {own.map((c, i) => (
-                <div key={c.id} style={{ borderTop: i ? '1px solid var(--border-subtle)' : 'none' }}>
-                  <CalendarRow cal={c} onSaved={onSaved} />
-                </div>
+                <CalendarRow key={c.id} cal={c} onSaved={onSaved} style={{ borderTop: i ? '1px solid var(--border-subtle)' : 'none' }} />
               ))}
             </ul>
           </section>
