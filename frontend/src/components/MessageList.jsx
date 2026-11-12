@@ -38,9 +38,7 @@ import {
   folderDisplayName, folderDisplayNameForPath, folderRole, buildMovePickerSections, movePickerSectionHeading,
   movePickerFoldersEmpty,
 } from '../utils/folderDisplay.js';
-import SpamBadge from './SpamBadge.jsx';
 import ReplyDraftIndicator from './ReplyDraftIndicator.jsx';
-import SpamExplainModal from './SpamExplainModal.jsx';
 import { shortcutBus } from '../utils/shortcutBus.js';
 import { createLatestRequest } from '../utils/latestRequest.js';
 import { refreshListWindow, createTrailingRefresh } from '../utils/listRefresh.js';
@@ -170,7 +168,6 @@ function MailboxList() {
 
   const isMobile = useMobile();
   // Auto-spam explain modal target (opened from the badge on a row).
-  const [spamExplainMessageId, setSpamExplainMessageId] = useState(null);
   const isUnified = selectedAccountId === null;
   // The Snoozed view (#269): an account's Snoozed folder, or with no account every account's.
   const isSnoozedView = selectedFolder === SNOOZED_FOLDER;
@@ -3995,7 +3992,6 @@ function MailboxList() {
                 onRangeSelect={handleRangeSelect}
                 onModifierSelect={handleModifierSelect}
                 onLongPress={isMobile ? (id) => { setSelectionModeActive(true); toggleSelect(id); } : undefined}
-                onExplainSpam={(msg) => setSpamExplainMessageId(msg.id)}
               />
             );
           })
@@ -4040,7 +4036,6 @@ function MailboxList() {
                 onSwipeLeft={selectionMode || swipeLeftAction === 'disabled' ? undefined : (msg) => runSwipeAction(swipeLeftAction, msg)}
                 onSwipeRight={selectionMode || swipeRightAction === 'disabled' ? undefined : (msg) => runSwipeAction(swipeRightAction, msg)}
                 onLongPress={isMobile ? (id) => { setSelectionModeActive(true); toggleSelect(id); } : undefined}
-                onExplainSpam={(msg) => setSpamExplainMessageId(msg.id)}
               />
             );
           })
@@ -4055,13 +4050,6 @@ function MailboxList() {
             defaultSnoozeView={contextMenu.defaultSnoozeView}
             onClose={() => setContextMenu(null)}
             onAction={(action, data) => handleContextAction(action, contextMenu.message, data)}
-          />
-        )}
-
-        {spamExplainMessageId && (
-          <SpamExplainModal
-            messageId={spamExplainMessageId}
-            onClose={() => setSpamExplainMessageId(null)}
           />
         )}
 
@@ -4472,7 +4460,7 @@ function EmptyState({ folderSyncing, searchQuery, searching, searchError, unread
   );
 }
 
-function ThreadRow({ message, isExpanded, threadMsgs, isLoadingThread, selectedMessageId, selectedMid, selectedAcct, lastViewedMessageId, showAccount, isNarrow, onThreadClick, onThreadToggle, showMobileAvatars, showMessagePreviews, onSelect, onOpenWindow, onMarkRead, onStar, onDelete, hoverQuickActions, hoverActionSet, onArchive, onSnooze, onContextMenu, onMove, onDragStart, isMobile, swipeLeftAction, swipeRightAction, onSwipeLeft, onSwipeRight, isChecked, selectionMode, onToggleSelect, onRangeSelect, onModifierSelect, onLongPress, onExplainSpam }) {
+function ThreadRow({ message, isExpanded, threadMsgs, isLoadingThread, selectedMessageId, selectedMid, selectedAcct, lastViewedMessageId, showAccount, isNarrow, onThreadClick, onThreadToggle, showMobileAvatars, showMessagePreviews, onSelect, onOpenWindow, onMarkRead, onStar, onDelete, hoverQuickActions, hoverActionSet, onArchive, onSnooze, onContextMenu, onMove, onDragStart, isMobile, swipeLeftAction, swipeRightAction, onSwipeLeft, onSwipeRight, isChecked, selectionMode, onToggleSelect, onRangeSelect, onModifierSelect, onLongPress }) {
   const { t } = useTranslation();
   const [hovered, setHovered] = useState(false);
   const messageCount = message.message_count || 1;
@@ -4698,7 +4686,6 @@ function ThreadRow({ message, isExpanded, threadMsgs, isLoadingThread, selectedM
               {message.subject || t('common.noSubject')}
             </span>
             <ReplyDraftIndicator message={message} listRow />
-            <SpamBadge message={message} onClick={onExplainSpam} />
           </div>
           {/* Row 3: snippet */}
           {showMessagePreviews && (
@@ -4791,7 +4778,7 @@ function ThreadRow({ message, isExpanded, threadMsgs, isLoadingThread, selectedM
   );
 }
 
-function MessageRow({ message, selected, lastViewed, isChecked, selectionMode, showAccount, isNarrow, onSelect, onOpenWindow, onToggleSelect, onRangeSelect, onModifierSelect, onAvatarClick, showMobileAvatars, showMessagePreviews, onMarkRead, onStar, onDelete, hoverQuickActions, hoverActionSet, onArchive, onSnooze, onContextMenu, onMove, onDragStart, isMobile, swipeLeftAction, swipeRightAction, onSwipeLeft, onSwipeRight, onLongPress, onExplainSpam }) {
+function MessageRow({ message, selected, lastViewed, isChecked, selectionMode, showAccount, isNarrow, onSelect, onOpenWindow, onToggleSelect, onRangeSelect, onModifierSelect, onAvatarClick, showMobileAvatars, showMessagePreviews, onMarkRead, onStar, onDelete, hoverQuickActions, hoverActionSet, onArchive, onSnooze, onContextMenu, onMove, onDragStart, isMobile, swipeLeftAction, swipeRightAction, onSwipeLeft, onSwipeRight, onLongPress }) {
   const { t } = useTranslation();
   const [hovered, setHovered] = useState(false);
   const [avatarHovered, setAvatarHovered] = useState(false);
@@ -5026,7 +5013,6 @@ function MessageRow({ message, selected, lastViewed, isChecked, selectionMode, s
             {message.subject || t('message.noSubject')}
           </span>
           <ReplyDraftIndicator message={message} listRow />
-          <SpamBadge message={message} onClick={onExplainSpam} />
         </div>
 
         {/* Row 3: Snippet */}

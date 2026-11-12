@@ -175,24 +175,6 @@ const SAME_VALUE_ALLOWED = {
   'admin.aliases.emailPh':     [['de', 'en', 'ko', 'ru', 'zhCN']],
   'admin.privacy.addDomainPh': [['cs', 'de', 'en', 'ko', 'pl', 'ru', 'zhCN']],
 
-  // ── Antispam v0.2 ──────────────────────────────────────────────────────────
-  // "Antispam" — international loanword, same spelling in en, it, de, es, fr, cs
-  'admin.tabs.antispam':          [['cs', 'de', 'en', 'es', 'fr', 'it', 'ptBR']],
-  'admin.accounts.antispamSection': [['cs', 'de', 'en', 'es', 'fr', 'it', 'ptBR']],
-  'spam.title':                   [['cs', 'de', 'en', 'es', 'fr', 'it', 'ptBR']],
-  // "spam" — lowercase loanword shared in en, es, fr, it, cs, pl (de capitalizes: "Spam")
-  'spam.badgeLabel':              [['en', 'es', 'fr', 'it', 'cs', 'pl']],
-  // "Verdict" / "Mature" — same spelling in en and fr
-  'spam.explainVerdict':          [['en', 'fr']],
-  // "Metoda" — same spelling in cs and pl
-  'spam.explainMethod':           [['cs', 'pl'], ['es', 'ptBR']],
-  'spam.maturity.mature':         [['en', 'fr'], ['es', 'ptBR']],
-  // "Fresco" — same spelling in es and it
-  'spam.maturity.fresh':          [['es', 'it']],
-  // "Spam" — capitalized loanword shared in en, it, de, es, fr, cs, pl
-  'spam.verdict.spam':            [['cs', 'de', 'en', 'es', 'fr', 'it', 'pl', 'ptBR']],
-  // authserv-id example — a literal hostname, identical in every locale
-  'admin.accounts.trustedAuthservPlaceholder': 'any',
   'admin.privacy.addSenderPh': [['en', 'ko', 'ru', 'zhCN']],
   'admin.blockList.emailPlaceholder': [['en', 'ko']],
   'admin.aliases.replyToLabel': [['en', 'pl']],
@@ -496,10 +478,6 @@ const SAME_VALUE_ALLOWED = {
   'signatureEditor.sourceMode':                      [['es', 'ptBR']], // "Editar código HTML"
   'signatureEditor.strikethrough':                   [['es', 'ptBR']], // "Tachado"
   'signatureEditor.visualMode':                      [['es', 'ptBR']], // "Editor visual"
-  'spam.maturity.insufficient':                      [['es', 'ptBR']], // "Insuficiente"
-  'spam.never':                                      [['es', 'ptBR']], // "nunca"
-  'spam.records':                                    [['es', 'ptBR']], // "registros"
-  'spam.verdict.unsure':                             [['it', 'ptBR']], // "Incerto"
   'window.minimize':                                 [['es', 'ptBR']], // "Minimizar"
 
   // ── Special-use folder labels (sidebar / pickers) ───────────────────────────
@@ -645,7 +623,6 @@ const DYNAMIC_KEYS = new Set([
   'admin.tabs.shortcuts',
   'admin.tabs.about',
   'admin.tabs.categories',
-  'admin.tabs.antispam',
   // t(group.labelKey) — labelKey is a string property set in the TAB_GROUPS array
   'admin.tabs.groupAccountMail',
   'admin.tabs.groupDisplay',
@@ -657,17 +634,6 @@ const DYNAMIC_KEYS = new Set([
   'messageList.categories.promotion',
   'messageList.categories.automated',
   'messageList.categories.social',
-  // Antispam v0.2 — template-literal keys (SpamSettings/SpamBadge/SpamExplainModal)
-  'spam.maturity.mature',
-  'spam.maturity.fresh',
-  'spam.maturity.insufficient',
-  'spam.deleteScope.per_account',
-  'spam.deleteScope.all',
-  'spam.verdict.spam',
-  'spam.verdict.ham',
-  'spam.verdict.unsure',
-  'spam.method.rules',
-  'spam.method.blended',
   // Attachment risk badges (MessagePane): t(`message.attachmentRisk.${risk.level}`),
   // where the level comes from classifyAttachmentRisk.
   'message.attachmentRisk.block', 'message.attachmentRisk.warn', 'message.attachmentRisk.notice',

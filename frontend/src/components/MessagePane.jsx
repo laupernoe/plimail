@@ -28,8 +28,6 @@ import { copyToClipboard } from '../utils/clipboard.js';
 import { saveSenderCategory } from '../utils/senderCategory.js';
 import { buildMovePickerSections, movePickerSectionHeading, movePickerFoldersEmpty } from '../utils/folderDisplay.js';
 import FolderPathLabel from './FolderPathLabel.jsx';
-import SpamBadge from './SpamBadge.jsx';
-import SpamExplainModal from './SpamExplainModal.jsx';
 import { downloadEml } from '../utils/downloadEml.js';
 import { buildPrintDocument, openPrintWindow, printInWindow } from '../utils/printMessage.js';
 import AiResultBox from './AiResultBox.jsx';
@@ -151,7 +149,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
     if (sawMessageRef.current) onWindowClose?.();
   }, [windowMode, message, onWindowClose]);
 
-  // Antispam (v0.1) — toolbar visibility for the spam / ham buttons.
+  // Toolbar visibility for the spam / ham buttons.
   // Mirrors the heuristic in ContextMenu.jsx so the toolbar matches the menu.
   const account = accounts.find(a => a.id === message?.account_id);
   const accountFolders = useStore(s => s.folders[message?.account_id] || []);
@@ -231,7 +229,6 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
   // Bumped to close the toolbar's menus, which are remounted under a new key.
   const [menuEpoch, setMenuEpoch] = useState(0);
   const [contextMenu, setContextMenu] = useState(null);
-  const [spamExplainMessageId, setSpamExplainMessageId] = useState(null);
   const [findDialogOpen, setFindDialogOpen] = useState(false);
   const [findQuery, setFindQuery] = useState('');
   const [findMatchCase, setFindMatchCase] = useState(false);
@@ -1570,7 +1567,6 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
                     : t('message.noSubject');
                 })()}
               </span>
-              <SpamBadge message={message} onClick={(m) => setSpamExplainMessageId(m.id)} />
             </div>
           </div>
 
@@ -2199,13 +2195,6 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
             setResolvedSubject(s);
             updateMessage(message.id, { subject: s });
           }}
-        />
-      )}
-
-      {spamExplainMessageId && (
-        <SpamExplainModal
-          messageId={spamExplainMessageId}
-          onClose={() => setSpamExplainMessageId(null)}
         />
       )}
 
