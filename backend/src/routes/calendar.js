@@ -62,7 +62,8 @@ function publicCalendar(c) {
   };
 }
 
-// Plaintext HTTP only for a genuinely private address the admin has allowed, as for CardDAV.
+// Plaintext HTTP only for a genuinely private address the admin has allowed. Checked here for a clear
+// message; caldavClient enforces it again on every connection, redirects included.
 async function serverUrlError(serverUrl, policy) {
   let parsed;
   try { parsed = new URL(serverUrl); } catch { return 'Invalid server URL'; }
@@ -341,7 +342,7 @@ async function loadCalendar(userId, calendarId) {
 
 async function loadEvent(userId, eventId) {
   const r = await query(
-    `SELECT e.*, c.read_only, c.account_id, c.url AS calendar_url, a.username, a.password
+    `SELECT e.*, c.read_only, c.account_id, c.url AS calendar_url, a.server_url, a.username, a.password
      FROM calendar_events e
      JOIN calendars c ON c.id = e.calendar_id
      JOIN caldav_accounts a ON a.id = c.account_id
