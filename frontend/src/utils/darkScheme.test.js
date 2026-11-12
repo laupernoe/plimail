@@ -19,7 +19,7 @@ describe('which bodies can be shown dark', () => {
   test('plain text, and any HTML, even one that asks to stay light', () => {
     assert.equal(canShowDark(TEXT), true);
     assert.equal(canShowDark(DARK_DESIGN), true);
-    assert.equal(canShowDark(PLAIN_HTML), true, 'recolored by MailFlow');
+    assert.equal(canShowDark(PLAIN_HTML), true, 'recolored by Plimail');
     // Intercom marks every email "only light" (against Apple Mail's inversion); recolored all the same.
     assert.equal(canShowDark({ ...DARK_DESIGN, darkCss: null, lightOnly: true }), true);
     assert.equal(canShowDark({ ...PLAIN_HTML, lightOnly: true }), true);

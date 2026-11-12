@@ -1,7 +1,10 @@
-# MailFlow
+# Plimail
 
-A self-hosted, unified webmail client. Dual-licensed: AGPL-3.0, plus a paid commercial
-license for use that AGPL does not suit. Node/Express backend, React frontend, PostgreSQL
+Plimail is a fork of MailFlow (https://github.com/maathimself/mailflow, AGPL-3.0). Internal
+identifiers (`MAILFLOW_*` env vars, database names, storage keys, `data-mailflow-*`) keep the
+original name on purpose.
+
+A self-hosted, unified webmail client, licensed AGPL-3.0. Node/Express backend, React frontend, PostgreSQL
 and Redis, shipped as Docker images.
 
 This file is context for coding agents and for anyone new to the project. It says what
@@ -27,9 +30,8 @@ Two consequences worth stating plainly, because they are easy to get wrong:
 
 ## Priorities
 
-The roadmap lives on the website in a Now / Next / Later format, with no dates and no
-commitments: mailflow.sh/#roadmap. It is deliberately kept in one place, so check it there
-rather than trusting a copy.
+There is no separate roadmap site: priorities are tracked in the issues of
+https://github.com/laupernoe/plimail.
 
 What does not change with it: polish and stability come first. Bug fixes and reliability
 work take precedence over new features.
@@ -153,7 +155,7 @@ See `CONTRIBUTING.md` for commit format, branch naming and PR requirements.
 
 ## Paths that need maintainer review
 
-`.github/CODEOWNERS` lists them and GitHub requests review automatically. They are the
+Changes here deserve extra care. They are the
 places where a mistake is expensive, invisible until much later, or both:
 
 - `emailSanitizer.js`, the boundary that stops untrusted mail executing script

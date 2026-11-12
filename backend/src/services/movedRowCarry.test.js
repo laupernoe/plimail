@@ -11,7 +11,7 @@ const row = (over = {}) => ({
 describe('movedRowCarry', () => {
   beforeEach(() => clearCarries());
 
-  it('hands the destination sync what only MailFlow knew, once', () => {
+  it('hands the destination sync what only Plimail knew, once', () => {
     rememberDroppedRows('INBOX', [row()], { spam_user_override: 'ham', spam_verdict: 'ham' });
     expect(hasCarries()).toBe(true);
     const carried = takeCarry(ACC, 'INBOX', '<m1@x>', new Date('2026-11-04T10:00:00Z'));

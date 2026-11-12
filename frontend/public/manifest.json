@@ -1,11 +1,11 @@
 {
-  "name": "MailFlow",
-  "short_name": "MailFlow",
+  "name": "Plimail",
+  "short_name": "Plimail",
   "description": "Your unified inbox",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0f11",
-  "theme_color": "#7c6af7",
+  "background_color": "#07080a",
+  "theme_color": "#07080a",
   "orientation": "portrait-primary",
   "protocol_handlers": [
     { "protocol": "mailto", "url": "/?mailto=%s" }
@@ -15,7 +15,13 @@
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icon-384.png",

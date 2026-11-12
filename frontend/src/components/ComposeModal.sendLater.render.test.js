@@ -600,7 +600,7 @@ describe('editing a scheduled message', () => {
   });
 
   test('asks before saving a message that may already have gone out, and resends with confirm', async () => {
-    const message = 'This message may already have been delivered: MailFlow stopped while sending it. Check the Sent folder first. Send it again anyway?';
+    const message = 'This message may already have been delivered: Plimail stopped while sending it. Check the Sent folder first. Send it again anyway?';
     answers.update = [refusal(409, 'confirm_uncertain', message), (id, { sendAt, version }) => ({ id, version: version + 1, sendAt })];
     const close = await mount(structuredClone(SCHEDULED));
     await click(button('compose.scheduleSend.edit.update'));
@@ -959,7 +959,7 @@ describe('Send now while editing', () => {
   });
 
   test('asks before sending one that may already have gone out; No leaves it held and open', async () => {
-    const message = 'This message may already have been delivered: MailFlow stopped while sending it. Check the Sent folder first. Send it again anyway?';
+    const message = 'This message may already have been delivered: Plimail stopped while sending it. Check the Sent folder first. Send it again anyway?';
     answers.sendNow = [refusal(409, 'confirm_uncertain', message), () => ({ status: 'scheduled', undoToken: 'u2' })];
     const first = await mount(structuredClone(SCHEDULED));
     await click(chevron());

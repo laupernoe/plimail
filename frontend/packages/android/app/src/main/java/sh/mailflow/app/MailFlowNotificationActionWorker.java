@@ -97,7 +97,7 @@ public class MailFlowNotificationActionWorker extends Worker {
         connection.setRequestProperty("Accept", "application/json");
         connection.setRequestProperty("Cookie", cookie);
         // The API's CSRF gate rejects a mutating request without this header.
-        connection.setRequestProperty("X-Requested-With", "MailFlow");
+        connection.setRequestProperty("X-Requested-With", "Plimail");
 
         if (body != null) {
             byte[] bytes = body.getBytes("UTF-8");

@@ -1,27 +1,27 @@
-# Contributing to MailFlow
+# Contributing to Plimail
 
-Thank you for your interest in MailFlow. Please read this before opening a pull request — it will save your time and mine.
+Thank you for your interest in Plimail. Please read this before opening a pull request — it will save your time and mine.
 
-## How MailFlow is built
+## How Plimail is built
 
-MailFlow is a vision-led project. I hold the direction, because a single coherent hand keeps the product consistent and the codebase maintainable, and I write a lot of it. I am no longer trying to write all of it: the project has outgrown what I can review quickly, and a fix waiting a week on me helps nobody. I am open to trusted contributors taking on review and merge rights, earned through a track record of focused, well-judged changes. That shapes what contributions fit:
+Plimail is a vision-led project. I hold the direction, because a single coherent hand keeps the product consistent and the codebase maintainable, and I write a lot of it. I am no longer trying to write all of it: the project has outgrown what I can review quickly, and a fix waiting a week on me helps nobody. I am open to trusted contributors taking on review and merge rights, earned through a track record of focused, well-judged changes. That shapes what contributions fit:
 
 - **Bug reports and small, focused fixes are very welcome.** A real bug, a translation, a typo, a small correctness or quality fix — these are easy to review and usually merge quickly.
 - **For anything larger — a new feature, a refactor, a new dependency, a change to core behavior — open an issue to discuss it first, before writing any code.** You'll get an honest answer on whether it fits and whether we'd merge it.
 - **Unsolicited large pull requests will usually be declined, regardless of quality.** Not because the work isn't good, but because large changes have to fit a direction I'm holding, and reviewing a big PR I didn't plan for is costly whether or not it lands. Please check first so your effort isn't wasted.
 - A "no" is about scope and direction, not about you or your code. I appreciate every bit of interest in the project.
 
-If you want to build something bigger, MailFlow's plugin system and its AGPL license give you room to do that in a plugin or your own fork, without needing it merged here.
+If you want to build something bigger, Plimail's plugin system and its AGPL license give you room to do that in a plugin or your own fork, without needing it merged here.
 
 ## One open pull request per author
 
-I review everything myself, and a queue of parallel PRs from one author does not get reviewed faster — it gets reviewed worse. So MailFlow works on one open PR per author at a time: pick the change you most want in, and we work through it together. Further PRs opened while you have one active will be closed with thanks, unprejudiced, and can be reopened when your active one merges or closes. Splitting a large PR into several small ones is still the right instinct — open them one at a time, not all at once.
+I review everything myself, and a queue of parallel PRs from one author does not get reviewed faster — it gets reviewed worse. So Plimail works on one open PR per author at a time: pick the change you most want in, and we work through it together. Further PRs opened while you have one active will be closed with thanks, unprejudiced, and can be reopened when your active one merges or closes. Splitting a large PR into several small ones is still the right instinct — open them one at a time, not all at once.
 
 ## Before You Start
 
-- Search the [issue tracker](https://github.com/maathimself/mailflow/issues) — the problem or feature may already be discussed.
+- Search the [issue tracker](https://github.com/laupernoe/plimail/issues) — the problem or feature may already be discussed.
 - For anything beyond a small fix, open an issue first to align on the approach (see above).
-- All contributions require agreement to the [Contributor License Agreement](CLA.md).
+- Contributions are accepted under the project's AGPL-3.0 license.
 
 ## Workflow
 
@@ -48,7 +48,7 @@ chore: dependency updates, config changes, etc.
 
 - CI must pass (backend and frontend checks)
 - At least one approving review from a maintainer before merge
-- The PR template must be filled out, including the CLA checkbox
+- The PR template must be filled out
 - Keep changes minimal and focused — no unrelated cleanup in the same PR
 - Large PRs opened without a prior issue may be closed with a pointer back to this document
 
@@ -62,8 +62,8 @@ chore: dependency updates, config changes, etc.
 
 ## Reporting Bugs
 
-Use the [bug report template](https://github.com/maathimself/mailflow/issues/new?template=bug_report.md). Include steps to reproduce, expected behavior, and actual behavior. Screenshots or logs help.
+Use the [bug report template](https://github.com/laupernoe/plimail/issues/new?template=bug_report.md). Include steps to reproduce, expected behavior, and actual behavior. Screenshots or logs help.
 
 ## Requesting Features
 
-Use the [feature request template](https://github.com/maathimself/mailflow/issues/new?template=feature_request.md). Explain the problem you are trying to solve, not just the solution. This is also the right place to propose something before writing code.
+Use the [feature request template](https://github.com/laupernoe/plimail/issues/new?template=feature_request.md). Explain the problem you are trying to solve, not just the solution. This is also the right place to propose something before writing code.

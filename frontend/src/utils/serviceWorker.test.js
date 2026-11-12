@@ -59,7 +59,7 @@ test('Mark as read marks the message read without opening the app', async () => 
     { path: `/api/mail/messages/${ID}/read`, method: 'PATCH', body: { read: true } },
   );
   assert.equal(sw.fetches[0].credentials, 'include');
-  assert.equal(sw.fetches[0].headers['X-Requested-With'], 'MailFlow');
+  assert.equal(sw.fetches[0].headers['X-Requested-With'], 'Plimail');
   assert.deepEqual(sw.opened, []);
 });
 

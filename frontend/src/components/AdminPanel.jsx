@@ -4591,7 +4591,7 @@ function SystemEmailSection() {
   const { t } = useTranslation();
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ host: '', port: '587', tls: 'STARTTLS', user: '', pass: '', fromName: 'MailFlow', fromEmail: '' });
+  const [form, setForm] = useState({ host: '', port: '587', tls: 'STARTTLS', user: '', pass: '', fromName: 'Plimail', fromEmail: '' });
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -4601,7 +4601,7 @@ function SystemEmailSection() {
       .then(({ config: cfg }) => {
         if (cfg) {
           setConfig(cfg);
-          setForm({ host: cfg.host || '', port: String(cfg.port || 587), tls: cfg.tls || 'STARTTLS', user: cfg.user || '', pass: cfg.pass || '', fromName: cfg.fromName || 'MailFlow', fromEmail: cfg.fromEmail || '' });
+          setForm({ host: cfg.host || '', port: String(cfg.port || 587), tls: cfg.tls || 'STARTTLS', user: cfg.user || '', pass: cfg.pass || '', fromName: cfg.fromName || 'Plimail', fromEmail: cfg.fromEmail || '' });
         }
       })
       .catch(console.error)
@@ -4633,7 +4633,7 @@ function SystemEmailSection() {
   const handleRemove = async () => {
     await api.admin.deleteSystemEmail();
     setConfig(null);
-    setForm({ host: '', port: '587', tls: 'STARTTLS', user: '', pass: '', fromName: 'MailFlow', fromEmail: '' });
+    setForm({ host: '', port: '587', tls: 'STARTTLS', user: '', pass: '', fromName: 'Plimail', fromEmail: '' });
     setMsg({ type: 'ok', text: t('admin.systemEmail.removed') });
   };
 
@@ -4700,7 +4700,7 @@ function SystemEmailSection() {
         {field(t('admin.systemEmail.password'), 'pass', 'password', config ? t('admin.systemEmail.passPlaceholder') : '')}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
-          <div>{field(t('admin.systemEmail.fromName'), 'fromName', 'text', 'MailFlow')}</div>
+          <div>{field(t('admin.systemEmail.fromName'), 'fromName', 'text', 'Plimail')}</div>
           <div>{field(t('admin.systemEmail.fromEmail'), 'fromEmail', 'text', t('admin.systemEmail.fromEmailPh'))}</div>
         </div>
 
@@ -5854,14 +5854,10 @@ function AboutTab() {
     [t('admin.about.frontendBuild'), feSha],
     [t('admin.about.license'),       'AGPL-3.0'],
   ];
+  // AGPL-3.0 §13: the source of the running version is offered to every user of the service.
   const generalRows = [
-    [t('admin.about.website'),    'https://mailflow.sh'],
-    [t('admin.about.sourceCode'), 'https://github.com/maathimself/mailflow'],
-  ];
-  const supportRows = [
-    [t('admin.about.kofi'),           'https://ko-fi.com/mailflow'],
-    [t('admin.about.githubSponsors'), 'https://github.com/sponsors/maathimself'],
-    [t('admin.about.businessLicense'), 'https://mailflow.sh/#pricing'],
+    [t('admin.about.sourceCode'), 'https://github.com/laupernoe/plimail'],
+    [t('admin.about.upstream'),   'https://github.com/maathimself/mailflow'],
   ];
 
   const rowStyle = (last) => ({
@@ -5873,7 +5869,7 @@ function AboutTab() {
   return (
     <div style={{ maxWidth: 420 }}>
       <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
-        MailFlow
+        Plimail
       </div>
       <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24 }}>
         {t('admin.about.subtitle')}
@@ -5886,7 +5882,7 @@ function AboutTab() {
           </div>
         ))}
       </div>
-      <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border-subtle)', marginBottom: 16 }}>
+      <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
         {generalRows.map(([label, href], i) => (
           <div key={label} style={rowStyle(i === generalRows.length - 1)}>
             <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{label}</span>
@@ -5896,23 +5892,6 @@ function AboutTab() {
           </div>
         ))}
       </div>
-      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px 4px' }}>
-        {t('admin.about.sponsor')}
-      </div>
-      <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', margin: '0 4px 10px', lineHeight: 1.5 }}>
-        {t('admin.about.sponsorBlurb')}
-      </div>
-      <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
-        {supportRows.map(([label, href], i) => (
-          <div key={label} style={rowStyle(i === supportRows.length - 1)}>
-            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{label}</span>
-            <a href={href} target="_blank" rel="noopener noreferrer"
-              style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}
-            >{href.replace('https://', '')}</a>
-          </div>
-        ))}
-      </div>
-
       <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '18px 0 8px 4px' }}>
         {t('diagnostics.section')}
       </div>

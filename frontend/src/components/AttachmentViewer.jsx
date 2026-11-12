@@ -471,7 +471,7 @@ function PasswordPrompt({ incorrect, onSubmit, onDownload }) {
   return (
     <Centered>
       {/* autoComplete off: this is the document's password, not one the browser should offer to
-          save for MailFlow. */}
+          save for Plimail. */}
       <form
         autoComplete="off"
         onSubmit={e => { e.preventDefault(); if (value) onSubmit(value); }}

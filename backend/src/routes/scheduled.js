@@ -63,7 +63,7 @@ function stateMessage(status) {
 const CONFIRM = {
   uncertain: {
     code: 'confirm_uncertain',
-    error: 'This message may already have been delivered: MailFlow stopped while sending it. Check the Sent folder first. Send it again anyway?',
+    error: 'This message may already have been delivered: Plimail stopped while sending it. Check the Sent folder first. Send it again anyway?',
   },
   restored: {
     code: 'confirm_restored',

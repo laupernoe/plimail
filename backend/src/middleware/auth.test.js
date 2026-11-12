@@ -84,7 +84,7 @@ describe('API token requests', () => {
     await requireAuth(req, res, next);
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({ error: 'Invalid or expired API token' });
-    expect(res.setHeader).toHaveBeenCalledWith('WWW-Authenticate', 'Bearer realm="MailFlow", error="invalid_token"');
+    expect(res.setHeader).toHaveBeenCalledWith('WWW-Authenticate', 'Bearer realm="Plimail", error="invalid_token"');
     expect(req.session.destroy).not.toHaveBeenCalled();
     expect(next).not.toHaveBeenCalled();
   });

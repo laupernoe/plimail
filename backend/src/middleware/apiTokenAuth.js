@@ -40,7 +40,7 @@ async function authenticate(req, res, next, credential) {
   const ip = normalizeIp(req.ip);
 
   if (!(await apiTokensEnabled())) {
-    return refuse(401, { error: TOKENS_OFF_ERROR }, { 'WWW-Authenticate': 'Bearer realm="MailFlow"' });
+    return refuse(401, { error: TOKENS_OFF_ERROR }, { 'WWW-Authenticate': 'Bearer realm="Plimail"' });
   }
   const token = isTokenFormat(credential) ? await findTokenByHash(hashToken(credential)) : null;
   if (!token) {

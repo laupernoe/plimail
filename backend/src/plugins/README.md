@@ -1,6 +1,6 @@
-# MailFlow plugins
+# Plimail plugins
 
-MailFlow features can live as **plugins**: self-contained modules that talk to core only through a
+Plimail features can live as **plugins**: self-contained modules that talk to core only through a
 fixed, reviewed capability surface. **GTD** (`gtd/`) is the reference plugin and the first fully
 extracted one.
 

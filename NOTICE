@@ -1,0 +1,26 @@
+Plimail
+https://github.com/laupernoe/plimail
+
+Plimail is a fork of MailFlow by Matt (https://github.com/maathimself/mailflow),
+licensed under the GNU Affero General Public License v3.0. The full licence text is in
+LICENSE. Copyright in the original code remains with its authors.
+
+This is a modified version of MailFlow. Modifications since 2026-11-11 (the date of the
+fork) include:
+
+  - Renamed the product to Plimail: interface text in every locale, page titles, PWA
+    manifest, backend-sent product name (X-Mailer, User-Agent, emails), desktop and
+    Android shells.
+  - New monochrome logo, favicon, PWA, desktop and Android icons.
+  - Calendars: CalDAV accounts and calendars, calendar settings, upcoming pane.
+  - Removed the upstream project's sponsorship links, business-licence notice,
+    commercial licence, contributor licence agreement, funding and code-owner files,
+    and pointed the update check, package metadata and CI image names at the fork.
+  - Added a Source code link (AGPL-3.0 section 13) to Settings, About.
+
+Internal identifiers that installed copies depend on (MAILFLOW_* environment variables,
+database and role names, cookie and storage keys, data-mailflow-* attributes, Docker
+volume and network names, the Android package id) keep their original names.
+
+The upstream project's commercial licence offer does not apply to Plimail, which is
+distributed under the AGPL-3.0 only.

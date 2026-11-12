@@ -1263,7 +1263,7 @@ function MailboxList() {
             fetch('/api/mail/messages/bulk-delete', {
               method: 'POST',
               credentials: 'include',
-              headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'MailFlow' },
+              headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'Plimail' },
               body: JSON.stringify({ ids: deleteIds }),
               keepalive: true,
             });
@@ -1271,7 +1271,7 @@ function MailboxList() {
             fetch(`/api/mail/messages/${deleteIds[0]}`, {
               method: 'DELETE',
               credentials: 'include',
-              headers: { 'X-Requested-With': 'MailFlow' },
+              headers: { 'X-Requested-With': 'Plimail' },
               keepalive: true,
             });
           }

@@ -1,8 +1,8 @@
-# MailFlow — pre-built image install
+# Plimail — pre-built image install
 #
 # Quick start:
-#   curl -o docker-compose.yml https://raw.githubusercontent.com/maathimself/mailflow/main/docker-compose.ghcr.yml
-#   curl -o .env               https://raw.githubusercontent.com/maathimself/mailflow/main/.env.example
+#   curl -o docker-compose.yml https://raw.githubusercontent.com/laupernoe/plimail/main/docker-compose.ghcr.yml
+#   curl -o .env               https://raw.githubusercontent.com/laupernoe/plimail/main/.env.example
 #   # edit .env, then:
 #   docker compose up -d
 #
@@ -15,7 +15,7 @@ services:
   # Exposes HTTPS on APP_PORT and HTTP on APP_HTTP_PORT.
   # HTTP is intended for use behind a reverse proxy that terminates TLS.
   frontend:
-    image: ghcr.io/maathimself/mailflow-frontend:${MAILFLOW_VERSION:-latest}
+    image: ghcr.io/laupernoe/plimail-frontend:${MAILFLOW_VERSION:-latest}
     container_name: mailflow-frontend
     restart: unless-stopped
     ports:
@@ -40,7 +40,7 @@ services:
 
   # ── Backend API ──────────────────────────────────────────────────────────────
   backend:
-    image: ghcr.io/maathimself/mailflow-backend:${MAILFLOW_VERSION:-latest}
+    image: ghcr.io/laupernoe/plimail-backend:${MAILFLOW_VERSION:-latest}
     container_name: mailflow-backend
     restart: unless-stopped
     # Room for a send in flight to finish on a restart (the backend waits up to 25 s).
@@ -69,7 +69,7 @@ services:
       VAPID_SUBJECT: ${VAPID_SUBJECT:-}
       IMAP_MAX_PERSISTENT_PER_HOST: ${IMAP_MAX_PERSISTENT_PER_HOST:-}
       TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-}
-      # false stops offering MailFlow's built-in Microsoft app for personal accounts (#674).
+      # false stops offering Plimail's built-in Microsoft app for personal accounts (#674).
       MS_BUILTIN_APP: ${MS_BUILTIN_APP:-}
       # Your own OAuth apps (#676). Values saved under Settings > Email providers take
       # precedence, field by field; an empty value here counts as not set.

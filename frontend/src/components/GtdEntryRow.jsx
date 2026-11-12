@@ -136,7 +136,7 @@ export default function GtdEntryRow({
       }}>
         {thread.subject || t('common.noSubject')}
       </div>
-      {/* Message preview: Mailflow's native inbox line — the gray one-liner under the
+      {/* Message preview: Plimail's native inbox line — the gray one-liner under the
           subject — on every GTD row. A cached AI gist (Waiting rows) wins over the raw
           snippet. Always rendered (native parity): rows keep a constant height even when
           neither gist nor snippet is populated yet. */}

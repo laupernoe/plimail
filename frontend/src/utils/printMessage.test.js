@@ -38,7 +38,7 @@ describe('buildPrintDocument', () => {
     assert.doesNotMatch(allowed, /img-src/);
   });
 
-  it('loads proxied images from MailFlow alone', () => {
+  it('loads proxied images from Plimail alone', () => {
     const proxied = buildPrintDocument([{ message: A, body: { html: '<p>x</p>', remoteImagesProxied: true } }]);
     assert.match(proxied, /base-uri 'none'; img-src 'self' data: blob:; font-src data:; media-src data: blob:;"/);
     const mixed = buildPrintDocument([

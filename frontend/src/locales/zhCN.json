@@ -697,7 +697,7 @@
       "deleted": "已删除"
     },
     "reason": {
-      "overdue": "已延迟超过 6 小时，因此 MailFlow 暂未发送。请立即发送或选择新时间。",
+      "overdue": "已延迟超过 6 小时，因此 Plimail 暂未发送。请立即发送或选择新时间。",
       "restored": "恢复备份时已暂停。",
       "editAbandoned": "到发送时间时它正处于编辑状态。",
       "accountDisabled": "其账户已关闭。",
@@ -712,18 +712,18 @@
       "aliasMissing": "原定的发件地址已不存在。",
       "decryptFailed": "无法在此服务器上解密。",
       "accountMissing": "其账户已不存在。",
-      "gaveUp": "邮件服务器一直出错，MailFlow 已停止重试。",
+      "gaveUp": "邮件服务器一直出错，Plimail 已停止重试。",
       "failed": "无法发送。",
-      "uncertain": "MailFlow 在发送过程中停止，邮件可能已送达，也可能没有。请检查“已发送”文件夹。",
+      "uncertain": "Plimail 在发送过程中停止，邮件可能已送达，也可能没有。请检查“已发送”文件夹。",
       "retrying": "上次尝试失败。下次尝试：{{when}}。",
       "deleted": "可在 {{when}} 前恢复。"
     },
     "sent": {
       "markedSent": "你已将其标记为已发送。",
       "late": "延迟发送：原定 {{scheduled}}，实际 {{sent}} 发送。",
-      "lateOffline": "延迟发送：原定 {{scheduled}}，因 MailFlow 离线，实际 {{sent}} 发送。",
+      "lateOffline": "延迟发送：原定 {{scheduled}}，因 Plimail 离线，实际 {{sent}} 发送。",
       "refused": "邮件服务器拒绝了以下收件人：{{list}}",
-      "deferred": "未送达 {{list}}：对方服务器要求稍后重试，而 MailFlow 不会重试。请重新发给他们。",
+      "deferred": "未送达 {{list}}：对方服务器要求稍后重试，而 Plimail 不会重试。请重新发给他们。",
       "noSentFolder": "未保存副本：该账户没有“已发送”文件夹。",
       "noSentCopy": "无法在“已发送”中保存副本。"
     },
@@ -752,14 +752,14 @@
     },
     "confirm": {
       "uncertainTitle": "可能已经送达",
-      "uncertainBody": "MailFlow 在发送时停止了。请先检查“已发送”文件夹。仍要再次发送吗？",
+      "uncertainBody": "Plimail 在发送时停止了。请先检查“已发送”文件夹。仍要再次发送吗？",
       "restoredTitle": "因恢复备份而暂停",
       "restoredBody": "恢复备份时已将其暂停。如果旧服务器仍在运行，它也可能发送这封邮件。要从这里发送吗？",
       "restoredGo": "从这里发送",
       "sendAnywayTitle": "要再次发送吗？",
-      "sendAnywayBody": "它可能已经送达：MailFlow 在发送时停止了。请先检查“已发送”文件夹。如果已发出，收件人会收到两次。",
+      "sendAnywayBody": "它可能已经送达：Plimail 在发送时停止了。请先检查“已发送”文件夹。如果已发出，收件人会收到两次。",
       "markSentTitle": "要标记为已发送吗？",
-      "markSentBody": "如果你已在“已发送”文件夹中找到它，再这样做。MailFlow 会删除其内容，且不会发送。",
+      "markSentBody": "如果你已在“已发送”文件夹中找到它，再这样做。Plimail 会删除其内容，且不会发送。",
       "deleteTitle": "要永久删除吗？",
       "deleteBody": "它不会被发送，且无法恢复。"
     },
@@ -1254,7 +1254,7 @@
     },
     "folderMappings": {
       "title": "文件夹映射",
-      "description": "为每种邮件类别指定具体的文件夹。选择「自动检测」即可由 MailFlow 使用服务器为该类别标记的文件夹。",
+      "description": "为每种邮件类别指定具体的文件夹。选择「自动检测」即可由 Plimail 使用服务器为该类别标记的文件夹。",
       "loading": "加载文件夹中…",
       "autoDetect": "自动检测",
       "autoDetectNone": "自动检测（未找到）",
@@ -1268,7 +1268,7 @@
     },
     "aliases": {
       "title": "别名",
-      "description": "通过别名，您可以使用此账户的 SMTP 凭据，以不同的名称或地址发送邮件。撰写邮件时可在「发件人」栏选择别名。当邮件原本发往某个别名地址时，MailFlow 会自动以该别名回复。",
+      "description": "通过别名，您可以使用此账户的 SMTP 凭据，以不同的名称或地址发送邮件。撰写邮件时可在「发件人」栏选择别名。当邮件原本发往某个别名地址时，Plimail 会自动以该别名回复。",
       "addButton": "添加别名",
       "empty": "尚未创建任何别名",
       "newTitle": "新建别名",
@@ -1293,7 +1293,7 @@
       "title": "外观",
       "description": "为界面选择一种配色主题",
       "darkEmailBodies": "深色邮件正文",
-      "darkEmailBodiesDesc": "在深色主题中，也以深色显示 HTML 邮件：若发件人提供深色设计则使用它，否则由 MailFlow 重新着色。如果邮件要求保持原样，或深色显示会使文字难以阅读，则保持原样。每封邮件都可以单独切换。",
+      "darkEmailBodiesDesc": "在深色主题中，也以深色显示 HTML 邮件：若发件人提供深色设计则使用它，否则由 Plimail 重新着色。如果邮件要求保持原样，或深色显示会使文字难以阅读，则保持原样。每封邮件都可以单独切换。",
       "typography": "字体排版",
       "typographyDescription": "为界面选择一种字体搭配方案",
       "typographyLoading": "加载字体中…",
@@ -1344,9 +1344,9 @@
       "swipeDisabled": "禁用",
       "swipeDisabledDesc": "关闭此滑动方向",
       "syncFrequency": "邮件同步频率",
-      "syncFrequencyDesc": "MailFlow 检查新邮件的频率",
+      "syncFrequencyDesc": "Plimail 检查新邮件的频率",
       "folderSyncFrequency": "文件夹结构同步频率",
-      "folderSyncFrequencyDesc": "MailFlow 从服务器刷新每个账户文件夹列表的频率（在其他应用中创建的文件夹）",
+      "folderSyncFrequencyDesc": "Plimail 从服务器刷新每个账户文件夹列表的频率（在其他应用中创建的文件夹）",
       "threadingMode": "会话归并",
       "threadingOff": "关闭",
       "threadingOffDesc": "每封邮件单独显示",
@@ -1383,8 +1383,8 @@
       "markReadManual": "手动",
       "markReadManualDesc": "从不自动标为已读，请使用标为已读按钮。",
       "defaultMailApp": "默认邮件应用",
-      "defaultMailAppDesc": "让 MailFlow 在此浏览器中打开 mailto: 链接。浏览器会要求你确认。支持 Firefox 和 Chrome/Edge；iOS 不支持。",
-      "defaultMailAppBtn": "注册 MailFlow",
+      "defaultMailAppDesc": "让 Plimail 在此浏览器中打开 mailto: 链接。浏览器会要求你确认。支持 Firefox 和 Chrome/Edge；iOS 不支持。",
+      "defaultMailAppBtn": "注册 Plimail",
       "defaultMailAppOk": "在浏览器中确认提示以完成。",
       "defaultMailAppError": "浏览器已阻止该请求。",
       "markReadDelayLabel": "延迟",
@@ -1432,7 +1432,7 @@
     },
     "push": {
       "title": "推送通知",
-      "description": "即使 MailFlow 未打开，也能在收到新邮件时接收系统原生通知。",
+      "description": "即使 Plimail 未打开，也能在收到新邮件时接收系统原生通知。",
       "enable": "启用",
       "disable": "停用",
       "statusOn": "已启用推送通知",
@@ -1440,7 +1440,7 @@
       "statusDenied": "权限已被拒绝",
       "permissionDenied": "通知权限已被拒绝。请在浏览器或系统设置中重新启用。",
       "notSupported": "此浏览器不支持推送通知。",
-      "iosHint": "若要在 iOS 上接收推送通知，请先将 MailFlow 添加到主屏幕：点击「分享」按钮，再选择「添加到主屏幕」。",
+      "iosHint": "若要在 iOS 上接收推送通知，请先将 Plimail 添加到主屏幕：点击「分享」按钮，再选择「添加到主屏幕」。",
       "notConfigured": "此服务器尚未配置推送通知。请在 .env 文件中添加 VAPID 密钥以启用。",
       "loading": "处理中…"
     },
@@ -1544,7 +1544,7 @@
     },
     "apiTokens": {
       "title": "API 令牌",
-      "description": "令牌让脚本和工具（例如 MCP 服务器）无需您的密码即可使用 MailFlow。令牌只能执行其权限范围允许的操作，且永远不能发送、删除邮件或更改设置。",
+      "description": "令牌让脚本和工具（例如 MCP 服务器）无需您的密码即可使用 Plimail。令牌只能执行其权限范围允许的操作，且永远不能发送、删除邮件或更改设置。",
       "loadFailed": "无法加载 API 令牌：{{message}}",
       "disabledNotice": "此服务器已关闭 API 令牌。需要管理员开启后，您才能创建令牌。",
       "disabledNoticeAdmin": "此服务器已关闭 API 令牌。使用上方的开关开启后即可创建令牌。",
@@ -1662,7 +1662,7 @@
       "edit": "编辑",
       "editTitle": "编辑 {{username}}",
       "username": "用户名",
-      "usernameHint": "用于登录 MailFlow。",
+      "usernameHint": "用于登录 Plimail。",
       "recoveryEmail": "恢复邮箱",
       "recoveryEmailHint": "接收“忘记密码？”链接。留空即可移除。",
       "newPassword": "新密码",
@@ -1774,7 +1774,7 @@
       "gtdRevealDesc": "在下方显示每个账户的 GTD 设置；每个账户仍由各自的开关控制。"
     },
     "gtd": {
-      "description": "把 Mailflow 变成一个 GTD 系统。按账户启用，然后将每个状态映射到存放其标签的 IMAP 文件夹。",
+      "description": "把 Plimail 变成一个 GTD 系统。按账户启用，然后将每个状态映射到存放其标签的 IMAP 文件夹。",
       "noAccounts": "请先添加一个邮箱账户以配置 GTD。",
       "enableDesc": "GTD 已启用。标签会作为文件夹同步，状态会自动流转。",
       "enableHint": "为此账户启用 GTD 标签和自动状态流转。",
@@ -1827,7 +1827,7 @@
     },
     "sso": {
       "title": "单点登录",
-      "description": "通过组织的身份提供商（OIDC）登录 MailFlow 本身的方式。连接邮箱请前往“邮件服务商”。",
+      "description": "通过组织的身份提供商（OIDC）登录 Plimail 本身的方式。连接邮箱请前往“邮件服务商”。",
       "empty": "尚未配置任何 SSO 服务商。",
       "addProvider": "+ 添加 SSO 服务商",
       "templatePickerTitle": "选择服务商模板",
@@ -1853,7 +1853,7 @@
       "domainsPh": "example.com, corp.example.com",
       "provisioning": "账户开通模式",
       "provisioningDisabled": "停用 — 已绑定的身份仍可登录，但不再创建新绑定",
-      "provisioningExisting": "匹配现有账户 — 与邮箱匹配的 MailFlow 账户绑定",
+      "provisioningExisting": "匹配现有账户 — 与邮箱匹配的 Plimail 账户绑定",
       "provisioningOpen": "开放 — 首次 SSO 登录时自动创建新账户",
       "enabled": "启用此服务商",
       "requireEmailVerified": "要求邮箱已验证",
@@ -1873,7 +1873,7 @@
       "allowInsecure": "允许本地/自签名连接",
       "allowInsecureDesc": "绕过主机验证和 TLS 证书检查。仅用于局域网专用提供商（例如 pocketid.internal）。不建议用于面向互联网的部署。",
       "rpLogout": "SSO 注销（RP-initiated）",
-      "rpLogoutDesc": "注销时，除了清除 MailFlow 的 cookie，还会重定向到该提供商的 end-session endpoint 以结束其会话。要求提供商公布 end_session_endpoint，并将 MailFlow 的登录 URL（…/login）注册为 post-logout redirect URI。",
+      "rpLogoutDesc": "注销时，除了清除 Plimail 的 cookie，还会重定向到该提供商的 end-session endpoint 以结束其会话。要求提供商公布 end_session_endpoint，并将 Plimail 的登录 URL（…/login）注册为 post-logout redirect URI。",
       "adminGroupClaim": "管理员组声明",
       "adminGroupClaimPh": "groups",
       "adminGroupClaimDesc": "包含用户组的 JWT 声明名称（例如 groups）。留空可禁用基于组的管理员分配。",
@@ -1881,7 +1881,7 @@
       "adminGroupValuePh": "mailflow-admins",
       "adminGroupValueDesc": "授予管理员访问权限的组名。该组中的用户在每次 SSO 登录时成为管理员；不在该组中的用户将失去管理员权限。",
       "loginMatchClaim": "匹配现有账户所用声明",
-      "loginMatchClaimDesc": "首次将 SSO 登录关联到现有账户时（预配模式“仅登录现有账户”），用于与每个 MailFlow 账户用户名进行匹配的 OIDC 声明（claim）。默认为 email。对于用户名不是电子邮件地址的身份提供商，可设置为 preferred_username、upn 等——但仅当您的提供商保证该声明唯一且用户不可自行修改时。",
+      "loginMatchClaimDesc": "首次将 SSO 登录关联到现有账户时（预配模式“仅登录现有账户”），用于与每个 Plimail 账户用户名进行匹配的 OIDC 声明（claim）。默认为 email。对于用户名不是电子邮件地址的身份提供商，可设置为 preferred_username、upn 等——但仅当您的提供商保证该声明唯一且用户不可自行修改时。",
       "passwordLoginDisableMsg": "用户将只能通过 SSO 登录。如果 SSO 提供商不可用，则需要直接访问数据库才能重新启用密码登录。未通过 SSO 确认的 API 令牌将被删除。",
       "passwordLoginDisableTitle": "是否禁用密码登录？",
       "passwordLoginDisabled": "密码登录已禁用",
@@ -1972,7 +1972,7 @@
         "lastSync": "上次同步：{{when}}",
         "summary": "{{books}} 个通讯簿中的 {{contacts}} 个联系人",
         "syncFailed": "上次同步失败：{{error}}",
-        "help": "请使用 Nextcloud 应用专用密码，而非登录密码——SSO 用户需在“设置 → 安全”中创建。联系人为单向同步，在 MailFlow 中为只读。"
+        "help": "请使用 Nextcloud 应用专用密码，而非登录密码——SSO 用户需在“设置 → 安全”中创建。联系人为单向同步，在 Plimail 中为只读。"
       }
     },
     "ssoLinked": {
@@ -1992,21 +1992,8 @@
       "backendBuild": "后端构建",
       "frontendBuild": "前端构建",
       "license": "许可证",
-      "website": "官方网站",
       "sourceCode": "源代码",
-      "sponsor": "支持开发",
-      "kofi": "Ko-fi",
-      "githubSponsors": "GitHub Sponsors",
-      "businessLicense": "企业许可证",
-      "sponsorBlurb": "MailFlow 由一人开发和维护。赞助用于支付修复问题、审查代码和发布新版本所需的时间。"
-    },
-    "businessNotice": {
-      "title": "在企业中使用 MailFlow？",
-      "body": "MailFlow 在 AGPL 下免费，由一人开发和维护。我们请依赖它的企业购买企业许可证，每个实例每年 100 美元，不含税。这是自愿的，MailFlow 不会进行任何检查。",
-      "learnMore": "查看企业许可证",
-      "haveOne": "我们已有许可证",
-      "notBusiness": "不是企业",
-      "later": "稍后提醒"
+      "upstream": "基于 MailFlow"
     },
     "search": {
       "placeholder": "搜索设置…",
@@ -2036,26 +2023,26 @@
     },
     "backup": {
       "title": "备份与恢复",
-      "intro": "备份文件包含此 MailFlow 的数据：用户、邮件账户、规则、联系人、设置、插件数据和反垃圾邮件训练数据。除非选择包含，缓存的邮件会在恢复后从你的邮件服务器重新下载。文件不包含 .env 中的设置：新服务器需要相同的 ENCRYPTION_KEY；如果你在 .env 中设置了 VAPID 密钥和 OAuth 客户端设置，也需要相同的值。",
+      "intro": "备份文件包含此 Plimail 的数据：用户、邮件账户、规则、联系人、设置、插件数据和反垃圾邮件训练数据。除非选择包含，缓存的邮件会在恢复后从你的邮件服务器重新下载。文件不包含 .env 中的设置：新服务器需要相同的 ENCRYPTION_KEY；如果你在 .env 中设置了 VAPID 密钥和 OAuth 客户端设置，也需要相同的值。",
       "sensitive": "该文件包含密码哈希、尚未使用的邀请链接以及各账户的登录凭据。其中登录凭据已使用本服务器的 ENCRYPTION_KEY 加密，其余内容均可直接读取；如果包含缓存邮件，所有邮件内容同样可读。请妥善保管该文件。它只能在使用相同密钥的服务器上恢复。",
       "includeMail": "包含缓存的邮件",
       "includeMailDesc": "同时保存每封已同步邮件的本地副本，文件会因此大很多。如果不包含，恢复后会重新下载邮件，且每个收件箱中最新的未读邮件会作为新邮件再次到达：收件箱规则会再次作用于它们，包括转发。此选择将用于之后的每次备份，直到你更改为止。",
       "includeMailSaveError": "无法保存该设置。",
       "create": "下载备份",
       "restoreTitle": "恢复备份",
-      "restoreIntro": "恢复会用文件中的内容替换本服务器上的所有用户、账户、设置和缓存邮件。随后 MailFlow 会重启。账户不在备份中的用户会被登出，密码以备份中的为准。恢复还会删除所有 API 令牌，使用令牌的工具需要新的令牌。",
-      "versionNote": "备份只能在数据库结构与创建它的版本相同的 MailFlow 版本上恢复。如果当前版本的数据库结构较新，请先在创建备份的版本上恢复，然后再升级。",
+      "restoreIntro": "恢复会用文件中的内容替换本服务器上的所有用户、账户、设置和缓存邮件。随后 Plimail 会重启。账户不在备份中的用户会被登出，密码以备份中的为准。恢复还会删除所有 API 令牌，使用令牌的工具需要新的令牌。",
+      "versionNote": "备份只能在数据库结构与创建它的版本相同的 Plimail 版本上恢复。如果当前版本的数据库结构较新，请先在创建备份的版本上恢复，然后再升级。",
       "chooseFile": "选择备份文件",
       "restore": "恢复…",
       "confirmWarn": "本服务器上的全部内容将被 {{name}} 替换。此操作无法撤销。",
       "confirmYes": "恢复并重启",
       "restoring": "正在恢复… 已写入行数：{{rows}}",
-      "done": "恢复完成。MailFlow 正在重启，恢复可用后本页面会自动重新加载。",
-      "restartTimeout": "MailFlow 在两分钟内未能恢复运行。请重新启动它，然后重新加载本页面。",
+      "done": "恢复完成。Plimail 正在重启，恢复可用后本页面会自动重新加载。",
+      "restartTimeout": "Plimail 在两分钟内未能恢复运行。请重新启动它，然后重新加载本页面。",
       "failed": "恢复失败：{{message}}",
       "downloadFailed": "无法开始备份。",
-      "connectionLost": "恢复过程中连接中断，因此结果未知。MailFlow 恢复响应后本页面会重新加载；届时请确认数据是否已恢复。",
-      "tooLarge": "文件大小超过了 MailFlow 前面的反向代理所允许的上限。"
+      "connectionLost": "恢复过程中连接中断，因此结果未知。Plimail 恢复响应后本页面会重新加载；届时请确认数据是否已恢复。",
+      "tooLarge": "文件大小超过了 Plimail 前面的反向代理所允许的上限。"
     },
     "plugins": {
       "title": "插件",
@@ -2292,20 +2279,20 @@
     "signIn": {
       "title": "重新登录 Microsoft",
       "titleGoogle": "重新登录 Google",
-      "body": "MailFlow 为此帐户保存的登录已失效。这通常发生在更改密码后、长时间未使用后，或在帐户设置中移除了访问权限之后。"
+      "body": "Plimail 为此帐户保存的登录已失效。这通常发生在更改密码后、长时间未使用后，或在帐户设置中移除了访问权限之后。"
     },
     "appConfig": {
       "title": "此帐户的登录设置不正确",
-      "bodyUser": "邮件服务商拒绝了 MailFlow 用于登录的应用。请让管理员检查登录设置。",
-      "bodyAdmin": "邮件服务商拒绝了 MailFlow 用于登录的应用。请在“邮件服务商”中检查它的设置。下方详细信息显示了服务商的回复。"
+      "bodyUser": "邮件服务商拒绝了 Plimail 用于登录的应用。请让管理员检查登录设置。",
+      "bodyAdmin": "邮件服务商拒绝了 Plimail 用于登录的应用。请在“邮件服务商”中检查它的设置。下方详细信息显示了服务商的回复。"
     },
     "authFailed": {
       "title": "服务器拒绝了密码",
       "body": "邮件服务器不接受此帐户的用户名或密码。如果你更改过密码或使用应用专用密码，请通过“编辑帐户”更新。"
     },
     "connection": {
-      "title": "MailFlow 无法连接到此帐户",
-      "body": "MailFlow 会自动继续尝试。下方详细信息显示了服务器的回复。"
+      "title": "Plimail 无法连接到此帐户",
+      "body": "Plimail 会自动继续尝试。下方详细信息显示了服务器的回复。"
     },
     "action": {
       "openOutlook": "打开 Outlook.com",
@@ -2318,7 +2305,7 @@
     "signInDialog": {
       "title": "重新登录",
       "body": "以 {{email}} 登录，重新连接此帐户。",
-      "success": "已登录。MailFlow 正在重新连接此帐户。",
+      "success": "已登录。Plimail 正在重新连接此帐户。",
       "continueGoogle": "前往 Google",
       "waitingGoogle": "请在 Google 页面完成登录，然后回到这里。"
     },
@@ -2362,28 +2349,28 @@
     "copied": "已复制",
     "waiting": "正在等待你在 Microsoft 页面完成登录…",
     "starting": "正在从 Microsoft 获取代码…",
-    "checking": "正在检查 MailFlow 能否访问你的邮箱…",
+    "checking": "正在检查 Plimail 能否访问你的邮箱…",
     "connected": "{{email}} 已连接。正在同步你的邮件。",
-    "stillConnecting": "已以 {{email}} 登录。MailFlow 仍在连接，并会自动继续尝试。帐户列表会显示何时就绪。",
+    "stillConnecting": "已以 {{email}} 登录。Plimail 仍在连接，并会自动继续尝试。帐户列表会显示何时就绪。",
     "declined": "你在 Microsoft 页面取消了登录。",
     "expired": "登录完成前代码已过期。代码有效期为 15 分钟。",
     "error": "Microsoft 登录未成功。",
     "newCode": "获取新代码",
     "startOver": "重新开始",
     "done": "完成",
-    "finePrintShared": "Microsoft 可能会将 MailFlow 显示为未验证的应用。这是正常的：MailFlow 的共享应用只是向 Microsoft 表明 MailFlow 的身份。你在 Microsoft 自己的页面登录，Microsoft 会将访问权限直接发送到此服务器。",
+    "finePrintShared": "Microsoft 可能会将 Plimail 显示为未验证的应用。这是正常的：Plimail 的共享应用只是向 Microsoft 表明 Plimail 的身份。你在 Microsoft 自己的页面登录，Microsoft 会将访问权限直接发送到此服务器。",
     "finePrintOwn": "你在 Microsoft 自己的页面登录，Microsoft 会将访问权限直接发送到此服务器。",
     "continueMicrosoft": "继续前往 Microsoft",
     "redirectWaiting": "请在打开的 Microsoft 页面完成登录，然后回到这里。",
     "useCode": "改用代码",
     "useRedirect": "改为在 Microsoft 页面登录",
     "back": "返回",
-    "lost": "MailFlow 丢失了此次登录的进度，例如因为服务器重新启动。如果你已在 Microsoft 页面完成登录，该帐户可能已在你的列表中。",
+    "lost": "Plimail 丢失了此次登录的进度，例如因为服务器重新启动。如果你已在 Microsoft 页面完成登录，该帐户可能已在你的列表中。",
     "checkAccounts": "查看你的帐户"
   },
   "mailSignIn": {
     "title": "邮件服务商",
-    "description": "MailFlow 连接 Microsoft 和 Google 邮箱的方式。这与单点登录（SSO）不同，后者是登录 MailFlow 本身的方式。每个人在“帐户 > 添加帐户”中添加自己的帐户。",
+    "description": "Plimail 连接 Microsoft 和 Google 邮箱的方式。这与单点登录（SSO）不同，后者是登录 Plimail 本身的方式。每个人在“帐户 > 添加帐户”中添加自己的帐户。",
     "required": "请先填写必填字段。",
     "redirectRequired": "Google 需要重定向 URI：即在 OAuth 客户端中注册的、以 /oauth/google/callback 结尾的 URI。",
     "saved": "已保存。",
@@ -2391,12 +2378,12 @@
       "title": "Microsoft",
       "description": "Outlook.com、Hotmail、Live、MSN 和 Microsoft 365 邮箱",
       "personalTitle": "个人帐户（Outlook.com、Hotmail、Live、MSN）",
-      "statusShared": "正在使用 MailFlow 的共享应用",
+      "statusShared": "正在使用 Plimail 的共享应用",
       "statusOwn": "正在使用你自己的应用",
       "statusOff": "已关闭",
-      "sharedSwitch": "允许通过 MailFlow 的共享应用登录",
+      "sharedSwitch": "允许通过 Plimail 的共享应用登录",
       "sharedSwitchDesc": "无需设置。关闭后，已连接的帐户仍可继续使用。",
-      "ownHandlesPersonal": "你自己的应用负责个人帐户，因此不会使用 MailFlow 的共享应用。",
+      "ownHandlesPersonal": "你自己的应用负责个人帐户，因此不会使用 Plimail 的共享应用。",
       "workTitle": "工作和学校帐户（Microsoft 365）",
       "workOff": "未设置",
       "setupToggle": "设置你自己的 Microsoft Entra 应用"
@@ -2452,7 +2439,7 @@
       "customColor": "自定义颜色"
     },
     "empty": {
-      "title": "把你的日历带进 MailFlow",
+      "title": "把你的日历带进 Plimail",
       "body": "连接 CalDAV 日历，例如 Nextcloud、Fastmail、iCloud 或 Radicale。日程双向同步，并保留在你自己的服务器上，与邮件放在一起。",
       "connect": "连接日历"
     },
@@ -2575,7 +2562,7 @@
       "changePassword": "修改密码",
       "newPassword": "新密码",
       "passwordSaved": "密码已更新。",
-      "removeConfirm": "要从 MailFlow 中移除 {{name}} 吗？其日历和日程仅在此处删除，服务器上的数据不会受到影响。",
+      "removeConfirm": "要从 Plimail 中移除 {{name}} 吗？其日历和日程仅在此处删除，服务器上的数据不会受到影响。",
       "fromMailTitle": "使用邮件账户",
       "fromMailHint": "尝试使用邮件账户的服务器和密码。不会向其他服务器发送任何内容。",
       "fromMailNone": "在 {{host}} 上未找到日历服务器：{{error}}",

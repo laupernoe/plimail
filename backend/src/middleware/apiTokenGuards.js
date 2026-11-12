@@ -24,9 +24,9 @@ export async function apiTokenGuards(req, res, next) {
 }
 
 const DRAFT_SOURCE_ERROR = 'API tokens cannot move or archive drafts';
-export const ALL_MAIL_ARCHIVE_ERROR = "API tokens cannot archive into Gmail's All Mail, where the mail drops out of MailFlow. "
+export const ALL_MAIL_ARCHIVE_ERROR = "API tokens cannot archive into Gmail's All Mail, where the mail drops out of Plimail. "
   + "Create a Gmail label named Archive, or choose an archive folder in the account's settings.";
-export const PROTECTED_ARCHIVE_ERROR = 'API tokens cannot archive into Trash, Junk, Drafts, Snoozed or folders MailFlow does not sync: '
+export const PROTECTED_ARCHIVE_ERROR = 'API tokens cannot archive into Trash, Junk, Drafts, Snoozed or folders Plimail does not sync: '
   + "check the account's archive folder setting.";
 const PLAIN_TEXT_ERROR = 'API token drafts must be plain text';
 

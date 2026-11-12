@@ -54,7 +54,7 @@ const getBcc = async () => {
 };
 
 describe('GET /messages/:id/bcc — a saved draft\'s Bcc for the composer', () => {
-  it('returns the Bcc MailFlow stored with the draft, without asking the server', async () => {
+  it('returns the Bcc Plimail stored with the draft, without asking the server', async () => {
     const stored = [{ name: 'Hidden Person', email: 'hidden@example.com' }];
     mockDraft(stored);
     const { status, body } = await getBcc();

@@ -11,8 +11,8 @@ const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<'
 const pct = (n, d) => (d ? `${Math.round((n / d) * 100)}%` : '–');
 
 const MODE_NOTES = {
-  auto: 'What MailFlow shows: sender design, else recolored, else as sent',
-  recolor: 'MailFlow recoloring, forced',
+  auto: 'What Plimail shows: sender design, else recolored, else as sent',
+  recolor: 'Plimail recoloring, forced',
   sender: "Sender's own dark design, forced",
   naive: 'Theme background and text only',
 };
@@ -31,7 +31,7 @@ export function buildReport({ when, modes, summary, results }) {
   }).join('');
   const light = summary.light ?? { emails: results.filter(r => r.modes.light).length };
   const auto = summary.auto;
-  const autoLine = auto?.outcomes ? `<p class="dim small">What MailFlow shows: ${Object.entries(OUTCOME).map(([k, label]) => `${label} ${auto.outcomes[k] || 0} (${pct(auto.outcomes[k] || 0, auto.emails)})`).join(', ')}.
+  const autoLine = auto?.outcomes ? `<p class="dim small">What Plimail shows: ${Object.entries(OUTCOME).map(([k, label]) => `${label} ${auto.outcomes[k] || 0} (${pct(auto.outcomes[k] || 0, auto.emails)})`).join(', ')}.
     Median bright area when shown dark ${auto.medianBrightShownDark === null ? '–' : `${Math.round(auto.medianBrightShownDark * 100)}%`}.
     Time to show dark: median ${auto.ms.median} ms, 95th percentile ${auto.ms.p95} ms, slowest ${auto.ms.max} ms.
     Images: ${auto.images ? `${auto.images.placeholders} blocked-image placeholders drawn dark, ${auto.images.backed} images given a light backing` : '–'}.
@@ -88,7 +88,7 @@ export function buildReport({ when, modes, summary, results }) {
   .hidden { display: none; }
 </style></head><body>
 <h1>Dark audit contact sheet</h1>
-<div class="dim">${esc(when)} · ${light.emails} emails · ${summary.imagesBlocked ? `remote images blocked by MailFlow in ${summary.imagesBlocked} (its default)` : 'remote images allowed by MailFlow'}; the audit loads none, so they draw nothing</div>
+<div class="dim">${esc(when)} · ${light.emails} emails · ${summary.imagesBlocked ? `remote images blocked by Plimail in ${summary.imagesBlocked} (its default)` : 'remote images allowed by Plimail'}; the audit loads none, so they draw nothing</div>
 <table><thead><tr><th>Mode</th><th>Emails</th><th>Clean</th><th>Minor</th><th>Broken</th><th>Median bright area</th></tr></thead><tbody>${rows}</tbody></table>
 ${autoLine}
 <div class="dim small">Clean: no text that reads in light becomes unreadable (contrast below 3:1). Minor: at most 1% of text, or 20 characters. Bright area: share of the email's pixels that are light; lower is darker.</div>

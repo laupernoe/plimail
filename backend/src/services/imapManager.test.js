@@ -2252,7 +2252,7 @@ describe('inline images the body never shows are listed as attachments', () => {
       expect(body.attachments.map(a => a.filename)).toEqual(['big.png']);
     });
 
-    it('cannot be reached through a guessed MailFlow Content-ID', async () => {
+    it('cannot be reached through a guessed Plimail Content-ID', async () => {
       const { mgr, account } = serve({
         type: 'multipart/related',
         childNodes: [html(), attachedImage('2', { dispositionParameters: { filename: 'secret.png' } })],

@@ -161,7 +161,7 @@ describe('pushFor', () => {
       .toMatchObject({ title: 'Q4 numbers', body: 'Not sent: The mail server refused it.', url: '/?scheduled=abc', tag: 'scheduled-abc' });
     expect(pushFor({ ...base, status: 'paused', pauseReason: 'needs_reauth' }).body).toBe('Not sent: Sign in to the account again to send it.');
     expect(pushFor({ ...base, status: 'paused', pauseReason: 'overdue', offline: true }).body)
-      .toBe('Not sent: was scheduled for Mon, Oct 26, 8:00 AM. MailFlow was offline. Open to send or reschedule.');
+      .toBe('Not sent: was scheduled for Mon, Oct 26, 8:00 AM. Plimail was offline. Open to send or reschedule.');
     // Overdue while MailFlow ran (a queue, never a retry): nothing about being offline.
     expect(pushFor({ ...base, status: 'paused', pauseReason: 'overdue' }).body)
       .toBe('Not sent: was scheduled for Mon, Oct 26, 8:00 AM and is more than 6 hours late. Open to send or reschedule.');

@@ -207,7 +207,7 @@
       "deleted": "Smazáno"
     },
     "reason": {
-      "overdue": "Zpozdila se o více než 6 hodin, proto ji MailFlow podržel. Odešlete ji hned, nebo vyberte nový čas.",
+      "overdue": "Zpozdila se o více než 6 hodin, proto ji Plimail podržel. Odešlete ji hned, nebo vyberte nový čas.",
       "restored": "Byla pozastavena při obnově zálohy.",
       "editAbandoned": "Když měla odejít, byla otevřená k úpravám.",
       "accountDisabled": "Její účet je vypnutý.",
@@ -222,18 +222,18 @@
       "aliasMissing": "Adresa, ze které měla odejít, už neexistuje.",
       "decryptFailed": "Na tomto serveru ji nelze dešifrovat.",
       "accountMissing": "Její účet už neexistuje.",
-      "gaveUp": "Poštovní server stále selhával, proto to MailFlow vzdal.",
+      "gaveUp": "Poštovní server stále selhával, proto to Plimail vzdal.",
       "failed": "Nepodařilo se ji odeslat.",
-      "uncertain": "MailFlow se během odesílání zastavil. Zpráva mohla, ale nemusela být doručena. Zkontrolujte složku Odeslané.",
+      "uncertain": "Plimail se během odesílání zastavil. Zpráva mohla, ale nemusela být doručena. Zkontrolujte složku Odeslané.",
       "retrying": "Poslední pokus selhal. Další pokus: {{when}}.",
       "deleted": "Lze obnovit do {{when}}."
     },
     "sent": {
       "markedSent": "Označili jste ji jako odeslanou.",
       "late": "Odesláno pozdě: naplánováno na {{scheduled}}, odesláno {{sent}}.",
-      "lateOffline": "Odesláno pozdě: naplánováno na {{scheduled}}, odesláno {{sent}}, protože MailFlow nebyl v provozu.",
+      "lateOffline": "Odesláno pozdě: naplánováno na {{scheduled}}, odesláno {{sent}}, protože Plimail nebyl v provozu.",
       "refused": "Poštovní server odmítl pro: {{list}}",
-      "deferred": "Nedoručeno pro {{list}}: jejich server požádal o pozdější pokus a MailFlow to znovu nezkouší. Pošlete jim ji znovu.",
+      "deferred": "Nedoručeno pro {{list}}: jejich server požádal o pozdější pokus a Plimail to znovu nezkouší. Pošlete jim ji znovu.",
       "noSentFolder": "Kopie se neuložila: účet nemá složku Odeslané.",
       "noSentCopy": "Do složky Odeslané se nepodařilo uložit kopii."
     },
@@ -262,14 +262,14 @@
     },
     "confirm": {
       "uncertainTitle": "Možná už byla doručena",
-      "uncertainBody": "MailFlow se během jejího odesílání zastavil. Nejprve zkontrolujte složku Odeslané. Přesto ji odeslat znovu?",
+      "uncertainBody": "Plimail se během jejího odesílání zastavil. Nejprve zkontrolujte složku Odeslané. Přesto ji odeslat znovu?",
       "restoredTitle": "Pozastaveno obnovou zálohy",
       "restoredBody": "Byla pozastavena při obnově zálohy. Pokud starý server stále běží, může ji odeslat také. Odeslat ji odsud?",
       "restoredGo": "Odeslat odsud",
       "sendAnywayTitle": "Odeslat ji znovu?",
-      "sendAnywayBody": "Možná už byla doručena: MailFlow se během odesílání zastavil. Nejprve zkontrolujte složku Odeslané. Pokud odešla, příjemci ji dostanou dvakrát.",
+      "sendAnywayBody": "Možná už byla doručena: Plimail se během odesílání zastavil. Nejprve zkontrolujte složku Odeslané. Pokud odešla, příjemci ji dostanou dvakrát.",
       "markSentTitle": "Označit ji jako odeslanou?",
-      "markSentBody": "Udělejte to, když jste ji našli ve složce Odeslané. MailFlow smaže její obsah a nikdy ji neodešle.",
+      "markSentBody": "Udělejte to, když jste ji našli ve složce Odeslané. Plimail smaže její obsah a nikdy ji neodešle.",
       "deleteTitle": "Smazat ji natrvalo?",
       "deleteBody": "Neodešle se a nepůjde obnovit."
     },
@@ -1324,27 +1324,14 @@
       "backendBuild": "Sestavení backendu",
       "frontendBuild": "Sestavení frontendu",
       "license": "Licence",
-      "website": "Web",
       "sourceCode": "Zdrojový kód",
-      "sponsor": "Podpořit vývoj",
-      "kofi": "Ko-fi",
-      "githubSponsors": "GitHub Sponsors",
-      "businessLicense": "Firemní licence",
-      "sponsorBlurb": "MailFlow vyvíjí a udržuje jediný člověk. Sponzorské příspěvky pokrývají čas věnovaný opravám, revizím kódu a vydávání nových verzí."
-    },
-    "businessNotice": {
-      "title": "Používáte MailFlow ve firmě?",
-      "body": "MailFlow je zdarma pod licencí AGPL a vyvíjí ho jediný člověk. Firmy, které na něm závisí, žádáme o koupi firemní licence za 100 $ za instanci a rok, bez daně. Je dobrovolná a MailFlow ji nijak nekontroluje.",
-      "learnMore": "Zobrazit firemní licenci",
-      "haveOne": "Už ji máme",
-      "notBusiness": "Nejsme firma",
-      "later": "Připomenout později"
+      "upstream": "Vychází z MailFlow"
     },
     "appearance": {
       "title": "Vzhled",
       "description": "Vyberte barevný motiv rozhraní",
       "darkEmailBodies": "Tmavý obsah e-mailů",
-      "darkEmailBodiesDesc": "V tmavém motivu zobrazovat v tmavých barvách i e-maily HTML: s vlastním tmavým vzhledem odesílatele, pokud ho mají, jinak přebarvené aplikací MailFlow. E-mail zůstane tak, jak byl odeslán, když o to žádá nebo když by tmavé zobrazení zhoršilo čitelnost textu. Každou zprávu lze přepnout samostatně.",
+      "darkEmailBodiesDesc": "V tmavém motivu zobrazovat v tmavých barvách i e-maily HTML: s vlastním tmavým vzhledem odesílatele, pokud ho mají, jinak přebarvené aplikací Plimail. E-mail zůstane tak, jak byl odeslán, když o to žádá nebo když by tmavé zobrazení zhoršilo čitelnost textu. Každou zprávu lze přepnout samostatně.",
       "typography": "Typografie",
       "typographyDescription": "Vyberte kombinaci písem pro rozhraní",
       "typographyLoading": "Načítání písem…",
@@ -1450,7 +1437,7 @@
     },
     "folderMappings": {
       "title": "Mapování složek",
-      "description": "Přiřaďte jednotlivé role pošty ke konkrétním složkám. Výběrem Automaticky umožníte MailFlow použít složku, kterou pro danou roli označil váš server.",
+      "description": "Přiřaďte jednotlivé role pošty ke konkrétním složkám. Výběrem Automaticky umožníte Plimail použít složku, kterou pro danou roli označil váš server.",
       "loading": "Načítání složek…",
       "autoDetect": "Automaticky",
       "autoDetectNone": "Automaticky (nic nenalezeno)",
@@ -1464,7 +1451,7 @@
     },
     "aliases": {
       "title": "Aliasy",
-      "description": "Aliasy umožňují odesílat pomocí přihlašovacích údajů SMTP tohoto účtu pod jiným jménem nebo adresou. Při psaní zprávy vyberte alias v poli Od. Pokud byla zpráva adresována aliasu, MailFlow z něj automaticky také odpoví.",
+      "description": "Aliasy umožňují odesílat pomocí přihlašovacích údajů SMTP tohoto účtu pod jiným jménem nebo adresou. Při psaní zprávy vyberte alias v poli Od. Pokud byla zpráva adresována aliasu, Plimail z něj automaticky také odpoví.",
       "addButton": "Přidat alias",
       "empty": "Zatím žádné aliasy",
       "newTitle": "Nový alias",
@@ -1595,7 +1582,7 @@
     },
     "push": {
       "title": "Push oznámení",
-      "description": "Dostávejte systémová oznámení o nové poště, i když MailFlow není otevřený.",
+      "description": "Dostávejte systémová oznámení o nové poště, i když Plimail není otevřený.",
       "enable": "Zapnout",
       "disable": "Vypnout",
       "statusOn": "Push oznámení jsou zapnutá",
@@ -1603,7 +1590,7 @@
       "statusDenied": "Oprávnění zamítnuto",
       "permissionDenied": "Oprávnění k oznámením bylo zamítnuto. Povolte je v nastavení prohlížeče nebo systému.",
       "notSupported": "Tento prohlížeč push oznámení nepodporuje.",
-      "iosHint": "Chcete-li dostávat push oznámení v iOS, nejprve přidejte MailFlow na plochu: klepněte na Sdílet a potom na „Přidat na plochu“.",
+      "iosHint": "Chcete-li dostávat push oznámení v iOS, nejprve přidejte Plimail na plochu: klepněte na Sdílet a potom na „Přidat na plochu“.",
       "notConfigured": "Push oznámení nejsou na tomto serveru nastavená. Zapnete je přidáním klíčů VAPID do souboru .env.",
       "loading": "Zpracování…"
     },
@@ -1619,26 +1606,26 @@
     },
     "backup": {
       "title": "Záloha a obnovení",
-      "intro": "Záloha obsahuje data tohoto MailFlow: uživatele, e-mailové účty, pravidla, kontakty, nastavení, data pluginů a antispamové učení. Pošta z mezipaměti se po obnovení znovu stáhne z vašich poštovních serverů, pokud ji nezahrnete. Soubor neobsahuje to, co je nastavené v .env: nový server potřebuje stejný ENCRYPTION_KEY a, pokud jste je tam nastavili, stejné klíče VAPID a nastavení klienta OAuth.",
+      "intro": "Záloha obsahuje data tohoto Plimail: uživatele, e-mailové účty, pravidla, kontakty, nastavení, data pluginů a antispamové učení. Pošta z mezipaměti se po obnovení znovu stáhne z vašich poštovních serverů, pokud ji nezahrnete. Soubor neobsahuje to, co je nastavené v .env: nový server potřebuje stejný ENCRYPTION_KEY a, pokud jste je tam nastavili, stejné klíče VAPID a nastavení klienta OAuth.",
       "sensitive": "Soubor obsahuje otisky hesel, nevyužité odkazy s pozvánkami a přihlašovací údaje vašich účtů. Přihlašovací údaje jsou zašifrované klíčem ENCRYPTION_KEY tohoto serveru; zbytek je čitelný, stejně jako každá zpráva, pokud je zahrnuta pošta z mezipaměti. Uložte soubor na bezpečné místo. Obnovit jej lze jen na serveru se stejným klíčem.",
       "includeMail": "Zahrnout poštu z mezipaměti",
       "includeMailDesc": "Uloží také místní kopii každé synchronizované zprávy, takže soubor bude mnohem větší. Bez ní obnovení stáhne poštu znovu a nejnovější nepřečtené zprávy v každé doručené poště dorazí jako nová pošta: pravidla doručené pošty se na ně použijí znovu, včetně přeposílání. Volba platí pro každou zálohu, dokud ji nezměníte.",
       "includeMailSaveError": "Nastavení se nepodařilo uložit.",
       "create": "Stáhnout zálohu",
       "restoreTitle": "Obnovit ze zálohy",
-      "restoreIntro": "Obnovení nahradí všechny uživatele, účty, nastavení a zprávy v mezipaměti na tomto serveru obsahem souboru. MailFlow se poté restartuje. Kdo nemá účet v záloze, bude odhlášen, a platí hesla ze zálohy. Obnovení také odstraní všechny tokeny API, takže nástroje, které je používaly, budou potřebovat nový token.",
-      "versionNote": "Zálohu lze obnovit jen ve verzi MailFlow se stejným schématem databáze jako verze, která ji vytvořila. Má-li tato verze novější schéma, obnovte zálohu ve verzi, která ji vytvořila, a potom aktualizujte.",
+      "restoreIntro": "Obnovení nahradí všechny uživatele, účty, nastavení a zprávy v mezipaměti na tomto serveru obsahem souboru. Plimail se poté restartuje. Kdo nemá účet v záloze, bude odhlášen, a platí hesla ze zálohy. Obnovení také odstraní všechny tokeny API, takže nástroje, které je používaly, budou potřebovat nový token.",
+      "versionNote": "Zálohu lze obnovit jen ve verzi Plimail se stejným schématem databáze jako verze, která ji vytvořila. Má-li tato verze novější schéma, obnovte zálohu ve verzi, která ji vytvořila, a potom aktualizujte.",
       "chooseFile": "Vybrat soubor zálohy",
       "restore": "Obnovit…",
       "confirmWarn": "Vše na tomto serveru bude nahrazeno souborem {{name}}. Tuto akci nelze vrátit zpět.",
       "confirmYes": "Obnovit a restartovat",
       "restoring": "Obnovuje se… zapsané řádky: {{rows}}",
-      "done": "Obnovení dokončeno. MailFlow se restartuje; tato stránka se znovu načte, jakmile bude opět dostupný.",
-      "restartTimeout": "MailFlow se do dvou minut nevrátil. Spusťte jej znovu a poté tuto stránku znovu načtěte.",
+      "done": "Obnovení dokončeno. Plimail se restartuje; tato stránka se znovu načte, jakmile bude opět dostupný.",
+      "restartTimeout": "Plimail se do dvou minut nevrátil. Spusťte jej znovu a poté tuto stránku znovu načtěte.",
       "failed": "Obnovení se nezdařilo: {{message}}",
       "downloadFailed": "Zálohu se nepodařilo spustit.",
-      "connectionLost": "Během obnovení se přerušilo spojení, takže výsledek není znám. Tato stránka se znovu načte, jakmile MailFlow opět odpoví; pak zkontrolujte, zda jsou data obnovená.",
-      "tooLarge": "Soubor je větší, než povoluje proxy před MailFlow."
+      "connectionLost": "Během obnovení se přerušilo spojení, takže výsledek není znám. Tato stránka se znovu načte, jakmile Plimail opět odpoví; pak zkontrolujte, zda jsou data obnovená.",
+      "tooLarge": "Soubor je větší, než povoluje proxy před Plimail."
     },
     "plugins": {
       "title": "Pluginy",
@@ -1680,9 +1667,9 @@
       "swipeDisabled": "Vypnuto",
       "swipeDisabledDesc": "Vypnout tento směr přejetí",
       "syncFrequency": "Frekvence synchronizace e-mailů",
-      "syncFrequencyDesc": "Jak často MailFlow kontroluje nové e-maily",
+      "syncFrequencyDesc": "Jak často Plimail kontroluje nové e-maily",
       "folderSyncFrequency": "Frekvence synchronizace struktury složek",
-      "folderSyncFrequencyDesc": "Jak často MailFlow načte ze serveru aktuální seznam složek jednotlivých účtů (včetně složek vytvořených v jiných aplikacích)",
+      "folderSyncFrequencyDesc": "Jak často Plimail načte ze serveru aktuální seznam složek jednotlivých účtů (včetně složek vytvořených v jiných aplikacích)",
       "threadingMode": "Seskupování do konverzací",
       "threadingOff": "Vypnuto",
       "threadingOffDesc": "Každá zpráva se zobrazuje samostatně",
@@ -1719,8 +1706,8 @@
       "markReadManual": "Ručně",
       "markReadManualDesc": "Nikdy neoznačovat e-maily automaticky jako přečtené. Použijte příslušné tlačítko.",
       "defaultMailApp": "Výchozí e-mailová aplikace",
-      "defaultMailAppDesc": "Nastavte MailFlow pro otevírání odkazů mailto: v tomto prohlížeči. Prohlížeč vás požádá o potvrzení. Funguje ve Firefoxu a Chrome/Edge; není dostupné v iOS.",
-      "defaultMailAppBtn": "Zaregistrovat MailFlow",
+      "defaultMailAppDesc": "Nastavte Plimail pro otevírání odkazů mailto: v tomto prohlížeči. Prohlížeč vás požádá o potvrzení. Funguje ve Firefoxu a Chrome/Edge; není dostupné v iOS.",
+      "defaultMailAppBtn": "Zaregistrovat Plimail",
       "defaultMailAppOk": "Dokončete nastavení potvrzením výzvy v prohlížeči.",
       "defaultMailAppError": "Prohlížeč požadavek zablokoval.",
       "markReadDelayLabel": "Prodleva",
@@ -1751,7 +1738,7 @@
       "markReadDelaySeconds_many": "{{count}} sekundy"
     },
     "gtd": {
-      "description": "Proměňte MailFlow v systém GTD. Zapněte jej pro jednotlivé účty a potom přiřaďte každý stav ke složce IMAP, která obsahuje jeho štítek.",
+      "description": "Proměňte Plimail v systém GTD. Zapněte jej pro jednotlivé účty a potom přiřaďte každý stav ke složce IMAP, která obsahuje jeho štítek.",
       "noAccounts": "Pro nastavení GTD nejprve přidejte e-mailový účet.",
       "enableDesc": "GTD je zapnuté. Štítky se synchronizují jako složky a stavy se mění automaticky.",
       "enableHint": "Zapnout štítky GTD a automatické přechody stavů pro tento účet.",
@@ -1903,7 +1890,7 @@
     },
     "apiTokens": {
       "title": "Tokeny API",
-      "description": "Tokeny umožňují skriptům a nástrojům, například serveru MCP, používat MailFlow bez vašeho hesla. Token smí jen to, co povolují jeho rozsahy, a nikdy nemůže odesílat, mazat ani měnit nastavení.",
+      "description": "Tokeny umožňují skriptům a nástrojům, například serveru MCP, používat Plimail bez vašeho hesla. Token smí jen to, co povolují jeho rozsahy, a nikdy nemůže odesílat, mazat ani měnit nastavení.",
       "loadFailed": "Tokeny API se nepodařilo načíst: {{message}}",
       "disabledNotice": "Tokeny API jsou na tomto serveru vypnuté. Než nějaký vytvoříte, musí je zapnout správce.",
       "disabledNoticeAdmin": "Tokeny API jsou na tomto serveru vypnuté. Chcete-li nějaký vytvořit, zapněte je přepínačem výše.",
@@ -2017,7 +2004,7 @@
       "edit": "Upravit",
       "editTitle": "Upravit {{username}}",
       "username": "Uživatelské jméno",
-      "usernameHint": "Slouží k přihlášení do MailFlow.",
+      "usernameHint": "Slouží k přihlášení do Plimail.",
       "recoveryEmail": "Záložní e-mail",
       "recoveryEmailHint": "Dostává odkaz „Zapomenuté heslo?“. Nechte prázdné pro odebrání.",
       "newPassword": "Nové heslo",
@@ -2046,7 +2033,7 @@
     },
     "sso": {
       "title": "Jednotné přihlašování",
-      "description": "Jak se lidé přihlašují do samotného MailFlow přes poskytovatele identity vaší organizace (OIDC). Připojení schránek najdete v části Poskytovatelé e-mailu.",
+      "description": "Jak se lidé přihlašují do samotného Plimail přes poskytovatele identity vaší organizace (OIDC). Připojení schránek najdete v části Poskytovatelé e-mailu.",
       "passwordLoginTitle": "Přihlašování heslem",
       "passwordLoginDesc": "Pokud je vypnuto, uživatelé se mohou přihlásit pouze přes SSO. Vyžaduje alespoň jednoho zapnutého poskytovatele SSO a účet správce musí být propojen s identitou SSO.",
       "passwordLoginEnabled": "Přihlašování heslem je zapnuté",
@@ -2081,7 +2068,7 @@
       "domainsPh": "example.com, firma.example.com",
       "provisioning": "Režim zřizování účtů",
       "provisioningDisabled": "Vypnuto — existující propojené identity se mohou přihlásit, nová propojení však nevzniknou",
-      "provisioningExisting": "Přiřadit existující — propojit s účtem MailFlow se shodným e-mailem",
+      "provisioningExisting": "Přiřadit existující — propojit s účtem Plimail se shodným e-mailem",
       "provisioningOpen": "Otevřené — při prvním přihlášení přes SSO automaticky vytvořit nový účet",
       "enabled": "Poskytovatel zapnut",
       "requireEmailVerified": "Vyžadovat ověřený e-mail",
@@ -2089,7 +2076,7 @@
       "allowInsecure": "Povolit místní připojení / certifikáty podepsané svým držitelem",
       "allowInsecureDesc": "Vynechá kontrolu serveru a certifikátu TLS. Používejte pouze pro poskytovatele dostupné jen v LAN (např. pocketid.internal). Nedoporučuje se pro instalace dostupné z internetu.",
       "rpLogout": "Odhlášení SSO (iniciované klientem)",
-      "rpLogoutDesc": "Při odhlášení také ukončit relaci u tohoto poskytovatele přesměrováním na jeho koncový bod pro ukončení relace, nikoli pouze vymazat cookie MailFlow. Poskytovatel musí zveřejňovat end_session_endpoint a mít přihlašovací URL MailFlow (…/login) zaregistrovanou jako URI přesměrování po odhlášení.",
+      "rpLogoutDesc": "Při odhlášení také ukončit relaci u tohoto poskytovatele přesměrováním na jeho koncový bod pro ukončení relace, nikoli pouze vymazat cookie Plimail. Poskytovatel musí zveřejňovat end_session_endpoint a mít přihlašovací URL Plimail (…/login) zaregistrovanou jako URI přesměrování po odhlášení.",
       "adminGroupClaim": "Atribut skupiny správců",
       "adminGroupClaimPh": "groups",
       "adminGroupClaimDesc": "Název atributu JWT obsahujícího skupiny uživatele (např. groups). Ponecháním prázdného pole vypnete přiřazování správce podle skupin.",
@@ -2097,7 +2084,7 @@
       "adminGroupValuePh": "mailflow-admins",
       "adminGroupValueDesc": "Název skupiny udělující přístup správce. Uživatelé v této skupině se při každém přihlášení přes SSO stanou správci; ostatní přístup správce ztratí.",
       "loginMatchClaim": "Přiřazovat existující účty podle",
-      "loginMatchClaimDesc": "Atribut OIDC porovnávaný s uživatelským jménem účtů MailFlow při prvním propojení přihlášení SSO s existujícím účtem (režim „pouze existující účty“). Výchozí je e-mail. U poskytovatelů, kde uživatelská jména nejsou e-mailové adresy, použijte preferred_username, upn apod. — pouze pokud poskytovatel zaručuje jedinečnost atributu a uživatel jej nemůže měnit.",
+      "loginMatchClaimDesc": "Atribut OIDC porovnávaný s uživatelským jménem účtů Plimail při prvním propojení přihlášení SSO s existujícím účtem (režim „pouze existující účty“). Výchozí je e-mail. U poskytovatelů, kde uživatelská jména nejsou e-mailové adresy, použijte preferred_username, upn apod. — pouze pokud poskytovatel zaručuje jedinečnost atributu a uživatel jej nemůže měnit.",
       "save": "Uložit",
       "editButton": "Upravit",
       "deleteButton": "Smazat",
@@ -2202,7 +2189,7 @@
         "lastSync": "Poslední synchronizace: {{when}}",
         "summary": "{{contacts}} kontaktů v {{books}} adresářích",
         "syncFailed": "Poslední synchronizace selhala: {{error}}",
-        "help": "Použijte heslo pro aplikaci Nextcloud, nikoli přihlašovací heslo — uživatelé SSO si je musí vytvořit v Nastavení → Zabezpečení. Kontakty se synchronizují jednosměrně a v MailFlow jsou jen pro čtení."
+        "help": "Použijte heslo pro aplikaci Nextcloud, nikoli přihlašovací heslo — uživatelé SSO si je musí vytvořit v Nastavení → Zabezpečení. Kontakty se synchronizují jednosměrně a v Plimail jsou jen pro čtení."
       }
     },
     "ai": {
@@ -2311,20 +2298,20 @@
     "signIn": {
       "title": "Znovu se přihlaste k Microsoftu",
       "titleGoogle": "Znovu se přihlaste ke Googlu",
-      "body": "Přihlášení, které si MailFlow pro tento účet uložil, přestalo fungovat. Stává se to po změně hesla, po dlouhé době bez použití nebo když byl přístup odebrán v nastavení účtu."
+      "body": "Přihlášení, které si Plimail pro tento účet uložil, přestalo fungovat. Stává se to po změně hesla, po dlouhé době bez použití nebo když byl přístup odebrán v nastavení účtu."
     },
     "appConfig": {
       "title": "Přihlášení k tomuto účtu není správně nastavené",
-      "bodyUser": "Poskytovatel pošty odmítl aplikaci, přes kterou se MailFlow přihlašuje. Požádejte správce, aby zkontroloval nastavení přihlášení.",
-      "bodyAdmin": "Poskytovatel pošty odmítl aplikaci, přes kterou se MailFlow přihlašuje. Zkontrolujte její nastavení v sekci Poskytovatelé e-mailu. Podrobnosti níže ukazují odpověď poskytovatele."
+      "bodyUser": "Poskytovatel pošty odmítl aplikaci, přes kterou se Plimail přihlašuje. Požádejte správce, aby zkontroloval nastavení přihlášení.",
+      "bodyAdmin": "Poskytovatel pošty odmítl aplikaci, přes kterou se Plimail přihlašuje. Zkontrolujte její nastavení v sekci Poskytovatelé e-mailu. Podrobnosti níže ukazují odpověď poskytovatele."
     },
     "authFailed": {
       "title": "Server odmítl heslo",
       "body": "Poštovní server nepřijal uživatelské jméno nebo heslo k tomuto účtu. Pokud jste změnili heslo nebo používáte heslo aplikace, aktualizujte ho přes Upravit účet."
     },
     "connection": {
-      "title": "MailFlow se k tomuto účtu nemůže připojit",
-      "body": "MailFlow to dál zkouší sám. Podrobnosti níže ukazují odpověď serveru."
+      "title": "Plimail se k tomuto účtu nemůže připojit",
+      "body": "Plimail to dál zkouší sám. Podrobnosti níže ukazují odpověď serveru."
     },
     "action": {
       "openOutlook": "Otevřít Outlook.com",
@@ -2337,7 +2324,7 @@
     "signInDialog": {
       "title": "Přihlásit se znovu",
       "body": "Přihlaste se jako {{email}}, abyste tento účet znovu připojili.",
-      "success": "Přihlášeno. MailFlow tento účet znovu připojuje.",
+      "success": "Přihlášeno. Plimail tento účet znovu připojuje.",
       "continueGoogle": "Pokračovat na Google",
       "waitingGoogle": "Dokončete přihlášení na stránce Googlu a pak se sem vraťte."
     },
@@ -2381,28 +2368,28 @@
     "copied": "Zkopírováno",
     "waiting": "Čekáme, až dokončíte přihlášení na stránce Microsoftu…",
     "starting": "Získávání kódu od Microsoftu…",
-    "checking": "Kontrolujeme, zda se MailFlow dostane k vaší schránce…",
+    "checking": "Kontrolujeme, zda se Plimail dostane k vaší schránce…",
     "connected": "{{email}} je připojeno. Pošta se právě synchronizuje.",
-    "stillConnecting": "Přihlášeno jako {{email}}. MailFlow se ještě připojuje a dál to zkouší sám. Seznam účtů ukáže, až bude připraven.",
+    "stillConnecting": "Přihlášeno jako {{email}}. Plimail se ještě připojuje a dál to zkouší sám. Seznam účtů ukáže, až bude připraven.",
     "declined": "Přihlášení na stránce Microsoftu jste zrušili.",
     "expired": "Kód vypršel dřív, než se přihlášení dokončilo. Kódy platí 15 minut.",
     "error": "Přihlášení k Microsoftu nefungovalo.",
     "newCode": "Získat nový kód",
     "startOver": "Začít znovu",
     "done": "Hotovo",
-    "finePrintShared": "Microsoft může MailFlow označit jako neověřenou aplikaci. To je v pořádku: sdílená aplikace MailFlow jen představuje MailFlow Microsoftu. Přihlašujete se na stránce Microsoftu a Microsoft posílá přístup přímo na tento server.",
+    "finePrintShared": "Microsoft může Plimail označit jako neověřenou aplikaci. To je v pořádku: sdílená aplikace Plimail jen představuje Plimail Microsoftu. Přihlašujete se na stránce Microsoftu a Microsoft posílá přístup přímo na tento server.",
     "finePrintOwn": "Přihlašujete se na stránce Microsoftu a Microsoft posílá přístup přímo na tento server.",
     "continueMicrosoft": "Pokračovat na Microsoft",
     "redirectWaiting": "Dokončete přihlášení na otevřené stránce Microsoftu a pak se sem vraťte.",
     "useCode": "Použít raději kód",
     "useRedirect": "Přihlásit se raději na stránce Microsoftu",
     "back": "Zpět",
-    "lost": "MailFlow ztratil přehled o tomto přihlášení, například kvůli restartu serveru. Pokud jste přihlášení na stránce Microsoftu dokončili, účet už možná je ve vašem seznamu.",
+    "lost": "Plimail ztratil přehled o tomto přihlášení, například kvůli restartu serveru. Pokud jste přihlášení na stránce Microsoftu dokončili, účet už možná je ve vašem seznamu.",
     "checkAccounts": "Zkontrolovat účty"
   },
   "mailSignIn": {
     "title": "Poskytovatelé e-mailu",
-    "description": "Jak se MailFlow připojuje ke schránkám Microsoft a Google. Je to něco jiného než jednotné přihlašování (SSO), kterým se lidé přihlašují do samotného MailFlow. Každý si přidává vlastní účty v Účty > Přidat účet.",
+    "description": "Jak se Plimail připojuje ke schránkám Microsoft a Google. Je to něco jiného než jednotné přihlašování (SSO), kterým se lidé přihlašují do samotného Plimail. Každý si přidává vlastní účty v Účty > Přidat účet.",
     "required": "Nejdřív vyplňte povinná pole.",
     "redirectRequired": "Google potřebuje URI přesměrování: to, které je registrované u klienta OAuth a končí na /oauth/google/callback.",
     "saved": "Uloženo.",
@@ -2410,12 +2397,12 @@
       "title": "Microsoft",
       "description": "Schránky Outlook.com, Hotmail, Live, MSN a Microsoft 365",
       "personalTitle": "Osobní účty (Outlook.com, Hotmail, Live, MSN)",
-      "statusShared": "Používá sdílenou aplikaci MailFlow",
+      "statusShared": "Používá sdílenou aplikaci Plimail",
       "statusOwn": "Používá vaši vlastní aplikaci",
       "statusOff": "Vypnuto",
-      "sharedSwitch": "Povolit přihlášení přes sdílenou aplikaci MailFlow",
+      "sharedSwitch": "Povolit přihlášení přes sdílenou aplikaci Plimail",
       "sharedSwitchDesc": "Není potřeba nic nastavovat. Už připojené účty budou fungovat dál, i když to vypnete.",
-      "ownHandlesPersonal": "Osobní účty obsluhuje vaše vlastní aplikace, takže sdílená aplikace MailFlow se nepoužívá.",
+      "ownHandlesPersonal": "Osobní účty obsluhuje vaše vlastní aplikace, takže sdílená aplikace Plimail se nepoužívá.",
       "workTitle": "Pracovní a školní účty (Microsoft 365)",
       "workOff": "Nenastaveno",
       "setupToggle": "Nastavit vlastní aplikaci Microsoft Entra"
@@ -2471,7 +2458,7 @@
       "customColor": "Vlastní barva"
     },
     "empty": {
-      "title": "Přeneste své kalendáře do MailFlow",
+      "title": "Přeneste své kalendáře do Plimail",
       "body": "Připojte kalendář CalDAV, například Nextcloud, Fastmail, iCloud nebo Radicale. Události se synchronizují oběma směry a zůstávají na vašem vlastním serveru vedle vaší pošty.",
       "connect": "Připojit kalendář"
     },
@@ -2594,7 +2581,7 @@
       "changePassword": "Změnit heslo",
       "newPassword": "Nové heslo",
       "passwordSaved": "Heslo bylo aktualizováno.",
-      "removeConfirm": "Odebrat {{name}} z MailFlow? Jeho kalendáře a události se smažou jen zde; na serveru se nic nesmaže.",
+      "removeConfirm": "Odebrat {{name}} z Plimail? Jeho kalendáře a události se smažou jen zde; na serveru se nic nesmaže.",
       "fromMailTitle": "Použít e-mailový účet",
       "fromMailHint": "Zkusí server a heslo e-mailového účtu. Na jiné servery se nic neodesílá.",
       "fromMailNone": "Na {{host}} nebyl nalezen žádný kalendářový server: {{error}}",

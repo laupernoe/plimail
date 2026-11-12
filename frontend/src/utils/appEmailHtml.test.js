@@ -27,7 +27,7 @@ describe('sanitizeEmailForApp', () => {
     assert.equal(out.querySelector('#v')?.hasAttribute('href') ?? false, false);
   });
 
-  it("keeps MailFlow's own images, data: and cid: images, and ordinary styling", () => {
+  it("keeps Plimail's own images, data: and cid: images, and ordinary styling", () => {
     const out = parse(sanitizeEmailForApp('<img id="p" src="/api/mail/messages/1/image?u=abc"><img id="d" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="><img id="c" src="cid:logo@x"><p id="t" style="color: red; font-weight: bold">Hi</p>'));
     assert.equal(out.querySelector('#p').getAttribute('src'), '/api/mail/messages/1/image?u=abc');
     assert.ok(out.querySelector('#d').getAttribute('src').startsWith('data:'));

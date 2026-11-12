@@ -289,7 +289,7 @@ try {
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
-  console.log(`MailFlow backend running on port ${PORT}`);
+  console.log(`Plimail backend running on port ${PORT}`);
 });
 
 function exitAfterClose(code, { wsCode = 1001, wsReason = 'Shutting down' } = {}) {

@@ -25,7 +25,7 @@ app.whenReady().then(async () => {
       return;
     }
     response.setHeader('Content-Security-Policy', "script-src 'self'; object-src 'none'; img-src 'self' data: blob:;");
-    response.end('<!doctype html><html><body>MailFlow</body></html>');
+    response.end('<!doctype html><html><body>Plimail</body></html>');
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const host = `http://127.0.0.1:${server.address().port}`;

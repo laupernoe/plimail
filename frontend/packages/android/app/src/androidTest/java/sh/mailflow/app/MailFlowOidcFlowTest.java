@@ -62,7 +62,7 @@ public class MailFlowOidcFlowTest {
                     requests.add(first + "\n" + headers);
                     String path = first.split(" ")[1];
                     String extra = "";
-                    String body = "<html><body>MailFlow test</body></html>";
+                    String body = "<html><body>Plimail test</body></html>";
                     int status = 200;
                     if (path.startsWith("/auth/oidc/company/start")) {
                         status = 302;

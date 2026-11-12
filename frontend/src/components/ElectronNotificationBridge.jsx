@@ -89,7 +89,7 @@ export default function ElectronNotificationBridge() {
         addNotification({
           type: 'info',
           title: 'Update available',
-          body: 'A new version of MailFlow is available to download.',
+          body: 'A new version of Plimail is available to download.',
           persistent: true,
           ...(releaseUrl ? {
             actionLabel: 'View Release',
@@ -115,8 +115,8 @@ export default function ElectronNotificationBridge() {
         type: 'success',
         title: 'Update ready',
         body: manualInstall
-          ? `MailFlow downloaded and verified the update.${installCommand ? ` Install it from a terminal with:\n${installCommand}` : ''}`
-          : 'MailFlow downloaded the update.',
+          ? `Plimail downloaded and verified the update.${installCommand ? ` Install it from a terminal with:\n${installCommand}` : ''}`
+          : 'Plimail downloaded the update.',
         allowWrap: true,
         persistent: true,
         actionLabel: manualInstall ? 'Copy & Quit' : 'Install',
@@ -141,7 +141,7 @@ export default function ElectronNotificationBridge() {
             addNotification({
               type: 'success',
               title: 'Update ready',
-              body: `MailFlow downloaded and verified the update. Install it from a terminal with:\n${result.installCommand}`,
+              body: `Plimail downloaded and verified the update. Install it from a terminal with:\n${result.installCommand}`,
               allowWrap: true,
               persistent: true,
               actionLabel: 'Copy & Quit',
@@ -304,7 +304,7 @@ export default function ElectronNotificationBridge() {
             addNotification({
               type: 'info',
               title: 'Sync started',
-              body: 'MailFlow is checking for new mail.',
+              body: 'Plimail is checking for new mail.',
             });
             await api.syncNow();
           } catch (error) {

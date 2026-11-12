@@ -2,9 +2,9 @@
 
 ## Reporting a vulnerability
 
-Please report vulnerabilities privately through GitHub: [Report a vulnerability](https://github.com/maathimself/mailflow/security/advisories/new). If you can't use GitHub, email contact@mailflow.sh. Please don't open a public issue.
+Please report vulnerabilities privately through GitHub: [Report a vulnerability](https://github.com/laupernoe/plimail/security/advisories/new). Please don't open a public issue.
 
-Include the MailFlow version, how you install it (Docker, native, desktop or Android app), and steps to reproduce. MailFlow is maintained by one person, so a first reply can take a few days.
+Include the Plimail version, how you install it (Docker, native, desktop or Android app), and steps to reproduce. Plimail is maintained by one person, so a first reply can take a few days.
 
 ## Supported versions
 

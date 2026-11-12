@@ -229,7 +229,7 @@ describe('BackupSettings', () => {
     await until(() => host.textContent.includes('admin.backup.restoring {"rows":1204}'), 'the progress line');
     const upload = CALLS.find(c => c.method === 'POST');
     assert.equal(upload.init.headers['Content-Type'], 'application/gzip');
-    assert.equal(upload.init.headers['X-Requested-With'], 'MailFlow');
+    assert.equal(upload.init.headers['X-Requested-With'], 'Plimail');
     assert.equal(upload.init.body, file);
 
     release();
@@ -270,7 +270,7 @@ describe('BackupSettings', () => {
     assert.ok(!host.textContent.includes('admin.backup.failed'));
   });
 
-  test('says so when MailFlow does not come back', async () => {
+  test('says so when Plimail does not come back', async () => {
     await mount();
     await chooseFile();
     restoreResponse = () => stream([{ ok: true, scope: 'setup', tables: 1, rows: 1 }]);
@@ -305,7 +305,7 @@ describe('BackupSettings', () => {
   test('choosing another file after a failure clears the old message', async () => {
     await mount();
     await chooseFile();
-    restoreResponse = () => json({ error: 'This is not a MailFlow backup file.' }, 400);
+    restoreResponse = () => json({ error: 'This is not a Plimail backup file.' }, 400);
     await confirmRestore();
     await until(() => host.textContent.includes('admin.backup.failed'), 'the failure');
     await chooseFile();

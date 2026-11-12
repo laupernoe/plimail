@@ -10,4 +10,4 @@ import { readFileSync } from 'fs';
 // Own zero-dependency module so every sender (compose, rule forwards) can import it
 // without dragging the SMTP stack along, which tests mock.
 const packageMeta = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf-8'));
-export const MAILER_ID = `MailFlow ${(process.env.APP_VERSION || packageMeta.version || '').replace(/^v[.]?/, '')}`.trim();
+export const MAILER_ID = `Plimail ${(process.env.APP_VERSION || packageMeta.version || '').replace(/^v[.]?/, '')}`.trim();

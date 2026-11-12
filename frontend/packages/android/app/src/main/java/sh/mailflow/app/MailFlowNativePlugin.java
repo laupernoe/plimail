@@ -77,13 +77,13 @@ public class MailFlowNativePlugin extends Plugin {
     // of the setup page has no Capacitor bridge, so a host entered there was opened in the
     // browser and never saved.
     private static final String SETUP_PATH = "/index.html";
-    private static final String UPDATE_RELEASE_URL = "https://api.github.com/repos/maathimself/mailflow/releases/latest";
+    private static final String UPDATE_RELEASE_URL = "https://api.github.com/repos/laupernoe/plimail/releases/latest";
     
     /* Old dev fork url
     private static final String UPDATE_RELEASE_URL = "https://api.github.com/repos/dcoffin88/mailflow/releases/latest";
     */
     
-    private static final String UPDATE_ERROR_MESSAGE = "Could not check for MailFlow updates. Please visit the website instead.";
+    private static final String UPDATE_ERROR_MESSAGE = "Could not check for Plimail updates. Please visit the website instead.";
     private static final Pattern VERSION_PATTERN = Pattern.compile("\\d+(?:\\.\\d+){0,2}");
 
     private static final List<JSObject> pendingActions = new ArrayList<>();
@@ -114,21 +114,21 @@ public class MailFlowNativePlugin extends Plugin {
         String normalizedHost = normalizeHost(host);
 
         if (normalizedHost == null) {
-            call.reject("Public MailFlow hosts must use https://. HTTP is allowed only for localhost and private IP addresses.");
+            call.reject("Public Plimail hosts must use https://. HTTP is allowed only for localhost and private IP addresses.");
             return;
         }
 
         if (normalizedHost.startsWith("http://")) {
             if (getActivity() == null || getActivity().isFinishing()) {
-                call.reject("The unencrypted MailFlow host could not be confirmed.");
+                call.reject("The unencrypted Plimail host could not be confirmed.");
                 return;
             }
             getActivity().runOnUiThread(() -> new AlertDialog.Builder(getActivity())
-                .setTitle("Unencrypted MailFlow connection")
-                .setMessage("Traffic to this MailFlow server is not encrypted. Your session cookie and email data can be read or changed by anyone who can observe this network. Continue only on a private network you trust.")
+                .setTitle("Unencrypted Plimail connection")
+                .setMessage("Traffic to this Plimail server is not encrypted. Your session cookie and email data can be read or changed by anyone who can observe this network. Continue only on a private network you trust.")
                 .setPositiveButton("Use unencrypted connection", (dialog, which) -> persistHost(call, normalizedHost))
-                .setNegativeButton("Cancel", (dialog, which) -> call.reject("The unencrypted MailFlow host was not saved."))
-                .setOnCancelListener((dialog) -> call.reject("The unencrypted MailFlow host was not saved."))
+                .setNegativeButton("Cancel", (dialog, which) -> call.reject("The unencrypted Plimail host was not saved."))
+                .setOnCancelListener((dialog) -> call.reject("The unencrypted Plimail host was not saved."))
                 .show());
             return;
         }
@@ -241,7 +241,7 @@ public class MailFlowNativePlugin extends Plugin {
                 }
 
                 if (release.downloadUrl == null) {
-                    sendUpdateError("A MailFlow update is available, but no Android APK was found.");
+                    sendUpdateError("A Plimail update is available, but no Android APK was found.");
                     if (call != null) {
                         JSObject result = new JSObject();
                         result.put("updateAvailable", true);
@@ -777,7 +777,7 @@ public class MailFlowNativePlugin extends Plugin {
         info.releaseDate = release.optString("published_at", "");
 
         if (apkAsset != null) {
-            info.assetName = apkAsset.optString("name", "MailFlow.apk");
+            info.assetName = apkAsset.optString("name", "Plimail.apk");
             info.downloadUrl = apkAsset.optString("browser_download_url", null);
             info.digest = apkAsset.optString("digest", null);
         }
@@ -841,7 +841,7 @@ public class MailFlowNativePlugin extends Plugin {
                 postUpdateReadyNotification(release);
             } catch (Exception error) {
                 Log.e(TAG, "Update download failed", error);
-                sendUpdateError("The MailFlow update could not be downloaded.");
+                sendUpdateError("The Plimail update could not be downloaded.");
             }
         }).start();
     }
@@ -855,7 +855,7 @@ public class MailFlowNativePlugin extends Plugin {
         connection.setConnectTimeout(15000);
         connection.setReadTimeout(30000);
         connection.setRequestProperty("Accept", "application/vnd.github+json");
-        connection.setRequestProperty("User-Agent", "MailFlow/" + getInstalledVersion());
+        connection.setRequestProperty("User-Agent", "Plimail/" + getInstalledVersion());
         return connection;
     }
 
@@ -927,7 +927,7 @@ public class MailFlowNativePlugin extends Plugin {
             return result;
         } catch (Exception error) {
             Log.e(TAG, "Could not start package installer", error);
-            sendUpdateError("The update was downloaded, but MailFlow could not start the installer.");
+            sendUpdateError("The update was downloaded, but Plimail could not start the installer.");
             result.put("installed", false);
             result.put("reason", "launch-failed");
             result.put("error", error.getMessage());
@@ -968,7 +968,7 @@ public class MailFlowNativePlugin extends Plugin {
 
             new AlertDialog.Builder(getActivity())
                 .setTitle("Update ready")
-                .setMessage("MailFlow " + version + " has been downloaded and is ready to install.")
+                .setMessage("Plimail " + version + " has been downloaded and is ready to install.")
                 .setPositiveButton("Install", (dialog, which) -> startDownloadedUpdateInstall())
                 .setNegativeButton("Later", null)
                 .show();
@@ -1065,9 +1065,9 @@ public class MailFlowNativePlugin extends Plugin {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext(), CHANNEL_UPDATES)
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("MailFlow update ready")
-            .setContentText("MailFlow " + release.version + " has been downloaded.")
-            .setStyle(new NotificationCompat.BigTextStyle().bigText("MailFlow " + release.version + " has been downloaded and is ready to install."))
+            .setContentTitle("Plimail update ready")
+            .setContentText("Plimail " + release.version + " has been downloaded.")
+            .setStyle(new NotificationCompat.BigTextStyle().bigText("Plimail " + release.version + " has been downloaded and is ready to install."))
             .setContentIntent(openPendingIntent)
             .addAction(R.mipmap.ic_launcher, "Install", installPendingIntent)
             .setAutoCancel(false)
@@ -1155,7 +1155,7 @@ public class MailFlowNativePlugin extends Plugin {
     }
 
     private static String sanitizeApkName(String value) {
-        String name = value == null ? "MailFlow.apk" : value.replaceAll("[^A-Za-z0-9._ -]", "_");
+        String name = value == null ? "Plimail.apk" : value.replaceAll("[^A-Za-z0-9._ -]", "_");
         if (!name.toLowerCase().endsWith(".apk")) name += ".apk";
         return name;
     }
@@ -1223,7 +1223,7 @@ public class MailFlowNativePlugin extends Plugin {
             "New mail",
             NotificationManager.IMPORTANCE_DEFAULT
         );
-        channel.setDescription("New mail notifications from MailFlow.");
+        channel.setDescription("New mail notifications from Plimail.");
         NotificationManager manager = context.getSystemService(NotificationManager.class);
         if (manager != null) {
             manager.createNotificationChannel(channel);
@@ -1233,7 +1233,7 @@ public class MailFlowNativePlugin extends Plugin {
                 "Updates",
                 NotificationManager.IMPORTANCE_DEFAULT
             );
-            updatesChannel.setDescription("MailFlow app update notifications.");
+            updatesChannel.setDescription("Plimail app update notifications.");
             manager.createNotificationChannel(updatesChannel);
         }
     }

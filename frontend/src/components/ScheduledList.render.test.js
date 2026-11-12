@@ -622,7 +622,7 @@ describe('review nits', () => {
 });
 
 describe('details and superseded undos', () => {
-  test('an uncertain row never says "try again"; a MailFlow explanation is labeled as the reason', async () => {
+  test('an uncertain row never says "try again"; a Plimail explanation is labeled as the reason', async () => {
     answers.list = () => {
       const list = structuredClone(LIST);
       list.messages.find(m => m.id === ID.uncertain).failureDetail = 'Failed to send message. Please try again.';

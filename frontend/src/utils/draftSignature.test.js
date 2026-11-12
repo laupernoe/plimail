@@ -2,14 +2,14 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { splitDraftSignature } from './draftSignature.js';
 
-const SIG = '<div data-mailflow-signature="1" style="margin-top:16px;color:#555;font-size:13px">Matt<br>MailFlow</div>';
+const SIG = '<div data-mailflow-signature="1" style="margin-top:16px;color:#555;font-size:13px">Matt<br>Plimail</div>';
 const LEGACY = '<div style="margin-top:16px;color:#555;font-size:13px">Matt</div>';
 
 describe('the signature that multiplied on every reopen (#432)', () => {
   test('lifts the signature out so the compose window does not render a second one', () => {
     const { body, signature, inline } = splitDraftSignature(`<p>hello</p>${SIG}`);
     assert.equal(body, '<p>hello</p>');
-    assert.equal(signature, 'Matt<br>MailFlow');
+    assert.equal(signature, 'Matt<br>Plimail');
     assert.equal(inline, false);
   });
 
@@ -28,14 +28,14 @@ describe('the signature that multiplied on every reopen (#432)', () => {
   test('keeps quoted text in the body, where it already was', () => {
     const { body, signature } = splitDraftSignature(`<p>reply</p>${SIG}<blockquote>original</blockquote>`);
     assert.equal(body, '<p>reply</p><blockquote>original</blockquote>');
-    assert.equal(signature, 'Matt<br>MailFlow');
+    assert.equal(signature, 'Matt<br>Plimail');
   });
 
   test('handles a signature containing nested divs', () => {
-    const nested = '<div data-mailflow-signature="1"><div>Matt</div><div><b>MailFlow</b></div></div>';
+    const nested = '<div data-mailflow-signature="1"><div>Matt</div><div><b>Plimail</b></div></div>';
     const { body, signature } = splitDraftSignature(`<p>hi</p>${nested}`);
     assert.equal(body, '<p>hi</p>');
-    assert.equal(signature, '<div>Matt</div><div><b>MailFlow</b></div>');
+    assert.equal(signature, '<div>Matt</div><div><b>Plimail</b></div>');
   });
 });
 

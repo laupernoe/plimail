@@ -1008,7 +1008,7 @@ describe('style blocks stay closed after the dark-mode and URL clean-ups', () =>
     expect(out).toContain('<p>after</p>');
   });
 
-  it('the dark block MailFlow appends cannot be faked from an email\'s own CSS', () => {
+  it('the dark block Plimail appends cannot be faked from an email\'s own CSS', () => {
     const out = sanitizeEmail('<p>secret text</p><style>/* <style data-mf-dark-scheme media="not all"> */ p{color:red}</style>');
     const { html, darkCss } = splitDarkScheme(out);
     expect(darkCss).toBeNull();

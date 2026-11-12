@@ -192,7 +192,7 @@ export async function runSelftest() {
     assert.equal(auto('transitions').outcome, 'recolor', 'not refused because of a running transition');
     assert.equal(auto('transitions').verdict, 'clean');
 
-    assert.equal(auto('forcedTransitions').outcome, 'recolor', 'not refused because of a transition MailFlow could not switch off');
+    assert.equal(auto('forcedTransitions').outcome, 'recolor', 'not refused because of a transition Plimail could not switch off');
     assert.equal(m('forcedTransitions', 'recolor').verdict, 'clean');
 
     assert.equal(stats.proxied >= 1, true, 'the proxied logo was asked for through the proxy');

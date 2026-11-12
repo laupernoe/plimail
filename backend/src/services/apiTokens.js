@@ -68,7 +68,7 @@ export function normalizeIp(ip) {
 }
 
 export function answerInvalidToken(res) {
-  res.setHeader('WWW-Authenticate', 'Bearer realm="MailFlow", error="invalid_token"');
+  res.setHeader('WWW-Authenticate', 'Bearer realm="Plimail", error="invalid_token"');
   return res.status(401).json({ error: INVALID_TOKEN_ERROR });
 }
 

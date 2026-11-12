@@ -88,7 +88,7 @@ describe('the email frame (#228)', () => {
     assert.equal(sender[2], '@media (min-width: 0px){.a{color:#eee}}');
   });
 
-  test("the theme's colors go into MailFlow's dark styles, then the sender's dark CSS so it can override them", async () => {
+  test("the theme's colors go into Plimail's dark styles, then the sender's dark CSS so it can override them", async () => {
     setVar('--bg-primary', '#101820'); setVar('--text-primary', '#e0e6ee'); setVar('--accent', '#7c6af7');
     const doc = await frameDoc({ dark: true });
     const dark = styleOf(doc, 'mf-frame-dark')[2];
@@ -97,7 +97,7 @@ describe('the email frame (#228)', () => {
     assert.match(dark, /a \{ color: #7c6af7; \}/);
     const order = ['mf-frame-light', 'mf-frame-dark', 'mf-sender-dark'].map(id => doc.indexOf(`<style id="${id}"`));
     assert.ok(doc.indexOf('pre, code {') < order[0] && order[0] < order[1] && order[1] < order[2],
-      "MailFlow's styles, then its light and dark colors, then the sender's dark CSS");
+      "Plimail's styles, then its light and dark colors, then the sender's dark CSS");
     assert.ok(doc.indexOf('<p class="a">Hi</p>') < order[0], 'all after the email');
   });
 

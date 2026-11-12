@@ -20,6 +20,7 @@ import {
   resolveFolderOrderDrop,
 } from '../utils/sidebar.js';
 import { useMobile } from '../hooks/useMobile.js';
+import LogoMark, { Wordmark } from './LogoMark.jsx';
 import UpcomingPane from './calendar/UpcomingPane.jsx';
 import ProfileModal from './ProfileModal.jsx';
 import { useUiScale, descale } from '../hooks/useUiScale.js';
@@ -903,6 +904,12 @@ export default function Sidebar() {
         justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)',
         minHeight: 56, flexShrink: 0,
       }}>
+        {!sidebarCollapsed && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
+            <LogoMark size={20} />
+            <Wordmark size={15} />
+          </div>
+        )}
         <button
           onClick={isMobile ? () => setMobileSidebarOpen(false) : toggleSidebar}
           title={t('sidebar.toggleSidebar')}
