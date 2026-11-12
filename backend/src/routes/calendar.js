@@ -9,8 +9,8 @@ import { decrypt, encrypt } from '../services/encryption.js';
 import { findOwnedAccount } from '../services/ownership.js';
 import { validateHost } from '../services/hostValidation.js';
 import { getConnectionPolicy } from '../services/connectionPolicy.js';
-import { discoverCalendars, findCalDavServer, getEvent, putEvent, deleteEvent } from '../services/caldavClient.js';
-import { syncAccount, credentialsFor, isSyncing, forgetDiscovery } from '../services/caldavSync.js';
+import { discoverCalendars, findCalDavServer, getEvent, putEvent, deleteEvent, moveEvent } from '../services/caldavClient.js';
+import { syncAccount, credentialsFor, isSyncing, forgetDiscovery, noteRemoved } from '../services/caldavSync.js';
 import { applyEdit, buildEvent, eventLoopYielder, expandResourceAsync, inviteInfo, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
 import { forgetScheduling, knownAddresses, mailItip, mailLabels, planInvites } from '../services/calendarInvites.js';
 
@@ -353,13 +353,14 @@ async function loadEvent(userId, eventId) {
   return r.rows[0] || null;
 }
 
-// Stores what the server now holds, not what was sent: servers may rewrite the object.
-async function storeFromServer(calendarId, userId, href, ical, creds) {
-  let etag = null;
+// Stores what the server now holds, not what was sent: servers may rewrite the object. `sentEtag` is
+// the one the server gave for what was sent, kept when the object cannot be read back.
+async function storeFromServer(calendarId, userId, href, ical, creds, sentEtag = null) {
+  let etag = sentEtag;
   let stored = ical;
   try {
     const read = await getEvent(href, creds);
-    if (read) { etag = read.etag; stored = read.ical; }
+    if (read) { etag = read.etag || (read.ical === ical ? sentEtag : null); stored = read.ical; }
   } catch (err) {
     console.warn(`Calendar: could not re-read ${href}: ${err.message}`);
   }
@@ -374,6 +375,56 @@ async function storeFromServer(calendarId, userId, href, ical, creds) {
     [calendarId, userId, href, etag, info.uid, stored, info.rangeStart, info.rangeEnd],
   );
   return r.rows[0].id;
+}
+
+const sameObject = (a, b) => a.replace(/\r\n/g, '\n').trim() === b.replace(/\r\n/g, '\n').trim();
+
+// The version an edit is made against. A row stored without one, as when reading it back failed, is
+// read again, and the version is used only if the server still holds what the row holds: anything
+// else could be a change made elsewhere, so it is a conflict, which syncs the server's version in.
+async function versionOf(event, creds) {
+  if (event.etag) return event.etag;
+  const current = await getEvent(event.href, creds);
+  if (!current) throw Object.assign(new Error('Event not found on the server'), { notFound: true });
+  if (!current.etag || !sameObject(current.ical, event.ical)) throw Object.assign(new Error('Event changed on the server'), { conflict: true });
+  await query('UPDATE calendar_events SET etag = $2 WHERE id = $1 AND etag IS NULL', [event.id, current.etag]);
+  return current.etag;
+}
+
+// A row the user removed: a sync that listed the event before the removal must not bring it back.
+async function dropLocal(event) {
+  noteRemoved(event.calendar_id, event.href);
+  await query('DELETE FROM calendar_events WHERE id = $1', [event.id]);
+}
+
+// One MOVE on the server, so the event is never in both calendars or in neither, then the edit at
+// its new place. A server that will not move between these calendars gets a copy, then a deletion
+// of the original guarded by its version, which at worst leaves both.
+async function moveToCalendar(event, target, ical, creds, etag) {
+  const base = target.url.endsWith('/') ? target.url : `${target.url}/`;
+  let moved;
+  try {
+    const name = new URL(event.href).pathname.split('/').filter(Boolean).pop();
+    moved = (await moveEvent(event.href, new URL(name, base).href, creds, { etag })).url;
+  } catch (err) {
+    if (!err.unsupported) throw err;
+    const href = new URL(`${crypto.randomUUID()}.ics`, base).href;
+    const { url, etag: sentEtag } = await putEvent(href, ical, creds, { create: true });
+    await storeFromServer(target.id, target.user_id, url, ical, creds, sentEtag);
+    await deleteEvent(event.href, creds, { etag });
+    await dropLocal(event);
+    return;
+  }
+  await dropLocal(event);
+  let edited = false;
+  try {
+    const now = await getEvent(moved, creds);
+    if (!now) throw Object.assign(new Error('Event not found on the server'), { notFound: true });
+    await putKeepingMarkers(moved, ical, creds, now.etag);
+    edited = true;
+  } finally {
+    await storeFromServer(target.id, target.user_id, moved, edited ? ical : event.ical, creds);
+  }
 }
 
 const readOnlyError = res => res.status(403).json({ error: 'This calendar is read-only', code: 'read_only' });
@@ -452,8 +503,8 @@ router.post('/events', async (req, res) => {
     }
     const { uid, ical } = buildEvent(input);
     const href = new URL(`${encodeURIComponent(uid)}.ics`, calendar.url.endsWith('/') ? calendar.url : `${calendar.url}/`).href;
-    const { url } = await putEvent(href, ical, creds, { create: true });
-    const eventId = await storeFromServer(calendar.id, calendar.user_id, url, ical, creds);
+    const { url, etag } = await putEvent(href, ical, creds, { create: true });
+    const eventId = await storeFromServer(calendar.id, calendar.user_id, url, ical, creds, etag);
     const mailed = await mailAfterWrite(req.session.userId, plan, [
       { to: inviteInfo(ical).attendees, method: 'REQUEST', ics: ical, kind: 'invite' },
     ], mailOptions(req));
@@ -503,15 +554,11 @@ router.patch('/events/:eventId', async (req, res) => {
       creds = await credentialsFor(event);
     }
     const ical = applyEdit(event.ical, input, { scope, recurrenceId });
+    const etag = await versionOf(event, creds);
     if (target) {
-      const base = target.url.endsWith('/') ? target.url : `${target.url}/`;
-      const href = new URL(`${crypto.randomUUID()}.ics`, base).href;
-      const { url } = await putEvent(href, ical, creds, { create: true });
-      await storeFromServer(target.id, target.user_id, url, ical, creds);
-      await deleteEvent(event.href, creds, { etag: event.etag });
-      await query('DELETE FROM calendar_events WHERE id = $1', [event.id]);
+      await moveToCalendar(event, target, ical, creds, etag);
     } else {
-      await putKeepingMarkers(event.href, ical, creds, event.etag);
+      await putKeepingMarkers(event.href, ical, creds, etag);
       await storeFromServer(event.calendar_id, event.user_id, event.href, ical, creds);
     }
     const after = inviteInfo(ical);
@@ -545,12 +592,13 @@ router.delete('/events/:eventId', async (req, res) => {
       creds = await credentialsFor(event);
     }
     const remaining = scope === 'this' ? removeOccurrence(event.ical, recurrenceId) : null;
+    const etag = await versionOf(event, creds);
     if (remaining) {
-      await putEvent(event.href, remaining, creds, { etag: event.etag });
+      await putEvent(event.href, remaining, creds, { etag });
       await storeFromServer(event.calendar_id, event.user_id, event.href, remaining, creds);
     } else {
-      await deleteEvent(event.href, creds, { etag: event.etag });
-      await query('DELETE FROM calendar_events WHERE id = $1', [event.id]);
+      await deleteEvent(event.href, creds, { etag });
+      await dropLocal(event);
     }
     const mailed = await mailAfterWrite(req.session.userId, plan, [remaining
       ? { to: before.attendees, method: 'REQUEST', ics: remaining, kind: 'update' }
@@ -573,7 +621,7 @@ router.post('/events/:eventId/reply', async (req, res) => {
     const { organizer } = inviteInfo(event.ical);
     if (!organizer || plan.myEmails.includes(organizer)) return badRequest(res, 'This is not an invitation from someone else');
     const { ical, email } = setReply(event.ical, plan.myEmails, partstat);
-    await putEvent(event.href, ical, creds, { etag: event.etag });
+    await putEvent(event.href, ical, creds, { etag: await versionOf(event, creds) });
     await storeFromServer(event.calendar_id, event.user_id, event.href, ical, creds);
     const mailed = await mailAfterWrite(req.session.userId, { ...plan, organizer: plan.organizer || { email } }, [
       { from: email, to: [organizer], method: 'REPLY', ics: ical, kind: partstat.toLowerCase(), only: [email] },
