@@ -939,22 +939,31 @@ export default function ComposeModal() {
     const currentText = plaintextEmail ? body
       : (htmlMode ? stripTags(htmlSource) : (editor?.getText({ blockSeparator: '\n' }) ?? ''));
 
+    // The composer appends the signature itself, and rewriting must not invent a closing the
+    // user did not write (upstream #734): the model returns the body and nothing around it.
+    const hasSignature = signatureEnabled && !!stripHtml(signatureContentRef.current || '').trim();
+    const NO_SIGNOFF = ' Do not add a greeting, closing line, sign-off, name or signature that is not already in the text; the email client appends the signature.';
     const toStr = [...toChips, ...(toInput.trim() ? [toInput.trim()] : [])].join(', ');
     const PROMPTS = {
       draft: {
-        system: 'You are a professional email writing assistant. Write a complete, well-structured email based on the provided subject and recipient context. Return only the email body text. Use plain text with no markdown or HTML. Use double newlines between paragraphs.',
+        system: 'You are a professional email writing assistant. Write a complete, well-structured email based on the provided subject and recipient context. Return only the email body text. Use plain text with no markdown or HTML. Use double newlines between paragraphs.'
+          + (hasSignature ? ' Do not end with a name or signature: the email client appends the signature.' : ''),
         user: `Subject: ${subject || '(none)'}\nTo: ${toStr || '(none)'}\n\nWrite a complete professional email.`,
       },
       improve: {
-        system: 'You are a professional email writing assistant. Improve the following email for clarity, tone, and professionalism. Return only the improved email body text. Use plain text with no markdown or HTML.',
+        system: 'You are a professional email writing assistant. Improve the following email for clarity, tone, and professionalism. Return only the improved email body text. Use plain text with no markdown or HTML.' + NO_SIGNOFF,
         user: currentText.trim() || '(empty)',
       },
       shorten: {
-        system: 'You are a professional email writing assistant. Shorten the following email while preserving all key information. Return only the shortened email body text. Use plain text with no markdown or HTML.',
+        system: 'You are a professional email writing assistant. Shorten the following email while preserving all key information. Return only the shortened email body text. Use plain text with no markdown or HTML.' + NO_SIGNOFF,
         user: currentText.trim() || '(empty)',
       },
       grammar: {
-        system: 'You are a professional email writing assistant. Fix the grammar, spelling, and punctuation in the following email without changing its meaning. Return only the corrected text. Use plain text with no markdown or HTML.',
+        system: 'You are a careful proofreader. Fix only the spelling, grammar and punctuation errors in the following email. Keep the wording, tone, style, formatting and language exactly as they are; do not rephrase, translate, add or remove anything else. Return only the corrected text. Use plain text with no markdown or HTML.' + NO_SIGNOFF,
+        user: currentText.trim() || '(empty)',
+      },
+      clearer: {
+        system: 'You are a professional email writing assistant. Rewrite the following email so it is clearer and easier to understand: simpler sentences, a logical order, no ambiguity. Keep the meaning, the facts and the language of the email; keep the tone appropriate to the original. Return only the rewritten email body text. Use plain text with no markdown or HTML.' + NO_SIGNOFF,
         user: currentText.trim() || '(empty)',
       },
     };
@@ -4397,6 +4406,7 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
             { key: 'improve', label: t('compose.toolbar.aiImprove') },
             { key: 'shorten', label: t('compose.toolbar.aiShorten') },
             { key: 'grammar', label: t('compose.toolbar.aiFixGrammar') },
+            { key: 'clearer', label: t('compose.toolbar.aiMakeClearer') },
           ].map(({ key, label }) => (
             <button key={key} onMouseDown={e => {
               e.preventDefault();

@@ -8,6 +8,9 @@ const {
   AI_CONNECTION_METHOD_OPTIONS,
   DEFAULT_CODEX_MODEL,
   OPENAI_MODELS_URL,
+  DEFAULT_OPENROUTER_MODEL,
+  filterOpenRouterModels,
+  formatModelPrice,
   buildAiSavePayload,
   createCodexDevicePoller,
   isAiFormValid,
@@ -22,6 +25,7 @@ const englishAiCopy = JSON.parse(
 describe('AI connection choices', () => {
   it('offers generic API and account methods before selecting an account provider', () => {
     assert.deepEqual(AI_CONNECTION_METHOD_OPTIONS, [
+      { value: 'openrouter', labelKey: 'admin.ai.connectionMethodOpenrouter' },
       { value: 'api', labelKey: 'admin.ai.connectionMethodApi' },
       { value: 'account', labelKey: 'admin.ai.connectionMethodAccount' },
     ]);
@@ -130,6 +134,7 @@ describe('normalizeAiForm', () => {
       accountProvider: '',
       apiKeyConfig: { baseUrl: '', apiKey: '', model: '' },
       chatgptConfig: { model: 'gpt-5.6-luna' },
+      openrouterConfig: { apiKey: '', model: 'mistralai/mistral-nemo' },
       features: { compose: true, summarize: true },
       newUsersEnabled: true,
     });
@@ -148,6 +153,7 @@ describe('normalizeAiForm', () => {
       accountProvider: '',
       apiKeyConfig: { baseUrl: 'http://ollama:11434/v1', apiKey: '••••••••', model: 'llama3' },
       chatgptConfig: { model: 'gpt-5.6-luna' },
+      openrouterConfig: { apiKey: '', model: 'mistralai/mistral-nemo' },
       features: { compose: false, summarize: true },
       newUsersEnabled: true,
     });
@@ -165,6 +171,7 @@ describe('normalizeAiForm', () => {
       accountProvider: 'chatgpt',
       apiKeyConfig: { baseUrl: 'https://api.example/v1', apiKey: '••••••••', model: 'fallback' },
       chatgptConfig: { model: 'gpt-5.4' },
+      openrouterConfig: { apiKey: '', model: 'mistralai/mistral-nemo' },
       features: { compose: true, summarize: true },
       newUsersEnabled: true,
     });
@@ -280,6 +287,7 @@ describe('buildAiSavePayload', () => {
       provider: 'api-key',
       apiKeyConfig: { baseUrl: 'https://api.example/v1', apiKey: '••••••••', model: 'fallback' },
       chatgptConfig: { model: 'gpt-5.4-mini' },
+      openrouterConfig: { apiKey: '', model: 'mistralai/mistral-nemo' },
       features: { compose: true, summarize: true },
       newUsersEnabled: true,
     });
@@ -301,6 +309,7 @@ describe('buildAiSavePayload', () => {
       provider: 'chatgpt',
       apiKeyConfig: { baseUrl: 'https://api.example/v1', apiKey: '••••••••', model: 'fallback' },
       chatgptConfig: { model: 'gpt-5.4-mini' },
+      openrouterConfig: { apiKey: '', model: 'mistralai/mistral-nemo' },
       features: { compose: true, summarize: true },
       newUsersEnabled: true,
     });
@@ -424,4 +433,45 @@ describe('createCodexDevicePoller', () => {
     assert.deepEqual(fixture.scheduler.delays(), []);
   });
 
+});
+
+describe('OpenRouter', () => {
+  it('is the first connection choice and defaults to the cheap Mistral model', () => {
+    assert.equal(AI_CONNECTION_METHOD_OPTIONS[0].value, 'openrouter');
+    assert.equal(DEFAULT_OPENROUTER_MODEL, 'mistralai/mistral-nemo');
+    const form = selectAiConnectionMethod(normalizeAiForm(), 'openrouter');
+    assert.equal(form.connectionMethod, 'openrouter');
+    assert.equal(form.openrouterConfig.model, 'mistralai/mistral-nemo');
+  });
+
+  it('infers the method from a stored provider and maps it back on save', () => {
+    const form = normalizeAiForm({
+      provider: 'openrouter',
+      openrouterConfig: { apiKey: '••••••••', model: 'anthropic/claude-3.5-haiku' },
+    });
+    assert.equal(form.connectionMethod, 'openrouter');
+    const payload = buildAiSavePayload(form);
+    assert.equal(payload.provider, 'openrouter');
+    assert.deepEqual(payload.openrouterConfig, { apiKey: '••••••••', model: 'anthropic/claude-3.5-haiku' });
+  });
+
+  it('needs a key and a model', () => {
+    const base = { enabled: true, connectionMethod: 'openrouter' };
+    assert.equal(isAiFormValid({ ...base, openrouterConfig: { apiKey: 'sk-or-1', model: 'm' } }), true);
+    assert.equal(isAiFormValid({ ...base, openrouterConfig: { apiKey: '', model: 'm' } }), false);
+    assert.equal(isAiFormValid({ ...base, openrouterConfig: { apiKey: 'k', model: ' ' } }), false);
+  });
+
+  it('formats prices per million tokens and filters models by every word typed', () => {
+    assert.equal(formatModelPrice({ promptPrice: 0.02, completionPrice: 0.04 }), '$0.02 / $0.04');
+    assert.equal(formatModelPrice({ promptPrice: 3, completionPrice: 15 }), '$3 / $15');
+    assert.equal(formatModelPrice({ promptPrice: 0, completionPrice: null }), '$0 / ?');
+    const models = [
+      { id: 'mistralai/mistral-nemo', name: 'Mistral: Mistral Nemo' },
+      { id: 'anthropic/claude-3.5-haiku', name: 'Anthropic: Claude 3.5 Haiku' },
+    ];
+    assert.deepEqual(filterOpenRouterModels(models, 'claude haiku').map(m => m.id), ['anthropic/claude-3.5-haiku']);
+    assert.equal(filterOpenRouterModels(models, '').length, 2);
+    assert.equal(filterOpenRouterModels(models, 'nope').length, 0);
+  });
 });

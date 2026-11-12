@@ -14,12 +14,15 @@ import {
   AI_ACCOUNT_PROVIDER_OPTIONS,
   AI_CONNECTION_METHOD_ACCOUNT,
   AI_CONNECTION_METHOD_API,
+  AI_CONNECTION_METHOD_OPENROUTER,
   AI_CONNECTION_METHOD_OPTIONS,
-  AI_PROVIDER_API_KEY,
   AI_PROVIDER_CHATGPT,
   OPENAI_MODELS_URL,
+  OPENROUTER_KEYS_URL,
   buildAiSavePayload,
   createCodexDevicePoller,
+  filterOpenRouterModels,
+  formatModelPrice,
   isAiFormValid,
   normalizeAiForm,
   selectAiConnectionMethod,
@@ -3777,6 +3780,10 @@ function AISection() {
   const [deviceState, setDeviceState] = useState(null);
   const [copied, setCopied] = useState(false);
   const [msg, setMsg] = useState(null);
+  // The outcome of the last connection test, shown next to the button that ran it.
+  const [testResult, setTestResult] = useState(null);
+  const [models, setModels] = useState({ status: 'idle', list: [] });
+  const [modelSearch, setModelSearch] = useState('');
   const pollerRef = useRef(null);
   const formRef = useRef(form);
   const tRef = useRef(t);
@@ -3839,7 +3846,9 @@ function AISection() {
       api.ai.getConfig().then(({ config: cfg, newUsersEnabled }) => {
         if (!active) return;
         // "Allow AI for new users" is kept when no provider is configured, so it comes on its own.
-        const normalized = normalizeAiForm({ ...(cfg || {}), newUsersEnabled });
+        let normalized = normalizeAiForm({ ...(cfg || {}), newUsersEnabled });
+        // A first setup starts on OpenRouter, the recommended choice.
+        if (!cfg && !normalized.connectionMethod) normalized = selectAiConnectionMethod(normalized, AI_CONNECTION_METHOD_OPENROUTER);
         setConfig(cfg);
         formRef.current = normalized;
         setForm(normalized);
@@ -3869,15 +3878,34 @@ function AISection() {
     } finally { setSaving(false); }
   };
 
+  // The test runs against the saved configuration, so what is on screen is saved first: otherwise
+  // a green result could describe settings other than the ones shown.
   const handleTest = async () => {
-    setTesting(true); setMsg(null);
+    setTesting(true); setMsg(null); setTestResult(null);
     try {
+      if (form.connectionMethod !== AI_CONNECTION_METHOD_ACCOUNT) await persistForm(form);
       await api.ai.test();
-      setMsg({ type: 'ok', text: t('admin.ai.testOk') });
+      setTestResult({ type: 'ok', text: t('admin.ai.testOk') });
     } catch (err) {
-      setMsg({ type: 'error', text: `${t('admin.ai.testFail')}: ${err.message}` });
+      setTestResult({ type: 'error', text: `${t('admin.ai.testFail')}: ${err.message}` });
     } finally { setTesting(false); }
   };
+
+  const loadModels = useCallback(async () => {
+    setModels({ status: 'loading', list: [] });
+    try {
+      const { models: list } = await api.ai.openrouterModels();
+      setModels({ status: 'ready', list });
+    } catch {
+      setModels({ status: 'error', list: [] });
+    }
+  }, []);
+
+  // The catalogue is public and loaded once, the first time OpenRouter is the chosen method.
+  const wantsModels = !loading && form.connectionMethod === AI_CONNECTION_METHOD_OPENROUTER;
+  useEffect(() => {
+    if (wantsModels && models.status === 'idle') loadModels();
+  }, [wantsModels, models.status, loadModels]);
 
   const handleConnect = async () => {
     setConnecting(true); setMsg(null); setDeviceState(null); setCopied(false);
@@ -3944,8 +3972,8 @@ function AISection() {
   );
 
   // A switch inside its label, so the text toggles it too and a screen reader reads its state.
-  const toggle = (label, checked, onChange) => (
-    <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', marginBottom: 10 }}>
+  const toggle = (label, checked, onChange, hint = null) => (
+    <label style={{ display: 'flex', alignItems: hint ? 'flex-start' : 'center', gap: 10, cursor: 'pointer', marginBottom: 10 }}>
       <button
         type="button"
         role="switch"
@@ -3962,8 +3990,25 @@ function AISection() {
           borderRadius: '50%', background: '#fff', transition: 'left 0.2s',
         }} />
       </button>
-      <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>{label}</span>
+      <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>
+        {label}
+        {hint && <span style={{ display: 'block', fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2, lineHeight: 1.4 }}>{hint}</span>}
+      </span>
     </label>
+  );
+
+  const resultBox = (result) => result && (
+    <div role="status" aria-live="polite" style={{ padding: '8px 12px', borderRadius: 6, marginBottom: 14, fontSize: 13,
+      background: result.type === 'ok' ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)',
+      color: result.type === 'ok' ? 'var(--green)' : 'var(--red)',
+      border: `1px solid ${result.type === 'ok' ? 'rgba(74,222,128,0.2)' : 'rgba(248,113,113,0.2)'}`,
+    }}>{result.text}</div>
+  );
+
+  const testButton = (label) => (
+    <button type="button" onClick={handleTest} disabled={testing || !formValid} style={{ fontSize: 12, padding: '6px 12px', marginBottom: 14, background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-primary)', cursor: (testing || !formValid) ? 'default' : 'pointer', opacity: (testing || !formValid) ? 0.6 : 1 }}>
+      {testing ? t('admin.ai.testing') : label}
+    </button>
   );
 
   const msgBox = msg && (
@@ -3976,6 +4021,7 @@ function AISection() {
 
   if (loading) return <div style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>{t('common.loading')}</div>;
 
+  const openrouterSelected = form.connectionMethod === AI_CONNECTION_METHOD_OPENROUTER;
   const apiSelected = form.connectionMethod === AI_CONNECTION_METHOD_API;
   const accountSelected = form.connectionMethod === AI_CONNECTION_METHOD_ACCOUNT;
   const chatgptSelected = accountSelected && form.accountProvider === AI_PROVIDER_CHATGPT;
@@ -4024,6 +4070,12 @@ function AISection() {
           </select>
         </div>
 
+        {openrouterSelected && (
+          <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5, marginTop: -6, marginBottom: 14 }}>
+            {t('admin.ai.openrouterWhy')}
+          </div>
+        )}
+
         {accountSelected && (
           <div style={{ marginBottom: 14 }}>
             <label style={{ display: 'block', fontSize: 12, color: 'var(--text-secondary)', marginBottom: 5 }}>{t('admin.ai.subscriptionProvider')}</label>
@@ -4041,16 +4093,63 @@ function AISection() {
 
         {!chatgptSelected && msgBox}
 
+        {openrouterSelected && (
+          <>
+            {field(
+              t('admin.ai.openrouterKey'),
+              form.openrouterConfig.apiKey,
+              value => setForm(f => ({ ...f, openrouterConfig: { ...f.openrouterConfig, apiKey: value } })),
+              'password',
+              t('admin.ai.openrouterKeyPh'),
+              <a href={OPENROUTER_KEYS_URL} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>{t('admin.ai.openrouterGetKey')}</a>,
+            )}
+            {field(
+              t('admin.ai.model'),
+              form.openrouterConfig.model,
+              value => { setModelSearch(value); setForm(f => ({ ...f, openrouterConfig: { ...f.openrouterConfig, model: value } })); },
+              'text',
+              t('admin.ai.openrouterModelPh'),
+              t('admin.ai.openrouterModelHint'),
+            )}
+            <div style={{ marginTop: -6, marginBottom: 14 }}>
+              {models.status === 'loading' && <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{t('admin.ai.modelsLoading')}</div>}
+              {models.status === 'error' && (
+                <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                  {t('admin.ai.modelsError')}{' '}
+                  <button type="button" onClick={loadModels} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent)', cursor: 'pointer', fontSize: 12 }}>{t('admin.ai.modelsRetry')}</button>
+                </div>
+              )}
+              {models.status === 'ready' && modelSearch.trim() && (() => {
+                const hits = filterOpenRouterModels(models.list, modelSearch, 8);
+                return hits.length ? (
+                  <div role="listbox" aria-label={t('admin.ai.modelsListLabel')} style={{ border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg-secondary)', overflow: 'hidden' }}>
+                    {hits.map(m => (
+                      <button key={m.id} type="button" role="option" aria-selected={m.id === form.openrouterConfig.model}
+                        onClick={() => { setModelSearch(''); setForm(f => ({ ...f, openrouterConfig: { ...f.openrouterConfig, model: m.id } })); }}
+                        style={{ display: 'flex', justifyContent: 'space-between', gap: 12, width: '100%', textAlign: 'left', padding: '6px 10px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', color: 'var(--text-primary)', cursor: 'pointer', fontSize: 12 }}>
+                        <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.id}</span>
+                        <span style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>{formatModelPrice(m)}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{t('admin.ai.modelsNone')}</div>;
+              })()}
+              {models.status === 'ready' && !modelSearch.trim() && (
+                <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{t('admin.ai.modelsPriceNote', { total: models.list.length })}</div>
+              )}
+            </div>
+            {testButton(t('admin.ai.testSave'))}
+            {resultBox(testResult)}
+          </>
+        )}
+
         {apiSelected && (
           <>
             {field(t('admin.ai.baseUrl'), form.apiKeyConfig.baseUrl, value => setForm(f => ({ ...f, apiKeyConfig: { ...f.apiKeyConfig, baseUrl: value } })), 'text', t('admin.ai.baseUrlPh'))}
             {field(t('admin.ai.apiKey'), form.apiKeyConfig.apiKey, value => setForm(f => ({ ...f, apiKeyConfig: { ...f.apiKeyConfig, apiKey: value } })), 'password', t('admin.ai.apiKeyPh'))}
             {field(t('admin.ai.model'), form.apiKeyConfig.model, value => setForm(f => ({ ...f, apiKeyConfig: { ...f.apiKeyConfig, model: value } })), 'text', t('admin.ai.modelPh'))}
-            {config?.provider === AI_PROVIDER_API_KEY && (
-              <button type="button" onClick={handleTest} disabled={testing} style={{ fontSize: 12, padding: '6px 12px', marginBottom: 14, background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-primary)', cursor: testing ? 'default' : 'pointer', opacity: testing ? 0.6 : 1 }}>
-                {testing ? t('admin.ai.testing') : t('admin.ai.test')}
-              </button>
-            )}
+            {testButton(t('admin.ai.testSave'))}
+            {resultBox(testResult)}
           </>
         )}
 
@@ -4097,6 +4196,7 @@ function AISection() {
               </div>
 
               {msgBox}
+              {resultBox(testResult)}
 
               {pendingDevice && (
                 <div style={{ paddingTop: 12, borderTop: '1px solid var(--border)' }}>
@@ -4120,11 +4220,11 @@ function AISection() {
           </>
         )}
 
-        {(apiSelected || chatgptSelected) && (
+        {(openrouterSelected || apiSelected || chatgptSelected) && (
           <div style={{ marginBottom: 14 }}>
             <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>{t('admin.ai.features')}</div>
-            {toggle(t('admin.ai.featureCompose'), form.features.compose, () => setForm(f => ({ ...f, features: { ...f.features, compose: !f.features.compose } })))}
-            {toggle(t('admin.ai.featureSummarize'), form.features.summarize, () => setForm(f => ({ ...f, features: { ...f.features, summarize: !f.features.summarize } })))}
+            {toggle(t('admin.ai.featureCompose'), form.features.compose, () => setForm(f => ({ ...f, features: { ...f.features, compose: !f.features.compose } })), t('admin.ai.featureComposeHint'))}
+            {toggle(t('admin.ai.featureSummarize'), form.features.summarize, () => setForm(f => ({ ...f, features: { ...f.features, summarize: !f.features.summarize } })), t('admin.ai.featureSummarizeHint'))}
             <div style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '16px 0 8px' }}>{t('admin.ai.access')}</div>
             {toggle(t('admin.ai.newUsersEnabled'), form.newUsersEnabled, () => setForm(f => ({ ...f, newUsersEnabled: !f.newUsersEnabled })))}
             <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: -4, lineHeight: 1.4 }}>{t('admin.ai.newUsersEnabledHint')}</div>
