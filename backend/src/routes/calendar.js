@@ -259,6 +259,14 @@ router.get('/events', async (req, res) => {
   res.json({ events });
 });
 
+// A zone by the name Intl gives it, or null for anything Intl does not know (a CRLF included):
+// the name is written into the event and the mail.
+function zoneName(value) {
+  if (typeof value !== 'string' || !value || value.length > 100) return null;
+  try { return new Intl.DateTimeFormat('en', { timeZone: value }).resolvedOptions().timeZone; } catch { return null; }
+}
+const badZone = body => body?.timezone != null && !zoneName(body.timezone);
+
 function dateValueError(input) {
   const { allDay, start, end } = input;
   if (allDay) {
@@ -293,7 +301,10 @@ function eventInput(body, { requireDates }) {
     const err = dateValueError(input);
     if (err) return { error: err };
   }
-  if (typeof b.timezone === 'string' && b.timezone.length < 100) input.timezone = b.timezone;
+  if (b.timezone != null) {
+    input.timezone = zoneName(b.timezone);
+    if (!input.timezone) return { error: 'Invalid time zone' };
+  }
   if (b.recurrence !== undefined) {
     if (b.recurrence === null) input.recurrence = null;
     else {
@@ -405,7 +416,7 @@ async function sendWriteError(res, err, accountId) {
 
 function mailOptions(req) {
   const lang = typeof req.body?.lang === 'string' && /^[a-zA-Z-]{2,20}$/.test(req.body.lang) ? req.body.lang : 'en';
-  const timeZone = typeof req.body?.timezone === 'string' && req.body.timezone.length < 100 ? req.body.timezone : 'UTC';
+  const timeZone = zoneName(req.body?.timezone) || 'UTC';
   return { labels: mailLabels(req.body?.mailLabels), lang, timeZone };
 }
 
@@ -535,6 +546,7 @@ router.delete('/events/:eventId', async (req, res) => {
   if (!event) return res.status(404).json({ error: 'Event not found' });
   if (event.read_only) return readOnlyError(res);
   const { scope, recurrenceId } = req.query;
+  if (badZone(req.body)) return badRequest(res, 'Invalid time zone');
   if (scope === 'this' && (typeof recurrenceId !== 'string' || !RID_RE.test(recurrenceId))) return badRequest(res, 'Invalid occurrence');
   try {
     const before = inviteInfo(event.ical);
@@ -572,6 +584,7 @@ router.post('/events/:eventId/reply', async (req, res) => {
   if (event.read_only) return readOnlyError(res);
   const partstat = req.body?.status;
   if (!PARTSTATS.includes(partstat)) return badRequest(res, 'Invalid answer');
+  if (badZone(req.body)) return badRequest(res, 'Invalid time zone');
   try {
     const { creds, plan } = await planFor(req.session.userId, event);
     const { organizer } = inviteInfo(event.ical);

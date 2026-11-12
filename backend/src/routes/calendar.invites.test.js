@@ -84,6 +84,17 @@ describe('invitations', () => {
     expect(state.puts).toEqual([]);
   });
 
+  it('refuses a time zone Intl does not know', async () => {
+    for (const timezone of ['Europe/Zurich\r\nX-INJECTED:1', 'X\r\n/Europe/Zurich', 'Mars/Olympus']) {
+      const r = await call('POST', '/c/events', { calendarId: '22222222-2222-4222-8222-222222222222', summary: 'Point', ...times, timezone });
+      expect(r.status).toBe(400);
+    }
+    state.event = stored(MINE);
+    expect((await call('DELETE', `/c/events/${EVENT_ID}`, { timezone: 'Europe/Zurich\r\n' })).status).toBe(400);
+    expect(state.puts).toEqual([]);
+    expect(state.mails).toEqual([]);
+  });
+
   it('rejects an address that is not one', async () => {
     const r = await call('POST', '/c/events', { calendarId: '22222222-2222-4222-8222-222222222222', summary: 'Point', ...times, attendees: [{ email: 'ana' }] });
     expect(r.status).toBe(400);
