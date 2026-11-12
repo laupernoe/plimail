@@ -9,6 +9,9 @@
 // requireHttps defaults to !allowPrivate — public fetches must be HTTPS, while a
 // self-hosted target reachable only because the admin enabled private hosts may use
 // plaintext HTTP on a trusted network. Redirect downgrades to http are refused too.
+// plaintextPrivateOnly narrows that further: plaintext is let through only to an address that
+// is itself private, checked on the address each connection is made to, so a public host
+// (or a name that resolves to one) still needs HTTPS when the admin allows private hosts.
 //
 // Use for outbound fetches to attacker-influenced or user-configured URLs
 // (one-click unsubscribe, category list sources, CardDAV discovery). Admin-configured
@@ -37,20 +40,28 @@ function insecure() {
 
 // A connector that refuses plaintext (when required) and private/reserved addresses,
 // pinning the socket to a validated IP (with the original hostname kept for TLS SNI).
-function guardedConnector(allowPrivate, requireHttps) {
+function guardedConnector(allowPrivate, requireHttps, plaintextPrivateOnly) {
   return (opts, callback) => {
     if (requireHttps && opts.protocol === 'http:') return callback(insecure());
+    const plaintext = plaintextPrivateOnly && opts.protocol === 'http:';
+    const refusal = (address) => {
+      if (validateHostLiteral(address, { allowPrivate })) return blocked();
+      if (plaintext && !validateHostLiteral(address)) return insecure();
+      return null;
+    };
     const host = opts.hostname;
     // Literal IP target (e.g. a redirect to http://169.254.169.254) — check directly.
     if (net.isIP(host)) {
-      if (validateHostLiteral(host, { allowPrivate })) return callback(blocked());
+      const err = refusal(host);
+      if (err) return callback(err);
       return baseConnect(opts, callback);
     }
     // Hostname — resolve, validate every address, then connect to a checked IP.
     dns.lookup(host, { all: true }, (err, addresses) => {
       if (err) return callback(err);
       for (const a of addresses) {
-        if (validateHostLiteral(a.address, { allowPrivate })) return callback(blocked());
+        const refused = refusal(a.address);
+        if (refused) return callback(refused);
       }
       baseConnect({ ...opts, hostname: addresses[0].address, servername: opts.servername || host }, callback);
     });
@@ -58,13 +69,13 @@ function guardedConnector(allowPrivate, requireHttps) {
 }
 
 const agents = new Map();
-function agentFor(allowPrivate, requireHttps) {
-  const key = `${allowPrivate ? 'priv' : 'pub'}:${requireHttps ? 'https' : 'any'}`;
-  if (!agents.has(key)) agents.set(key, new Agent({ connect: guardedConnector(allowPrivate, requireHttps) }));
+function agentFor(allowPrivate, requireHttps, plaintextPrivateOnly) {
+  const key = `${allowPrivate ? 'priv' : 'pub'}:${requireHttps ? 'https' : 'any'}:${plaintextPrivateOnly ? 'plain-private' : 'plain-any'}`;
+  if (!agents.has(key)) agents.set(key, new Agent({ connect: guardedConnector(allowPrivate, requireHttps, plaintextPrivateOnly) }));
   return agents.get(key);
 }
 
-export function safeFetch(url, options = {}, { allowPrivate = false, requireHttps = !allowPrivate } = {}) {
+export function safeFetch(url, options = {}, { allowPrivate = false, requireHttps = !allowPrivate, plaintextPrivateOnly = false } = {}) {
   let parsed;
   try { parsed = new URL(url); }
   catch { return Promise.reject(new Error('Invalid URL')); }
@@ -74,5 +85,5 @@ export function safeFetch(url, options = {}, { allowPrivate = false, requireHttp
   if (requireHttps && parsed.protocol !== 'https:') {
     return Promise.reject(insecure());
   }
-  return fetch(url, { ...options, dispatcher: agentFor(allowPrivate, requireHttps) });
+  return fetch(url, { ...options, dispatcher: agentFor(allowPrivate, requireHttps, plaintextPrivateOnly) });
 }
