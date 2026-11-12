@@ -2175,7 +2175,25 @@
     "signedInGoogle": "Zalogowano przez Google jako {{email}}",
     "signedInNote": "Serwer pochodzi z tego logowania. Jeśli konto przestanie się łączyć, zaloguj się ponownie.",
     "mailboxLabel": "Skrzynka do otwarcia",
-    "mailboxHelp": "W przypadku skrzynki udostępnionej lub delegowanej wpisz jej adres. Dla własnej skrzynki zostaw bez zmian."
+    "mailboxHelp": "W przypadku skrzynki udostępnionej lub delegowanej wpisz jej adres. Dla własnej skrzynki zostaw bez zmian.",
+    "autodiscover": {
+      "button": "Znajdź ustawienia",
+      "looking": "Wyszukiwanie ustawień serwera dla tego adresu…",
+      "failed": "Nie znaleziono ustawień dla tego adresu. Wpisz je poniżej.",
+      "check": "Sprawdź je przed dodaniem konta.",
+      "source": {
+        "ispdb": "Ustawienia dla {{domain}} znalezione w bazie danych Thunderbirda.",
+        "autoconfig": "Ustawienia opublikowane przez {{domain}}.",
+        "wellknown": "Ustawienia opublikowane na stronie {{domain}}.",
+        "srv": "Ustawienia znalezione w rekordach DNS {{domain}}.",
+        "mx": "Pocztę {{domain}} obsługuje znany dostawca, którego ustawienia zostały uzupełnione.",
+        "mxIspdb": "Ustawienia dostawcy, który odbiera pocztę dla {{domain}}, z bazy danych Thunderbirda.",
+        "guess": "{{domain}} nie publikuje ustawień: to typowe, odgadnięte nazwy serwerów."
+      },
+      "addCalendars": "Dodaj też kalendarze tego konta, z tym samym hasłem",
+      "calendarsAt": "Znaleziono serwer kalendarza: {{url}}",
+      "calendarsMailHost": "Serwer kalendarza zostanie wyszukany na serwerach poczty."
+    }
   },
   "googleSignIn": {
     "title": "Zaloguj się przez Google",

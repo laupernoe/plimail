@@ -2156,7 +2156,25 @@
     "signedInGoogle": "Accesso con Google come {{email}}",
     "signedInNote": "Il server proviene da questo accesso. Se l'account smette di connettersi, accedi di nuovo.",
     "mailboxLabel": "Casella da aprire",
-    "mailboxHelp": "Per una casella condivisa o delegata, inserisci il suo indirizzo. Lascia così per la tua casella."
+    "mailboxHelp": "Per una casella condivisa o delegata, inserisci il suo indirizzo. Lascia così per la tua casella.",
+    "autodiscover": {
+      "button": "Trova impostazioni",
+      "looking": "Ricerca delle impostazioni del server per questo indirizzo…",
+      "failed": "Nessuna impostazione trovata per questo indirizzo. Inseriscile qui sotto.",
+      "check": "Controllale prima di aggiungere l'account.",
+      "source": {
+        "ispdb": "Impostazioni di {{domain}} trovate nel database di Thunderbird.",
+        "autoconfig": "Impostazioni pubblicate da {{domain}}.",
+        "wellknown": "Impostazioni pubblicate sul sito web di {{domain}}.",
+        "srv": "Impostazioni trovate nei record DNS di {{domain}}.",
+        "mx": "La posta di {{domain}} è gestita da un provider noto, le cui impostazioni sono state compilate.",
+        "mxIspdb": "Impostazioni del provider che riceve la posta di {{domain}}, dal database di Thunderbird.",
+        "guess": "{{domain}} non pubblica impostazioni: questi sono i nomi di server consueti, ipotizzati."
+      },
+      "addCalendars": "Aggiungi anche i calendari di questo account, con la stessa password",
+      "calendarsAt": "Server del calendario trovato: {{url}}",
+      "calendarsMailHost": "Il server del calendario verrà cercato sui server di posta."
+    }
   },
   "googleSignIn": {
     "title": "Accedi con Google",

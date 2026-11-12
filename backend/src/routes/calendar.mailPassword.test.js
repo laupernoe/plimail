@@ -24,7 +24,7 @@ vi.mock('../services/calendarInvites.js', () => ({ forgetScheduling: vi.fn(), kn
 
 const express = (await import('express')).default;
 const router = (await import('./calendar.js')).default;
-const { discoverCalendars } = await import('../services/caldavClient.js');
+const { discoverCalendars, findCalDavServer } = await import('../services/caldavClient.js');
 
 let server;
 let base;
@@ -96,5 +96,46 @@ describe('adding a calendar account with a mail account password', () => {
     const r = await post({ serverUrl: 'https://dav.example.com/', mailAccountId: MAIL_ID });
     expect(r.status).toBe(400);
     expect(r.text).not.toContain('s3cret-pass');
+  });
+});
+
+describe('adding the calendars of a mail account', () => {
+  const fromMail = async (body) => {
+    const r = await fetch(`${base}/c/accounts/from-mail`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    return { status: r.status, text: await r.text() };
+  };
+  beforeEach(() => {
+    Object.assign(state.mail, { email_address: 'noe@example.com', imap_host: 'imap.example.com', smtp_host: 'smtp.example.com' });
+    findCalDavServer.mockReset().mockResolvedValue({ serverUrl: 'https://imap.example.com/', calendars: [] });
+  });
+
+  it('tries the mail hosts', async () => {
+    const r = await fromMail({ accountId: MAIL_ID });
+    expect(r.status).toBe(200);
+    expect(findCalDavServer).toHaveBeenCalledWith(['imap.example.com', 'smtp.example.com'], expect.objectContaining({ password: 's3cret-pass' }));
+    expect(JSON.parse(r.text)).toMatchObject({ serverUrl: 'https://imap.example.com/' });
+  });
+
+  it('tries the server Add account found first', async () => {
+    const r = await fromMail({ accountId: MAIL_ID, serverUrl: 'https://dav.example.com/cal/' });
+    expect(r.status).toBe(200);
+    expect(discoverCalendars).toHaveBeenCalledWith(expect.objectContaining({ serverUrl: 'https://dav.example.com/cal/', password: 's3cret-pass' }));
+    expect(findCalDavServer).not.toHaveBeenCalled();
+    expect(JSON.parse(r.text)).toMatchObject({ serverUrl: 'https://dav.example.com/cal/' });
+  });
+
+  it('falls back to the mail hosts when that server has no calendars', async () => {
+    discoverCalendars.mockRejectedValueOnce(new Error('No calendars found for this account'));
+    const r = await fromMail({ accountId: MAIL_ID, serverUrl: 'https://dav.example.com/' });
+    expect(r.status).toBe(200);
+    expect(findCalDavServer).toHaveBeenCalled();
+  });
+
+  it('refuses a server URL it would refuse when typed', async () => {
+    for (const serverUrl of ['http://dav.example.com/', 'ftp://dav.example.com/', 5]) {
+      const r = await fromMail({ accountId: MAIL_ID, serverUrl });
+      expect(r.status).toBe(400);
+    }
+    expect(discoverCalendars).not.toHaveBeenCalled();
   });
 });

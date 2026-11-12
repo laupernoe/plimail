@@ -2156,7 +2156,25 @@
     "signedInGoogle": "Signed in with Google as {{email}}",
     "signedInNote": "The server comes from this sign-in. If the account stops connecting, sign in again.",
     "mailboxLabel": "Mailbox to open",
-    "mailboxHelp": "For a shared or delegated mailbox, enter its address. Leave as is for your own mailbox."
+    "mailboxHelp": "For a shared or delegated mailbox, enter its address. Leave as is for your own mailbox.",
+    "autodiscover": {
+      "button": "Find settings",
+      "looking": "Looking up the server settings for this address…",
+      "failed": "No settings found for this address. Enter them below.",
+      "check": "Check them before adding the account.",
+      "source": {
+        "ispdb": "Settings for {{domain}} found in Thunderbird's database.",
+        "autoconfig": "Settings published by {{domain}}.",
+        "wellknown": "Settings published on the {{domain}} website.",
+        "srv": "Settings found in the DNS records of {{domain}}.",
+        "mx": "The mail for {{domain}} is handled by a known provider, whose settings are filled in.",
+        "mxIspdb": "Settings of the provider that receives the mail for {{domain}}, from Thunderbird's database.",
+        "guess": "{{domain}} publishes no settings: these are the usual server names, guessed."
+      },
+      "addCalendars": "Also add the calendars of this account, with the same password",
+      "calendarsAt": "Calendar server found: {{url}}",
+      "calendarsMailHost": "The calendar server is looked for on the mail servers."
+    }
   },
   "googleSignIn": {
     "title": "Sign in with Google",

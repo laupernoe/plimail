@@ -117,6 +117,7 @@ async function openAdd(config, { isAdmin = false, accounts = [], intent = { acti
   api.startMsDeviceFlow = async () => { deviceStarts++; return { userCode: 'K7QWZP2M', verificationUri: 'https://microsoft.com/devicelogin', interval: 0.01 }; };
   api.pollMsDeviceFlow = async () => polls.shift() || { status: 'pending' };
   api.reconnectAccount = async (id, opts) => { reconnects.push([id, opts]); return { ok: true, connection: 'connected' }; };
+  api.autodiscoverAccount = async () => null;
   useStore.setState({ user: { id: 'u1', isAdmin }, accounts, adminTab: 'accounts', accountsIntent: intent, showAdmin: true });
   await act(async () => {
     root = createRoot(doc.getElementById('root'));
@@ -476,3 +477,107 @@ describe('Gmail', () => {
   });
 });
 
+
+describe('settings looked up for the address (#725)', () => {
+  const FOUND = {
+    source: 'ispdb', domain: 'contoso.example', username: 'maria@contoso.example', smtpUsername: null, oauth: null,
+    caldavUrl: 'https://dav.contoso.example/', imap: { host: 'imap.contoso.example', port: 993, tls: 'SSL' },
+    smtp: { host: 'smtp.contoso.example', port: 465, tls: 'SSL' },
+  };
+  const field = (ph) => doc.querySelector(`input[placeholder="${ph}"]`);
+  const fill = async () => {
+    await setValue(field('admin.accounts.displayNamePh'), 'Maria');
+    await setValue(field('admin.accounts.passwordPhNew'), 'pw');
+  };
+
+  test('Continue looks the address up, sending only it, and fills in the servers', async () => {
+    await openAdd('builtin');
+    const asked = [];
+    api.autodiscoverAccount = async (...args) => { asked.push(args); return FOUND; };
+    await typeAndContinue('maria@contoso.example');
+    await act(async () => {});
+    assert.deepEqual(asked, [['maria@contoso.example']]);
+    assert.equal(field('admin.accounts.imapHostPh').value, 'imap.contoso.example');
+    assert.equal(field('admin.accounts.smtpHostPh').value, 'smtp.contoso.example');
+    assert.equal(doc.querySelector('[data-discovery]').dataset.discovery, 'found');
+    assert.ok(text().includes('accountForm.autodiscover.source.ispdb'));
+  });
+
+  test('a preset address is not looked up', async () => {
+    await openAdd('builtin');
+    let asked = 0;
+    api.autodiscoverAccount = async () => { asked++; return FOUND; };
+    await typeAndContinue('maria@gmail.com');
+    assert.equal(asked, 0);
+  });
+
+  test('nothing found leaves the form empty and says so', async () => {
+    await openAdd('builtin');
+    api.autodiscoverAccount = async () => { throw new Error('502'); };
+    await typeAndContinue('maria@contoso.example');
+    await act(async () => {});
+    assert.equal(field('admin.accounts.imapHostPh').value, '');
+    assert.equal(doc.querySelector('[data-discovery]').dataset.discovery, 'failed');
+  });
+
+  test('a server typed during the lookup is kept, and Find settings replaces it on request', async () => {
+    await openAdd('builtin');
+    let release;
+    api.autodiscoverAccount = () => new Promise(r => { release = () => r(FOUND); });
+    await typeAndContinue('maria@contoso.example');
+    await setValue(field('admin.accounts.imapHostPh'), 'mine.contoso.example');
+    await act(async () => { release(); });
+    assert.equal(field('admin.accounts.imapHostPh').value, 'mine.contoso.example');
+    api.autodiscoverAccount = async () => FOUND;
+    await click(doc.querySelector('[data-autodiscover]'));
+    await act(async () => {});
+    assert.equal(field('admin.accounts.imapHostPh').value, 'imap.contoso.example');
+  });
+
+  test('the calendars are added with the account when the box stays checked', async () => {
+    await openAdd('builtin');
+    api.autodiscoverAccount = async () => FOUND;
+    const added = [];
+    const fromMail = [];
+    api.addAccount = async (form) => { added.push(form); return { id: 'n1', ...form }; };
+    api.calendar.addFromMail = async (...args) => { fromMail.push(args); return {}; };
+    await typeAndContinue('maria@contoso.example');
+    await act(async () => {});
+    const box = doc.querySelector('[data-add-calendars] input');
+    assert.equal(box.checked, true);
+    await fill();
+    await click(byText('button', 'admin.accounts.addAccount'));
+    await act(async () => {});
+    assert.equal(added.length, 1);
+    assert.equal(added[0].smtp_tls, 'SSL');
+    assert.equal(added[0].smtp_port, 465);
+    assert.deepEqual(fromMail, [['n1', 'https://dav.contoso.example/']]);
+    assert.ok(text().includes('calendarOffer.added'));
+  });
+
+  test('unchecking the box adds the mail account alone, with no offer after', async () => {
+    await openAdd('builtin');
+    api.autodiscoverAccount = async () => FOUND;
+    let fromMail = 0;
+    api.addAccount = async (form) => ({ id: 'n1', ...form });
+    api.calendar.addFromMail = async () => { fromMail++; };
+    await typeAndContinue('maria@contoso.example');
+    await act(async () => {});
+    await click(doc.querySelector('[data-add-calendars] input'));
+    await fill();
+    await click(byText('button', 'admin.accounts.addAccount'));
+    await act(async () => {});
+    assert.equal(fromMail, 0);
+    assert.ok(!text().includes('calendarOffer.prompt'));
+  });
+
+  test('a domain whose mail Microsoft 365 takes is offered its sign-in, not calendars', async () => {
+    await openAdd('ownCommon');
+    api.autodiscoverAccount = async () => ({ ...FOUND, source: 'mx', oauth: 'microsoft', caldavUrl: null,
+      imap: { host: 'outlook.office365.com', port: 993, tls: 'SSL' }, smtp: { host: 'smtp.office365.com', port: 587, tls: 'STARTTLS' } });
+    await typeAndContinue('maria@contoso.example');
+    await act(async () => {});
+    assert.ok(text().includes('admin.accounts.microsoftImapNoteSignIn'));
+    assert.equal(doc.querySelector('[data-add-calendars]'), null);
+  });
+});

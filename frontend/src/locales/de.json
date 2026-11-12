@@ -2156,7 +2156,25 @@
     "signedInGoogle": "Mit Google angemeldet als {{email}}",
     "signedInNote": "Der Server stammt aus dieser Anmeldung. Wenn das Konto keine Verbindung mehr herstellt, melden Sie sich erneut an.",
     "mailboxLabel": "Zu öffnendes Postfach",
-    "mailboxHelp": "Für ein freigegebenes oder delegiertes Postfach geben Sie dessen Adresse ein. Für Ihr eigenes Postfach lassen Sie es, wie es ist."
+    "mailboxHelp": "Für ein freigegebenes oder delegiertes Postfach geben Sie dessen Adresse ein. Für Ihr eigenes Postfach lassen Sie es, wie es ist.",
+    "autodiscover": {
+      "button": "Einstellungen suchen",
+      "looking": "Servereinstellungen für diese Adresse werden gesucht…",
+      "failed": "Keine Einstellungen für diese Adresse gefunden. Bitte unten eingeben.",
+      "check": "Prüfen Sie sie, bevor Sie das Konto hinzufügen.",
+      "source": {
+        "ispdb": "Einstellungen für {{domain}} in der Thunderbird-Datenbank gefunden.",
+        "autoconfig": "Von {{domain}} veröffentlichte Einstellungen.",
+        "wellknown": "Auf der Website von {{domain}} veröffentlichte Einstellungen.",
+        "srv": "In den DNS-Einträgen von {{domain}} gefundene Einstellungen.",
+        "mx": "Die E-Mails von {{domain}} laufen über einen bekannten Anbieter, dessen Einstellungen eingetragen wurden.",
+        "mxIspdb": "Einstellungen des Anbieters, der die E-Mails für {{domain}} empfängt, aus der Thunderbird-Datenbank.",
+        "guess": "{{domain}} veröffentlicht keine Einstellungen: Dies sind die üblichen, geschätzten Servernamen."
+      },
+      "addCalendars": "Auch die Kalender dieses Kontos mit demselben Passwort hinzufügen",
+      "calendarsAt": "Kalenderserver gefunden: {{url}}",
+      "calendarsMailHost": "Der Kalenderserver wird auf den Mailservern gesucht."
+    }
   },
   "googleSignIn": {
     "title": "Mit Google anmelden",

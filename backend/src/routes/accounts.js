@@ -13,6 +13,8 @@ import { normalizeAddressList } from '../utils/addressList.js';
 import { reportConnect } from '../services/connectReport.js';
 import { findOwnedAccount, findOwnedAlias } from '../services/ownership.js';
 import { NEXT_ACCOUNT_SORT_ORDER, setAccountOrder } from '../services/accountOrder.js';
+import { discoverAccountSettings } from '../services/accountAutodiscover.js';
+import { consume } from '../services/rateLimiter.js';
 
 // Serialize an account's reconnect triggers so a rapid settings change (e.g. an
 // enabled double-toggle) can't fire two overlapping disconnect→connect chains —
@@ -236,6 +238,32 @@ router.patch('/order', async (req, res) => {
   } catch (err) {
     console.error('PATCH /accounts/order error:', err.message);
     res.status(500).json({ error: 'Failed to reorder accounts' });
+  }
+});
+
+// The servers to suggest for an address (Add account). Takes the address only: a password in
+// the body is ignored, and nothing found here is saved until POST / validates it.
+const AUTODISCOVER_PER_MINUTE = 20;
+router.post('/autodiscover', async (req, res) => {
+  const email = req.body?.email;
+  if (typeof email !== 'string' || !email.trim() || email.length > 254) {
+    return res.status(400).json({ error: 'A valid email address is required' });
+  }
+  const rate = await consume(`autodiscover:${req.session.userId}`, AUTODISCOVER_PER_MINUTE, 60_000);
+  if (rate.limited) {
+    res.set('Retry-After', String(Math.ceil(rate.resetMs / 1000)));
+    return res.status(429).json({ error: 'Too many lookups, try again in a minute' });
+  }
+  const policy = await getConnectionPolicy();
+  try {
+    const found = await discoverAccountSettings(email, {
+      allowPrivate: policy.allowPrivateHosts, allowNonstandardPorts: policy.allowNonstandardPorts,
+    });
+    if (!found) return res.status(400).json({ error: 'A valid email address is required' });
+    res.json(found);
+  } catch (err) {
+    console.warn('POST /accounts/autodiscover failed:', err.message);
+    res.status(502).json({ error: 'Could not look up the settings for this address' });
   }
 });
 

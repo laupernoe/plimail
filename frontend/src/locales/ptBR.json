@@ -2156,7 +2156,25 @@
     "signedInGoogle": "Conectado com o Google como {{email}}",
     "signedInNote": "O servidor vem desta conexão. Se a conta parar de conectar, entre novamente.",
     "mailboxLabel": "Caixa de correio a abrir",
-    "mailboxHelp": "Para uma caixa compartilhada ou delegada, digite o endereço dela. Deixe como está para a sua própria caixa."
+    "mailboxHelp": "Para uma caixa compartilhada ou delegada, digite o endereço dela. Deixe como está para a sua própria caixa.",
+    "autodiscover": {
+      "button": "Encontrar configurações",
+      "looking": "Procurando as configurações do servidor para este endereço…",
+      "failed": "Nenhuma configuração encontrada para este endereço. Preencha abaixo.",
+      "check": "Confira-as antes de adicionar a conta.",
+      "source": {
+        "ispdb": "Configurações de {{domain}} encontradas no banco de dados do Thunderbird.",
+        "autoconfig": "Configurações publicadas por {{domain}}.",
+        "wellknown": "Configurações publicadas no site de {{domain}}.",
+        "srv": "Configurações encontradas nos registros DNS de {{domain}}.",
+        "mx": "Os e-mails de {{domain}} são tratados por um provedor conhecido, cujas configurações foram preenchidas.",
+        "mxIspdb": "Configurações do provedor que recebe os e-mails de {{domain}}, do banco de dados do Thunderbird.",
+        "guess": "{{domain}} não publica configurações: estes são os nomes de servidor habituais, presumidos."
+      },
+      "addCalendars": "Adicionar também os calendários desta conta, com a mesma senha",
+      "calendarsAt": "Servidor de calendário encontrado: {{url}}",
+      "calendarsMailHost": "O servidor de calendário será procurado nos servidores de e-mail."
+    }
   },
   "googleSignIn": {
     "title": "Entrar com o Google",

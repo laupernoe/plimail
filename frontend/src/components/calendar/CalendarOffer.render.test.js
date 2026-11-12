@@ -82,3 +82,14 @@ test('can be dismissed without calling the server', async () => {
   assert.equal(dismissed, true);
   assert.equal(called, false);
 });
+
+test('starts at once when the user already said yes, trying the server found first', async () => {
+  const calls = [];
+  api.calendar.addFromMail = async (...args) => { calls.push(args); return {}; };
+  await act(async () => { root.render(null); });
+  await act(async () => {
+    root.render(React.createElement(CalendarOffer, { account: { id: 'm2', imap_host: 'imap.example.com' }, auto: true, serverUrl: 'https://dav.example.com/', onDismiss: () => {} }));
+  });
+  assert.deepEqual(calls, [['m2', 'https://dav.example.com/']]);
+  assert.match(text(), /calendarOffer\.added/);
+});

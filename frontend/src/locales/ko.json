@@ -2156,7 +2156,25 @@
     "signedInGoogle": "Google로 {{email}} 계정에 로그인됨",
     "signedInNote": "서버 정보는 이 로그인에서 가져옵니다. 계정이 연결되지 않으면 다시 로그인하세요.",
     "mailboxLabel": "열 사서함",
-    "mailboxHelp": "공유 또는 위임된 사서함이면 해당 주소를 입력하세요. 본인 사서함이면 그대로 두세요."
+    "mailboxHelp": "공유 또는 위임된 사서함이면 해당 주소를 입력하세요. 본인 사서함이면 그대로 두세요.",
+    "autodiscover": {
+      "button": "설정 찾기",
+      "looking": "이 주소의 서버 설정을 찾는 중…",
+      "failed": "이 주소의 설정을 찾지 못했습니다. 아래에 직접 입력하세요.",
+      "check": "계정을 추가하기 전에 확인하세요.",
+      "source": {
+        "ispdb": "Thunderbird 데이터베이스에서 {{domain}}의 설정을 찾았습니다.",
+        "autoconfig": "{{domain}}에서 게시한 설정입니다.",
+        "wellknown": "{{domain}} 웹사이트에 게시된 설정입니다.",
+        "srv": "{{domain}}의 DNS 레코드에서 찾은 설정입니다.",
+        "mx": "{{domain}}의 메일은 알려진 제공업체가 처리하며, 해당 설정을 채웠습니다.",
+        "mxIspdb": "{{domain}}의 메일을 받는 제공업체의 설정으로, Thunderbird 데이터베이스에서 가져왔습니다.",
+        "guess": "{{domain}}은(는) 설정을 게시하지 않습니다. 일반적인 서버 이름으로 추측했습니다."
+      },
+      "addCalendars": "같은 비밀번호로 이 계정의 캘린더도 추가",
+      "calendarsAt": "캘린더 서버를 찾았습니다: {{url}}",
+      "calendarsMailHost": "메일 서버에서 캘린더 서버를 찾습니다."
+    }
   },
   "googleSignIn": {
     "title": "Google로 로그인",

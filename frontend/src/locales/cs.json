@@ -2175,7 +2175,25 @@
     "signedInGoogle": "Přihlášeno přes Google jako {{email}}",
     "signedInNote": "Server pochází z tohoto přihlášení. Pokud se účet přestane připojovat, přihlaste se znovu.",
     "mailboxLabel": "Schránka k otevření",
-    "mailboxHelp": "U sdílené nebo delegované schránky zadejte její adresu. U vlastní schránky ponechte beze změny."
+    "mailboxHelp": "U sdílené nebo delegované schránky zadejte její adresu. U vlastní schránky ponechte beze změny.",
+    "autodiscover": {
+      "button": "Najít nastavení",
+      "looking": "Hledání nastavení serveru pro tuto adresu…",
+      "failed": "Pro tuto adresu nebylo nalezeno žádné nastavení. Zadejte je níže.",
+      "check": "Před přidáním účtu je zkontrolujte.",
+      "source": {
+        "ispdb": "Nastavení pro {{domain}} nalezeno v databázi Thunderbirdu.",
+        "autoconfig": "Nastavení zveřejněné doménou {{domain}}.",
+        "wellknown": "Nastavení zveřejněné na webu {{domain}}.",
+        "srv": "Nastavení nalezené v záznamech DNS domény {{domain}}.",
+        "mx": "Poštu pro {{domain}} vyřizuje známý poskytovatel, jehož nastavení bylo vyplněno.",
+        "mxIspdb": "Nastavení poskytovatele, který přijímá poštu pro {{domain}}, z databáze Thunderbirdu.",
+        "guess": "{{domain}} nezveřejňuje žádné nastavení: toto jsou obvyklé, odhadnuté názvy serverů."
+      },
+      "addCalendars": "Přidat také kalendáře tohoto účtu se stejným heslem",
+      "calendarsAt": "Nalezen kalendářový server: {{url}}",
+      "calendarsMailHost": "Kalendářový server se bude hledat na poštovních serverech."
+    }
   },
   "googleSignIn": {
     "title": "Přihlásit se přes Google",
