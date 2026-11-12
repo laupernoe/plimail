@@ -149,7 +149,6 @@
       "someRejected": "Il server di posta ha rifiutato la consegna a {{addresses}}.",
       "action": "Visualizza"
     },
-    "undoSend": {
       "sending": "Invio di \"{{subject}}\"…",
       "undone": "Invio annullato",
       "reopenLater": "Si riaprirà quando chiuderai il messaggio che stai scrivendo",
@@ -321,6 +320,8 @@
       "armed": "{{label}} — fai di nuovo clic per scaricare comunque"
     },
     "downloadAll": "Scarica tutto",
+    "attachmentsShowAll": "Mostra tutti ({{count}})",
+    "attachmentsShowFewer": "Mostra meno",
     "reply": "Rispondi",
     "replyAll": "Rispondi a tutti",
     "replyOptions": "Opzioni di risposta",

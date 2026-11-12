@@ -149,7 +149,6 @@
       "someRejected": "Serwer pocztowy odmówił dostarczenia do {{addresses}}.",
       "action": "Wyświetl"
     },
-    "undoSend": {
       "sending": "Wysyłanie „{{subject}}”…",
       "undone": "Wysyłanie cofnięte",
       "reopenLater": "Otworzy się ponownie, gdy zamkniesz wiadomość, którą piszesz",
@@ -323,6 +322,8 @@
       "armed": "{{label}} — kliknij ponownie, aby mimo to pobrać"
     },
     "downloadAll": "Pobierz wszystko",
+    "attachmentsShowAll": "Pokaż wszystkie ({{count}})",
+    "attachmentsShowFewer": "Pokaż mniej",
     "reply": "Odpowiedz",
     "replyAll": "Odpowiedz wszystkim",
     "replyOptions": "Opcje odpowiedzi",

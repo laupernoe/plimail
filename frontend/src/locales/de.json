@@ -149,7 +149,6 @@
       "someRejected": "Der Mailserver hat die Zustellung an {{addresses}} abgelehnt.",
       "action": "Anzeigen"
     },
-    "undoSend": {
       "sending": "„{{subject}}“ wird gesendet…",
       "undone": "Senden rückgängig gemacht",
       "reopenLater": "Sie wird wieder geöffnet, sobald Sie die Nachricht schließen, an der Sie gerade schreiben",
@@ -321,6 +320,8 @@
       "armed": "{{label}} — erneut klicken, um trotzdem herunterzuladen"
     },
     "downloadAll": "Alle herunterladen",
+    "attachmentsShowAll": "Alle anzeigen ({{count}})",
+    "attachmentsShowFewer": "Weniger anzeigen",
     "reply": "Antworten",
     "replyAll": "Allen antworten",
     "replyOptions": "Antwortoptionen",

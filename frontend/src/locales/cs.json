@@ -519,6 +519,8 @@
       "armed": "{{label}} — kliknutím znovu přesto stáhnete"
     },
     "downloadAll": "Stáhnout vše",
+    "attachmentsShowAll": "Zobrazit vše ({{count}})",
+    "attachmentsShowFewer": "Zobrazit méně",
     "reply": "Odpovědět",
     "replyAll": "Odpovědět všem",
     "replyOptions": "Možnosti odpovědi",
@@ -682,7 +684,6 @@
       "someRejected": "Poštovní server odmítl doručení na {{addresses}}.",
       "action": "Zobrazit"
     },
-    "undoSend": {
       "sending": "Odesílání „{{subject}}“…",
       "undone": "Odeslání vráceno zpět",
       "reopenLater": "Znovu se otevře, až zavřete zprávu, kterou právě píšete",

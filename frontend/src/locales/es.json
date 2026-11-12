@@ -149,7 +149,6 @@
       "someRejected": "El servidor de correo rechazó la entrega a {{addresses}}.",
       "action": "Ver"
     },
-    "undoSend": {
       "sending": "Enviando «{{subject}}»…",
       "undone": "Envío deshecho",
       "reopenLater": "Se volverá a abrir cuando cierres el mensaje que estás escribiendo",
@@ -321,6 +320,8 @@
       "armed": "{{label}} — haga clic de nuevo para descargar de todos modos"
     },
     "downloadAll": "Descargar todo",
+    "attachmentsShowAll": "Mostrar todos ({{count}})",
+    "attachmentsShowFewer": "Mostrar menos",
     "reply": "Responder",
     "replyAll": "Responder a todos",
     "replyOptions": "Opciones de respuesta",

@@ -199,7 +199,6 @@
     },
     "draftHasAttachments": "첨부 파일은 초안과 함께 저장되지 않습니다. 이 초안을 다시 열면 다시 첨부해야 합니다.",
     "dropToAttach": "파일을 놓으면 첨부됩니다",
-    "undoSend": {
       "sending": "\"{{subject}}\" 보내는 중…",
       "undone": "전송이 취소되었습니다",
       "reopenLater": "작성 중인 메시지를 닫으면 다시 열립니다",
@@ -321,6 +320,8 @@
       "doubleExt": "숨겨진 확장자: .{{ext}} — 실제 파일 형식은 마지막 확장자입니다"
     },
     "downloadAll": "모두 다운로드",
+    "attachmentsShowAll": "모두 보기 ({{count}})",
+    "attachmentsShowFewer": "간략히 보기",
     "remoteImagesBlocked": "원격 이미지가 차단되었습니다.",
     "noContent": "메시지 내용을 찾을 수 없습니다.",
     "forward": "전달",

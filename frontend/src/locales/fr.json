@@ -149,7 +149,6 @@
       "someRejected": "Le serveur de messagerie a refusé la remise à {{addresses}}.",
       "action": "Voir"
     },
-    "undoSend": {
       "sending": "Envoi de « {{subject}} »…",
       "undone": "Envoi annulé",
       "reopenLater": "Il se rouvrira quand vous fermerez le message en cours de rédaction",
@@ -321,6 +320,8 @@
       "armed": "{{label}} — cliquez à nouveau pour télécharger quand même"
     },
     "downloadAll": "Tout télécharger",
+    "attachmentsShowAll": "Tout afficher ({{count}})",
+    "attachmentsShowFewer": "Afficher moins",
     "reply": "Répondre",
     "replyAll": "Répondre à tous",
     "replyOptions": "Options de réponse",
