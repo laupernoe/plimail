@@ -261,7 +261,7 @@ export default function AttachmentViewer({ messageId, attachments, startIndex = 
                 <div style={{ fontSize: 13, lineHeight: 1.5, marginBottom: 14 }}>{errorText}</div>
                 <button type="button" onClick={download} style={{
                   padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                  background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 500,
+                  background: 'var(--accent)', color: 'var(--accent-text)', fontSize: 13, fontWeight: 500,
                 }}>
                   {t('message.preview.download')}
                 </button>
@@ -505,7 +505,7 @@ function PasswordPrompt({ incorrect, onSubmit, onDownload }) {
           <button type="button" onClick={onDownload} style={secondary}>{t('message.preview.download')}</button>
           <button type="submit" disabled={!value} style={{
             padding: '8px 16px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 500,
-            background: 'var(--accent)', color: '#fff', cursor: value ? 'pointer' : 'default', opacity: value ? 1 : 0.5,
+            background: 'var(--accent)', color: 'var(--accent-text)', cursor: value ? 'pointer' : 'default', opacity: value ? 1 : 0.5,
           }}>
             {t('message.preview.passwordSubmit')}
           </button>

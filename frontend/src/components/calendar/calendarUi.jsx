@@ -46,7 +46,7 @@ const BTN = {
   ghost: { background: 'var(--bg-tertiary)', border: '1px solid var(--border)', color: 'var(--text-primary)' },
   primary: { background: 'var(--accent)', border: '1px solid transparent', color: 'var(--accent-text)' },
   danger: { background: 'transparent', border: '1px solid var(--red-border, rgba(248,113,113,0.4))', color: 'var(--red, #f87171)' },
-  solidDanger: { background: 'var(--red)', border: '1px solid transparent', color: 'white' },
+  solidDanger: { background: 'var(--red)', border: '1px solid transparent', color: 'var(--status-text)' },
   plain: { background: 'transparent', border: '1px solid transparent', color: 'var(--text-secondary)' },
 };
 

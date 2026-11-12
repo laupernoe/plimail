@@ -4,9 +4,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-sans)', 'DM Sans', 'sans-serif'],
+        sans: ['var(--font-sans)'],
         mono: ['var(--font-mono)', 'JetBrains Mono', 'monospace'],
-        display: ['var(--font-display)', 'Fraunces', 'serif'],
+        display: ['var(--font-display)'],
       },
     },
   },

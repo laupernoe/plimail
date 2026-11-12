@@ -2049,7 +2049,7 @@ export default function ComposeModal() {
       style={{
         width: '100%', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6,
         background: 'transparent', border: 'none', outline: 'none', resize: 'none',
-        fontFamily: 'var(--font-sans, DM Sans, sans-serif)', boxSizing: 'border-box',
+        fontFamily: 'var(--font-sans)', boxSizing: 'border-box',
       }}
     />
   ) : (
@@ -2596,7 +2596,7 @@ export default function ComposeModal() {
                 background: 'transparent', border: 'none',
                 color: 'var(--text-primary)', fontSize: 16, lineHeight: 1.7,
                 resize: 'none', outline: 'none',
-                fontFamily: 'var(--font-sans, DM Sans, sans-serif)',
+                fontFamily: 'var(--font-sans)',
                 boxSizing: 'border-box', whiteSpace: 'pre-wrap',
               }}
             />
@@ -2680,7 +2680,7 @@ export default function ComposeModal() {
                   border: 'none', borderTop: '1px solid var(--border-subtle)',
                   color: 'var(--text-tertiary)', fontSize: 13, lineHeight: 1.6,
                   resize: 'none', outline: 'none',
-                  fontFamily: 'var(--font-sans, DM Sans, sans-serif)',
+                  fontFamily: 'var(--font-sans)',
                   boxSizing: 'border-box', whiteSpace: 'pre-wrap',
                 }}
               />
@@ -3256,7 +3256,7 @@ export default function ComposeModal() {
               background: 'transparent', border: 'none',
               color: 'var(--text-primary)', fontSize: 13, lineHeight: 1.7,
               resize: 'vertical', outline: 'none',
-              fontFamily: 'var(--font-sans, DM Sans, sans-serif)',
+              fontFamily: 'var(--font-sans)',
               boxSizing: 'border-box', whiteSpace: 'pre-wrap',
             }}
           />
@@ -3318,7 +3318,7 @@ export default function ComposeModal() {
                 borderLeft: 'none', borderRight: 'none',
                 color: 'var(--text-tertiary)', fontSize: 12, lineHeight: 1.6,
                 resize: 'vertical', outline: 'none',
-                fontFamily: 'var(--font-sans, DM Sans, sans-serif)',
+                fontFamily: 'var(--font-sans)',
                 boxSizing: 'border-box', whiteSpace: 'pre-wrap',
               }}
             />
@@ -3362,7 +3362,7 @@ export default function ComposeModal() {
             data-send-later=""
             style={{
               padding: '8px 8px', background: 'var(--accent)',
-              border: 'none', borderLeft: '1px solid rgba(255,255,255,0.28)', borderRadius: '0 7px 7px 0',
+              border: 'none', borderLeft: '1px solid color-mix(in srgb, var(--accent-text) 28%, transparent)', borderRadius: '0 7px 7px 0',
               color: 'var(--accent-text)', display: 'flex', alignItems: 'center',
               cursor: sendDisabled ? 'not-allowed' : 'pointer',
               opacity: sendDisabled ? 0.6 : 1,

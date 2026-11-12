@@ -1991,7 +1991,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
             margin: 0, padding: '14px 16px 12px',
             whiteSpace: 'pre-wrap', wordBreak: 'break-word',
             fontSize: 14, color: bodyDark ? 'var(--text-primary)' : '#1a1a1a', lineHeight: 1.7,
-            fontFamily: 'DM Sans, sans-serif', background: bodyDark ? 'var(--bg-primary)' : 'white',
+            fontFamily: 'var(--font-sans)', background: bodyDark ? 'var(--bg-primary)' : 'white',
             borderRadius: isMobile ? 0 : 10,
             border: isMobile || bodyDark ? 'none' : '1px solid var(--border-subtle)',
             overflow: 'hidden',

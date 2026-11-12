@@ -781,6 +781,10 @@ export function sanitizeListSort(listSort) {
   return JSON.stringify(clean);
 }
 
+// Same list as frontend/src/themes.js. A client that still sends a theme this version no longer
+// has (dark, nord, winxp...) gets 'system' stored instead of a value no UI can show.
+const THEMES = ['system', 'selfhostr', 'selfhostr-light'];
+
 export async function patchPreferences(req, res) {
   if (!req.session.userId) return res.status(401).json({ error: 'Not authenticated' });
   const { theme, font, layout, notificationSound, pageSize, scrollMode, syncInterval,
@@ -857,6 +861,7 @@ export async function patchPreferences(req, res) {
   }
   const senderFaviconsVal = hasSenderFavicons ? senderFavicons : null;
   // Only the three known modes are stored; anything else is ignored rather than persisted.
+  const themeVal = theme == null ? null : (THEMES.includes(theme) ? theme : 'system');
   const conversationModeVal = ['off', 'list', 'pane'].includes(conversationMode) ? conversationMode : null;
   // #440: which hover quick actions the message list shows. Same vocabulary and canonical
   // order as frontend/src/utils/hoverActions.js; unknown keys are dropped rather than stored.
@@ -920,7 +925,7 @@ export async function patchPreferences(req, res) {
       || CASE WHEN $47::boolean IS NOT NULL THEN jsonb_build_object('darkEmailBodies', $47::boolean) ELSE '{}'::jsonb END
       || CASE WHEN $48::jsonb IS NOT NULL THEN jsonb_build_object('listSort', $48::jsonb) ELSE '{}'::jsonb END
     WHERE id = $1
-  `, [req.session.userId, theme ?? null, font ?? null, layout ?? null, notificationSound ?? null,
+  `, [req.session.userId, themeVal, font ?? null, layout ?? null, notificationSound ?? null,
       pageSize ?? null, scrollMode ?? null, syncInterval ?? null,
       blockRemoteImages ?? null, imageWhitelistJson, shortcutsJson, hiddenFoldersJson,
       language ?? null, threadedView ?? null, plaintextEmail ?? null, hoverQuickActions ?? null,

@@ -24,8 +24,7 @@ import {
   normalizeAiForm,
   selectAiConnectionMethod,
 } from '../utils/aiConfig.js';
-import { THEMES, applyTheme, applyCustomCss } from '../themes.js';
-import { FONT_SETS, loadFontSet, isRetroFont } from '../fonts.js';
+import { THEMES, applyCustomCss } from '../themes.js';
 import { LAYOUTS, applyLayout } from '../layouts.js';
 import { NOTIFICATION_SOUNDS, playNotificationSound, playCustomSound, warmUpAudioContext } from '../utils/notificationSounds.js';
 import { usePushNotifications } from '../hooks/usePushNotifications.js';
@@ -410,7 +409,7 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
           >
             <span style={{
               position: 'absolute', top: 2, left: form.imap_skip_tls_verify ? 18 : 2, width: 16, height: 16,
-              borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+              borderRadius: '50%', background: form.imap_skip_tls_verify ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
             }} />
           </button>
           <div>
@@ -586,7 +585,7 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
                 position: 'absolute', top: 2,
                 left: form.include_in_unified_inbox !== false ? 18 : 2,
                 width: 16, height: 16,
-                borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+                borderRadius: '50%', background: form.include_in_unified_inbox !== false ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
               }} />
             </button>
             <div>
@@ -617,7 +616,7 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
                 position: 'absolute', top: 2,
                 left: (categorizationEnabled || form.categorization_enabled) ? 18 : 2,
                 width: 16, height: 16,
-                borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+                borderRadius: '50%', background: (categorizationEnabled || form.categorization_enabled) ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
               }} />
             </button>
             <div>
@@ -647,7 +646,7 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
                 position: 'absolute', top: 2,
                 left: form.antispam_enabled ? 18 : 2,
                 width: 16, height: 16,
-                borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+                borderRadius: '50%', background: form.antispam_enabled ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
               }} />
             </button>
             <div>
@@ -1518,7 +1517,6 @@ function ThemesTab() {
 
   const handleSelect = (key) => {
     setTheme(key);
-    applyTheme(key);
   };
 
   const handleSaveCustomCss = async () => {
@@ -1577,7 +1575,7 @@ function ThemesTab() {
                 <div key={i} style={{
                   flex: i === 0 ? 2 : 1, height: 28, borderRadius: 5,
                   background: c,
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  border: '1px solid var(--border)',
                 }} />
               ))}
             </div>
@@ -1597,7 +1595,7 @@ function ThemesTab() {
                   background: 'var(--accent)', display: 'flex',
                   alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                 }}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="3">
                     <polyline points="20 6 9 17 4 12"/>
                   </svg>
                 </div>
@@ -1673,33 +1671,12 @@ function IconBtn({ children, onClick, title, danger, disabled }) {
 // ─── Fonts Tab ───────────────────────────────────────────────────────────────
 function FontsTab() {
   const { t } = useTranslation();
-  const { fontSet, setFontSet, fontSize, setFontSize } = useStore();
-  const [fontsReady, setFontsReady] = useState(false);
-
-  const handleSelect = (key) => {
-    setFontSet(key);
-  };
-
-  // Load Google Fonts for every set so specimens render in their own typefaces.
-  // Use document.fonts.ready (the proper font-loading API) plus a minimum 500ms
-  // so newly-appended <link> tags have time to register their @font-face rules
-  // before the promise resolves. A 4s fallback handles blocked or slow loads.
-  useEffect(() => {
-    Object.keys(FONT_SETS).forEach(k => loadFontSet(k));
-    let done = false;
-    const finish = () => { if (!done) { done = true; setFontsReady(true); } };
-    Promise.all([
-      document.fonts.ready,
-      new Promise(r => setTimeout(r, 500)),
-    ]).then(finish);
-    const fallback = setTimeout(finish, 4000);
-    return () => clearTimeout(fallback);
-  }, []);
+  const { fontSize, setFontSize } = useStore();
 
   return (
     <div>
       {/* Font size */}
-      <div style={{ marginBottom: 32 }}>
+      <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
           <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
             {t('admin.appearance.fontSize')}
@@ -1734,111 +1711,6 @@ function FontsTab() {
           </button>
         )}
       </div>
-
-      {/* Typography */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
-        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
-          {t('admin.appearance.typography')}
-        </div>
-        {!fontsReady && (
-          <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{t('admin.appearance.typographyLoading')}</div>
-        )}
-      </div>
-      <div style={{ fontSize: 13, color: 'var(--text-tertiary)', marginBottom: 20 }}>
-        {t('admin.appearance.typographyDescription')}
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {Object.entries(FONT_SETS).filter(([key]) => !isRetroFont(key)).map(([key, set]) => {
-          const isActive = fontSet === key;
-          return (
-            <button
-              key={key}
-              onClick={() => handleSelect(key)}
-              style={{
-                background: isActive ? 'var(--bg-hover)' : 'var(--bg-tertiary)',
-                border: `2px solid ${isActive ? 'var(--accent)' : 'var(--border-subtle)'}`,
-                borderRadius: 10, padding: '14px 16px', cursor: 'pointer',
-                textAlign: 'left', transition: 'all 0.15s', outline: 'none',
-                display: 'flex', alignItems: 'center', gap: 16,
-              }}
-              onMouseEnter={e => { if (!isActive) e.currentTarget.style.borderColor = 'var(--border)'; }}
-              onMouseLeave={e => { if (!isActive) e.currentTarget.style.borderColor = 'var(--border-subtle)'; }}
-            >
-              {/* Font specimen */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontFamily: set.vars['--font-display'],
-                  fontSize: 22, fontWeight: 400, lineHeight: 1.1,
-                  color: 'var(--text-primary)', marginBottom: 4,
-                  letterSpacing: '-0.01em',
-                }}>
-                  {set.label}
-                </div>
-                <div style={{
-                  fontFamily: set.vars['--font-sans'],
-                  fontSize: 12, color: 'var(--text-tertiary)',
-                  marginBottom: 8,
-                }}>
-                  {set.description}
-                </div>
-                {/* Specimen text */}
-                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                    <span style={{ color: 'var(--text-tertiary)', marginRight: 4, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      {t('admin.appearance.typographyDisplay')}
-                    </span>
-                    <span style={{
-                      fontFamily: set.vars['--font-display'],
-                      color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
-                      fontSize: 13,
-                    }}>
-                      {set.preview.heading}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                    <span style={{ color: 'var(--text-tertiary)', marginRight: 4, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      {t('admin.appearance.typographyBody')}
-                    </span>
-                    <span style={{
-                      fontFamily: set.vars['--font-sans'],
-                      color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
-                      fontSize: 13,
-                    }}>
-                      {set.preview.body}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                    <span style={{ color: 'var(--text-tertiary)', marginRight: 4, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      {t('admin.appearance.typographyMono')}
-                    </span>
-                    <span style={{
-                      fontFamily: set.vars['--font-mono'],
-                      color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
-                      fontSize: 12,
-                    }}>
-                      {set.preview.mono}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Active check */}
-              {isActive && (
-                <div style={{
-                  width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                  background: 'var(--accent)', display: 'flex',
-                  alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-              )}
-            </button>
-          );
-        })}
-      </div>
     </div>
   );
 }
@@ -1848,7 +1720,7 @@ function LayoutDiagram({ layoutConfig, active }) {
   const isColumn = layoutConfig.direction === 'column';
   const accent = active ? 'var(--accent)' : 'var(--border)';
   const bg1 = active ? 'var(--accent-dim)' : 'var(--bg-elevated)';
-  const bg2 = active ? 'rgba(124,106,247,0.08)' : 'var(--bg-tertiary)';
+  const bg2 = active ? 'var(--accent-glow)' : 'var(--bg-tertiary)';
 
   // Sidebar width fraction (always ~15% of diagram)
   const sw = 14;
@@ -2091,7 +1963,7 @@ function ToggleRow({ label, desc, checked, onChange, disabled = false }) {
       >
         <span style={{
           position: 'absolute', top: 3, left: checked ? 22 : 3,
-          width: 16, height: 16, borderRadius: '50%', background: 'white',
+          width: 16, height: 16, borderRadius: '50%', background: checked ? 'var(--accent-text)' : 'var(--text-secondary)',
           transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
         }} />
       </button>
@@ -2148,7 +2020,7 @@ function LayoutsTab() {
                         background: 'var(--accent)', display: 'flex',
                         alignItems: 'center', justifyContent: 'center',
                       }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="3">
                           <polyline points="20 6 9 17 4 12"/>
                         </svg>
                       </div>
@@ -3392,7 +3264,7 @@ function SSOTab() {
             <div style={{
               position: 'absolute', top: 3, left: internalAuthDisabled ? 3 : 22,
               width: 16, height: 16, borderRadius: '50%',
-              background: 'white', transition: 'left 0.2s',
+              background: internalAuthDisabled ? 'var(--text-secondary)' : 'var(--accent-text)', transition: 'left 0.2s',
               boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
             }} />
           </button>
@@ -3663,7 +3535,7 @@ function SSOTab() {
             >
               <span style={{
                 position: 'absolute', top: 2, left: form.enabled ? 18 : 2, width: 16, height: 16,
-                borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+                borderRadius: '50%', background: form.enabled ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
               }} />
             </button>
             <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('admin.sso.enabled')}</span>
@@ -3681,7 +3553,7 @@ function SSOTab() {
             >
               <span style={{
                 position: 'absolute', top: 2, left: form.require_email_verified ? 18 : 2, width: 16, height: 16,
-                borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+                borderRadius: '50%', background: form.require_email_verified ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
               }} />
             </button>
             <div>
@@ -3702,7 +3574,7 @@ function SSOTab() {
             >
               <span style={{
                 position: 'absolute', top: 2, left: form.allow_insecure ? 18 : 2, width: 16, height: 16,
-                borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+                borderRadius: '50%', background: form.allow_insecure ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
               }} />
             </button>
             <div>
@@ -3723,7 +3595,7 @@ function SSOTab() {
             >
               <span style={{
                 position: 'absolute', top: 2, left: form.rp_initiated_logout ? 18 : 2, width: 16, height: 16,
-                borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+                borderRadius: '50%', background: form.rp_initiated_logout ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
               }} />
             </button>
             <div>
@@ -3964,7 +3836,7 @@ function AISection() {
       >
         <span style={{
           position: 'absolute', top: 2, left: checked ? 18 : 2, width: 16, height: 16,
-          borderRadius: '50%', background: '#fff', transition: 'left 0.2s',
+          borderRadius: '50%', background: checked ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
         }} />
       </button>
       <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>{label}</span>
@@ -4358,7 +4230,7 @@ function CategoriesSection({ initialSubTab }) {
         >
           <span style={{
             position: 'absolute', top: 2, left: categorizationEnabled ? 18 : 2, width: 16, height: 16,
-            borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+            borderRadius: '50%', background: categorizationEnabled ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
           }} />
         </button>
         <div>
@@ -4400,7 +4272,7 @@ function CategoriesSection({ initialSubTab }) {
                 width: 32, height: 18, borderRadius: 9, border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0,
                 background: s.enabled ? 'var(--accent)' : TOGGLE_OFF_BACKGROUND, position: 'relative', transition: 'background 0.2s',
               }}>
-                <span style={{ position: 'absolute', top: 1, left: s.enabled ? 15 : 1, width: 16, height: 16, borderRadius: '50%', background: 'white', transition: 'left 0.2s' }} />
+                <span style={{ position: 'absolute', top: 1, left: s.enabled ? 15 : 1, width: 16, height: 16, borderRadius: '50%', background: s.enabled ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s' }} />
               </button>
               <button onClick={() => handleDelete(s.id)} style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex', padding: 2, flexShrink: 0 }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
@@ -4555,7 +4427,7 @@ function PluginsSection({ onNavigate }) {
                 position: 'relative', transition: 'background 0.2s', flexShrink: 0, marginTop: 1, opacity: busy ? 0.6 : 1,
               }}
             >
-              <span style={{ position: 'absolute', top: 2, left: on ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: 'white', transition: 'left 0.2s' }} />
+              <span style={{ position: 'absolute', top: 2, left: on ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: on ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s' }} />
             </button>
             <div style={{ minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -4914,7 +4786,7 @@ function UsersAndInvitesPanel() {
               width: 32, height: 32, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
               background: u.isAdmin ? 'var(--accent)' : 'var(--bg-elevated)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 13, fontWeight: 600, color: u.isAdmin ? 'white' : 'var(--text-secondary)',
+              fontSize: 13, fontWeight: 600, color: u.isAdmin ? 'var(--accent-text)' : 'var(--text-secondary)',
               border: u.isAdmin ? '2px solid var(--accent)' : '1px solid var(--border)',
             }}>
               {u.avatar
@@ -4980,7 +4852,7 @@ function UsersAndInvitesPanel() {
                 }}>
                   <span style={{
                     position: 'absolute', top: 2, left: u.aiEnabled !== false ? 12 : 2, width: 10, height: 10,
-                    borderRadius: '50%', background: '#fff', transition: 'left 0.2s',
+                    borderRadius: '50%', background: u.aiEnabled !== false ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
                   }} />
                 </span>
                 {u.aiEnabled !== false ? t('admin.users.aiOn') : t('admin.users.aiOff')}
@@ -5080,7 +4952,7 @@ function UsersAndInvitesPanel() {
           <div style={{
             position: 'absolute', top: 3, left: regOpen ? 22 : 3,
             width: 16, height: 16, borderRadius: '50%',
-            background: 'white', transition: 'left 0.2s',
+            background: regOpen ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
             boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
           }} />
         </button>
@@ -5386,7 +5258,7 @@ function PushNotificationsSection() {
                 padding: '7px 16px', borderRadius: 7, fontSize: 13, fontWeight: 500,
                 cursor: loading ? 'wait' : 'pointer',
                 background: subscribed ? 'transparent' : 'var(--accent)',
-                color: subscribed ? 'var(--text-secondary)' : 'white',
+                color: subscribed ? 'var(--text-secondary)' : 'var(--accent-text)',
                 border: subscribed ? '1px solid var(--border)' : '1px solid transparent',
                 opacity: loading ? 0.6 : 1,
                 transition: 'all 0.15s',
@@ -5459,7 +5331,7 @@ function NotificationsTab() {
       width: 16, height: 16, borderRadius: '50%', flexShrink: 0, marginLeft: 6,
       background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
-      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5">
+      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="3.5">
         <polyline points="20 6 9 17 4 12"/>
       </svg>
     </div>
@@ -5614,7 +5486,7 @@ function NotificationsTab() {
                   padding: '6px 14px', borderRadius: 7, fontSize: 13, fontWeight: 500,
                   cursor: 'pointer', transition: 'all 0.15s', flexShrink: 0, marginLeft: 16,
                   background: value ? 'var(--accent)' : 'transparent',
-                  color: value ? 'white' : 'var(--text-secondary)',
+                  color: value ? 'var(--accent-text)' : 'var(--text-secondary)',
                   border: value ? '1px solid transparent' : '1px solid var(--border)',
                 }}
               >
@@ -5758,7 +5630,7 @@ function LanguageTab() {
                   background: 'var(--accent)', display: 'flex',
                   alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="3">
                     <polyline points="20 6 9 17 4 12"/>
                   </svg>
                 </div>
@@ -6591,7 +6463,7 @@ function RulesTab() {
                 <span style={{ fontSize: 13, color: 'var(--text-primary)', flex: 1 }}>{t('admin.rules.deleteConfirm')}</span>
                 <button
                   onClick={() => handleDelete(rule.id)}
-                  style={{ padding: '5px 12px', background: 'var(--red)', color: '#fff', border: 'none', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}
+                  style={{ padding: '5px 12px', background: 'var(--red)', color: 'var(--status-text)', border: 'none', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}
                 >
                   {t('admin.rules.deleteButton')}
                 </button>
@@ -6872,7 +6744,7 @@ function MailboxCleanupTab() {
                       cursor: (opt.disabled || busySender) ? 'not-allowed' : 'pointer',
                       border: `1px solid ${selected ? 'var(--accent)' : 'var(--border)'}`,
                       background: selected ? 'var(--accent)' : 'var(--bg-secondary)',
-                      color: selected ? 'var(--accent-text, white)' : 'var(--text-secondary)',
+                      color: selected ? 'var(--accent-text)' : 'var(--text-secondary)',
                       opacity: opt.disabled ? 0.5 : 1,
                     }}
                   >
@@ -6911,8 +6783,8 @@ function MailboxCleanupTab() {
                     flexShrink: 0, padding: '6px 12px', borderRadius: 7, fontSize: 12, fontWeight: 500,
                     border: '1px solid var(--border)',
                     cursor: (busySender || selectedSenders.length === 0) ? 'not-allowed' : 'pointer',
-                    background: action === 'archive' ? 'var(--accent)' : 'var(--amber, #d97706)',
-                    color: action === 'archive' ? 'var(--accent-text, white)' : 'white',
+                    background: action === 'archive' ? 'var(--accent)' : 'var(--amber)',
+                    color: action === 'archive' ? 'var(--accent-text)' : 'var(--status-text)',
                     opacity: selectedSenders.length === 0 || (busySender && busySender !== BATCH) ? 0.5 : 1,
                   }}
                 >
@@ -6944,10 +6816,10 @@ function MailboxCleanupTab() {
                       border: '1px solid var(--border)', cursor: busySender ? 'not-allowed' : 'pointer',
                       background: busySender === s.fromEmail
                         ? 'var(--bg-tertiary)'
-                        : (action === 'archive' ? 'var(--accent)' : 'var(--amber, #d97706)'),
+                        : (action === 'archive' ? 'var(--accent)' : 'var(--amber)'),
                       color: busySender === s.fromEmail
                         ? 'var(--text-secondary)'
-                        : (action === 'archive' ? 'var(--accent-text, white)' : 'white'),
+                        : (action === 'archive' ? 'var(--accent-text)' : 'var(--status-text)'),
                       opacity: busySender && busySender !== s.fromEmail ? 0.5 : 1,
                     }}
                   >
@@ -7418,7 +7290,7 @@ function PrivacyTab() {
         >
           <span style={{
             position: 'absolute', top: 3, width: 18, height: 18, borderRadius: '50%',
-            background: 'white', transition: 'left 0.2s',
+            background: blockRemoteImages ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
             left: blockRemoteImages ? 21 : 3,
           }} />
         </button>
@@ -7591,7 +7463,7 @@ function ScreenLockSection() {
             <input type="password" inputMode="numeric" autoComplete="off" placeholder={t('admin.lock.currentPin')} value={currentPin} onChange={e => setCurrentPin(digits(e.target.value))} style={inputStyle} />
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button type="button" style={btn(false)} onClick={reset} disabled={busy}>{t('common.cancel')}</button>
-              <button type="button" style={{ ...btn(true), background: 'var(--red)' }} onClick={removePin} disabled={busy}>{t('admin.lock.removePin')}</button>
+              <button type="button" style={{ ...btn(true), background: 'var(--red)', color: 'var(--status-text)' }} onClick={removePin} disabled={busy}>{t('admin.lock.removePin')}</button>
             </div>
           </div>
         )}
@@ -7894,7 +7766,7 @@ function SecurityTab() {
             style={{
               padding: '8px 18px', background: protectionSaved ? 'rgba(34,197,94,0.15)' : 'var(--accent)',
               border: protectionSaved ? '1px solid rgba(34,197,94,0.4)' : 'none',
-              borderRadius: 7, color: protectionSaved ? '#22c55e' : 'white',
+              borderRadius: 7, color: protectionSaved ? 'var(--green)' : 'var(--accent-text)',
               fontSize: 13, fontWeight: 500,
               cursor: protectionSaving ? 'not-allowed' : 'pointer', opacity: protectionSaving ? 0.6 : 1,
             }}
@@ -7937,7 +7809,7 @@ function SecurityTab() {
               >
                 <span style={{
                   position: 'absolute', top: 2, left: val ? 18 : 2, width: 16, height: 16,
-                  borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+                  borderRadius: '50%', background: val ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
                 }} />
               </button>
               <div>
@@ -8126,7 +7998,7 @@ function SecurityTab() {
                   disabled={loading || !disablePassword}
                   style={{
                     flex: 1, padding: '10px', background: 'var(--red)', border: 'none',
-                    borderRadius: 7, color: 'white', fontSize: 13, fontWeight: 500,
+                    borderRadius: 7, color: 'var(--status-text)', fontSize: 13, fontWeight: 500,
                     cursor: loading || !disablePassword ? 'not-allowed' : 'pointer',
                     opacity: loading || !disablePassword ? 0.6 : 1,
                   }}
@@ -8202,7 +8074,7 @@ function SecurityTab() {
                     style={{
                       padding: '7px 16px', borderRadius: 7, fontSize: 13, fontWeight: 500, cursor: 'pointer',
                       background: mfaEnforcement === val ? 'var(--accent)' : 'var(--bg-tertiary)',
-                      color: mfaEnforcement === val ? 'white' : 'var(--text-secondary)',
+                      color: mfaEnforcement === val ? 'var(--accent-text)' : 'var(--text-secondary)',
                       border: mfaEnforcement === val ? 'none' : '1px solid var(--border)',
                     }}
                   >
@@ -8230,7 +8102,7 @@ function SecurityTab() {
                     style={{
                       padding: '7px 14px', borderRadius: 7, fontSize: 13, fontWeight: 500, cursor: 'pointer',
                       background: mfaDeviceTrust === val ? 'var(--accent)' : 'var(--bg-tertiary)',
-                      color: mfaDeviceTrust === val ? 'white' : 'var(--text-secondary)',
+                      color: mfaDeviceTrust === val ? 'var(--accent-text)' : 'var(--text-secondary)',
                       border: mfaDeviceTrust === val ? 'none' : '1px solid var(--border)',
                     }}
                   >
@@ -8247,7 +8119,7 @@ function SecurityTab() {
                 style={{
                   padding: '8px 18px', background: mfaSaved ? 'rgba(34,197,94,0.15)' : 'var(--accent)',
                   border: mfaSaved ? '1px solid rgba(34,197,94,0.4)' : 'none',
-                  borderRadius: 7, color: mfaSaved ? '#22c55e' : 'white',
+                  borderRadius: 7, color: mfaSaved ? 'var(--green)' : 'var(--accent-text)',
                   fontSize: 13, fontWeight: 500,
                   cursor: mfaSaving ? 'not-allowed' : 'pointer', opacity: mfaSaving ? 0.6 : 1,
                 }}
@@ -8294,7 +8166,7 @@ function SecurityTab() {
             padding: '8px 18px',
             background: recoverySaved ? 'rgba(34,197,94,0.15)' : 'var(--accent)',
             border: recoverySaved ? '1px solid rgba(34,197,94,0.4)' : 'none',
-            borderRadius: 7, color: recoverySaved ? '#22c55e' : 'white',
+            borderRadius: 7, color: recoverySaved ? 'var(--green)' : 'var(--accent-text)',
             fontSize: 13, fontWeight: 500,
             cursor: (recoverySaving || recoveryEmail.trim() === recoveryEmailLoaded) ? 'not-allowed' : 'pointer',
             opacity: (recoverySaving || recoveryEmail.trim() === recoveryEmailLoaded) ? 0.6 : 1,
@@ -8700,7 +8572,6 @@ function makeSearchIndex(t) {
     // Appearance > Fonts & Language
     { label: t('admin.appearance.language'), keywords: ['language', 'locale', 'french', 'english', 'spanish', 'german', 'deutsch', 'russian', 'chinese', 'italian', 'czech', 'čeština', 'portuguese', 'português', 'brasil', 'korean', '한국어', 'français', 'español'], tab: 'appearance', subtab: 'fonts', breadcrumb: fontsCrumb },
     { label: t('admin.appearance.fontSize'), keywords: ['font size', 'text size', 'zoom', 'scale', 'accessibility', 'larger text'], tab: 'appearance', subtab: 'fonts', breadcrumb: fontsCrumb },
-    { label: t('admin.appearance.typography'), keywords: ['font', 'typography', 'typeface', 'serif', 'sans', 'monospace', 'reading font'], tab: 'appearance', subtab: 'fonts', breadcrumb: fontsCrumb },
     // Email providers (admin)
     { label: t('mailSignIn.ms.title'), keywords: ['microsoft', 'outlook', 'hotmail', '365', 'oauth', 'azure', 'entra', 'client id', 'tenant', 'ms365', 'office', 'shared app', 'sign in', 'email providers', 'mailbox', 'mail sign-in'], tab: 'mail-signin', adminOnly: true, breadcrumb: t('admin.tabs.mailSignIn') },
     { label: t('admin.integrations.google.title'), keywords: ['google', 'gmail', 'workspace', 'oauth', 'client id', 'sign in', 'email providers', 'mailbox'], tab: 'mail-signin', adminOnly: true, breadcrumb: t('admin.tabs.mailSignIn') },
@@ -8921,7 +8792,7 @@ export default function AdminPanel() {
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '7px 12px', borderRadius: 20, border: 'none',
                   background: adminTab === tab.id && !searchResults ? 'var(--accent)' : 'var(--bg-tertiary)',
-                  color: adminTab === tab.id && !searchResults ? '#fff' : 'var(--text-secondary)',
+                  color: adminTab === tab.id && !searchResults ? 'var(--accent-text)' : 'var(--text-secondary)',
                   cursor: 'pointer', fontSize: 13, fontWeight: 500,
                   whiteSpace: 'nowrap', flexShrink: 0,
                   WebkitTapHighlightColor: 'transparent',
@@ -8929,7 +8800,7 @@ export default function AdminPanel() {
               >
                 <span style={{ display: 'flex', opacity: adminTab === tab.id && !searchResults ? 1 : 0.7 }}>{tab.icon}</span>
                 {t(tab.labelKey)}
-                {tab.beta && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', padding: '1px 4px', borderRadius: 3, background: adminTab === tab.id && !searchResults ? 'rgba(255,255,255,0.25)' : 'color-mix(in srgb, var(--accent) 15%, transparent)', color: adminTab === tab.id && !searchResults ? '#fff' : 'var(--accent)' }}>BETA</span>}
+                {tab.beta && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', padding: '1px 4px', borderRadius: 3, background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: adminTab === tab.id && !searchResults ? 'var(--accent-text)' : 'var(--accent)' }}>BETA</span>}
               </button>
             ))}
           </div>

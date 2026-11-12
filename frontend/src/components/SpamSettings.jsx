@@ -36,7 +36,7 @@ function Toggle({ on, onChange, disabled }) {
     >
       <span style={{
         position: 'absolute', top: 2, left: on ? 18 : 2, width: 16, height: 16, borderRadius: 8,
-        background: '#fff', transition: 'left 0.12s',
+        background: on ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.12s',
       }} />
     </button>
   );
@@ -295,7 +295,7 @@ function Stat({ label, value }) {
 
 const primaryBtn = {
   marginTop: 10, padding: '7px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-  background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600,
+  background: 'var(--accent)', color: 'var(--accent-text)', fontSize: 13, fontWeight: 600,
 };
 const dangerBtn = {
   marginTop: 8, padding: '7px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',

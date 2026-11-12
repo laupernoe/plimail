@@ -287,7 +287,7 @@ export default function TimeGridView({
             <div aria-hidden="true" style={{ position: 'absolute', left: 0, right: 0, top: nowTop, height: 0, zIndex: 4, pointerEvents: 'none' }}>
               <div style={{
                 position: 'absolute', left: 2, width: gutter - 8, top: -9, height: 18, borderRadius: 9, background: 'var(--red)',
-                color: 'white', fontSize: 10.5, fontWeight: 600, lineHeight: '18px', textAlign: 'center', fontVariantNumeric: 'tabular-nums',
+                color: 'var(--status-text)', fontSize: 10.5, fontWeight: 600, lineHeight: '18px', textAlign: 'center', fontVariantNumeric: 'tabular-nums',
               }}>{formatClock(now, locale)}</div>
               <div style={{ position: 'absolute', left: gutter, right: 0, top: -1, height: 2, background: 'var(--red)', opacity: 0.25 }} />
               <div style={{

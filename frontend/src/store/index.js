@@ -7,8 +7,7 @@ import { mergeCountSnapshots, adjustCountPending, expireCountPending, settleCoun
 import { resolveSelectedAccount, pruneFolders } from '../utils/accountScope.js';
 import { UNDO_COMMIT_DELAY_MS } from '../utils/undoableAction.js';
 import { aiRuns } from '../utils/aiRunRegistry.js';
-import { applyTheme, applyCustomCss, getInitialTheme } from '../themes.js';
-import { applyFontSet, applyFontSize, effectiveFontSet, isRetroFont, THEME_FONT } from '../fonts.js';
+import { applyTheme, applyCustomCss, getInitialTheme, normalizeTheme } from '../themes.js';
 import { applyLayout, normalizeLayout } from '../layouts.js';
 import { DEFAULT_AI_ACTIONS } from '../aiActions.js';
 import {
@@ -923,38 +922,19 @@ export const useStore = create((set, get) => ({
   setLoadingThread: (id) => set({ loadingThread: id }),
 
   // Theme
-  theme: localStorage.getItem('mailflow_theme') || getInitialTheme(),
+  theme: normalizeTheme(localStorage.getItem('mailflow_theme') || getInitialTheme()),
   setTheme: (theme) => {
-    localStorage.setItem('mailflow_theme', theme);
-    set({ theme });
-    applyTheme(theme); // keep CSS vars + favicon in sync
-    // If a retro font was left as the saved choice, a non-retro theme must not keep it —
-    // normalise the stored choice so it can't "stick" (and the font picker stays honest).
-    if (!THEME_FONT[theme] && isRetroFont(get().fontSet)) {
-      localStorage.setItem('mailflow_font', 'default');
-      set({ fontSet: 'default' });
-      schedulePrefSave({ font: 'default' });
-    }
-    // Retro themes bring their own font; other themes fall back to the saved choice.
-    applyFontSet(effectiveFontSet(theme, get().fontSet));
-    schedulePrefSave({ theme });
-  },
-
-  // Font
-  fontSet: localStorage.getItem('mailflow_font') || 'default',
-  setFontSet: (fontSet) => {
-    localStorage.setItem('mailflow_font', fontSet);
-    set({ fontSet });
-    // A retro theme's paired font still wins over an explicit pick while it's active.
-    applyFontSet(effectiveFontSet(get().theme, fontSet));
-    schedulePrefSave({ font: fontSet });
+    const next = normalizeTheme(theme);
+    localStorage.setItem('mailflow_theme', next);
+    set({ theme: next });
+    applyTheme(next); // keep CSS vars + favicon in sync
+    schedulePrefSave({ theme: next });
   },
 
   fontSize: parseInt(localStorage.getItem('mailflow_font_size')) || 100,
   setFontSize: (pct) => {
     localStorage.setItem('mailflow_font_size', String(pct));
     set({ fontSize: pct });
-    applyFontSize(pct);
     schedulePrefSave({ fontSize: String(pct) });
   },
 
@@ -1324,22 +1304,17 @@ export const useStore = create((set, get) => ({
       // existing GTD users were grandfathered into ['gtd'] by migration 0042.
       set({ enabledPlugins: Array.isArray(prefs.enabledPlugins) ? prefs.enabledPlugins : [] });
       if (prefs.theme) {
-        localStorage.setItem('mailflow_theme', prefs.theme);
-        set({ theme: prefs.theme });
-        applyTheme(prefs.theme);
+        // A theme from an older version (dark, nord, winxp...) is no longer one: follow the OS.
+        const theme = normalizeTheme(prefs.theme);
+        localStorage.setItem('mailflow_theme', theme);
+        set({ theme });
+        applyTheme(theme);
+        if (theme !== prefs.theme) schedulePrefSave({ theme });
       }
-      if (prefs.font) {
-        localStorage.setItem('mailflow_font', prefs.font);
-        set({ fontSet: prefs.font });
-      }
-      // Apply the effective font once theme + font are both known, so a retro theme's
-      // paired font overrides the saved font on load.
-      applyFontSet(effectiveFontSet(get().theme, get().fontSet));
       if (prefs.fontSize) {
         const n = parseInt(prefs.fontSize) || 100;
         localStorage.setItem('mailflow_font_size', String(n));
         set({ fontSize: n });
-        applyFontSize(n);
       }
       if (prefs.layout) {
         const clean = normalizeLayout(prefs.layout);

@@ -454,7 +454,7 @@ export default function ApiTokensSection() {
               >
                 <span style={{
                   position: 'absolute', top: 2, left: data.enabled ? 18 : 2, width: 16, height: 16,
-                  borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+                  borderRadius: '50%', background: data.enabled ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
                 }} />
               </button>
               <div>
@@ -530,7 +530,7 @@ export default function ApiTokensSection() {
                       <button
                         type="button" disabled={revokingId === tok.id} onClick={() => revoke(tok.id)}
                         aria-describedby={`${ids}-ask-${tok.id}`}
-                        style={{ ...smallButton(revokingId === tok.id), border: 'none', background: 'var(--red)', color: 'white' }}
+                        style={{ ...smallButton(revokingId === tok.id), border: 'none', background: 'var(--red)', color: 'var(--status-text)' }}
                       >
                         {revokingId === tok.id ? t('admin.apiTokens.revoking') : t('admin.apiTokens.revokeYes')}
                       </button>

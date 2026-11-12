@@ -12,17 +12,11 @@
 // stop Apple Mail's blunt inversion (Intercom's template does), which MailFlow's recoloring, with
 // its readability check, is not. Gmail and Outlook darken them too. The reader can still switch
 // one back to its original colors.
-import { THEMES, resolveEffectiveTheme } from '../themes.js';
+import { resolveEffectiveTheme } from '../themes.js';
 
-// A theme is dark when its background is: several themes besides "light" have light backgrounds
-// (catppuccin_latte, parchment, winxp, win9x).
+// Dark unless the theme resolves to selfhostr-light ('system' follows the OS).
 export function isDarkTheme(themeKey) {
-  const vars = THEMES[resolveEffectiveTheme(themeKey)]?.vars || THEMES.dark.vars;
-  const rgb = /^#([0-9a-f]{6})$/i.exec(String(vars['--bg-primary'] || '').trim());
-  if (!rgb) return true;
-  const n = Number.parseInt(rgb[1], 16);
-  const luminance = (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
-  return luminance < 0.5;
+  return resolveEffectiveTheme(themeKey) !== 'selfhostr-light';
 }
 
 // Whether this body can be shown dark at all.
