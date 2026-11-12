@@ -465,11 +465,13 @@ function setReminder(vevent, minutes) {
   vevent.addSubcomponent(alarm);
 }
 
-function touch(vevent) {
+// SEQUENCE is the organizer's to raise: an attendee's copy that claims a newer revision than the
+// organizer sent would make the organizer's next update look stale.
+function touch(vevent, { asAttendee = false } = {}) {
   const now = ICAL.Time.fromJSDate(new Date(), true);
   vevent.updatePropertyWithValue('dtstamp', now);
   vevent.updatePropertyWithValue('last-modified', now);
-  vevent.updatePropertyWithValue('sequence', (Number(vevent.getFirstPropertyValue('sequence')) || 0) + 1);
+  if (!asAttendee) vevent.updatePropertyWithValue('sequence', (Number(vevent.getFirstPropertyValue('sequence')) || 0) + 1);
 }
 
 function applyText(vevent, input) {
@@ -694,7 +696,7 @@ function ridValue(recurrenceId, b, name) {
   return prop;
 }
 
-function editOccurrence(root, input, recurrenceId, zones) {
+function editOccurrence(root, input, recurrenceId, zones, opts) {
   const { master, overrides } = masterAndOverrides(root);
   const b = master ? bounds(master, zones) : null;
   const key = ridKey(recurrenceId, b, zones);
@@ -706,10 +708,10 @@ function editOccurrence(root, input, recurrenceId, zones) {
     target.addProperty(ridValue(recurrenceId, b, 'recurrence-id'));
     root.addSubcomponent(target);
   }
-  editComponent(root, target, input, zones);
+  editComponent(root, target, input, zones, opts);
 }
 
-function editComponent(root, target, input, zones) {
+function editComponent(root, target, input, zones, opts) {
   const current = bounds(target, zones);
   const keepUtc = current && !current.allDay && !input.allDay && isUtc(current.start);
   const tzid = input.allDay || keepUtc ? null : (current?.tzid || input.timezone);
@@ -719,8 +721,8 @@ function editComponent(root, target, input, zones) {
   if (moved) setBounds(target, input, tzid, zones);
   if (input.reminderMinutes !== undefined) setReminder(target, input.reminderMinutes);
   if (input.attendees !== undefined) setAttendees(target, input.attendees, input.organizer);
-  if (timing(target, zones) !== before) askAgain(target);
-  touch(target);
+  if (!opts.asAttendee && timing(target, zones) !== before) askAgain(target);
+  touch(target, opts);
   if (moved && tzid) ensureTimezone(root, tzid);
 }
 
@@ -798,18 +800,18 @@ function shiftRuleDays(master, b, newStartMs, zones) {
 
 // An invitation to some occurrences of someone else's series holds only those, with no series to
 // edit: the whole event is each of them. New dates belong to the one shown, the rest to all.
-function editOverridesOnly(root, overrides, input, recurrenceId, zones) {
+function editOverridesOnly(root, overrides, input, recurrenceId, zones, opts) {
   const key = recurrenceId ? ridKey(recurrenceId, null, zones) : null;
   const shown = (key != null && findOverride(overrides, key, zones)) || (overrides.length === 1 ? overrides[0] : null);
   if (!overrides.length || (input.start !== undefined && !shown)) throw Object.assign(new Error('Event not found'), { notFound: true });
   const rest = { ...input };
   for (const name of ['allDay', 'start', 'end', 'recurrence']) delete rest[name];
-  for (const o of overrides) editComponent(root, o, o === shown ? { ...rest, allDay: input.allDay, start: input.start, end: input.end } : rest, zones);
+  for (const o of overrides) editComponent(root, o, o === shown ? { ...rest, allDay: input.allDay, start: input.start, end: input.end } : rest, zones, opts);
 }
 
-function editSeries(root, input, recurrenceId, zones) {
+function editSeries(root, input, recurrenceId, zones, opts) {
   const { master, overrides } = masterAndOverrides(root);
-  if (!master) return editOverridesOnly(root, overrides, input, recurrenceId, zones);
+  if (!master) return editOverridesOnly(root, overrides, input, recurrenceId, zones, opts);
   const b = bounds(master, zones);
   const before = timing(master, zones);
   applyText(master, input);
@@ -862,8 +864,8 @@ function editSeries(root, input, recurrenceId, zones) {
     setAttendees(master, input.attendees, input.organizer);
     for (const o of masterAndOverrides(root).overrides) setAttendees(o, input.attendees, input.organizer);
   }
-  if (timing(master, zones) !== before) askAgain(master);
-  touch(master);
+  if (!opts.asAttendee && timing(master, zones) !== before) askAgain(master);
+  touch(master, opts);
 }
 
 // How many exceptions and exclusions a resource holds, to notice a server dropping them.
@@ -873,12 +875,22 @@ export function seriesMarkers(ics) {
   return overrides.length + excluded;
 }
 
-export function applyEdit(ics, input, { scope = 'all', recurrenceId } = {}) {
+// asAttendee: the user's own copy of someone else's invitation, which keeps the organizer's answers
+// and revision as they are.
+export function applyEdit(ics, input, { scope = 'all', recurrenceId, asAttendee = false } = {}) {
   const root = parseRoot(ics);
   const zones = zonesOf(root, input.timezone);
-  if (scope === 'this') editOccurrence(root, input, recurrenceId, zones);
-  else editSeries(root, input, recurrenceId, zones);
+  const opts = { asAttendee };
+  if (scope === 'this') editOccurrence(root, input, recurrenceId, zones, opts);
+  else editSeries(root, input, recurrenceId, zones, opts);
   return root.toString();
+}
+
+// When a resource's events happen, however the times are written.
+export function eventTimes(ics) {
+  const root = parseRoot(ics);
+  const zones = zonesOf(root);
+  return root.getAllSubcomponents('vevent').map(v => timing(v, zones)).sort().join('\n');
 }
 
 // One occurrence off a series. Returns null when nothing is left of the resource.

@@ -2562,6 +2562,7 @@
       "noWritable": "Żaden z Twoich kalendarzy nie przyjmuje nowych wydarzeń. Dodaj kalendarz, który nie jest tylko do odczytu.",
       "noSender": "Żadne konto pocztowe nie wysyła z adresu Twojego kalendarza, więc zaproszeń nie można wysłać. Dodaj ten adres jako konto lub alias.",
       "notOrganizer": "Tylko organizator może zmieniać uczestników.",
+      "notOrganizerTime": "Tylko organizator może zmienić termin.",
       "inviteNoSender": "Wydarzenie jest zapisane, ale żadne konto pocztowe nie wysyła z adresu Twojego kalendarza, więc nikt nie został powiadomiony.",
       "inviteFailed": "Wydarzenie jest zapisane, ale nie udało się wysłać zaproszeń: {{message}}",
       "syncFailed": "Synchronizacja nie powiodła się: {{message}}"

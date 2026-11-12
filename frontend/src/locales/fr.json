@@ -2543,6 +2543,7 @@
       "noWritable": "Aucun de vos agendas n'accepte de nouveaux événements. Ajoutez un agenda qui n'est pas en lecture seule.",
       "noSender": "Aucun compte mail n'envoie depuis l'adresse de votre agenda : les invitations ne peuvent pas partir. Ajoutez cette adresse comme compte ou comme alias.",
       "notOrganizer": "Seul l'organisateur peut changer les participants.",
+      "notOrganizerTime": "Seul l'organisateur peut changer la date et l'heure.",
       "inviteNoSender": "L'événement est enregistré, mais aucun compte mail n'envoie depuis l'adresse de votre agenda : personne n'a été prévenu.",
       "inviteFailed": "L'événement est enregistré, mais les invitations n'ont pas pu partir : {{message}}",
       "syncFailed": "La synchronisation a échoué : {{message}}"

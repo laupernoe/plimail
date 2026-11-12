@@ -138,4 +138,15 @@ describe('guests', () => {
     assert.deepEqual(e.buildPayload(form).payload.attendees, [{ email: 'ana@example.com', name: 'Ana' }]);
     assert.equal('attendees' in e.buildPayload(form, { invite: false }).payload, false);
   });
+
+  it('leaves the time of someone else\'s invitation to its organizer, drags included', async () => {
+    const { canDrag } = await import('./dragSession.js');
+    const press = { button: 0, pointerType: 'mouse' };
+    const theirs = { organizer: { email: 'boss@example.com' }, organizerIsMe: false, attendees: [{ email: 'noe@example.com' }] };
+    assert.equal(e.canMove(theirs), false);
+    assert.equal(canDrag(press, theirs), false);
+    assert.equal(canDrag(press, { ...theirs, organizerIsMe: true }), true);
+    assert.equal(canDrag(press, { attendees: [] }), true);
+    assert.equal(e.describeError({ status: 403, code: 'not_organizer_time' }).key, 'calendar.errors.notOrganizerTime');
+  });
 });

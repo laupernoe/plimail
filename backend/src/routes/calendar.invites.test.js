@@ -126,6 +126,24 @@ describe('invitations', () => {
     expect(state.puts).toEqual([]);
   });
 
+  it('keeps an invitation from someone else at the time they set', async () => {
+    state.event = stored(THEIRS);
+    const r = await call('PATCH', `/c/events/${EVENT_ID}`, { ...times, start: '2027-03-10T11:00:00Z', end: '2027-03-10T12:00:00Z', scope: 'all' });
+    expect(r.status).toBe(403);
+    expect(r.body.code).toBe('not_organizer_time');
+    expect(state.puts).toEqual([]);
+  });
+
+  it('lets an attendee set a reminder without touching the answer or the revision', async () => {
+    state.event = stored(THEIRS.replace('SUMMARY:Point', 'SUMMARY:Point\r\nSEQUENCE:3'));
+    const r = await call('PATCH', `/c/events/${EVENT_ID}`, { summary: 'Point', ...times, reminderMinutes: 10, scope: 'all' });
+    expect(r.status).toBe(200);
+    expect(state.puts[0]).toMatch(/VALARM/);
+    expect(state.puts[0]).toMatch(/SEQUENCE:3\r\n/);
+    expect(state.puts[0]).toMatch(/PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:noe@/);
+    expect(state.mails).toEqual([]);
+  });
+
   it('cancels for everyone when the organizer deletes the event', async () => {
     state.event = stored(MINE);
     const r = await call('DELETE', `/c/events/${EVENT_ID}`);

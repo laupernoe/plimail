@@ -11,7 +11,7 @@ import { validateHost } from '../services/hostValidation.js';
 import { getConnectionPolicy } from '../services/connectionPolicy.js';
 import { discoverCalendars, findCalDavServer, getEvent, putEvent, deleteEvent } from '../services/caldavClient.js';
 import { syncAccount, credentialsFor, isSyncing } from '../services/caldavSync.js';
-import { applyEdit, buildEvent, expandResource, inviteContent, inviteInfo, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
+import { applyEdit, buildEvent, eventTimes, expandResource, inviteContent, inviteInfo, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
 import { forgetScheduling, knownAddresses, mailItip, mailLabels, planInvites } from '../services/calendarInvites.js';
 
 const router = Router();
@@ -487,19 +487,25 @@ router.patch('/events/:eventId', async (req, res) => {
     const before = inviteInfo(event.ical);
     let creds;
     let plan = null;
+    let asAttendee = false;
     if (input.attendees !== undefined || before.attendees.length) {
       ({ creds, plan } = await planFor(req.session.userId, event));
       const mine = before.organizer && plan.myEmails.includes(before.organizer);
       if (before.organizer && !mine) {
         if (input.attendees !== undefined) return res.status(403).json({ error: 'Only the organizer can change who is invited', code: 'not_organizer' });
         plan = null;
+        asAttendee = before.attendees.length > 0;
       }
       if (before.organizer && mine) plan.organizer = { ...plan.organizer, email: before.organizer };
       input.organizer = plan?.organizer;
     } else {
       creds = await credentialsFor(event);
     }
-    const ical = applyEdit(event.ical, input, { scope, recurrenceId });
+    const ical = applyEdit(event.ical, input, { scope, recurrenceId, asAttendee });
+    // An attendee's copy at another time would no longer be the meeting the organizer holds.
+    if (asAttendee && eventTimes(ical) !== eventTimes(event.ical)) {
+      return res.status(403).json({ error: 'Only the organizer can change when this happens', code: 'not_organizer_time' });
+    }
     if (target) {
       const base = target.url.endsWith('/') ? target.url : `${target.url}/`;
       const href = new URL(`${crypto.randomUUID()}.ics`, base).href;

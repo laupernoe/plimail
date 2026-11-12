@@ -13,6 +13,7 @@ export function describeError(err) {
   if (err?.status === 403 && err.code === 'read_only') return { key: 'calendar.errors.readOnly', refetch: true };
   if (err?.code === 'no_sender') return { key: 'calendar.errors.noSender', refetch: false };
   if (err?.code === 'not_organizer') return { key: 'calendar.errors.notOrganizer', refetch: true };
+  if (err?.code === 'not_organizer_time') return { key: 'calendar.errors.notOrganizerTime', refetch: true };
   if (err?.status === 502) return { key: 'calendar.errors.server', message: err.message, refetch: true };
   return { key: 'calendar.errors.generic', message: err?.message || '', refetch: false };
 }
@@ -78,6 +79,9 @@ export function guestsOf(occ) {
 
 // Only the organizer decides who is invited; an event without one is the user's own.
 export const canInvite = occ => !occ || occ.organizerIsMe || !occ.organizer?.email;
+
+// When it happens is the organizer's to decide too, once anyone else is invited.
+export const canMove = occ => canInvite(occ) || !(occ.attendees || []).length;
 
 const EMAIL_RE = /^[^\s@<>",;:]+@[^\s@<>",;:]+\.[^\s@<>",;:]+$/;
 

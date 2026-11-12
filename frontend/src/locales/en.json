@@ -2543,6 +2543,7 @@
       "noWritable": "None of your calendars accepts new events. Add a calendar that is not read-only.",
       "noSender": "No mail account can send from your calendar address, so the invitations cannot be sent. Add that address as an account or an alias.",
       "notOrganizer": "Only the organizer can change who is invited.",
+      "notOrganizerTime": "Only the organizer can change when this happens.",
       "inviteNoSender": "The event is saved, but no mail account sends from your calendar address, so nobody was notified.",
       "inviteFailed": "The event is saved, but the invitations could not be sent: {{message}}",
       "syncFailed": "Sync failed: {{message}}"

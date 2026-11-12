@@ -2543,6 +2543,7 @@
       "noWritable": "Keiner Ihrer Kalender nimmt neue Termine an. Fügen Sie einen Kalender hinzu, der nicht schreibgeschützt ist.",
       "noSender": "Kein E-Mail-Konto sendet von Ihrer Kalenderadresse, daher können die Einladungen nicht verschickt werden. Fügen Sie diese Adresse als Konto oder Alias hinzu.",
       "notOrganizer": "Nur die organisierende Person kann die Teilnehmenden ändern.",
+      "notOrganizerTime": "Nur der Organisator kann den Zeitpunkt ändern.",
       "inviteNoSender": "Der Termin ist gespeichert, aber kein E-Mail-Konto sendet von Ihrer Kalenderadresse, daher wurde niemand benachrichtigt.",
       "inviteFailed": "Der Termin ist gespeichert, aber die Einladungen konnten nicht verschickt werden: {{message}}",
       "syncFailed": "Synchronisierung fehlgeschlagen: {{message}}"

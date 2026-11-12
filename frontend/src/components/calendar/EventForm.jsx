@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  FREQS, FREQ_KEYS, REMINDER_KEYS, buildPayload, canInvite, changeStart, emptyForm, formFromOccurrence, offeredCalendars,
+  FREQS, FREQ_KEYS, REMINDER_KEYS, buildPayload, canInvite, canMove, changeStart, emptyForm, formFromOccurrence, offeredCalendars,
   reminderOptions, toggleAllDay,
 } from './calendarEvents.js';
 import { Btn, ErrorBox, Modal, inputStyle, labelStyle } from './calendarUi.jsx';
@@ -29,6 +29,7 @@ export default function EventForm({ occ, scope, defaults, calendars, isMobile, o
   const custom = editing && occ.recurrenceCustom;
   const reminders = reminderOptions(form.reminder);
   const inviting = canInvite(occ);
+  const timesLocked = !canMove(occ);
   const organizer = editing && !inviting ? (occ.organizer.name || occ.organizer.email) : null;
 
   const submit = async (e) => {
@@ -68,22 +69,23 @@ export default function EventForm({ occ, scope, defaults, calendars, isMobile, o
         {offered.length === 0 && <ErrorBox>{t('calendar.form.noWritable')}</ErrorBox>}
 
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-primary)', cursor: 'pointer' }}>
-          <input type="checkbox" checked={form.allDay} onChange={() => setForm(toggleAllDay)} style={{ accentColor: 'var(--accent)' }} />
+          <input type="checkbox" checked={form.allDay} onChange={() => setForm(toggleAllDay)} disabled={timesLocked} style={{ accentColor: 'var(--accent)' }} />
           {t('calendar.allDay')}
         </label>
 
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
           <Field label={t('calendar.form.start')}>
             {form.allDay
-              ? <input type="date" value={form.startDay} onChange={e => setForm(f => changeStart(f, e.target.value))} style={inputStyle} />
-              : <input type="datetime-local" value={form.startLocal} onChange={e => setForm(f => changeStart(f, e.target.value))} style={inputStyle} />}
+              ? <input type="date" value={form.startDay} onChange={e => setForm(f => changeStart(f, e.target.value))} disabled={timesLocked} style={inputStyle} />
+              : <input type="datetime-local" value={form.startLocal} onChange={e => setForm(f => changeStart(f, e.target.value))} disabled={timesLocked} style={inputStyle} />}
           </Field>
           <Field label={t('calendar.form.end')}>
             {form.allDay
-              ? <input type="date" value={form.endDay} min={form.startDay} onChange={e => set({ endDay: e.target.value })} style={inputStyle} />
-              : <input type="datetime-local" value={form.endLocal} min={form.startLocal} onChange={e => set({ endLocal: e.target.value })} style={inputStyle} />}
+              ? <input type="date" value={form.endDay} min={form.startDay} onChange={e => set({ endDay: e.target.value })} disabled={timesLocked} style={inputStyle} />
+              : <input type="datetime-local" value={form.endLocal} min={form.startLocal} onChange={e => set({ endLocal: e.target.value })} disabled={timesLocked} style={inputStyle} />}
           </Field>
         </div>
+        {timesLocked && <span style={{ ...labelStyle, marginTop: -6, marginBottom: 0 }}>{t('calendar.errors.notOrganizerTime')}</span>}
 
         <Field label={t('calendar.form.location')}>
           <input value={form.location} onChange={e => set({ location: e.target.value })} style={inputStyle} />
@@ -101,7 +103,7 @@ export default function EventForm({ occ, scope, defaults, calendars, isMobile, o
         </Field>
 
         {series && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <fieldset disabled={timesLocked} style={{ display: 'flex', flexDirection: 'column', gap: 8, border: 0, padding: 0, margin: 0, minWidth: 0 }}>
             {custom ? (
               <Field label={t('calendar.form.repeat')}>
                 <div style={{ ...inputStyle, color: 'var(--text-secondary)', background: 'var(--bg-tertiary)' }}>{t('calendar.recurrence.custom')}</div>
@@ -141,7 +143,7 @@ export default function EventForm({ occ, scope, defaults, calendars, isMobile, o
                 )}
               </>
             )}
-          </div>
+          </fieldset>
         )}
 
         <Field label={t('calendar.form.reminder')}>

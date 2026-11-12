@@ -1,3 +1,5 @@
+import { canMove } from './calendarEvents.js';
+
 // Follows the pointer after a press until it is released, calling onMove once it has travelled
 // past the threshold (a press that stays put is a click, not a drag). Escape cancels.
 export function dragSession(start, { onMove, onEnd, threshold = 4 }) {
@@ -26,4 +28,4 @@ export function dragSession(start, { onMove, onEnd, threshold = 4 }) {
 }
 
 // Only a mouse or pen press drags; a touch scrolls instead.
-export const canDrag = (e, occ) => !occ.readOnly && e.button === 0 && e.pointerType !== 'touch';
+export const canDrag = (e, occ) => !occ.readOnly && canMove(occ) && e.button === 0 && e.pointerType !== 'touch';
