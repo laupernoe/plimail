@@ -172,10 +172,9 @@ describe('discoverAccountSettings', () => {
   const run = (email, { fetch = fetchFrom({}), resolver = resolverFrom(), policy = POLICY } = {}) =>
     discoverAccountSettings(email, { ...policy, fetchImpl: fetch, resolver });
 
-  it('takes the ISPDB first, asking it about the domain only', async () => {
+  it('uses the ISPDB when the domain publishes nothing, asking it about the domain only', async () => {
     const fetch = fetchFrom({
       'https://autoconfig.thunderbird.net/v1.1/example.org': STANDARD,
-      'https://autoconfig.example.org/mail/config-v1.1.xml': xml({ imap: imap({ host: 'other.example.org', port: 993, socket: 'SSL' }) }),
     });
     const r = await run('jane@example.org', { fetch });
     expect(r).toMatchObject({
@@ -204,6 +203,15 @@ describe('discoverAccountSettings', () => {
     });
     const r = await run('a@example.org', { fetch, resolver: resolverFrom({ a: { 'imap.example.org': ['203.0.113.5'] } }) });
     expect(r.source).toBe('guess');
+  });
+
+  it("prefers the domain's own autoconfig over the ISPDB", async () => {
+    const fetch = fetchFrom({
+      'https://autoconfig.thunderbird.net/v1.1/example.org': xml({ imap: imap({ host: 'imap.isp.example', port: 993, socket: 'SSL' }) }),
+      'https://autoconfig.example.org/mail/config-v1.1.xml': STANDARD,
+    });
+    const r = await run('a@example.org', { fetch });
+    expect(r.source).toBe('autoconfig');
   });
 
   it('stops reading a body past the size cap', async () => {

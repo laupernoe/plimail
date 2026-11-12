@@ -8,7 +8,7 @@
 // size, and only servers Plimail can log in to are taken: TLS, password authentication, and the
 // ports the instance allows. No server is connected to; a guess is only a name that resolves.
 //
-// Order: Thunderbird's ISPDB, the domain's own autoconfig, SRV records (RFC 6186), the provider
+// Order: the domain's own autoconfig, Thunderbird's ISPDB, SRV records (RFC 6186), the provider
 // behind the MX (Google and Microsoft 365 by name, else ISPDB for the MX's domain), then guesses.
 
 import { promises as dnsPromises } from 'node:dns';
@@ -274,9 +274,9 @@ export async function discoverAccountSettings(email, {
     fromSrv(domain, ctx).catch(() => null),
     caldavFromSrv(domain, ctx).catch(() => null),
   ]);
-  let found = (ispdb && { source: 'ispdb', ...ispdb })
-    || (autoconfig && { source: 'autoconfig', ...autoconfig })
+  let found = (autoconfig && { source: 'autoconfig', ...autoconfig })
     || (wellknown && { source: 'wellknown', ...wellknown })
+    || (ispdb && { source: 'ispdb', ...ispdb })
     || (srv && { source: 'srv', ...srv })
     || await fromMx(domain, who.address, ctx).catch(() => null)
     || await guess(domain, ctx);
