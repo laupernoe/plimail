@@ -289,7 +289,8 @@ export function expandResource(ics, fromMs, toMs, { floatingTz } = {}) {
     if (!b) continue;
     if (text(override, 'status') === 'CANCELLED') continue;
     if (!overlaps(b.startMs, b.endMs, b.allDay)) continue;
-    const sameZone = rid.isDate || !masterBounds || ridTz === masterBounds.tzid;
+    // Without a series to read a wall clock against, a zoned RECURRENCE-ID goes out as UTC.
+    const sameZone = rid.isDate || (masterBounds ? ridTz === masterBounds.tzid : !ridTz);
     const recurrenceId = sameZone ? rid.toString() : `${new Date(toUtcMs(rid, ridTz, zones)).toISOString().slice(0, 19)}Z`;
     out.push(describe(override, b, b.startMs, { recurrenceId, isRecurring: true, recurrence: seriesRule.recurrence, recurrenceCustom: seriesRule.custom }));
   }
@@ -705,12 +706,16 @@ function editOccurrence(root, input, recurrenceId, zones) {
     target.addProperty(ridValue(recurrenceId, b, 'recurrence-id'));
     root.addSubcomponent(target);
   }
+  editComponent(root, target, input, zones);
+}
+
+function editComponent(root, target, input, zones) {
   const current = bounds(target, zones);
   const keepUtc = current && !current.allDay && !input.allDay && isUtc(current.start);
   const tzid = input.allDay || keepUtc ? null : (current?.tzid || input.timezone);
   const before = timing(target, zones);
   applyText(target, input);
-  const moved = !sameBounds(current, input);
+  const moved = input.start !== undefined && !sameBounds(current, input);
   if (moved) setBounds(target, input, tzid, zones);
   if (input.reminderMinutes !== undefined) setReminder(target, input.reminderMinutes);
   if (input.attendees !== undefined) setAttendees(target, input.attendees, input.organizer);
@@ -791,9 +796,20 @@ function shiftRuleDays(master, b, newStartMs, zones) {
   }
 }
 
+// An invitation to some occurrences of someone else's series holds only those, with no series to
+// edit: the whole event is each of them. New dates belong to the one shown, the rest to all.
+function editOverridesOnly(root, overrides, input, recurrenceId, zones) {
+  const key = recurrenceId ? ridKey(recurrenceId, null, zones) : null;
+  const shown = (key != null && findOverride(overrides, key, zones)) || (overrides.length === 1 ? overrides[0] : null);
+  if (!overrides.length || (input.start !== undefined && !shown)) throw Object.assign(new Error('Event not found'), { notFound: true });
+  const rest = { ...input };
+  for (const name of ['allDay', 'start', 'end', 'recurrence']) delete rest[name];
+  for (const o of overrides) editComponent(root, o, o === shown ? { ...rest, allDay: input.allDay, start: input.start, end: input.end } : rest, zones);
+}
+
 function editSeries(root, input, recurrenceId, zones) {
   const { master, overrides } = masterAndOverrides(root);
-  if (!master) throw Object.assign(new Error('Event not found'), { notFound: true });
+  if (!master) return editOverridesOnly(root, overrides, input, recurrenceId, zones);
   const b = bounds(master, zones);
   const before = timing(master, zones);
   applyText(master, input);

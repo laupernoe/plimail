@@ -429,3 +429,31 @@ describe('invitations', () => {
     expect(itipMessage(ical, 'REQUEST')).toMatch(/METHOD:REQUEST[\s\S]*mailto:ana@example\.com[\s\S]*mailto:bob@example\.com/);
   });
 });
+
+describe('an invitation to one occurrence of a series', () => {
+  const ONE = cal('BEGIN:VEVENT', 'UID:s', 'DTSTAMP:20260101T000000Z', 'SUMMARY:Review', 'SEQUENCE:2',
+    'RECURRENCE-ID;TZID=Europe/Zurich:20261103T090000', 'DTSTART;TZID=Europe/Zurich:20261103T090000',
+    'DTEND;TZID=Europe/Zurich:20261103T100000', 'END:VEVENT');
+  const window = range('2026-11-01T00:00:00Z', '2026-11-30T00:00:00Z');
+  const [occ] = expandResource(ONE, ...window);
+
+  it('names the occurrence so it can be found again', () => {
+    expect(occ.recurrenceId).toBe('2026-11-03T08:00:00Z');
+  });
+
+  it('edits it as this occurrence', () => {
+    const out = applyEdit(ONE, { allDay: false, start: '2026-11-03T09:00:00Z', end: '2026-11-03T10:00:00Z' },
+      { scope: 'this', recurrenceId: occ.recurrenceId });
+    expect(expandResource(out, ...window).map(o => o.start)).toEqual(['2026-11-03T09:00:00.000Z']);
+  });
+
+  it('edits it as the whole event', () => {
+    const out = applyEdit(ONE, { summary: 'Review 2', allDay: false, start: '2026-11-03T09:00:00Z', end: '2026-11-03T10:00:00Z', timezone: 'Europe/Zurich' },
+      { scope: 'all', recurrenceId: occ.recurrenceId });
+    expect(expandResource(out, ...window).map(o => [o.summary, o.start])).toEqual([['Review 2', '2026-11-03T09:00:00.000Z']]);
+  });
+
+  it('deletes it as this occurrence', () => {
+    expect(removeOccurrence(ONE, occ.recurrenceId)).toBeNull();
+  });
+});
