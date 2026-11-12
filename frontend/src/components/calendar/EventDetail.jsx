@@ -141,6 +141,16 @@ export default function EventDetail({ occ, rect, isMobile, onClose, ...rest }) {
     setPos({ left, top, ready: true });
   }, [isMobile, rect, occ.id]);
 
+  // Focus moves into the popover and goes back to what opened it. The Modal used on mobile does this itself.
+  useEffect(() => {
+    if (isMobile || !ref.current) return undefined;
+    const trigger = document.activeElement;
+    ref.current.focus({ preventScroll: true });
+    return () => {
+      if (trigger && trigger !== document.body && trigger.isConnected) trigger.focus({ preventScroll: true });
+    };
+  }, [isMobile]);
+
   useEffect(() => {
     if (isMobile) return undefined;
     const onDown = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
@@ -154,7 +164,8 @@ export default function EventDetail({ occ, rect, isMobile, onClose, ...rest }) {
     return <Modal mobile label={occ.summary || t('calendar.detail.label')} onClose={onClose}><Body occ={occ} onClose={onClose} {...rest} /></Modal>;
   }
   return (
-    <div ref={ref} role="dialog" aria-label={occ.summary || t('calendar.detail.label')} style={{
+    <div ref={ref} role="dialog" tabIndex={-1} aria-label={occ.summary || t('calendar.detail.label')} style={{
+      outline: 'none',
       position: 'fixed', left: pos.left, top: pos.top, width: WIDTH, maxHeight: 'calc(100vh - 16px)', overflow: 'hidden auto',
       zIndex: 8000, padding: 16, boxSizing: 'border-box', borderRadius: 12, background: 'var(--bg-elevated)',
       border: '1px solid var(--border)', boxShadow: 'var(--shadow-popover)', visibility: pos.ready ? 'visible' : 'hidden',
