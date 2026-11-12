@@ -155,7 +155,6 @@ const SAME_VALUE_ALLOWED = {
   // "por {{actor}}" (who made an admin change) — the same preposition in es and pt-BR
   'admin.security.byActor': [['es', 'ptBR']],
   // "Account" — identical in en/it; "Konto" — identical in de/pl
-  'admin.cleanup.account': [['en', 'it'], ['de', 'pl']],
   // "{{n}} min" — the "min" abbreviation is shared in en, es, fr, it
   'admin.lock.autoLockMin': [['cs', 'en', 'es', 'fr', 'it', 'pl', 'ptBR']],
 

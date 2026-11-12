@@ -6193,245 +6193,6 @@ function RulesAndBlockListTab({ initialSubTab }) {
   );
 }
 
-// Mailbox Cleanup: analyze an INBOX for bulk-mail bloat and move a chosen sender's mail to Trash.
-// All analysis is read-only; the destructive step reuses the existing, proven bulkDelete (move to
-// Trash, recoverable) in <=500-id batches. Scope is enforced server-side (own account, INBOX, exact
-// sender), and the operation is idempotent: re-running a cleared sender finds nothing.
-function MailboxCleanupTab() {
-  const { t } = useTranslation();
-  const { accounts } = useStore();
-  const [accountId, setAccountId] = useState(accounts[0]?.id || '');
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [busySender, setBusySender] = useState('');
-  const [progress, setProgress] = useState(null);
-  // Cleanup action for the whole view (#403): Archive is the default and recommended
-  // choice; Trash stays available as an explicit alternative. One selector governs
-  // every sender row, not a per-row pair of buttons.
-  const [action, setAction] = useState('archive');
-  const archiveAvailable = data ? data.archiveAvailable !== false : true;
-  // If the selected account has no archive folder, Archive isn't a usable action —
-  // fall back to Trash so the row button never runs an action the server can't honor.
-  useEffect(() => { if (data && data.archiveAvailable === false) setAction('trash'); }, [data]);
-
-  // Re-fetch the summary/sender data without touching the error banner or the loading
-  // spinner, so a caller that just wants fresh counts (after a cleanup, including a partial
-  // failure) can refresh without clobbering an error it already set.
-  const fetchUsage = useCallback(async (id) => {
-    setData(await api.mailboxUsage(id));
-  }, []);
-
-  const load = useCallback(async (id) => {
-    if (!id) return;
-    setLoading(true); setError('');
-    try { await fetchUsage(id); }
-    catch (e) { setError(e.message); setData(null); }
-    finally { setLoading(false); }
-  }, [fetchUsage]);
-
-  useEffect(() => { if (accountId) load(accountId); }, [accountId, load]);
-
-  // Senders ticked for a batch run; keyed by fromEmail. Only ever read through
-  // `selectedSenders`, so senders that vanish after a refresh drop out on their own.
-  const [selected, setSelected] = useState(() => new Set());
-  const senders = data?.tier1Senders || [];
-  const selectedSenders = senders.filter(s => selected.has(s.fromEmail));
-  const allSelected = senders.length > 0 && selectedSenders.length === senders.length;
-  // The row-button busy marker for a batch run; not a valid fromEmail, so no row matches it.
-  const BATCH = '*';
-  useEffect(() => { setSelected(new Set()); }, [accountId]);
-
-  const toggleSender = (email) => setSelected(prev => {
-    const next = new Set(prev);
-    if (!next.delete(email)) next.add(email);
-    return next;
-  });
-
-  // One confirm and one progress bar for the whole list; each sender is still resolved server-side
-  // (own account, INBOX, exact sender) and moved in <=500-id batches, in sequence.
-  const cleanupSenders = async (list) => {
-    const isArchive = action === 'archive';
-    const labelOf = (s) => (s.fromName ? `${s.fromName} <${s.fromEmail}>` : s.fromEmail);
-    const shown = list.slice(0, 3).map(labelOf).join(', ');
-    const label = list.length > 3 ? `${shown} +${list.length - 3}` : shown;
-    const grandTotal = list.reduce((n, s) => n + s.count, 0);
-    const confirmKey = isArchive ? 'admin.cleanup.confirmArchive' : 'admin.cleanup.confirm';
-    if (!window.confirm(t(confirmKey, { count: grandTotal, sender: label }))) return;
-    setBusySender(list.length === 1 ? list[0].fromEmail : BATCH); setError(''); setProgress({ done: 0, total: grandTotal });
-    try {
-      const runBatch = isArchive ? api.bulkArchive : api.bulkDelete;
-      let done = 0;
-      for (const s of list) {
-        const { ids } = await api.cleanupPreview(accountId, s.fromEmail);
-        for (let i = 0; i < ids.length; i += 500) {
-          const batch = ids.slice(i, i + 500);
-          await runBatch(batch);
-          done += batch.length;
-          setProgress({ done, total: grandTotal });
-        }
-      }
-    } catch (e) { setError(e.message); }
-    finally {
-      // Always refresh counts so the summary reflects what actually got archived or trashed,
-      // even on a partial failure; preserve any error already set (don't route through load()).
-      try { await fetchUsage(accountId); } catch { /* keep the primary error and last-good data */ }
-      setBusySender(''); setProgress(null);
-    }
-  };
-
-  const bloatPct = data && data.inboxTotal ? Math.round((data.bulkTotal / data.inboxTotal) * 100) : 0;
-  const card = { background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: 10, padding: 14, marginBottom: 16 };
-  const muted = { fontSize: 12, color: 'var(--text-tertiary)' };
-
-  return (
-    <div>
-      <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 6px' }}>{t('admin.cleanup.title')}</h2>
-      <p style={{ ...muted, marginTop: 0, marginBottom: 16, lineHeight: 1.5 }}>{t('admin.cleanup.intro')}</p>
-
-      {accounts.length > 1 && (
-        <Field label={t('admin.cleanup.account')}>
-          <select value={accountId} disabled={!!busySender} onChange={e => setAccountId(e.target.value)} style={{ ...inputStyle, appearance: 'none' }}>
-            {accounts.map(a => <option key={a.id} value={a.id}>{a.email_address}</option>)}
-          </select>
-        </Field>
-      )}
-
-      {loading && <div style={muted}>{t('common.loading')}</div>}
-      {error && <div style={{ color: 'var(--red, #ef4444)', fontSize: 13, marginBottom: 12 }}>{error}</div>}
-
-      {data && !loading && (
-        <>
-          <div style={card}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-              {t('admin.cleanup.summary', { bulk: data.bulkTotal.toLocaleString(), total: data.inboxTotal.toLocaleString(), pct: bloatPct })}
-            </div>
-          </div>
-
-          <Field label={t('admin.cleanup.action')}>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {[
-                { key: 'archive', label: t('admin.cleanup.actionArchive'), disabled: !archiveAvailable },
-                { key: 'trash', label: t('admin.cleanup.moveToTrash'), disabled: false },
-              ].map(opt => {
-                const selected = action === opt.key;
-                return (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    disabled={opt.disabled || !!busySender}
-                    onClick={() => setAction(opt.key)}
-                    style={{
-                      padding: '7px 14px', borderRadius: 7, fontSize: 13, fontWeight: 500,
-                      cursor: (opt.disabled || busySender) ? 'not-allowed' : 'pointer',
-                      border: `1px solid ${selected ? 'var(--accent)' : 'var(--border)'}`,
-                      background: selected ? 'var(--accent)' : 'var(--bg-secondary)',
-                      color: selected ? 'var(--accent-text, white)' : 'var(--text-secondary)',
-                      opacity: opt.disabled ? 0.5 : 1,
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-            {!archiveAvailable && (
-              <div style={{ ...muted, marginTop: 8 }}>{t('admin.cleanup.noArchiveFolder')}</div>
-            )}
-          </Field>
-
-          <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 4px' }}>{t('admin.cleanup.tier1Title')}</h3>
-          <p style={{ ...muted, marginTop: 0, marginBottom: 12, lineHeight: 1.5 }}>{t('admin.cleanup.tier1Desc')}</p>
-          {data.tier1Senders.length === 0 ? (
-            <div style={muted}>{t('admin.cleanup.noneFound')}</div>
-          ) : (
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 4px', borderBottom: '1px solid var(--border-subtle)' }}>
-                <input
-                  type="checkbox"
-                  id="cleanup-select-all"
-                  checked={allSelected}
-                  disabled={!!busySender}
-                  onChange={() => setSelected(allSelected ? new Set() : new Set(senders.map(s => s.fromEmail)))}
-                />
-                <label htmlFor="cleanup-select-all" style={{ ...muted, flex: 1, cursor: 'pointer' }}>
-                  {t(allSelected ? 'messageList.deselectAll' : 'messageList.selectAll')}
-                </label>
-                <button
-                  type="button"
-                  disabled={!!busySender || selectedSenders.length === 0}
-                  onClick={() => cleanupSenders(selectedSenders)}
-                  style={{
-                    flexShrink: 0, padding: '6px 12px', borderRadius: 7, fontSize: 12, fontWeight: 500,
-                    border: '1px solid var(--border)',
-                    cursor: (busySender || selectedSenders.length === 0) ? 'not-allowed' : 'pointer',
-                    background: action === 'archive' ? 'var(--accent)' : 'var(--amber, #d97706)',
-                    color: action === 'archive' ? 'var(--accent-text, white)' : 'white',
-                    opacity: selectedSenders.length === 0 || (busySender && busySender !== BATCH) ? 0.5 : 1,
-                  }}
-                >
-                  {busySender === BATCH && progress
-                    ? `${progress.done.toLocaleString()}/${progress.total.toLocaleString()}`
-                    : `${t(action === 'archive' ? 'admin.cleanup.archive' : 'admin.cleanup.moveToTrash')} (${selectedSenders.length})`}
-                </button>
-              </div>
-              {data.tier1Senders.map(s => (
-                <div key={s.fromEmail} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 4px', borderBottom: '1px solid var(--border-subtle)' }}>
-                  <input
-                    type="checkbox"
-                    checked={selected.has(s.fromEmail)}
-                    disabled={!!busySender}
-                    onChange={() => toggleSender(s.fromEmail)}
-                    aria-label={s.fromName || s.fromEmail}
-                  />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.fromName || s.fromEmail}</div>
-                    {s.fromName && <div style={{ ...muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.fromEmail}</div>}
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', flexShrink: 0 }}>{s.count.toLocaleString()}</div>
-                  <button
-                    type="button"
-                    disabled={!!busySender}
-                    onClick={() => cleanupSenders([s])}
-                    style={{
-                      flexShrink: 0, padding: '6px 12px', borderRadius: 7, fontSize: 12, fontWeight: 500,
-                      border: '1px solid var(--border)', cursor: busySender ? 'not-allowed' : 'pointer',
-                      background: busySender === s.fromEmail
-                        ? 'var(--bg-tertiary)'
-                        : (action === 'archive' ? 'var(--accent)' : 'var(--amber, #d97706)'),
-                      color: busySender === s.fromEmail
-                        ? 'var(--text-secondary)'
-                        : (action === 'archive' ? 'var(--accent-text, white)' : 'white'),
-                      opacity: busySender && busySender !== s.fromEmail ? 0.5 : 1,
-                    }}
-                  >
-                    {busySender === s.fromEmail
-                      ? (progress ? `${progress.done.toLocaleString()}/${progress.total.toLocaleString()}` : '...')
-                      : t(action === 'archive' ? 'admin.cleanup.archive' : 'admin.cleanup.moveToTrash')}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 4px' }}>{t('admin.cleanup.tier2Title')}</h3>
-          <p style={{ ...muted, marginTop: 0, marginBottom: 10, lineHeight: 1.5 }}>{t('admin.cleanup.tier2Desc')}</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
-            {data.tier2Keywords.filter(k => k.count > 0).map(k => (
-              <span key={k.keyword} style={{ fontSize: 12, padding: '4px 10px', borderRadius: 20, background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}>
-                {k.keyword} <span style={{ color: 'var(--text-tertiary)' }}>({k.count.toLocaleString()})</span>
-              </span>
-            ))}
-          </div>
-
-          <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 4px' }}>{t('admin.cleanup.tier3Title')}</h3>
-          <p style={{ ...muted, marginTop: 0, lineHeight: 1.5 }}>{t('admin.cleanup.tier3Desc')}</p>
-        </>
-      )}
-    </div>
-  );
-}
-
 const TAB_GROUPS = [
   { id: 'mail', labelKey: 'admin.tabs.groupMail', tabIds: ['accounts', 'rules', 'categories'] },
   { id: 'calendar', labelKey: 'admin.tabs.groupCalendar', tabIds: ['calendar-accounts', 'calendar-list'] },
@@ -6453,11 +6214,6 @@ const TABS = [
   {
     id: 'categories', labelKey: 'admin.tabs.categories',
     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
-  },
-
-  {
-    id: 'cleanup', labelKey: 'admin.tabs.cleanup', beta: true,
-    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M19 3l-6 6"/><path d="M14 4l6 6"/><path d="M11 8l-7 7c-1 1-1 3 0 4s3 1 4 0l7-7"/><path d="M6 20l-3-3"/></svg>,
   },
   // Calendar
   {
@@ -8289,7 +8045,6 @@ export default function AdminPanel() {
       {adminTab === 'calendar-list' && <CalendarListTab />}
       {adminTab === 'rules' && <RulesAndBlockListTab initialSubTab={pendingSubTab} />}
       {adminTab === 'categories' && <CategoriesSection />}
-      {adminTab === 'cleanup' && <MailboxCleanupTab />}
       {adminTab === 'appearance' && <AppearanceTab initialSubTab={pendingSubTab} />}
       {adminTab === 'mail-signin' && user?.isAdmin && <MailSignInTab />}
       {adminTab === 'users' && <UsersTab />}
@@ -8366,7 +8121,6 @@ export default function AdminPanel() {
               >
                 <span style={{ display: 'flex', opacity: adminTab === tab.id && !searchResults ? 1 : 0.7 }}>{tab.icon}</span>
                 {t(tab.labelKey)}
-                {tab.beta && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', padding: '1px 4px', borderRadius: 3, background: adminTab === tab.id && !searchResults ? 'rgba(255,255,255,0.25)' : 'color-mix(in srgb, var(--accent) 15%, transparent)', color: adminTab === tab.id && !searchResults ? '#fff' : 'var(--accent)' }}>BETA</span>}
               </button>
             ))}
           </div>
@@ -8421,7 +8175,7 @@ export default function AdminPanel() {
           </div>
 
           {/* Scrollable tab list — keeps the Close button pinned even when the tab list is taller
-              than the modal (e.g. once several beta tabs are present). */}
+              than the modal. */}
           {/* overflowX hidden: overflowY:auto would otherwise promote overflow-x to auto too, so a
               long label in any locale (e.g. German "Tastaturkürzel") would show a horizontal
               scrollbar. Labels wrap instead of overflowing (see the tab buttons below). */}
@@ -8462,7 +8216,6 @@ export default function AdminPanel() {
                         {tab.icon}
                       </span>
                       <span style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>{t(tab.labelKey)}</span>
-                      {tab.beta && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', padding: '1px 4px', borderRadius: 3, background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)', flexShrink: 0 }}>BETA</span>}
                     </button>
                   );
                 })}
@@ -8492,7 +8245,6 @@ export default function AdminPanel() {
                   {tab.icon}
                 </span>
                 <span style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>{t(tab.labelKey)}</span>
-                {tab.beta && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', padding: '1px 4px', borderRadius: 3, background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)', flexShrink: 0 }}>BETA</span>}
               </button>
             );
           })}

@@ -1009,26 +1009,6 @@
     "errorProcess": "Não foi possível processar a imagem."
   },
   "admin": {
-    "cleanup": {
-      "title": "Limpeza da caixa de correio",
-      "intro": "Encontre e-mails em massa que estão poluindo sua caixa de entrada e limpe-os. Escolha entre arquivar (mantidos e pesquisáveis) ou mover para a Lixeira (recuperáveis até você esvaziá-la).",
-      "account": "Conta",
-      "summary": "{{bulk}} de {{total}} mensagens da caixa de entrada são e-mails em massa ({{pct}}%).",
-      "tier1Title": "Maiores remetentes em massa",
-      "tier1Desc": "Estes são os remetentes de newsletters e marketing com maior volume na sua caixa de entrada. Agir sobre um deles processa todos os e-mails desse remetente na caixa de entrada com a ação escolhida.",
-      "noneFound": "Nenhum remetente em massa encontrado.",
-      "moveToTrash": "Mover para a Lixeira",
-      "confirm": "Mover todas as {{count}} mensagens de {{sender}} da caixa de entrada para a Lixeira? Elas podem ser recuperadas da Lixeira até você esvaziá-la.",
-      "tier2Title": "Termos promocionais comuns",
-      "tier2Desc": "Pesquise estes termos para revisar e excluir o restante por conta própria. Eles abrangem muitos remetentes, então dê uma olhada nos resultados antes de excluir.",
-      "tier3Title": "Limpando o restante",
-      "tier3Desc": "Para todo o resto, pesquise por remetente ou palavra-chave, selecione tudo e exclua. As exclusões sempre vão primeiro para a Lixeira, então você pode revisar antes de esvaziá-la.",
-      "action": "Ação de limpeza",
-      "actionArchive": "Arquivar (recomendado)",
-      "archive": "Arquivar",
-      "confirmArchive": "Arquivar todas as {{count}} mensagens de {{sender}} da caixa de entrada? Elas ficam na pasta Arquivo e continuam pesquisáveis.",
-      "noArchiveFolder": "Esta conta não tem pasta de arquivo, então só é possível Mover para a Lixeira."
-    },
     "title": "Configurações",
     "close": "Fechar",
     "behavior": {
@@ -1037,7 +1017,6 @@
       "sync": "Sincronização"
     },
     "tabs": {
-      "cleanup": "Limpeza",
       "accounts": "Contas",
       "rules": "Regras",
       "appearance": "Aparência",
