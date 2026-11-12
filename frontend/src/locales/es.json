@@ -1186,6 +1186,8 @@
       "unifiedInboxSection": "Bandeja de entrada unificada",
       "unifiedInboxEnabled": "Incluir en la bandeja unificada",
       "unifiedInboxEnabledDesc": "Mostrar los mensajes de esta cuenta en Todas las bandejas, la búsqueda unificada y los recuentos de categorías.",
+      "notificationsEnabled": "Notificaciones",
+      "notificationsEnabledDesc": "Avisar de los correos nuevos de esta cuenta. Si se desactiva, no se genera ninguna alerta push, de escritorio ni en la aplicación, pero la bandeja de entrada, los contadores de no leídos y las reglas siguen funcionando. Una regla «Notificarme» sigue avisando.",
       "categorizationSection": "Categorización de correo",
       "categorizationEnabled": "Activar categorización del buzón",
       "categorizationEnabledDesc": "Clasifica los correos entrantes en pestañas de categorías. Desactivado por defecto.",

@@ -1186,6 +1186,8 @@
       "unifiedInboxSection": "Unified Inbox",
       "unifiedInboxEnabled": "Include in Unified Inbox",
       "unifiedInboxEnabledDesc": "Show messages from this account in All Inboxes, unified search, and category counts.",
+      "notificationsEnabled": "New mail notifications",
+      "notificationsEnabledDesc": "Alert for new mail in this account. When off, no push, desktop or in-app alert is raised, but the inbox, unread counts and rules still work. A “Notify me” rule still alerts.",
       "categorizationSection": "Email Categorization",
       "categorizationEnabled": "Enable inbox categorization",
       "categorizationEnabledDesc": "Sort incoming emails into category tabs. Disabled by default.",

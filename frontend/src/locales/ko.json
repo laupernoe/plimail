@@ -1188,6 +1188,8 @@
       "reindexProgress": "{{synced}} / {{total}} 메시지가 색인화됨",
       "categorizationEnabled": "받은 편지함 분류 활성화",
       "unifiedInboxEnabledDesc": "모든 받은편지함, 통합 검색, 카테고리 개수에 이 계정의 메시지를 표시합니다.",
+      "notificationsEnabled": "알림",
+      "notificationsEnabledDesc": "이 계정의 새 메일을 알립니다. 끄면 푸시, 데스크톱, 앱 내 알림이 표시되지 않지만 받은편지함, 읽지 않은 수, 규칙은 계속 동작합니다. \"알림\" 규칙은 계속 알립니다.",
       "enabledGlobally": "전체에서 활성화됨",
       "errorPasswordRequired": "새 계정에는 비밀번호가 필요합니다",
       "microsoftImapNoteSignIn": "Microsoft는 더 이상 Outlook.com, Hotmail, Live, MSN 사서함의 비밀번호를 받지 않습니다. 대신 Microsoft로 로그인하세요. 앱 비밀번호가 필요 없습니다.",

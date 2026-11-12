@@ -1246,6 +1246,8 @@
       "unifiedInboxSection": "Sjednocená Doručená pošta",
       "unifiedInboxEnabled": "Zahrnout do sjednocené Doručené pošty",
       "unifiedInboxEnabledDesc": "Zobrazovat zprávy z tohoto účtu ve Všech doručených, sjednoceném vyhledávání a počtech kategorií.",
+      "notificationsEnabled": "Oznámení",
+      "notificationsEnabledDesc": "Upozorňovat na novou poštu v tomto účtu. Po vypnutí se nevyvolá žádné push, plošné ani oznámení v aplikaci, ale doručená pošta, počty nepřečtených a pravidla fungují dál. Pravidlo „Upozornit mě“ stále upozorní.",
       "categorizationSection": "Kategorizace e-mailů",
       "categorizationEnabled": "Zapnout kategorizaci Doručené pošty",
       "categorizationEnabledDesc": "Třídit příchozí e-maily do karet kategorií. Ve výchozím nastavení je vypnuto.",

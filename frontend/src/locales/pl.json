@@ -1202,6 +1202,8 @@
       "unifiedInboxSection": "Ujednolicona skrzynka odbiorcza",
       "unifiedInboxEnabled": "Uwzględnij w ujednoliconej skrzynce odbiorczej",
       "unifiedInboxEnabledDesc": "Pokazuj wiadomości z tego konta w widoku „Wszystkie skrzynki”, ujednoliconym wyszukiwaniu i licznikach kategorii.",
+      "notificationsEnabled": "Powiadomienia",
+      "notificationsEnabledDesc": "Powiadamiaj o nowych wiadomościach na tym koncie. Po wyłączeniu nie są wysyłane powiadomienia push, pulpitu ani w aplikacji, ale skrzynka odbiorcza, liczniki nieprzeczytanych i reguły nadal działają. Reguła „Powiadom mnie” nadal powiadamia.",
       "categorizationSection": "Kategoryzowanie poczty",
       "categorizationEnabled": "Włącz kategoryzowanie skrzynki odbiorczej",
       "categorizationEnabledDesc": "Sortuj przychodzące wiadomości do kart kategorii. Domyślnie wyłączone.",

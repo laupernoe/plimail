@@ -1111,6 +1111,8 @@
       "unifiedInboxSection": "Gemeinsamer Posteingang",
       "unifiedInboxEnabled": "Im gemeinsamen Posteingang anzeigen",
       "unifiedInboxEnabledDesc": "Nachrichten dieses Kontos in „Alle Posteingänge“, der gemeinsamen Suche und den Kategoriezählern anzeigen.",
+      "notificationsEnabled": "Benachrichtigungen",
+      "notificationsEnabledDesc": "Bei neuen E-Mails in diesem Konto benachrichtigen. Ist die Option aus, gibt es weder Push-, Desktop- noch In-App-Benachrichtigungen; Posteingang, Ungelesen-Zähler und Regeln funktionieren weiter. Eine Regel „Benachrichtigen“ löst weiterhin aus.",
       "categorizationSection": "E-Mail-Kategorisierung",
       "categorizationEnabled": "Posteingang-Kategorisierung aktivieren",
       "categorizationEnabledDesc": "Eingehende E-Mails in Kategorie-Tabs einteilen. Standardmäßig deaktiviert.",

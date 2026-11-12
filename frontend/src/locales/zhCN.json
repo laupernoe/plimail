@@ -1186,6 +1186,8 @@
       "unifiedInboxSection": "统一收件箱",
       "unifiedInboxEnabled": "包含在统一收件箱中",
       "unifiedInboxEnabledDesc": "在“所有收件箱”、统一搜索和分类计数中显示此账户的邮件。",
+      "notificationsEnabled": "通知",
+      "notificationsEnabledDesc": "在此账户收到新邮件时提醒。关闭后不会发出推送、桌面或应用内提醒，但收件箱、未读计数和规则仍然有效。“通知我”规则仍会提醒。",
       "categorizationSection": "邮件分类",
       "categorizationEnabled": "启用收件箱分类",
       "categorizationEnabledDesc": "将收到的邮件按类别选项卡分类。默认禁用。",

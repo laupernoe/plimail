@@ -5108,7 +5108,19 @@ export class ImapManager {
           }
           // alertMessages: remaining messages not silenced by a mark_read rule, and mail a "Notify
           // me" rule filed elsewhere. A push for one of those opens it by id, in its new folder.
-          const { alertMessages, alertCount, send } = newMailAlerts({ remaining: newMessages, mutedIds, notifyMessages });
+          // Read fresh: the account object here is the one the connection opened with, and the
+          // mute is a setting that takes effect without a reconnect (#762). If the read fails
+          // the account is treated as not muted, so a failure never swallows an alert.
+          let accountMuted = false;
+          if (folder === 'INBOX') {
+            try {
+              const r = await query('SELECT notifications_muted FROM email_accounts WHERE id = $1', [account.id]);
+              accountMuted = r.rows[0]?.notifications_muted === true;
+            } catch (err) {
+              console.warn(`notifications_muted lookup failed for ${logAccount(account)}: ${err.message}`);
+            }
+          }
+          const { alertMessages, alertCount, send } = newMailAlerts({ remaining: newMessages, mutedIds, notifyMessages, accountMuted });
           if (send) this.broadcast({
             type: 'new_messages', accountId: account.id,
             folder, messages: newMessages.slice(-5), count: newMessages.length,

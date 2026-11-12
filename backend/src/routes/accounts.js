@@ -74,14 +74,14 @@ export const SAFE_FIELDS = [
   'imap_host', 'imap_port', 'imap_tls', 'imap_skip_tls_verify',
   'smtp_host', 'smtp_port', 'smtp_tls',
   'auth_user', 'smtp_auth_user', 'oauth_provider', 'oauth_public_client', 'enabled',
-  'include_in_unified_inbox',
+  'include_in_unified_inbox', 'notifications_muted',
   'last_sync', 'sync_error', 'sync_error_code', 'sort_order', 'folder_mappings',
   'signature', 'signature_enabled', 'created_at', 'categorization_enabled',
   'auto_cc_addresses', 'auto_bcc_addresses',
 ];
 // Columns PUT /:id may write. The settings form sends back what GET returned, so every
 // non-secret one must be in SAFE_FIELDS or saving an unrelated edit would write it as empty.
-export const ACCOUNT_UPDATE_FIELDS = ['name', 'sender_name', 'color', 'icon', 'enabled', 'include_in_unified_inbox', 'auth_user', 'auth_pass', 'sort_order', 'imap_host', 'imap_port', 'imap_tls', 'imap_skip_tls_verify', 'smtp_host', 'smtp_port', 'smtp_tls', 'smtp_auth_user', 'smtp_auth_pass', 'folder_mappings', 'signature', 'signature_enabled', 'categorization_enabled', 'auto_cc_addresses', 'auto_bcc_addresses'];
+export const ACCOUNT_UPDATE_FIELDS = ['name', 'sender_name', 'color', 'icon', 'enabled', 'include_in_unified_inbox', 'notifications_muted', 'auth_user', 'auth_pass', 'sort_order', 'imap_host', 'imap_port', 'imap_tls', 'imap_skip_tls_verify', 'smtp_host', 'smtp_port', 'smtp_tls', 'smtp_auth_user', 'smtp_auth_pass', 'folder_mappings', 'signature', 'signature_enabled', 'categorization_enabled', 'auto_cc_addresses', 'auto_bcc_addresses'];
 // What an API token sees of an account (#617): enough to name it, pick a From and draft as the
 // composer does (signature on or off, the automatic Cc and Bcc), and nothing of its settings:
 // no hosts, ports, TLS or login names, signatures or folder mappings.
@@ -313,7 +313,7 @@ router.put('/:id', async (req, res) => {
       const value = ((key === 'auth_pass' || key === 'smtp_auth_pass') && updates[key]) ? encrypt(updates[key])
         : (key === 'smtp_auth_user' || key === 'smtp_auth_pass') ? (updates[key] || null)
         : (key === 'signature') ? sanitizeSignature(updates[key]) || null
-        : (key === 'include_in_unified_inbox') ? !!updates[key]
+        : (key === 'include_in_unified_inbox' || key === 'notifications_muted') ? !!updates[key]
         : updates[key];
       values.push(value);
     }

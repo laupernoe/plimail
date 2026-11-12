@@ -1186,6 +1186,8 @@
       "unifiedInboxSection": "Caixa de entrada unificada",
       "unifiedInboxEnabled": "Incluir na Caixa de entrada unificada",
       "unifiedInboxEnabledDesc": "Mostrar mensagens desta conta em Todas as caixas de entrada, na pesquisa unificada e nas contagens por categoria.",
+      "notificationsEnabled": "Notificações",
+      "notificationsEnabledDesc": "Avisar sobre novos e-mails desta conta. Desativado, nenhum alerta push, de área de trabalho ou no aplicativo é gerado, mas a caixa de entrada, as contagens de não lidos e as regras continuam funcionando. Uma regra “Notificar-me” ainda avisa.",
       "categorizationSection": "Categorização de e-mails",
       "categorizationEnabled": "Ativar categorização da caixa de entrada",
       "categorizationEnabledDesc": "Organizar e-mails recebidos em abas de categoria. Desativado por padrão.",

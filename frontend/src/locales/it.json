@@ -1186,6 +1186,8 @@
       "unifiedInboxSection": "Posta in arrivo unificata",
       "unifiedInboxEnabled": "Includi nella posta unificata",
       "unifiedInboxEnabledDesc": "Mostra i messaggi di questo account in Tutte le caselle, nella ricerca unificata e nei conteggi delle categorie.",
+      "notificationsEnabled": "Notifiche",
+      "notificationsEnabledDesc": "Avvisa per la nuova posta di questo account. Se disattivato, non viene generato alcun avviso push, desktop o nell'app, ma posta in arrivo, conteggi dei non letti e regole continuano a funzionare. Una regola «Avvisami» avvisa comunque.",
       "categorizationSection": "Categorizzazione email",
       "categorizationEnabled": "Abilita categorizzazione",
       "categorizationEnabledDesc": "Ordina le email in arrivo in schede di categoria. Disabilitato per impostazione predefinita.",
