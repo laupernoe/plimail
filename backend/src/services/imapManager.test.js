@@ -512,6 +512,43 @@ describe('insertCopiedSibling', () => {
   });
 });
 
+describe('copyMessage — after the server confirmed the copy', () => {
+  const account = { ...baseAccount, id: 'copy-cache-account', user_id: 'user-1', email_address: 'me@example.test' };
+  async function copyWith(insert) {
+    const client = Object.assign(new EventEmitter(), { usable: true, connect: vi.fn().mockResolvedValue(),
+      close: vi.fn(), logout: vi.fn().mockResolvedValue(), noop: vi.fn().mockResolvedValue(),
+      getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+      messageCopy: vi.fn().mockResolvedValue({ uidValidity: 9n, uidMap: new Map([[100, 5001]]) }) });
+    ImapFlow.mockImplementation(function () { return client; });
+    getConnectionPolicy.mockResolvedValue({ allowPrivateHosts: true, allowInsecureTls: true });
+    resolveForConnection.mockResolvedValue({ host: '127.0.0.1', addresses: ['127.0.0.1'], servername: null });
+    query.mockReset().mockImplementation(sql => {
+      if (sql.includes('FROM email_accounts')) return Promise.resolve({ rows: [account] });
+      if (sql.includes('INSERT INTO messages')) return insert();
+      return Promise.resolve({ rows: [] });
+    });
+    const manager = Object.create(ImapManager.prototype);
+    manager.syncFolderOnDemand = vi.fn().mockResolvedValue();
+    const result = await manager.copyMessage(account.id, 100, 'INBOX', 'Todo');
+    return { result, manager, client };
+  }
+
+  it('reports the copy and syncs the destination when caching it fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { result, manager, client } = await copyWith(() => Promise.reject(new Error('synthetic insert failure')));
+    expect(client.messageCopy).toHaveBeenCalledTimes(1);
+    expect(result).toBe(5001);
+    expect(manager.syncFolderOnDemand).toHaveBeenCalledWith(account, 'Todo');
+    console.error.mockRestore();
+  });
+
+  it('does not sync the destination when the copy was cached', async () => {
+    const { result, manager } = await copyWith(() => Promise.resolve({ rows: [{ id: 'row-new', is_read: true }] }));
+    expect(result).toBe(5001);
+    expect(manager.syncFolderOnDemand).not.toHaveBeenCalled();
+  });
+});
+
 // ── upsertDraftMessageRecord — the row a reopened draft is built from ───────
 
 describe('upsertDraftMessageRecord', () => {

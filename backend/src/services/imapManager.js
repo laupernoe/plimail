@@ -7505,17 +7505,23 @@ export class ImapManager {
       throw err;
     }
 
+    // The server holds the copy from here on. A failed insert must not turn into a reported
+    // failure, which a retry would answer with a second copy, so the destination sync caches it.
+    let cached = false;
     if (newUid != null) {
-      await insertCopiedSibling(accountId, uid, fromFolder, toFolder, newUid);
+      cached = await insertCopiedSibling(accountId, uid, fromFolder, toFolder, newUid)
+        .then(id => id != null, err => {
+          console.error(`copyMessage: caching the copy at uid=${newUid} in ${JSON.stringify(toFolder)} failed, syncing the folder instead: ${err.message}`);
+          return false;
+        });
     }
 
-    if (newUid == null) {
+    if (!cached) {
       // Servers without UIDPLUS confirm COPY but cannot name its destination UID.
       // Pull the target so the folder
       // gains its local sibling row without waiting for the next backfill.
       this.syncFolderOnDemand(account, toFolder)
         .catch(err => console.warn(`Post-copy folder sync failed: ${err.message}`));
-      return null;
     }
 
     return newUid;
