@@ -3,14 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { copyToClipboard } from '../utils/clipboard.js';
 import { useStore } from '../store/index.js';
 import { api } from '../utils/api.js';
-import { getContextMenuPolicy, resolveContextMenuMessage } from '../utils/contextMenuPolicy.js';
 import { downloadEml } from '../utils/downloadEml.js';
 import { isSnoozed } from '../utils/snoozeActions.js';
 import { SNOOZE_DEFAULT_TIME, snoozeCustomUntil, snoozeDefaultDate, snoozeMinDate } from '../utils/snoozeTimes.js';
-import { usePluginCollected } from '../plugins/PluginSlot.jsx';
 import MessageHeaderModal from './MessageHeaderModal.jsx';
 import FolderPathLabel from './FolderPathLabel.jsx';
-import { buildMovePickerSections, movePickerSectionHeading, movePickerFoldersEmpty, runMovePickerAction } from '../utils/folderDisplay.js';
+import { buildMovePickerSections, movePickerSectionHeading, movePickerFoldersEmpty } from '../utils/folderDisplay.js';
 import { useUiScale, descale } from '../hooks/useUiScale.js';
 import { useMobile } from '../hooks/useMobile.js';
 
@@ -26,9 +24,8 @@ export default function ContextMenu({ x, y, message, onClose, onAction, defaultM
   const { t } = useTranslation();
   const uiScale = useUiScale();
   const isMobile = useMobile();
-  // Variants share one menu; the policy removes actions that depend on the center
-  // list or conflict with GTD's Done contract while preserving ordinary mail actions.
-  const menuPolicy = getContextMenuPolicy(variant);
+  // The conversation pane has no list row behind it, so there is nothing to select.
+  const canSelect = variant !== 'conversation';
   const recentFolders = useStore(s => s.recentFolders);
   const favoriteFolders = useStore(s => s.favoriteFolders);
   // Pull the current account so we can render the spam/ham visibility based on
@@ -39,9 +36,6 @@ export default function ContextMenu({ x, y, message, onClose, onAction, defaultM
   const categorizationActive = categorizationEnabled || !!account?.categorization_enabled;
   const menuRef = useRef(null);
   const [headerMessage, setHeaderMessage] = useState(null);
-  // A plugin submenu (render fn) takes over the menu content area, like categorizeView/moveView.
-  // Set via the openSubmenu capability handed to context-menu-item contributions; null = item list.
-  const [pluginSubmenu, setPluginSubmenu] = useState(null);
   const [moveView, setMoveView] = useState(defaultMoveView);
   const [moveFolders, setMoveFolders] = useState(null);
   const [moveFoldersLoading, setMoveFoldersLoading] = useState(defaultMoveView);
@@ -131,19 +125,6 @@ export default function ContextMenu({ x, y, message, onClose, onAction, defaultM
     return () => document.removeEventListener('keydown', handleKey);
   }, [onClose]);
 
-  // Plugin-contributed action items (currently GTD's submenu + sidebar "Done"), spliced into the
-  // Actions group at the seam below. Core stays plugin-agnostic; openSubmenu lets an item take over
-  // the content area with its own submenu render.
-  const pluginActionItems = usePluginCollected('context-menu-actions', {
-    message, account, variant, onAction, onClose,
-    openSubmenu: (render) => setPluginSubmenu(() => render),
-    t,
-  });
-
-  const movePluginSections = usePluginCollected('move-picker-sections', {
-    account, messages: [message], currentFolder: message.folder, onClose, t,
-  });
-
   const items = [
     ...(isMessagePane ? [
       {
@@ -209,7 +190,7 @@ export default function ContextMenu({ x, y, message, onClose, onAction, defaultM
           </svg>,
           action: () => onAction('toggleStar'),
         },
-        ...(!menuPolicy.select ? [] : [{
+        ...(!canSelect ? [] : [{
           label: t('contextMenu.select'),
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg>,
           action: () => onAction('bulkSelect'),
@@ -219,7 +200,7 @@ export default function ContextMenu({ x, y, message, onClose, onAction, defaultM
     {
       group: 'Actions',
       actions: [
-        ...(!menuPolicy.compose ? [] : [{
+        {
           label: t('contextMenu.reply'),
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 00-4-4H4"/></svg>,
           action: () => onAction('reply'),
@@ -239,7 +220,7 @@ export default function ContextMenu({ x, y, message, onClose, onAction, defaultM
           label: t('contextMenu.forwardAsAttachment'),
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>,
           action: () => onAction('forwardAsAttachment'),
-        }]),
+        },
         {
           label: t('contextMenu.moveToFolder'),
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>,
@@ -247,12 +228,12 @@ export default function ContextMenu({ x, y, message, onClose, onAction, defaultM
           keepOpen: true,
           hasSubmenu: true,
         },
-        ...(!menuPolicy.archive ? [] : [{
+        {
           label: t('contextMenu.archive'),
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a1 1 0 001 1h14a1 1 0 001-1V8"/><polyline points="9 13 12 16 15 13"/><line x1="12" y1="11" x2="12" y2="16"/></svg>,
           action: () => onAction('archive'),
-        }]),
-        ...(!isSnoozed(message) && menuPolicy.snooze ? [{
+        },
+        ...(!isSnoozed(message) ? [{
           label: t('contextMenu.snooze.label'),
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
           action: () => setSnoozeView(true),
@@ -260,7 +241,7 @@ export default function ContextMenu({ x, y, message, onClose, onAction, defaultM
           hasSubmenu: true,
         }] : []),
         // A snoozed message (#269): change when it comes back, with the same picker, or bring it back now.
-        ...(isSnoozed(message) && menuPolicy.snooze ? [{
+        ...(isSnoozed(message) ? [{
           label: t('contextMenu.snooze.change'),
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
           action: () => setSnoozeView(true),
@@ -271,17 +252,14 @@ export default function ContextMenu({ x, y, message, onClose, onAction, defaultM
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>,
           action: () => onAction('unsnooze'),
         }] : []),
-        ...(categorizationActive && menuPolicy.categorize ? [{
+        ...(categorizationActive ? [{
           label: t('contextMenu.categorize'),
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
           action: () => setCategorizeView('message'),
           keepOpen: true,
           hasSubmenu: true,
         }] : []),
-        // Plugin-contributed items (GTD's submenu + sidebar "Done") slot in here, exactly where the
-        // GTD entries used to sit — after "Categorize", before "Create rule".
-        ...pluginActionItems,
-        ...(!menuPolicy.rules ? [] : [{
+        {
           label: t('contextMenu.createRule'),
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
           action: () => onAction('createRuleFromMessage'),
@@ -290,24 +268,24 @@ export default function ContextMenu({ x, y, message, onClose, onAction, defaultM
           label: t('contextMenu.addToBlockList'),
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>,
           action: () => onAction('addToBlockList'),
-        }]),
+        },
         // Spam / ham are only shown when there's a real destination for the
         // action: "Mark as Spam" when the message isn't already in a spam-like
         // folder, "Mark as Not Spam" when it is. They live next to "Move to
         // folder" so the antispam workflow stays discoverable.
-        ...(spamFolderPaths.size > 0 && !inSpamFolder && menuPolicy.spam ? [{
+        ...(spamFolderPaths.size > 0 && !inSpamFolder ? [{
           label: t('contextMenu.markAsSpam'),
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M12 3L4 7v5c0 5 3.5 9.3 8 10.3C16.5 21.3 20 17 20 12V7L12 3z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
           action: () => onAction('markSpam'),
         }] : []),
-        ...(inSpamFolder && menuPolicy.spam ? [{
+        ...(inSpamFolder ? [{
           label: t('contextMenu.markAsHam'),
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M12 3L4 7v5c0 5 3.5 9.3 8 10.3C16.5 21.3 20 17 20 12V7L12 3z"/><polyline points="9 12 11 14 15 10"/></svg>,
           action: () => onAction('markHam'),
         }] : []),
       ]
     },
-    ...(!(menuPolicy.copy || menuPolicy.viewHeaders) ? [] : [{
+    {
       group: 'Copy',
       actions: [
         {
@@ -340,31 +318,17 @@ export default function ContextMenu({ x, y, message, onClose, onAction, defaultM
         {
           label: t('contextMenu.viewHeaders'),
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
-          action: async () => {
-            try {
-              setHeaderMessage(await resolveContextMenuMessage(message, variant, api.resolveMessage));
-            } catch (err) {
-              console.error('Message header resolution failed:', err.message);
-            }
-          },
+          action: () => setHeaderMessage(message),
           keepOpen: true,
         },
         {
-          // Raw RFC 822 source as an .eml file (#381). Resolved like View headers, so GTD rows
-          // download the current copy of the message rather than a stale row.
+          // Raw RFC 822 source as an .eml file (#381).
           label: t('message.downloadEml'),
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
-          action: async () => {
-            try {
-              const resolved = await resolveContextMenuMessage(message, variant, api.resolveMessage);
-              downloadEml(resolved?.id);
-            } catch (err) {
-              console.error('Message resolution for .eml download failed:', err.message);
-            }
-          },
+          action: () => downloadEml(message.id),
         },
       ]
-    }]),
+    },
     {
       group: 'Danger',
       actions: [
@@ -444,11 +408,7 @@ export default function ContextMenu({ x, y, message, onClose, onAction, defaultM
           </div>
         )}
 
-        {pluginSubmenu ? (
-          // A plugin item opened its own submenu (e.g. GTD's classify/remove list). It renders its
-          // own back row; onBack returns to the item list.
-          pluginSubmenu(() => setPluginSubmenu(null))
-        ) : categorizeView ? ((() => {
+        {categorizeView ? ((() => {
           // "Always for this sender/domain" needs an address to match on (#490).
           const sender = String(message.from_email || '').trim().toLowerCase();
           const at = sender.lastIndexOf('@');
@@ -704,7 +664,7 @@ export default function ContextMenu({ x, y, message, onClose, onAction, defaultM
               ) : (() => {
                 const sections = buildMovePickerSections({
                   folders: moveFolders || [], recents: recentFolders, favorites: favoriteFolders,
-                  pluginSections: movePluginSections, accountId: message.account_id,
+                  accountId: message.account_id,
                   currentFolder: message.folder, query: folderSearch,
                 });
                 const foldersEmpty = movePickerFoldersEmpty(sections, moveFolders);
@@ -717,18 +677,11 @@ export default function ContextMenu({ x, y, message, onClose, onAction, defaultM
                           {heading}
                         </div>
                       )}
-                      {section.rows.map(row => row.kind === 'action' ? (
+                      {section.folders.map(folder => (
                         <FolderMenuItem
-                          key={`action-${row.item.key}`}
-                          icon={row.item.renderIcon(13)}
-                          label={row.item.label}
-                          onClick={() => runMovePickerAction(row.item, onClose)}
-                        />
-                      ) : (
-                        <FolderMenuItem
-                          key={row.folder.path}
-                          folder={row.folder}
-                          onClick={() => { onAction('moveTo', row.folder.path); onClose(); }}
+                          key={folder.path}
+                          folder={folder}
+                          onClick={() => { onAction('moveTo', folder.path); onClose(); }}
                         />
                       ))}
                       {(i < sections.length - 1 || foldersEmpty) && <div style={{ height: 1, background: 'var(--border-subtle)', margin: '3px 0' }} />}
@@ -817,11 +770,10 @@ function MenuItem({ icon, label, onClick, danger, hasSubmenu, disabled }) {
   );
 }
 
-function FolderMenuItem({ folder, icon: iconOverride, label, onClick }) {
+function FolderMenuItem({ folder, onClick }) {
   const [hov, setHov] = useState(false);
-  const su = (folder?.special_use || '').toLowerCase();
-  const icon = iconOverride ? iconOverride
-    : su.includes('sent')
+  const su = (folder.special_use || '').toLowerCase();
+  const icon = su.includes('sent')
     ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     : su.includes('trash')
     ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
@@ -846,7 +798,7 @@ function FolderMenuItem({ folder, icon: iconOverride, label, onClick }) {
       }}
     >
       <span style={{ flexShrink: 0, color: 'var(--text-tertiary)', display: 'flex' }}>{icon}</span>
-      {folder ? <FolderPathLabel folder={folder} label={folder.favoriteLabel} /> : <FolderPathLabel label={label} />}
+      <FolderPathLabel folder={folder} label={folder.favoriteLabel} />
     </div>
   );
 }

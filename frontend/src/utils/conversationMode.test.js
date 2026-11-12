@@ -44,7 +44,6 @@ describe('conversationModeTransition', () => {
       expandedThreadId: null,
       threadMessages: {},
       selectedMessageId: null,
-      selectedMessageSource: null,
     });
   });
 });

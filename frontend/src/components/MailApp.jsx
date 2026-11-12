@@ -12,9 +12,8 @@ import { closeOpenMessage } from '../utils/closeMessage.js';
 import { updateFaviconBadge } from '../themes.js';
 import { installResumeRefresh } from '../utils/resumeRefresh.js';
 import { shortcutBus } from '../utils/shortcutBus.js';
-import { dispatchHoveredGtdShortcut } from '../utils/gtdHoveredRow.js';
 import { runMailboxShortcut, canRunMailboxShortcut, browserShortcutFallback } from '../utils/visibleMailboxes.js';
-import { canRunSelectedAction, canRunGlobalAction } from '../utils/shortcutApplicability.js';
+import { canRunSelectedAction } from '../utils/shortcutApplicability.js';
 import { selectedPickerMessage } from '../utils/labelPicker.js';
 import { applyMarkRead } from '../utils/markRead.js';
 import { buildKeyMap, resolveShortcutAction, shortcutActionText, getEffectiveShortcuts, getGroupedActions, parseModKey, modLabel, SPECIAL_KEYS, SPECIAL_KEY_LABELS } from '../utils/defaultShortcuts.js';
@@ -24,7 +23,6 @@ import ReadingPane from './ReadingPane.jsx';
 import NotificationToasts from './NotificationToasts.jsx';
 import CommandPalette from './CommandPalette.jsx';
 import BusinessNotice from './BusinessNotice.jsx';
-import { usePluginSlot, PluginRuntime } from '../plugins/PluginSlot.jsx';
 import { takePendingDeepLink, watchPendingDeepLink } from '../utils/pendingDeepLink.js';
 import { scheduledFeed } from '../utils/scheduledFeed.js';
 import { noticeToast, scheduledLinkId } from '../utils/scheduledView.js';
@@ -65,8 +63,6 @@ export default function MailApp() {
     fontSize, showAppBadge, showFaviconBadge,
     sidebarWidth, setSidebarWidth, setIsSidebarResizing,
     showContacts, showCalendar, setTodoistConnected,
-    accounts, rightSidebarWidth, setRightSidebarWidth, isRightSidebarResizing, setIsRightSidebarResizing,
-    rightSidebarHidden, toggleRightSidebarHidden,
   } = useStore();
   const syncInterval = useStore(s => s.syncInterval);
   const autoLockMinutes = useStore(s => s.autoLockMinutes);
@@ -125,12 +121,6 @@ export default function MailApp() {
   const sidebarDragRef = useRef(null);
   const sidebarResizeRef = useRef(null);
   const listResizeRef = useRef(null);
-  const rightSidebarResizeRef = useRef(null);
-
-  // Keep the right sidebar's width CSS var in sync with the persisted preference.
-  useEffect(() => {
-    document.documentElement.style.setProperty('--right-sidebar-width', rightSidebarWidth + 'px');
-  }, [rightSidebarWidth]);
 
   const handleSidebarResizeMouseDown = (e) => {
     e.preventDefault();
@@ -174,12 +164,6 @@ export default function MailApp() {
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
       }
-      if (rightSidebarResizeRef.current) {
-        document.removeEventListener('mousemove', rightSidebarResizeRef.current.onMouseMove);
-        document.removeEventListener('mouseup', rightSidebarResizeRef.current.onMouseUp);
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-      }
     };
   }, []);
 
@@ -188,18 +172,6 @@ export default function MailApp() {
   // returns to the list, as on a phone.
   const listFirst = !isMobile && Boolean(currentLayout.listFirst);
   const singleView = isMobile || listFirst;
-
-  // Shortcut hint (e.g. "⌘/") for the collapse/expand tooltips, derived from the
-  // live shortcut map via the existing helpers — no new plumbing. '' when unbound.
-  const rightSidebarToggleParsed = parseModKey(getEffectiveShortcuts(shortcuts).toggleRightSidebar);
-  const rightSidebarToggleHint = rightSidebarToggleParsed ? `${modLabel(rightSidebarToggleParsed.mod)}${rightSidebarToggleParsed.bare}` : '';
-  // The right sidebar renders when a plugin supplies content for the 'right-sidebar' slot. Core is
-  // plugin-agnostic here — it places the seam; a plugin (currently GTD) fills it. The layout/shortcut
-  // infrastructure below keys off whether any content exists, not off any specific feature.
-  const rightSidebarCtx = { accounts, selectedAccountId, onCollapse: toggleRightSidebarHidden, toggleHint: rightSidebarToggleHint };
-  const rightSidebarProviders = usePluginSlot('right-sidebar', rightSidebarCtx);
-  const rightSidebarContent = rightSidebarProviders.length ? rightSidebarProviders[0].render(rightSidebarCtx) : null;
-  const rightSidebarApplicable = !isMobile && currentLayout.direction === 'row' && rightSidebarContent != null;
 
   const handleListResizeMouseDown = (e) => {
     e.preventDefault();
@@ -225,38 +197,6 @@ export default function MailApp() {
     };
 
     listResizeRef.current = { onMouseMove, onMouseUp };
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  };
-
-  // Right-sidebar resize — its own width var + handle, independent of --list-width.
-  // The handle sits to its left, so dragging left widens the sidebar.
-  const handleRightSidebarResizeMouseDown = (e) => {
-    e.preventDefault();
-    const startX = e.clientX;
-    const startWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--right-sidebar-width')) || rightSidebarWidth || 296;
-    setIsRightSidebarResizing(true);
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-
-    const onMouseMove = (mv) => {
-      const dx = mv.clientX - startX;
-      const clamped = Math.max(200, Math.min(600, startWidth - dx));
-      document.documentElement.style.setProperty('--right-sidebar-width', clamped + 'px');
-    };
-
-    const onMouseUp = () => {
-      setIsRightSidebarResizing(false);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-      rightSidebarResizeRef.current = null;
-      const finalWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--right-sidebar-width'));
-      if (finalWidth) setRightSidebarWidth(finalWidth);
-    };
-
-    rightSidebarResizeRef.current = { onMouseMove, onMouseUp };
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
   };
@@ -633,16 +573,11 @@ export default function MailApp() {
     };
 
     const canRun = (action) => {
-      if (!canRunGlobalAction(action, { rightSidebarApplicable })) return false;
       if (!canRunSelectedAction(action, useStore.getState())) return false;
       if (action === 'toggleLeftSidebar' || /^goVisibleMailbox[1-9]$/.test(action)) {
         return canRunMailboxShortcut(action, document.querySelector('[data-mailbox-sidebar]'));
       }
       return true;
-    };
-
-    const dispatchAction = action => {
-      if (!dispatchHoveredGtdShortcut(action, useStore.getState())) shortcutBus.emit(action);
     };
 
     const handler = (e) => {
@@ -653,7 +588,7 @@ export default function MailApp() {
       // The registry resolves the exact modifier set, including shifted punctuation.
       if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) {
         const action = resolveShortcutAction(e, shortcuts);
-        if (action && canRun(action)) { e.preventDefault(); dispatchAction(action); }
+        if (action && canRun(action)) { e.preventDefault(); shortcutBus.emit(action); }
         return;
       }
 
@@ -678,7 +613,7 @@ export default function MailApp() {
         ? keyMap[resolved] || browserShortcutFallback(resolved) : resolveShortcutAction(e, shortcuts);
       if (action && canRun(action)) {
         e.preventDefault();
-        dispatchAction(action);
+        shortcutBus.emit(action);
         return;
       }
 
@@ -708,7 +643,7 @@ export default function MailApp() {
       document.removeEventListener('keydown', handler);
       clearPending();
     };
-  }, [shortcuts, isMobile, rightSidebarApplicable]);
+  }, [shortcuts, isMobile]);
 
   // Subscribe to global actions that MailApp owns
   useEffect(() => {
@@ -725,14 +660,6 @@ export default function MailApp() {
       shortcutBus.off('showHelp',  onShowHelp);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Whole right-sidebar collapse toggle (cmd+/). Re-subscribed when applicability
-  // flips so the handler never toggles a sidebar that is not rendered.
-  useEffect(() => {
-    const onToggleRightSidebar = () => { if (rightSidebarApplicable) toggleRightSidebarHidden(); };
-    shortcutBus.on('toggleRightSidebar', onToggleRightSidebar);
-    return () => shortcutBus.off('toggleRightSidebar', onToggleRightSidebar);
-  }, [rightSidebarApplicable, toggleRightSidebarHidden]);
 
   useEffect(() => {
     const openPicker = () => {
@@ -964,64 +891,6 @@ export default function MailApp() {
               <ReadingPane />
               </>
               )}
-              {/* Generic right-sidebar column, populated from the content seam above. */}
-              {currentLayout.direction === 'row' && rightSidebarContent != null && (
-                <>
-                  {/* Resize handle is omitted while the sidebar is hidden. */}
-                  {!rightSidebarHidden && (
-                    <div
-                      onMouseDown={handleRightSidebarResizeMouseDown}
-                      style={{
-                        width: 4, flexShrink: 0, cursor: 'col-resize',
-                        background: 'var(--border-subtle)',
-                        transition: 'background 0.15s',
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = 'var(--border-subtle)'; }}
-                    />
-                  )}
-                  {/* Column wrapper collapses its width when hidden (message list reflows);
-                      the inner block keeps its full width and slides off the right edge.
-                      overflow:hidden clips the sidebar as it slides, kept mounted so both
-                      directions animate. */}
-                  <div style={{
-                    position: 'relative', flexShrink: 0, overflow: 'hidden', height: '100%',
-                    width: rightSidebarHidden ? 0 : 'var(--right-sidebar-width, 296px)',
-                    // Disabled while dragging (mirrors Sidebar's isSidebarResizing guard):
-                    // otherwise every mousemove's CSS-var write would animate toward the new
-                    // width instead of tracking the cursor.
-                    transition: isRightSidebarResizing ? 'none' : 'width 0.2s ease',
-                  }}>
-                    <div style={{
-                      width: 'var(--right-sidebar-width, 296px)', height: '100%',
-                      transform: rightSidebarHidden ? 'translateX(100%)' : 'translateX(0)',
-                      transition: 'transform 0.2s ease',
-                    }}>
-                      {rightSidebarContent}
-                    </div>
-                  </div>
-                  {/* Slim always-visible reopen affordance pinned to the right edge. */}
-                  {rightSidebarHidden && (
-                    <button
-                      onClick={toggleRightSidebarHidden}
-                      aria-label={t('rightSidebar.show')}
-                      title={rightSidebarToggleHint ? `${t('rightSidebar.show')} (${rightSidebarToggleHint})` : t('rightSidebar.show')}
-                      style={{
-                        width: 18, flexShrink: 0, cursor: 'pointer', padding: 0,
-                        border: 'none', borderLeft: '1px solid var(--border)',
-                        background: 'var(--bg-secondary)', color: 'var(--text-tertiary)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'var(--bg-hover)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'var(--bg-secondary)'; }}
-                    >
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <polyline points="15 18 9 12 15 6" />
-                      </svg>
-                    </button>
-                  )}
-                </>
-              )}
             </div>
           </div>
         </>
@@ -1035,7 +904,6 @@ export default function MailApp() {
       <Suspense fallback={null}>{hasNativeBridge && <ElectronNotificationBridge />}</Suspense>
       <NotificationToasts />
       <BusinessNotice hidden={composing || showAdmin || (isMobile && mobileSidebarOpen)} />
-      <PluginRuntime />
       <CommandPalette open={paletteOpen} labelPickerMessage={labelPickerMessage}
         onClose={() => { setPaletteOpen(false); setLabelPickerMessage(null); }} />
 

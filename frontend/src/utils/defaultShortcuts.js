@@ -37,7 +37,6 @@ export const ACTION_DEFS = {
     return [action, { groupKey: 'shortcuts.groups.navigation', labelKey: `shortcuts.actions.${action}.label`, descriptionKey: `shortcuts.actions.${action}.description`, defaultKey: `ctrl+${n}` }];
   })),
   openLabelPicker: { groupKey: 'shortcuts.groups.navigation', labelKey: 'shortcuts.actions.openLabelPicker.label', descriptionKey: 'shortcuts.actions.openLabelPicker.description', defaultKey: 'ctrl+l' },
-  toggleRightSidebar: { groupKey: 'shortcuts.groups.navigation', labelKey: 'shortcuts.actions.toggleRightSidebar.label', descriptionKey: 'shortcuts.actions.toggleRightSidebar.description', defaultKey: 'ctrl+/' },
 
   // ── Message actions ────────────────────────────────────────────────────────
   reply:         { groupKey: 'shortcuts.groups.messageActions', labelKey: 'shortcuts.actions.reply.label',         descriptionKey: 'shortcuts.actions.reply.description',         defaultKey: 'r'  },
@@ -52,21 +51,9 @@ export const ACTION_DEFS = {
   toggleStar:    { groupKey: 'shortcuts.groups.messageActions', labelKey: 'shortcuts.actions.toggleStar.label',    descriptionKey: 'shortcuts.actions.toggleStar.description',    defaultKey: 's'  },
   toggleRead:    { groupKey: 'shortcuts.groups.messageActions', labelKey: 'shortcuts.actions.toggleRead.label',    descriptionKey: 'shortcuts.actions.toggleRead.description',    defaultKey: 'm'  },
   selectMessage: { groupKey: 'shortcuts.groups.messageActions', labelKey: 'shortcuts.actions.selectMessage.label', descriptionKey: 'shortcuts.actions.selectMessage.description', defaultKey: 'x'      },
-  // #449: undoes the newest still-pending undo toast — archive/delete/move/spam AND GTD
-  // classifications, whose undos are the same kind of notification. Supersedes the old
-  // GTD-only gtdUndo on this key; a stored gtdUndo override is simply ignored.
+  // #449: undoes the newest still-pending undo toast (archive/delete/move/spam).
   undoAction:    { groupKey: 'shortcuts.groups.messageActions', labelKey: 'shortcuts.actions.undoAction.label',    descriptionKey: 'shortcuts.actions.undoAction.description',    defaultKey: 'ctrl+z' },
   printMessage:  { groupKey: 'shortcuts.groups.messageActions', labelKey: 'shortcuts.actions.printMessage.label',  descriptionKey: 'shortcuts.actions.printMessage.description',  defaultKey: 'ctrl+p' },
-
-  // ── GTD ──────────────────────────────────────────────────────────────────────
-  // Classify the selected message into a GTD state (COPY into its label folder).
-  // Reference and Someday default to v/b; Done uses Shift+E.
-  gtdTodo:       { groupKey: 'shortcuts.groups.gtd',            labelKey: 'shortcuts.actions.gtdTodo.label',       descriptionKey: 'shortcuts.actions.gtdTodo.description',       defaultKey: 't' },
-  gtdWatch:      { groupKey: 'shortcuts.groups.gtd',            labelKey: 'shortcuts.actions.gtdWatch.label',      descriptionKey: 'shortcuts.actions.gtdWatch.description',      defaultKey: 'w' },
-  gtdDelegated:  { groupKey: 'shortcuts.groups.gtd',            labelKey: 'shortcuts.actions.gtdDelegated.label',  descriptionKey: 'shortcuts.actions.gtdDelegated.description',  defaultKey: 'd' },
-  gtdReference: { groupKey: 'shortcuts.groups.gtd', labelKey: 'gtd.state.reference', descriptionKey: 'shortcuts.actions.gtdReference.description', defaultKey: 'v' },
-  gtdSomeday: { groupKey: 'shortcuts.groups.gtd', labelKey: 'gtd.state.someday', descriptionKey: 'shortcuts.actions.gtdSomeday.description', defaultKey: 'b' },
-  gtdDone: { groupKey: 'shortcuts.groups.gtd', labelKey: 'gtd.done', descriptionKey: 'shortcuts.actions.gtdDone.description', defaultKey: 'shift+e' },
 };
 
 // Returns the effective shortcut map: action → key, with user overrides applied.

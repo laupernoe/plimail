@@ -913,45 +913,6 @@
       "search": "Hledat složky…"
     }
   },
-  "gtd": {
-    "oldestLabeledAge": "{{state}}: stáří nejstarší zprávy s tímto štítkem (dny): {{count}}",
-    "title": "GTD",
-    "inbox": "Doručené",
-    "waiting": "Čeká se",
-    "inboxZero": "Prázdná schránka ✓",
-    "allClear": "Vše vyřízeno",
-    "allClearHint": "Nic nečeká na vaše vyřízení.",
-    "showAll": "Zobrazit vše ({{count}})",
-    "showSome": "Zobrazit {{available}} z {{total}}",
-    "showLess": "Zobrazit méně",
-    "toggleSection": "Zobrazit nebo skrýt {{section}}",
-    "tabEmpty": "Zatím tu nic není",
-    "removeFrom": "Odebrat ze stavu {{state}}",
-    "classified": "Štítek použit",
-    "classifiedMany": "Štítek {{state}} použit u {{count}}",
-    "classifiedSome": "Štítek {{state}} použit u {{count}} z {{total}}",
-    "classifyFailed": "Štítek se nepodařilo použít",
-    "removed": "Štítek odebrán",
-    "removeFailed": "Štítek se nepodařilo odebrat",
-    "onlyCopy": "Toto je jediná kopie zprávy, odebráním štítku by se smazala. Místo toho ji archivujte nebo přesuňte.",
-    "labelChanged": "Tento štítek se na serveru změnil a nebyl odebrán. Obnovte stránku a zkuste to znovu.",
-    "done": "Označit jako hotové",
-    "doneFailed": "Nepodařilo se označit jako hotové",
-    "doneArchiveFailed": "Označeno jako hotové, ale archivace se nezdařila — zpráva zůstává v Doručené poště",
-    "doneThreadRemains": "Některé zprávy v této konverzaci nebylo možné odebrat, proto zůstává ve své sekci GTD",
-    "state": {
-      "todo": "K vyřízení",
-      "watch": "Sledovat",
-      "delegated": "Delegováno",
-      "someday": "Někdy",
-      "reference": "Reference"
-    },
-    "undoFailed": "Štítek se nepodařilo vrátit zpět"
-  },
-  "rightSidebar": {
-    "hide": "Skrýt pravý postranní panel",
-    "show": "Zobrazit pravý postranní panel"
-  },
   "shortcuts": {
     "title": "Klávesové zkratky",
     "customizeHint": "Zkratky můžete upravit v Nastavení → Zkratky",
@@ -965,8 +926,7 @@
     "groups": {
       "composeSearch": "Psaní a hledání",
       "navigation": "Navigace",
-      "messageActions": "Akce se zprávami",
-      "gtd": "GTD"
+      "messageActions": "Akce se zprávami"
     },
     "actions": {
       "toggleLeftSidebar": {
@@ -1060,31 +1020,6 @@
       "printMessage": {
         "label": "Vytisknout",
         "description": "Vytisknout aktuální zprávu"
-      },
-      "gtdTodo": {
-        "label": "Označit K vyřízení",
-        "description": "Zařadit vybranou zprávu jako K vyřízení"
-      },
-      "gtdWatch": {
-        "label": "Označit Sledovat",
-        "description": "Zařadit vybranou zprávu jako Sledovat"
-      },
-      "gtdDelegated": {
-        "label": "Označit Delegováno",
-        "description": "Zařadit vybranou zprávu jako Delegováno"
-      },
-      "gtdReference": {
-        "description": "Zařadit vybranou zprávu jako Podklady"
-      },
-      "gtdSomeday": {
-        "description": "Zařadit vybranou zprávu jako Někdy"
-      },
-      "gtdDone": {
-        "description": "Dokončit vybranou zprávu GTD"
-      },
-      "toggleRightSidebar": {
-        "label": "Pravý postranní panel",
-        "description": "Skrýt nebo zobrazit pravý postranní panel"
       }
     }
   },
@@ -1283,7 +1218,6 @@
       "groupAiExtensions": "AI a rozšíření",
       "groupAdmin": "Správa",
       "behavior": "Chování",
-      "plugins": "Pluginy",
       "backup": "Záloha",
       "mailSignIn": "Poskytovatelé e-mailu",
       "groupCalendar": "Kalendář",
@@ -1314,9 +1248,7 @@
       "recategorize": "Znovu zařadit",
       "recategorizing": "Zpracování…",
       "recategorized": "Opětovné zařazení bylo spuštěno.",
-      "selectAccount": "Vyberte účet",
-      "gtdReveal": "GTD",
-      "gtdRevealDesc": "Zobrazí níže nastavení GTD pro jednotlivé účty; každý účet má vlastní přepínač zapnutí a vypnutí."
+      "selectAccount": "Vyberte účet"
     },
     "about": {
       "subtitle": "Open-source e-mailový klient pro vlastní hosting",
@@ -1640,15 +1572,6 @@
       "connectionLost": "Během obnovení se přerušilo spojení, takže výsledek není znám. Tato stránka se znovu načte, jakmile MailFlow opět odpoví; pak zkontrolujte, zda jsou data obnovená.",
       "tooLarge": "Soubor je větší, než povoluje proxy před MailFlow."
     },
-    "plugins": {
-      "title": "Pluginy",
-      "description": "Zapněte nebo vypněte volitelné funkce svého účtu. Zapnutím pluginu přidáte jeho vlastní nastavení a rozhraní.",
-      "activated": "Aktivováno",
-      "deactivated": "Neaktivováno",
-      "empty": "V tomto sestavení nejsou dostupné žádné pluginy.",
-      "error": "Plugin se nepodařilo aktualizovat. Zkuste to znovu.",
-      "configureIn": "Možnosti nastavíte v části {{location}}"
-    },
     "messageList": {
       "autoOpenReplyDrafts": "Automaticky otevírat uložené odpovědi při výběru zpráv v doručené poště",
       "title": "Seznam zpráv",
@@ -1749,38 +1672,6 @@
       "markReadDelaySeconds_one": "{{count}} sekunda",
       "markReadDelaySeconds_few": "{{count}} sekundy",
       "markReadDelaySeconds_many": "{{count}} sekundy"
-    },
-    "gtd": {
-      "description": "Proměňte MailFlow v systém GTD. Zapněte jej pro jednotlivé účty a potom přiřaďte každý stav ke složce IMAP, která obsahuje jeho štítek.",
-      "noAccounts": "Pro nastavení GTD nejprve přidejte e-mailový účet.",
-      "enableDesc": "GTD je zapnuté. Štítky se synchronizují jako složky a stavy se mění automaticky.",
-      "enableHint": "Zapnout štítky GTD a automatické přechody stavů pro tento účet.",
-      "foldersTitle": "Složky štítků",
-      "foldersDesc": "Každý stav GTD odpovídá složce IMAP. Chcete-li použít výchozí název, ponechte pole prázdné.",
-      "savedOk": "Mapování složek bylo uloženo.",
-      "saveFailed": "Mapování složek se nepodařilo uložit.",
-      "createFolders": "Vytvořit chybějící složky",
-      "creating": "Vytváření…",
-      "createResult": "Vytvořeno: {{created}}, již existovalo: {{existing}}.",
-      "createFailed": "Složky se nepodařilo vytvořit.",
-      "duplicateFolder": "Tyto stavy GTD jsou přiřazeny stejné složce: {{states}}. Každému stavu přiřaďte jinou složku.",
-      "rejectedFolders": "Některé názvy složek byly neplatné a byly obnoveny na výchozí hodnoty: {{states}}.",
-      "pet": {
-        "title": "Mazlíček pro prázdnou schránku",
-        "description": "Nahraďte výchozího psa při dosažení prázdné schránky vlastním mazlíčkem.",
-        "clear": "Použít výchozího psa",
-        "current": "Aktuální mazlíček: {{slug}}",
-        "usingDog": "Používá se výchozí pes.",
-        "hoverHint": "Animaci spustíte najetím.",
-        "importTitle": "Importovat vlastního",
-        "importHint": "Nahrajte pet.json a obrázek se sprity (PNG, WebP nebo GIF).",
-        "chooseJson": "Soubor pet.json",
-        "chooseSheet": "Obrázek se sprity",
-        "import": "Importovat",
-        "importing": "Importování…",
-        "imported": "Importován {{name}} — pohyb uvidíte po najetí na náhled.",
-        "importFailed": "Tohoto mazlíčka se nepodařilo importovat."
-      }
     },
     "lock": {
       "title": "Zámek obrazovky",

@@ -23,11 +23,8 @@ import { SCHEDULED_VIEW } from '../utils/scheduledCompose.js';
 import { applyListOrder, isSortableList, listOrderFor } from '../utils/listSort.js';
 import ListSortMenu from './ListSortMenu.jsx';
 import { useListFirst } from '../hooks/useListFirst.js';
-import GtdTabList from './GtdTabList.jsx';
 import { useUiScale, descale } from '../hooks/useUiScale.js';
-import {
-  gtdActiveForContext, buildGtdDisplaySections, GTD_COLORS, GTD_CHIP_BG, sectionBadge, isSelectedRow,
-} from '../utils/gtd.js';
+import { isSelectedRow } from '../utils/messageIdentity.js';
 import { formatDate, formatDateTime, formatSnoozeUntil } from '../utils/formatDate.js';
 import { SNOOZED_FOLDER, unsnooze, changeSnooze, refreshCounts } from '../utils/snoozeActions.js';
 import { advanceSelectionAfterRemoval, registerRowOpener } from '../utils/listSelection.js';
@@ -39,12 +36,10 @@ import SenderAvatarImage from './SenderAvatarImage.jsx';
 import FolderPathLabel from './FolderPathLabel.jsx';
 import {
   folderDisplayName, folderDisplayNameForPath, folderRole, buildMovePickerSections, movePickerSectionHeading,
-  movePickerFoldersEmpty, runMovePickerAction,
+  movePickerFoldersEmpty,
 } from '../utils/folderDisplay.js';
-import { usePluginCollected } from '../plugins/PluginSlot.jsx';
 import SpamBadge from './SpamBadge.jsx';
 import ReplyDraftIndicator from './ReplyDraftIndicator.jsx';
-import { PluginSlot } from '../plugins/PluginSlot.jsx';
 import SpamExplainModal from './SpamExplainModal.jsx';
 import { shortcutBus } from '../utils/shortcutBus.js';
 import { createLatestRequest } from '../utils/latestRequest.js';
@@ -166,14 +161,10 @@ function MailboxList() {
     categorizationEnabled, categoryCounts, categoryTotals, setCategoryCounts, adjustCategoryCount,
     markReadBehavior, markReadDelay,
     searchAllFolders,
-    activeGtdTab, setActiveGtdTab, gtdSections, enabledPlugins,
     openMessageWindow,
   } = useStore();
-  // GTD's UI surfaces (pills, rail, per-row "done") gate on the GTD plugin being activated for the
-  // user, on top of each account's gtd_enabled — deactivating hides them entirely.
-  const gtdPluginActive = enabledPlugins.includes('gtd');
   // RFC message_id of the open message, so a row highlights when it is a different DB copy
-  // of the selected message (multi-folder model) — e.g. the inbox copy of a GTD sidebar click.
+  // of the selected message (multi-folder model) — e.g. the inbox copy of a label-folder click.
   const selectedMid = useStore(selectSelectedMessageMid);
   const selectedAcct = useStore(selectSelectedMessageAccountId);
 
@@ -277,7 +268,7 @@ function MailboxList() {
   const layoutPickerRef = useRef(null);
 
   useEffect(() => { currentPageRef.current = currentPage; }, [currentPage]);
-  useEffect(() => { setActiveCategory('primary'); setActiveGtdTab(null); }, [selectedAccountId, selectedFolder, setActiveGtdTab]);
+  useEffect(() => { setActiveCategory('primary'); }, [selectedAccountId, selectedFolder]);
   useEffect(() => {
     const markOpening = () => {
       recentMessageOpenUntilRef.current = Date.now() + 1500;
@@ -302,18 +293,7 @@ function MailboxList() {
     updateCatScrollEdges();
   }, [activeCategory, selectedAccountId, selectedFolder, categorizationEnabled, updateCatScrollEdges]);
 
-  // GTD surfaces (pills + tab list) apply when GTD is enabled for the context.
-  const gtdActive = gtdActiveForContext(accounts, selectedAccountId, gtdPluginActive);
-  // While a GTD tab is selected the list body shows that section instead of the
-  // folder listing. Same visibility envelope as the tab strip (INBOX, no search).
-  const showGtdTab = gtdActive && !!activeGtdTab && selectedFolder === 'INBOX' && !searchQuery.trim();
-  const sortable = isSortableList({ accountId: selectedAccountId, folder: selectedFolder, searchQuery, gtdTab: showGtdTab });
-  // Unread badge per GTD tab, from the shared sections store (Waiting merged).
-  const gtdTabUnread = (() => {
-    const map = {};
-    for (const s of buildGtdDisplaySections(gtdSections)) map[s.key] = s.unread;
-    return map;
-  })();
+  const sortable = isSortableList({ accountId: selectedAccountId, folder: selectedFolder, searchQuery });
 
   // Fetch unread counts per category for the tab bar badges.
   // Re-fetches whenever the account/folder changes or new mail arrives.
@@ -327,13 +307,11 @@ function MailboxList() {
     activeCategory,
     currentPage,
     searchAllFolders,
-    activeGtdTab,
     pageSize,
     scrollMode,
     categorizationEnabled,
     accountCategorizationEnabled: selectedAccount?.categorization_enabled,
     unifiedInboxAccountKey,
-    showGtdTab,
   });
   useEffect(() => {
     if (!categorizationActive || selectedFolder !== 'INBOX') {
@@ -2087,10 +2065,10 @@ function MailboxList() {
       } else if (selectedMessageId) {
         const msg = findVisibleArchiveMessage(pool, selectedMessageId, threadMessages);
         if (!msg) return;
-        // In one account's view a message opened from a notification, a link or the GTD sidebar
-        // speaks for its own account (ReadingPane), even when a row's cached conversation also
-        // holds it (#476). Archiving a row of another account would take that account's copies,
-        // which the reading pane's own Archive leaves alone.
+        // In one account's view a message opened from a notification or a link speaks for its
+        // own account (ReadingPane), even when a row's cached conversation also holds it (#476).
+        // Archiving a row of another account would take that account's copies, which the
+        // reading pane's own Archive leaves alone.
         const { selectedMessage: opened, parked } = resolveConversationSelection({
           selectedMessageId, pool: [...messages, ...searchResults], threadMessages,
         });
@@ -2159,10 +2137,7 @@ function MailboxList() {
           cancelScheduledMarkRead(autoMarkReadTimerRef.current);
           autoMarkReadTimerRef.current = null;
         },
-        update: (id, fields) => {
-          state.updateMessage(id, fields);
-          state.markGtdThreadRead(message.message_id || message.id, fields.is_read);
-        },
+        update: state.updateMessage,
         incrementUnread: state.incrementUnread,
         decrementUnread: state.decrementUnread,
         adjustCategoryCount: state.adjustCategoryCount,
@@ -2195,10 +2170,7 @@ function MailboxList() {
     // #449: Ctrl/Cmd+Z fires the newest still-pending undo — the same onUndo the visible
     // UndoBar button runs, so the keyboard can never undo more than the toasts offer, and
     // an expired window (toast gone, commit fired) is simply not undoable any more.
-    // Notifications are stored newest-first. This supersedes GTD's own ctrl+z: a GTD
-    // classification's undo is an onUndo notification like any other, so newest-wins
-    // ordering now spans both systems instead of two handlers fighting over one key.
-    // Removal precedes onUndo, matching the GTD handler it replaces, so a re-entrant
+    // Notifications are stored newest-first. Removal precedes onUndo, so a re-entrant
     // emit can never run the same undo twice.
     const onUndoAction = () => {
       const state = getState();
@@ -2208,7 +2180,6 @@ function MailboxList() {
       void last.onUndo();
     };
 
-    // (GTD classify keys t/w/d are handled by the GTD plugin's runtime, not here.)
     shortcutBus.on('nextMessage',   onNext);
     shortcutBus.on('prevMessage',   onPrev);
     shortcutBus.on('openMessage',   onOpen);
@@ -2783,23 +2754,14 @@ function MailboxList() {
   const canMove = selectedAccountIds.length === 1;
   const bulkMarkAsRead = selectedMsgs.some(m => !m.is_read);
   const bulkMarkAsStarred = selectedMsgs.some(m => !m.is_starred);
-  const bulkMoveAccount = accounts.find(a => a.id === selectedMsgs[0]?.account_id);
-  // messages are the selected rows as shown: a thread row is its representative message, not
-  // expanded to every member the way handleBulkMove expands it. A plugin that needs every member
-  // resolves them itself.
-  const bulkMovePluginSections = usePluginCollected('move-picker-sections', {
-    account: bulkMoveAccount, messages: selectedMsgs, currentFolder: selectedFolder,
-    onClose: () => setShowFolderPicker(false), t,
-  });
   // The bulk picker only opens for one account's messages. Built only while it is open, since
   // the list re-renders far more often than the picker is used.
   const bulkMoveSections = showFolderPicker ? buildMovePickerSections({
     folders: pickerFolders, recents: recentFolders, favorites: favoriteFolders,
-    pluginSections: bulkMovePluginSections, accountId: selectedMsgs[0]?.account_id,
+    accountId: selectedMsgs[0]?.account_id,
     currentFolder: selectedFolder, query: pickerSearch,
   }) : [];
   const bulkMoveFoldersEmpty = movePickerFoldersEmpty(bulkMoveSections, pickerFolders);
-  const closeBulkPickerAfterAction = () => { setShowFolderPicker(false); clearSelection(); };
 
   return (
     <div style={{
@@ -3439,8 +3401,8 @@ function MailboxList() {
         </div>
       )}
 
-      {/* Category + GTD tabs — shown in INBOX when categorization and/or GTD is active */}
-      {(categorizationActive || gtdActive) && selectedFolder === 'INBOX' && !searchQuery.trim() && (
+      {/* Category tabs — shown in INBOX when categorization is active */}
+      {categorizationActive && selectedFolder === 'INBOX' && !searchQuery.trim() && (
         <div style={{ position: 'relative', flexShrink: 0, borderBottom: '1px solid var(--border-subtle)' }}>
           {!isMobile && catScrollEdges.left && (
             <button
@@ -3464,16 +3426,16 @@ function MailboxList() {
               background: 'var(--bg-secondary)',
             }}
           >
-            {categorizationActive && ['primary', 'newsletter', 'promotion', 'automated', 'social'].map(cat => {
+            {['primary', 'newsletter', 'promotion', 'automated', 'social'].map(cat => {
               const unread = categoryCounts[cat] || 0;
               const total = categoryTotals[cat] || 0;
-              const isActive = activeCategory === cat && !activeGtdTab;
+              const isActive = activeCategory === cat;
               const countTitle = t('messageList.categoryCountTitle', { total, unread });
               const totalsKnown = Object.keys(categoryTotals).length > 0;
               return (
                 <button
                   key={cat}
-                  onClick={() => { setActiveGtdTab(null); setActiveCategory(cat); }}
+                  onClick={() => setActiveCategory(cat)}
                   title={countTitle}
                   aria-label={`${t(`messageList.categories.${cat}`)}, ${countTitle}`}
                   style={{
@@ -3509,79 +3471,6 @@ function MailboxList() {
                 </button>
               );
             })}
-            {/* GTD pills — Inbox | Todo | Waiting | Reference | Someday. Inbox is the
-                whole-inbox default (activeGtdTab === null, no GTD tab selected); the
-                rest switch the list to that state's section (from the shared sections
-                store, not ?category=). Waiting merges watch+delegated. This order
-                matches GTD_DISPLAY_SECTION_ORDER (todo → waiting → reference → someday) after
-                the leading Inbox pill; the two arrays stay independent (do not fold
-                into one constant). */}
-            {gtdActive && (
-              <button
-                key="gtd-inbox"
-                onClick={() => setActiveGtdTab(null)}
-                style={{
-                  padding: '3px 11px', flexShrink: 0, borderRadius: 100,
-                  border: `1px solid ${activeGtdTab === null ? 'var(--accent)' : 'var(--border)'}`,
-                  background: 'none',
-                  color: activeGtdTab === null ? 'var(--accent)' : 'var(--text-secondary)',
-                  cursor: 'pointer', fontSize: 11, fontWeight: activeGtdTab === null ? 600 : 400,
-                  whiteSpace: 'nowrap', transition: 'color 0.15s, border-color 0.15s',
-                  display: 'flex', alignItems: 'center', gap: 5,
-                }}
-              >
-                {t('gtd.inbox')}
-                {headerUnread > 0 && (
-                  <span style={{
-                    fontSize: 10, fontWeight: 600, lineHeight: 1,
-                    padding: '1px 5px', borderRadius: 100,
-                    background: activeGtdTab === null ? 'var(--accent)' : 'var(--text-tertiary)',
-                    color: 'var(--bg-primary)',
-                    minWidth: 16, textAlign: 'center',
-                  }}>
-                    {headerUnread > 99 ? '99+' : headerUnread}
-                  </span>
-                )}
-              </button>
-            )}
-            {gtdActive && [
-              { key: 'todo', label: t('gtd.state.todo') },
-              { key: 'waiting', label: t('gtd.waiting') },
-              { key: 'reference', label: t('gtd.state.reference') },
-              { key: 'someday', label: t('gtd.state.someday') },
-            ].map(({ key, label }) => {
-              const isActive = activeGtdTab === key;
-              const color = GTD_COLORS[key === 'waiting' ? 'watch' : key];
-              const chipBg = GTD_CHIP_BG[key === 'waiting' ? 'watch' : key];
-              const badge = sectionBadge(gtdTabUnread[key]);
-              return (
-                <button
-                  key={`gtd-${key}`}
-                  onClick={() => setActiveGtdTab(isActive ? null : key)}
-                  style={{
-                    padding: '3px 11px', flexShrink: 0, borderRadius: 100,
-                    border: `1px solid ${isActive ? color : 'var(--border)'}`,
-                    background: isActive ? chipBg : 'none',
-                    color: isActive ? color : 'var(--text-secondary)',
-                    cursor: 'pointer', fontSize: 11, fontWeight: isActive ? 600 : 400,
-                    whiteSpace: 'nowrap', transition: 'color 0.15s, border-color 0.15s',
-                    display: 'flex', alignItems: 'center', gap: 5,
-                  }}
-                >
-                  {label}
-                  {badge && (
-                    <span style={{
-                      fontSize: 10, fontWeight: 600, lineHeight: 1,
-                      padding: '1px 5px', borderRadius: 100,
-                      background: isActive ? color : 'var(--text-tertiary)',
-                      color: 'var(--bg-primary)', minWidth: 16, textAlign: 'center',
-                    }}>
-                      {badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
           </div>
           {!isMobile && catScrollEdges.right && (
             <button
@@ -3610,7 +3499,6 @@ function MailboxList() {
           tabIndex={0}
           style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', outline: 'none', overscrollBehavior: 'contain' }}
         >
-          {showGtdTab ? <GtdTabList /> : (<>
           {/* Pull-to-refresh indicator */}
           {isMobile && (
             <div style={{
@@ -3892,33 +3780,27 @@ function MailboxList() {
                           </div>
                         );
                         const divider = <div style={{ height: 1, background: 'var(--border-subtle)', margin: '3px 0' }} />;
-                        const item = row => {
-                          const isAction = row.kind === 'action';
-                          const f = row.folder;
-                          return (
-                            <button
-                              key={isAction ? `action-${row.item.key}` : f.path}
-                              onClick={isAction
-                                ? () => runMovePickerAction(row.item, closeBulkPickerAfterAction)
-                                : () => handleBulkMove([...selectedIds], selectedMsgs, f.path)}
-                              style={{
-                                display: 'flex', alignItems: 'center', gap: 8,
-                                width: '100%', padding: '8px 12px',
-                                background: 'none', border: 'none',
-                                color: 'var(--text-primary)', fontSize: 13,
-                                cursor: 'pointer', textAlign: 'left',
-                                transition: 'background 0.1s',
-                              }}
-                              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-                              onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                            >
-                              <span style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>
-                                {isAction ? row.item.renderIcon(13) : <FolderIcon specialUse={f.special_use} />}
-                              </span>
-                              {isAction ? <FolderPathLabel label={row.item.label} /> : <FolderPathLabel folder={f} label={f.favoriteLabel} />}
-                            </button>
-                          );
-                        };
+                        const item = f => (
+                          <button
+                            key={f.path}
+                            onClick={() => handleBulkMove([...selectedIds], selectedMsgs, f.path)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 8,
+                              width: '100%', padding: '8px 12px',
+                              background: 'none', border: 'none',
+                              color: 'var(--text-primary)', fontSize: 13,
+                              cursor: 'pointer', textAlign: 'left',
+                              transition: 'background 0.1s',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                          >
+                            <span style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>
+                              <FolderIcon specialUse={f.special_use} />
+                            </span>
+                            <FolderPathLabel folder={f} label={f.favoriteLabel} />
+                          </button>
+                        );
                         return (
                           <>
                             {bulkMoveSections.map((section, i) => {
@@ -3928,7 +3810,7 @@ function MailboxList() {
                               return (
                                 <Fragment key={section.key}>
                                   {sectionLabel && heading(sectionLabel)}
-                                  {section.rows.map(item)}
+                                  {section.folders.map(item)}
                                   {(i < bulkMoveSections.length - 1 || bulkMoveFoldersEmpty) && divider}
                                 </Fragment>
                               );
@@ -3999,32 +3881,26 @@ function MailboxList() {
                             {label}
                           </div>
                         );
-                        const item = row => {
-                          const isAction = row.kind === 'action';
-                          const f = row.folder;
-                          return (
-                            <button
-                              key={isAction ? `action-${row.item.key}` : f.path}
-                              onClick={isAction
-                                ? () => runMovePickerAction(row.item, closeBulkPickerAfterAction)
-                                : () => { handleBulkMove([...selectedIds], selectedMsgs, f.path); setShowFolderPicker(false); }}
-                              style={{
-                                display: 'flex', alignItems: 'center', gap: 14,
-                                width: '100%', minHeight: 48,
-                                padding: '0 20px',
-                                background: 'none', border: 'none',
-                                borderBottom: '1px solid var(--border-subtle)',
-                                color: 'var(--text-primary)', fontSize: 15,
-                                cursor: 'pointer', textAlign: 'left',
-                              }}
-                            >
-                              <span style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>
-                                {isAction ? row.item.renderIcon(13) : <FolderIcon specialUse={f.special_use} />}
-                              </span>
-                              {isAction ? <FolderPathLabel label={row.item.label} /> : <FolderPathLabel folder={f} label={f.favoriteLabel} />}
-                            </button>
-                          );
-                        };
+                        const item = f => (
+                          <button
+                            key={f.path}
+                            onClick={() => { handleBulkMove([...selectedIds], selectedMsgs, f.path); setShowFolderPicker(false); }}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 14,
+                              width: '100%', minHeight: 48,
+                              padding: '0 20px',
+                              background: 'none', border: 'none',
+                              borderBottom: '1px solid var(--border-subtle)',
+                              color: 'var(--text-primary)', fontSize: 15,
+                              cursor: 'pointer', textAlign: 'left',
+                            }}
+                          >
+                            <span style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>
+                              <FolderIcon specialUse={f.special_use} />
+                            </span>
+                            <FolderPathLabel folder={f} label={f.favoriteLabel} />
+                          </button>
+                        );
                         return (
                           <>
                             {bulkMoveSections.map((section, i) => {
@@ -4034,7 +3910,7 @@ function MailboxList() {
                               return (
                                 <Fragment key={section.key}>
                                   {sectionLabel && heading(sectionLabel)}
-                                  {section.rows.map(item)}
+                                  {section.folders.map(item)}
                                 </Fragment>
                               );
                             })}
@@ -4298,7 +4174,6 @@ function MailboxList() {
             </div>
           );
         })()}
-        </>)}
         </div>
 
         {/* Scroll-to-top button — desktop only (mobile handled in FAB container below) */}
@@ -4614,8 +4489,8 @@ function ThreadRow({ message, isExpanded, threadMsgs, isLoadingThread, selectedM
   // so the mobile row keeps its own unread-dot/checkbox layout and the avatar is non-interactive.
   const showAvatar = hasAvatar || (isMobile && showMobileAvatars && !selectionMode);
   const avatarAsCheckbox = hasAvatar && selectionMode;
-  // Identity-matched selection (parity with the flat MessageRow's isSelectedRow): a GTD sidebar
-  // deep-link opens a different DB copy of the same mail, so match the head or any cached
+  // Identity-matched selection (parity with the flat MessageRow's isSelectedRow): a label-folder
+  // row opens a different DB copy of the same mail, so match the head or any cached
   // sub-message on message_id, not just the raw id, or the inbox thread row won't light up.
   const selectedHere = isSelectedRow(message, selectedMessageId, selectedMid, selectedAcct)
     || !!threadMsgs?.some(m => isSelectedRow(m, selectedMessageId, selectedMid, selectedAcct));
@@ -4822,7 +4697,6 @@ function ThreadRow({ message, isExpanded, threadMsgs, isLoadingThread, selectedM
             <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {message.subject || t('common.noSubject')}
             </span>
-            <PluginSlot name="message-row-meta" ctx={{ message }} />
             <ReplyDraftIndicator message={message} listRow />
             <SpamBadge message={message} onClick={onExplainSpam} />
           </div>
@@ -4849,7 +4723,6 @@ function ThreadRow({ message, isExpanded, threadMsgs, isLoadingThread, selectedM
             onArchive={onArchive}
             onSnooze={onSnooze}
             actions={hoverActionSet}
-            rowActionCtx={{ message }}
           />
         )}
       </div>
@@ -5152,7 +5025,6 @@ function MessageRow({ message, selected, lastViewed, isChecked, selectionMode, s
           <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {message.subject || t('message.noSubject')}
           </span>
-          <PluginSlot name="message-row-meta" ctx={{ message }} />
           <ReplyDraftIndicator message={message} listRow />
           <SpamBadge message={message} onClick={onExplainSpam} />
         </div>
@@ -5186,7 +5058,6 @@ function MessageRow({ message, selected, lastViewed, isChecked, selectionMode, s
           onArchive={onArchive}
           onSnooze={onSnooze}
           actions={hoverActionSet}
-          rowActionCtx={{ message }}
         />
       )}
       </div>

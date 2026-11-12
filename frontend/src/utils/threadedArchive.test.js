@@ -46,13 +46,11 @@ describe('archiveViewKey', () => {
       activeCategory: 'primary',
       currentPage: 1,
       searchAllFolders: false,
-      activeGtdTab: null,
       pageSize: 50,
       scrollMode: 'paginated',
       categorizationEnabled: true,
       accountCategorizationEnabled: true,
       unifiedInboxAccountKey: 'account-1,account-2',
-      showGtdTab: false,
     };
 
     assert.equal(threadedArchive.archiveViewKey({ ...original }), threadedArchive.archiveViewKey(original));
@@ -65,13 +63,11 @@ describe('archiveViewKey', () => {
       { activeCategory: 'updates' },
       { currentPage: 2 },
       { searchAllFolders: true },
-      { activeGtdTab: 'todo' },
       { pageSize: 100 },
       { scrollMode: 'infinite' },
       { categorizationEnabled: false },
       { accountCategorizationEnabled: false },
       { unifiedInboxAccountKey: 'account-1' },
-      { showGtdTab: true },
     ]) {
       assert.notEqual(
         threadedArchive.archiveViewKey({ ...original, ...changed }),

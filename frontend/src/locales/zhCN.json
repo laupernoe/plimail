@@ -880,8 +880,7 @@
     "groups": {
       "composeSearch": "撰写与搜索",
       "navigation": "导航",
-      "messageActions": "邮件操作",
-      "gtd": "GTD"
+      "messageActions": "邮件操作"
     },
     "actions": {
       "toggleLeftSidebar": {
@@ -975,31 +974,6 @@
       "printMessage": {
         "label": "打印",
         "description": "打印当前邮件"
-      },
-      "gtdTodo": {
-        "label": "标记为待办",
-        "description": "将所选邮件归类为待办"
-      },
-      "gtdWatch": {
-        "label": "标记为关注",
-        "description": "将所选邮件归类为关注"
-      },
-      "gtdDelegated": {
-        "label": "标记为已委派",
-        "description": "将所选邮件归类为已委派"
-      },
-      "gtdReference": {
-        "description": "将所选邮件归类为参考资料"
-      },
-      "gtdSomeday": {
-        "description": "将所选邮件归类为将来再办"
-      },
-      "gtdDone": {
-        "description": "将所选 GTD 邮件标记为完成"
-      },
-      "toggleRightSidebar": {
-        "label": "切换右侧边栏",
-        "description": "隐藏或显示右侧边栏"
       }
     }
   },
@@ -1086,7 +1060,6 @@
       "groupAiExtensions": "AI 与扩展",
       "groupAdmin": "管理",
       "behavior": "行为",
-      "plugins": "插件",
       "backup": "备份",
       "mailSignIn": "邮件服务商",
       "groupCalendar": "日历",
@@ -1769,41 +1742,7 @@
       "recategorize": "重新分类",
       "recategorizing": "处理中…",
       "recategorized": "重新分类已启动。",
-      "selectAccount": "选择账户",
-      "gtdReveal": "GTD",
-      "gtdRevealDesc": "在下方显示每个账户的 GTD 设置；每个账户仍由各自的开关控制。"
-    },
-    "gtd": {
-      "description": "把 Mailflow 变成一个 GTD 系统。按账户启用，然后将每个状态映射到存放其标签的 IMAP 文件夹。",
-      "noAccounts": "请先添加一个邮箱账户以配置 GTD。",
-      "enableDesc": "GTD 已启用。标签会作为文件夹同步，状态会自动流转。",
-      "enableHint": "为此账户启用 GTD 标签和自动状态流转。",
-      "foldersTitle": "标签文件夹",
-      "foldersDesc": "每个 GTD 状态对应一个 IMAP 文件夹。留空则使用默认名称。",
-      "savedOk": "文件夹映射已保存。",
-      "saveFailed": "无法保存文件夹映射。",
-      "createFolders": "创建缺失的文件夹",
-      "creating": "正在创建…",
-      "createResult": "已创建 {{created}} 个，{{existing}} 个已存在。",
-      "createFailed": "无法创建文件夹。",
-      "duplicateFolder": "这些 GTD 状态映射到同一个文件夹：{{states}}。请为每个状态指定不同的文件夹。",
-      "rejectedFolders": "部分文件夹名称无效，已重置为默认值：{{states}}。",
-      "pet": {
-        "title": "收件箱清零宠物",
-        "description": "在收件箱清零时用你自己的宠物替换默认的小狗。",
-        "clear": "使用默认小狗",
-        "current": "当前宠物：{{slug}}",
-        "usingDog": "正在使用默认小狗。",
-        "hoverHint": "悬停即可播放动画。",
-        "importTitle": "导入你自己的",
-        "importHint": "上传 pet.json 及其精灵表（PNG、WebP 或 GIF）。",
-        "chooseJson": "pet.json 文件",
-        "chooseSheet": "精灵表图片",
-        "import": "导入",
-        "importing": "导入中…",
-        "imported": "已导入 {{name}}，将鼠标悬停在预览上即可看到动画。",
-        "importFailed": "无法导入该宠物。"
-      }
+      "selectAccount": "选择账户"
     },
     "systemEmail": {
       "tabUsers": "用户与邀请",
@@ -2056,15 +1995,6 @@
       "downloadFailed": "无法开始备份。",
       "connectionLost": "恢复过程中连接中断，因此结果未知。MailFlow 恢复响应后本页面会重新加载；届时请确认数据是否已恢复。",
       "tooLarge": "文件大小超过了 MailFlow 前面的反向代理所允许的上限。"
-    },
-    "plugins": {
-      "title": "插件",
-      "description": "为你的账户开启或关闭可选功能。启用插件后会添加其自身的设置和界面。",
-      "activated": "已启用",
-      "deactivated": "未启用",
-      "empty": "此版本中没有可用的插件。",
-      "error": "无法更新插件，请重试。",
-      "configureIn": "在「{{location}}」中配置选项"
     }
   },
   "blockList": {
@@ -2204,45 +2134,6 @@
     "creating": "创建中...",
     "taskCreated": "任务已在 Todoist 中创建",
     "openTask": "在 Todoist 中打开"
-  },
-  "rightSidebar": {
-    "hide": "隐藏右侧边栏",
-    "show": "显示右侧边栏"
-  },
-  "gtd": {
-    "oldestLabeledAge": "{{state}}：带此标签的最早邮件距今的天数：{{count}}",
-    "title": "GTD",
-    "inbox": "收件箱",
-    "waiting": "等待中",
-    "inboxZero": "收件箱清零 ✓",
-    "allClear": "全部清空",
-    "allClearHint": "没有待办事项。",
-    "showAll": "显示全部 {{count}} 封",
-    "showSome": "显示 {{available}}/{{total}} 封",
-    "showLess": "收起",
-    "toggleSection": "切换{{section}}",
-    "tabEmpty": "这里还没有内容",
-    "removeFrom": "从{{state}}中移除",
-    "classified": "已添加标签",
-    "classifiedMany": "已将 {{count}} 封标记为{{state}}",
-    "classifiedSome": "已将 {{count}}/{{total}} 封标记为{{state}}",
-    "classifyFailed": "无法添加标签",
-    "undoFailed": "无法撤销标签",
-    "removed": "已移除标签",
-    "removeFailed": "无法移除标签",
-    "onlyCopy": "这是该邮件的唯一副本，移除标签会将其删除。请改为归档或移动。",
-    "labelChanged": "此标签已在服务器上更改，未被移除。请刷新后重试。",
-    "done": "标记为完成",
-    "doneFailed": "无法标记为完成",
-    "doneArchiveFailed": "已标记为完成，但归档失败——邮件仍在收件箱中",
-    "doneThreadRemains": "此会话中的部分邮件无法清除，因此它仍留在原 GTD 分区中",
-    "state": {
-      "todo": "待办",
-      "watch": "关注",
-      "delegated": "已委派",
-      "someday": "将来",
-      "reference": "参考"
-    }
   },
   "window": {
     "minimize": "最小化",

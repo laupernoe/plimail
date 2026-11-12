@@ -1,5 +1,3 @@
-import { canDispatchHoveredGtdShortcut } from './gtdHoveredRow.js';
-import { resolveGtdHotkeyTarget } from './gtdHotkeys.js';
 import { selectedPickerMessage } from './labelPicker.js';
 import { topOpenMessageWindow } from './messageHotkeys.js';
 
@@ -14,15 +12,7 @@ const WINDOW_ACTIONS = new Set([
   'printMessage', 'markUnread', 'openLabelPicker',
 ]);
 
-export function canRunGlobalAction(action, { rightSidebarApplicable }) {
-  return action !== 'toggleRightSidebar' || Boolean(rightSidebarApplicable);
-}
-
 export function canRunSelectedAction(action, state) {
-  if (canDispatchHoveredGtdShortcut(action, state)) return true;
-  if (['gtdTodo', 'gtdWatch', 'gtdDelegated', 'gtdReference', 'gtdSomeday', 'gtdDone'].includes(action)) {
-    return Boolean(resolveGtdHotkeyTarget(state));
-  }
   if (!SELECTED_ACTIONS.has(action)) return true;
   if (!state?.selectedMessageId && !WINDOW_ACTIONS.has(action)) return false;
   return Boolean(selectedPickerMessage(state));

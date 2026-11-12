@@ -108,48 +108,6 @@ describe('MessagePane renders', () => {
   });
 });
 
-test('GTD header chips sit beside a long subject and preserve message facts', async () => {
-  await import('../plugins/gtd/index.jsx');
-  const { patchGtdMetadata, clearGtdMetadata } = await import('../plugins/gtd/metadataStore.js');
-  const { bodyCache } = await import('../utils/bodyCache.js');
-  const { formatMessageDateTime } = await import('../utils/formatDate.js');
-  const previous = api.getMessageBody;
-  const original = useStore.getState();
-  const detachedContainer = document.body.appendChild(document.createElement('div'));
-  const detached = createRoot(detachedContainer);
-  const message = { ...MSG_A, id: 'header-message', subject: 'LongSubject'.repeat(30), account_name: 'Example account' };
-  bodyCache.clear();
-  api.getMessageBody = async () => ({ text: 'fixture', trackersBlocked: 7 });
-  try {
-    await React.act(async () => {
-      useStore.setState({ enabledPlugins: ['gtd'], accounts: [{ id: 'acct', gtd_enabled: true }],
-        messages: [message], searchQuery: '', selectedMessageId: message.id });
-      patchGtdMetadata(message, 'todo');
-      root.render(React.createElement(MessagePane));
-    });
-    const chip = document.querySelector('[aria-label="gtd.state.todo"]');
-    assert.ok(chip, 'the reading header exposes GTD metadata');
-    assert.ok(chip.parentElement.parentElement.textContent.includes(message.subject), 'same subject row');
-    for (const fact of [message.from_name, message.account_name, formatMessageDateTime(message.date, { withYear: true }), 'message.trackersBlocked']) {
-      assert.ok(document.getElementById('root').textContent.includes(fact), fact);
-    }
-    const other = { ...message, id: 'detached-header', account_id: 'other', subject: 'Detached fixture' };
-    await React.act(async () => {
-      useStore.setState({ accounts: [...useStore.getState().accounts, { id: 'other', gtd_enabled: true }], threadMessages: { __dl_detached: [other] } });
-      patchGtdMetadata(other, 'watch');
-      detached.render(React.createElement(MessagePane, { windowMessageId: other.id }));
-    });
-    assert.ok(detachedContainer.querySelector('[aria-label="gtd.state.watch"]'));
-    assert.equal(detachedContainer.querySelector('[aria-label="gtd.state.todo"]'), null);
-    assert.ok(document.getElementById('root').querySelector('[aria-label="gtd.state.todo"]'), 'global pane stays independent');
-  } finally { api.getMessageBody = previous; await React.act(async () => {
-    detached.unmount(); detachedContainer.remove();
-    clearGtdMetadata();
-    useStore.setState({ enabledPlugins: original.enabledPlugins, accounts: original.accounts,
-      messages: original.messages, threadMessages: original.threadMessages, searchQuery: original.searchQuery, selectedMessageId: original.selectedMessageId });
-  }); }
-});
-
 describe('MessagePane leaves in-flight AI runs alone (#428)', () => {
   test('navigating to another message does not abort a run', async () => {
     // The regression this guards: the pane used to abort every in-flight run whenever the
@@ -1363,20 +1321,6 @@ describe('the toolbar read toggle (#683)', () => {
     await React.act(async () => { await new Promise(r => setTimeout(r, 60)); });
     assert.equal(delayedRan, 0, 'the pending delayed read was cancelled');
     assert.deepEqual(bulkRead.mock.calls.map(c => c.arguments[1]), [true]);
-  });
-
-  test('the toolbar toggle keeps the GTD rail copy of the thread in step', async (t) => {
-    const { msg } = await openRead(t, { message_id: '<gtd-683@example.com>' });
-    const rail = { ...msg, id: 'rail-683', is_read: true };
-    await React.act(async () => { useStore.setState({ gtdSections: { reference: { threads: [rail] } } }); });
-    try {
-      await React.act(async () => { click(toolbarButton('contextMenu.markUnread')); });
-      assert.equal(useStore.getState().gtdSections.reference.threads[0].is_read, false);
-      await React.act(async () => { click(toolbarButton('contextMenu.markRead')); });
-      assert.equal(useStore.getState().gtdSections.reference.threads[0].is_read, true);
-    } finally {
-      await React.act(async () => { useStore.setState({ gtdSections: null }); });
-    }
   });
 
   test("the row's context menu offers Mark as read once the pane marked it unread", async (t) => {

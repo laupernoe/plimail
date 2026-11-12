@@ -93,13 +93,11 @@ const { createRoot } = await import('react-dom/client');
 const ConversationPane = (await import('./ConversationPane.jsx')).default;
 const ReadingPane = (await import('./ReadingPane.jsx')).default;
 const { useStore } = await import('../store/index.js');
-const { registerCollector } = await import('../plugins/registry.js');
 const { bodyCache } = await import('../utils/bodyCache.js');
 // Each test serves its own body for the same message ids: start each without the last one's.
 beforeEach(() => bodyCache.clear());
 const { shortcutBus } = await import('../utils/shortcutBus.js');
 const { api } = await import('../utils/api.js');
-const { useGtdTriage } = await import('../hooks/useGtdTriage.js');
 
 let root;
 before(() => { root = createRoot(document.getElementById('root')); });
@@ -1155,21 +1153,6 @@ describe('a conversation another account also received', () => {
     assert.deepEqual(sentIds(/bulk-move/), ['b3', 'm1', 'm2', 'm3']);
   });
 
-  test('the snooze picker hands the row account\'s copy to the menu behind it', async (t) => {
-    // Its Back row leads to the full menu, whose plugin items (GTD classify) act on the copy the
-    // picker opened on. b3 is the newest message on screen, but it is acct-b's.
-    const handed = [];
-    registerCollector('context-menu-actions', { pluginId: 'probe-476', build: ctx => { handed.push(ctx.message.id); return []; } });
-    const enabledPlugins = useStore.getState().enabledPlugins;
-    // Inside act: the picker is still open, and the store change re-renders it.
-    t.after(() => React.act(async () => { useStore.setState({ enabledPlugins }); }));
-    await open();
-    await React.act(async () => { useStore.setState({ enabledPlugins: ['probe-476'] }); });
-    await click(button('contextMenu.snooze.label'));
-    assert.ok(textShown('contextMenu.snooze.threeHours'), 'the snooze picker is open');
-    assert.deepEqual([...new Set(handed)], ['m3']);
-  });
-
   // Until the next conversation lands, the previous one's cards and buttons stay on screen, so the
   // picker has to close at the switch itself, not only once the next conversation arrives.
   test('an open picker closes when the reader moves to another conversation', async () => {
@@ -1209,8 +1192,8 @@ describe('a conversation another account also received', () => {
 
   test('a picker opened while the next conversation loads closes when that one lands', async () => {
     // The previous conversation's cards and buttons stay on screen until the next one arrives. A
-    // picker opened on them kept that conversation's copy for its menu (the folders listed, GTD
-    // classify) while its pick went to the conversation that had landed.
+    // picker opened on them kept that conversation's copy for its menu (the folders listed) while
+    // its pick went to the conversation that had landed.
     const NEXT = [
       { ...THREAD[0], id: 'x1', message_id: '<20@x>', thread_id: '<20@x>', subject: 'Other' },
       { ...THREAD[2], id: 'x2', message_id: '<21@x>', thread_id: '<20@x>', subject: 'Re: Other' },
@@ -1405,7 +1388,7 @@ describe('a conversation another account also received', () => {
     assert.equal(useStore.getState().selectedMessageId, 'u2', 'the pane stays open');
     assert.deepEqual(notices(), ['spam.nothingInConversation'], 'Spam says why');
 
-    // Opened from the GTD sidebar with the unified inbox selected: every copy is filed.
+    // Opened from a link with the unified inbox selected: every copy is filed.
     const FILED = [
       { ...THREAD[0], id: 'f1', folder: 'Archive', message_id: '<82@x>', thread_id: '<82@x>' },
       { ...THREAD[2], id: 'f2', folder: 'Archive', message_id: '<83@x>', thread_id: '<82@x>' },
@@ -1425,65 +1408,4 @@ describe('a conversation another account also received', () => {
     await commitWindow(button('message.delete'));
     assert.deepEqual(sentIds(/bulk-delete/), ['b3', 'm1', 'm2', 'm3']);
   });
-
-  test('a GTD row whose copy is gone opens none of another account\'s mail in its account\'s view', async (t) => {
-    // The click recovers through the row's thread, which now holds only acct-b's copy. Parked, that
-    // copy would have the pane act for acct-b from acct's row. The unified inbox still opens it.
-    t.mock.method(console, 'warn', () => {});
-    t.mock.method(api, 'getMessage', async () => { throw Object.assign(new Error('Not found'), { status: 404 }); });
-    served['<30@x>'] = [{ ...B3, id: 'b30', message_id: '<30@x>', thread_id: '<30@x>' }];
-    const row = { id: 'a30', account_id: 'acct', message_id: '<30@x>', thread_key: '<30@x>', is_read: true };
-    const { scheduleGtdSectionsFetch } = useStore.getState();
-    let triage;
-    const Rail = () => { triage = useGtdTriage(); return null; };
-    const railContainer = document.body.appendChild(document.createElement('div'));
-    const rail = createRoot(railContainer);
-    await React.act(async () => {
-      useStore.setState({ scheduleGtdSectionsFetch: () => {} });
-      rail.render(React.createElement(Rail));
-    });
-    t.after(() => React.act(async () => {
-      rail.unmount();
-      railContainer.remove();
-      useStore.setState({ scheduleGtdSectionsFetch });
-    }));
-    for (const [selectedAccountId, selected] of [['acct', ROW.id], [null, 'b30']]) {
-      await open({ selectedAccountId });
-      await React.act(async () => { await triage.openRow(row); });
-      await wait(50);
-      assert.equal(useStore.getState().selectedMessageId, selected, `selected in ${selectedAccountId || 'the unified'} view`);
-    }
-  });
-});
-
-test('GTD conversation header uses the displayed account on desktop and mobile', async () => {
-  await import('../plugins/gtd/index.jsx');
-  const { patchGtdMetadata, clearGtdMetadata } = await import('../plugins/gtd/metadataStore.js');
-  const original = useStore.getState();
-  const selected = { ...THREAD[0], id: 'header-selection', account_id: 'other' };
-  try {
-    for (const width of [1024, 375]) {
-      dom.window.innerWidth = width;
-      await React.act(async () => {
-        useStore.setState({ enabledPlugins: ['gtd'], accounts: [{ id: 'acct', gtd_enabled: false }, { id: 'other', gtd_enabled: true }],
-          messages: [selected], searchQuery: '', selectedMessageId: selected.id, selectedAccountId: 'acct' });
-        patchGtdMetadata(selected, 'watch');
-        root.render(React.createElement(ConversationPane, { key: width, threadId: 'header-thread', folder: 'Sent', selectedMessageId: selected.id }));
-      });
-      const chips = document.querySelectorAll('[aria-label="gtd.state.watch"]');
-      assert.equal(chips.length, 1, `header shown once at ${width}`);
-      assert.equal(Boolean(chips[0].closest('[role="group"]')), width > 375, `desktop puts it in the toolbar at ${width}`);
-    }
-    await React.act(async () => {
-      useStore.setState({ messages: [], threadMessages: {}, selectedMessageId: null });
-      root.render(React.createElement(ConversationPane, { threadId: 'header-thread', folder: 'Sent' }));
-    });
-    assert.equal(document.querySelector('[aria-label="gtd.state.watch"]'), null, 'local fallback cannot borrow selected metadata');
-  } finally { dom.window.innerWidth = 1024; await React.act(async () => {
-    clearGtdMetadata(); root.unmount();
-    useStore.setState({ enabledPlugins: original.enabledPlugins, accounts: original.accounts,
-      messages: original.messages, threadMessages: original.threadMessages,
-      searchQuery: original.searchQuery, selectedMessageId: original.selectedMessageId, selectedAccountId: original.selectedAccountId });
-    root = createRoot(document.getElementById('root'));
-  }); }
 });

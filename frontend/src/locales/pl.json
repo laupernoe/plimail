@@ -896,8 +896,7 @@
     "groups": {
       "composeSearch": "Napisz i wyszukaj",
       "navigation": "Nawigacja",
-      "messageActions": "Działania na wiadomościach",
-      "gtd": "GTD"
+      "messageActions": "Działania na wiadomościach"
     },
     "actions": {
       "toggleLeftSidebar": {
@@ -991,31 +990,6 @@
       "printMessage": {
         "label": "Drukuj",
         "description": "Drukuj bieżącą wiadomość"
-      },
-      "gtdTodo": {
-        "label": "Oznacz jako Do zrobienia",
-        "description": "Sklasyfikuj zaznaczoną wiadomość jako do zrobienia"
-      },
-      "gtdWatch": {
-        "label": "Oznacz jako Obserwuj",
-        "description": "Sklasyfikuj zaznaczoną wiadomość jako obserwuj"
-      },
-      "gtdDelegated": {
-        "label": "Oznacz jako Delegowane",
-        "description": "Sklasyfikuj zaznaczoną wiadomość jako delegowane"
-      },
-      "gtdReference": {
-        "description": "Oznacz wybraną wiadomość jako Materiały"
-      },
-      "gtdSomeday": {
-        "description": "Oznacz wybraną wiadomość jako Kiedyś"
-      },
-      "gtdDone": {
-        "description": "Ukończ wybraną wiadomość GTD"
-      },
-      "toggleRightSidebar": {
-        "label": "Przełącz prawy panel",
-        "description": "Ukryj lub pokaż prawy panel boczny"
       }
     }
   },
@@ -1102,7 +1076,6 @@
       "groupAiExtensions": "AI i rozszerzenia",
       "groupAdmin": "Administracja",
       "behavior": "Zachowanie",
-      "plugins": "Wtyczki",
       "backup": "Kopia zapasowa",
       "mailSignIn": "Dostawcy poczty",
       "groupCalendar": "Kalendarz",
@@ -1788,41 +1761,7 @@
       "recategorize": "Kategoryzuj ponownie",
       "recategorizing": "Przetwarzanie…",
       "recategorized": "Rozpoczęto ponowną kategoryzację.",
-      "selectAccount": "Zaznacz konto",
-      "gtdReveal": "GTD",
-      "gtdRevealDesc": "Pokaż poniższe ustawienia GTD dla poszczególnych kont; każde konto ma własny przełącznik."
-    },
-    "gtd": {
-      "description": "Zamień MailFlow w system GTD. Włącz go dla każdego konta, a następnie przypisz każdy stan do folderu IMAP zawierającego jego etykietę.",
-      "noAccounts": "Najpierw dodaj konto e-mail, aby skonfigurować GTD.",
-      "enableDesc": "GTD jest włączone. Etykiety są synchronizowane jako foldery, a zmiany stanów odbywają się automatycznie.",
-      "enableHint": "Włącz etykiety GTD i automatyczne zmiany stanów dla tego konta.",
-      "foldersTitle": "Foldery etykiet",
-      "foldersDesc": "Każdy stan GTD jest przypisany do folderu IMAP. Pozostaw pole puste, aby użyć domyślnej nazwy.",
-      "savedOk": "Mapowanie folderów zapisano.",
-      "saveFailed": "Nie udało się zapisać mapowania folderów.",
-      "createFolders": "Utwórz brakujące foldery",
-      "creating": "Tworzenie…",
-      "createResult": "Utworzono: {{created}}, już istniało: {{existing}}.",
-      "createFailed": "Nie udało się utworzyć folderów.",
-      "duplicateFolder": "Te stany GTD są przypisane do tego samego folderu: {{states}}. Przypisz każdemu stanowi inny folder.",
-      "rejectedFolders": "Niektóre nazwy folderów były nieprawidłowe i przywrócono ich wartości domyślne: {{states}}.",
-      "pet": {
-        "title": "Zwierzak Inbox Zero ✓",
-        "description": "Zastąp domyślnego psa w skrzynce odbiorczej zero własnym zwierzakiem.",
-        "clear": "Użyj domyślnego psa",
-        "current": "Bieżący zwierzak: {{slug}}",
-        "usingDog": "Używany jest domyślny pies.",
-        "hoverHint": "Najedź, aby uruchomić animację.",
-        "importTitle": "Importuj własnego zwierzaka",
-        "importHint": "Prześlij plik pet.json oraz arkusz sprite’ów (PNG, WebP lub GIF).",
-        "chooseJson": "Plik pet.json",
-        "chooseSheet": "Arkusz sprite’ów",
-        "import": "Importuj",
-        "importing": "Importowanie…",
-        "imported": "Zaimportowano {{name}} — najedź na podgląd, aby zobaczyć animację.",
-        "importFailed": "Nie udało się zaimportować tego zwierzaka."
-      }
+      "selectAccount": "Zaznacz konto"
     },
     "systemEmail": {
       "tabUsers": "Użytkownicy i zaproszenia",
@@ -2075,15 +2014,6 @@
       "downloadFailed": "Nie udało się rozpocząć tworzenia kopii zapasowej.",
       "connectionLost": "Połączenie zostało przerwane podczas przywracania, więc jego wynik jest nieznany. Ta strona odświeży się, gdy MailFlow znów zacznie odpowiadać; sprawdź wtedy, czy dane zostały przywrócone.",
       "tooLarge": "Plik jest większy, niż pozwala serwer proxy przed MailFlow."
-    },
-    "plugins": {
-      "title": "Wtyczki",
-      "description": "Włączaj i wyłączaj opcjonalne funkcje dla swojego konta. Włączenie wtyczki dodaje własne ustawienia i interfejs.",
-      "activated": "Aktywne",
-      "deactivated": "Nieaktywne",
-      "empty": "Brak wtyczek w tej wersji.",
-      "error": "Nie udało się zaktualizować wtyczki. Spróbuj ponownie.",
-      "configureIn": "Skonfiguruj opcje w {{location}}"
     }
   },
   "blockList": {
@@ -2223,45 +2153,6 @@
     "creating": "Tworzenie…",
     "taskCreated": "Utworzono zadanie w Todoist",
     "openTask": "Otwórz w Todoist"
-  },
-  "rightSidebar": {
-    "hide": "Ukryj prawy pasek boczny",
-    "show": "Pokaż prawy pasek boczny"
-  },
-  "gtd": {
-    "oldestLabeledAge": "{{state}}: wiek najstarszej wiadomości z tą etykietą (dni): {{count}}",
-    "title": "GTD",
-    "inbox": "Odebrane",
-    "waiting": "Oczekujące",
-    "inboxZero": "Pusta skrzynka ✓",
-    "allClear": "Wszystko gotowe",
-    "allClearHint": "Nic na Ciebie nie czeka.",
-    "showAll": "Pokaż wszystkie ({{count}})",
-    "showSome": "Pokaż {{available}} z {{total}}",
-    "showLess": "Pokaż mniej",
-    "toggleSection": "Przełącz sekcję {{section}}",
-    "tabEmpty": "Nie ma tu jeszcze żadnych elementów",
-    "removeFrom": "Usuń ze stanu {{state}}",
-    "classified": "Zastosowano etykietę",
-    "classifiedMany": "Oznaczono {{count}} jako {{state}}",
-    "classifiedSome": "Oznaczono {{count}} z {{total}} jako {{state}}",
-    "classifyFailed": "Nie udało się zastosować etykiety",
-    "removed": "Usunięto etykietę",
-    "removeFailed": "Nie udało się usunąć etykiety",
-    "onlyCopy": "To jedyna kopia wiadomości, więc usunięcie etykiety by ją skasowało. Zamiast tego zarchiwizuj ją lub przenieś.",
-    "labelChanged": "Ta etykieta zmieniła się na serwerze i nie została usunięta. Odśwież i spróbuj ponownie.",
-    "done": "Oznacz jako wykonane",
-    "doneFailed": "Nie udało się oznaczyć jako gotowe",
-    "doneArchiveFailed": "Oznaczono jako gotowe, ale archiwizacja nie powiodła się — wiadomość nadal znajduje się w skrzynce odbiorczej",
-    "doneThreadRemains": "Nie udało się usunąć niektórych wiadomości z tej rozmowy, więc pozostaje ona w swojej sekcji GTD",
-    "state": {
-      "todo": "Do zrobienia",
-      "watch": "Do obserwowania",
-      "delegated": "Delegowane",
-      "someday": "Kiedyś",
-      "reference": "Materiały"
-    },
-    "undoFailed": "Nie udało się cofnąć etykiety"
   },
   "window": {
     "minimize": "Minimalizuj",

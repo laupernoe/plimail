@@ -1,25 +1,21 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PluginSlot } from '../plugins/PluginSlot.jsx';
 
 // Bottom-right hover quick-actions cluster shared by the flat MessageRow and the threaded
-// ThreadRow and GTD sidebar rows. Presentational and closure-free: each action
+// ThreadRow. Presentational and closure-free: each action
 // is a handler the caller passes as (e, message); a handler's absence hides its button (the
 // same convention onMove already used, now generalized). `isRead` drives the mark-read
 // icon/label polarity, and `background` + `deleteTitleKey` keep each call site's prior
-// rendering byte-identical. `rowActionCtx`, when present (main-list rows only), renders the
-// 'row-hover-action' plugin slot — a plugin can add its own leading hover button (GTD adds
-// a "done" checkmark). Sidebar rows omit it.
+// rendering byte-identical.
 //
-// #440: `actions` picks WHICH buttons show, in canonical order. Callers that pass nothing
-// (the GTD sidebar rows) keep the pre-#440 cluster exactly; the main list passes the
+// #440: `actions` picks WHICH buttons show, in canonical order. The main list passes the
 // user's configured set from Settings. A key whose handler the caller did not supply is
 // skipped either way, so a set naming 'snooze' is inert on a surface with no snooze.
 
 import { DEFAULT_HOVER_ACTIONS } from '../utils/hoverActions.js';
 export { HOVER_ACTION_KEYS, DEFAULT_HOVER_ACTIONS } from '../utils/hoverActions.js';
 
-export default function RowHoverActions({ message, isRead, background, deleteTitleKey = 'common.delete', onMarkRead, onStar, onArchive, onSnooze, onDelete, onMove, actions = DEFAULT_HOVER_ACTIONS, rowActionCtx }) {
+export default function RowHoverActions({ message, isRead, background, deleteTitleKey = 'common.delete', onMarkRead, onStar, onArchive, onSnooze, onDelete, onMove, actions = DEFAULT_HOVER_ACTIONS }) {
   const { t } = useTranslation();
 
   const buttons = {
@@ -91,7 +87,6 @@ export default function RowHoverActions({ message, isRead, background, deleteTit
       borderRadius: 5,
       padding: '1px 2px',
     }}>
-      {rowActionCtx && <PluginSlot name="row-hover-action" ctx={rowActionCtx} />}
       {actions.map(key => buttons[key] || null)}
     </div>
   );

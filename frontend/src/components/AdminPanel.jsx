@@ -1,8 +1,6 @@
 import { useCallback, useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/index.js';
-import { getPluginMeta } from '../plugins/registry.js';
-import { PluginSlot } from '../plugins/PluginSlot.jsx';
 import { newAiAction, AI_ACTION_LIMITS } from '../aiActions.js';
 import { useMobile } from '../hooks/useMobile.js';
 import { api } from '../utils/api.js';
@@ -4232,7 +4230,7 @@ function AiActionsTab() {
 }
 
 // ─── Categories Section ───────────────────────────────────────────────────────
-function CategoriesSection({ initialSubTab }) {
+function CategoriesSection() {
   const { t } = useTranslation();
   const { accounts, categorizationEnabled, setCategorizationEnabled } = useStore();
   const [sources, setSources] = useState([]);
@@ -4482,106 +4480,6 @@ function CategoriesSection({ initialSubTab }) {
           </div>
         </>
       )}
-
-      {/* Plugins that contribute settings under the Categories tab (currently GTD). Rendered only
-          while the plugin is activated; core knows nothing plugin-specific here. */}
-      <PluginSlot name="settings-categories" ctx={{ initialSubTab }} />
-    </div>
-  );
-}
-
-// ─── Plugins Section ──────────────────────────────────────────────────────────
-// Plugins settings tab — lists the plugins registered in this build and lets the user activate/
-// deactivate each for themselves. Activation is per-user (persisted server-side) and independent of
-// a plugin's own per-account config; deactivating hides that plugin's UI and makes it inert.
-function PluginsSection({ onNavigate }) {
-  const { t } = useTranslation();
-  const enabledPlugins = useStore(s => s.enabledPlugins);
-  const setPluginActivated = useStore(s => s.setPluginActivated);
-  const [manifests, setManifests] = useState(null); // null = loading
-  const [busyId, setBusyId] = useState(null);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    let alive = true;
-    api.plugins.list()
-      .then(list => { if (alive) setManifests(Array.isArray(list) ? list : []); })
-      .catch(() => { if (alive) { setManifests([]); setError(true); } });
-    return () => { alive = false; };
-  }, []);
-
-  const toggle = async (id, next) => {
-    setBusyId(id);
-    setError(false);
-    try { await setPluginActivated(id, next); }
-    catch { setError(true); }
-    finally { setBusyId(null); }
-  };
-
-  return (
-    <div>
-      <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>{t('admin.plugins.title')}</h2>
-      <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: '0 0 20px', lineHeight: 1.5 }}>{t('admin.plugins.description')}</p>
-
-      {error && (
-        <div style={{ fontSize: 12, color: 'var(--danger, #d94a4a)', marginBottom: 12 }}>{t('admin.plugins.error')}</div>
-      )}
-      {manifests === null && (
-        <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>{t('common.loading')}</div>
-      )}
-      {manifests && manifests.length === 0 && !error && (
-        <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>{t('admin.plugins.empty')}</div>
-      )}
-
-      {manifests && manifests.map(p => {
-        const on = enabledPlugins.includes(p.id);
-        const busy = busyId === p.id;
-        return (
-          <div key={p.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 0', borderBottom: '1px solid var(--border-subtle)' }}>
-            <button
-              type="button"
-              onClick={() => toggle(p.id, !on)}
-              disabled={busy}
-              aria-pressed={on}
-              aria-label={p.name}
-              style={{
-                width: 36, height: 20, borderRadius: 10, border: 'none', cursor: busy ? 'default' : 'pointer', padding: 0,
-                background: on ? 'var(--accent)' : TOGGLE_OFF_BACKGROUND,
-                position: 'relative', transition: 'background 0.2s', flexShrink: 0, marginTop: 1, opacity: busy ? 0.6 : 1,
-              }}
-            >
-              <span style={{ position: 'absolute', top: 2, left: on ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: 'white', transition: 'left 0.2s' }} />
-            </button>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <span style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500 }}>{p.name}</span>
-                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>v{p.version}</span>
-              </div>
-              {(() => {
-                const loc = getPluginMeta(p.id)?.settingsLocation;
-                // Activated + has a settings home → a clickable pointer to it. Activated with no
-                // settings, or not activated → a plain status line.
-                if (on && loc && onNavigate) {
-                  return (
-                    <button
-                      type="button"
-                      onClick={() => onNavigate(loc.tab, loc.subtab)}
-                      style={{ marginTop: 3, padding: 0, border: 'none', background: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--accent)', textAlign: 'left' }}
-                    >
-                      {t('admin.plugins.configureIn', { location: t(loc.labelKey) })} →
-                    </button>
-                  );
-                }
-                return (
-                  <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>
-                    {on ? t('admin.plugins.activated') : t('admin.plugins.deactivated')}
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
-        );
-      })}
     </div>
   );
 }
@@ -6977,7 +6875,7 @@ const TAB_GROUPS = [
   { id: 'mail', labelKey: 'admin.tabs.groupMail', tabIds: ['accounts', 'rules', 'categories', 'antispam', 'cleanup'] },
   { id: 'calendar', labelKey: 'admin.tabs.groupCalendar', tabIds: ['calendar-accounts', 'calendar-list'] },
   { id: 'preferences', labelKey: 'admin.tabs.groupPreferences', tabIds: ['appearance', 'behavior', 'notifications', 'shortcuts', 'security'] },
-  { id: 'ai-extensions', labelKey: 'admin.tabs.groupAiExtensions', tabIds: ['ai-actions', 'ai', 'integrations', 'plugins'] },
+  { id: 'ai-extensions', labelKey: 'admin.tabs.groupAiExtensions', tabIds: ['ai-actions', 'ai', 'integrations'] },
   { id: 'admin', labelKey: 'admin.tabs.groupAdmin', tabIds: ['users', 'sso', 'mail-signin', 'backup'] },
 ];
 
@@ -7047,10 +6945,6 @@ const TABS = [
   {
     id: 'integrations', labelKey: 'admin.tabs.integrations',
     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><circle cx="12" cy="12" r="3"/><path d="M6.343 6.343a8 8 0 000 11.314M17.657 6.343a8 8 0 010 11.314M3 12h1m16 0h1M12 3v1m0 16v1"/></svg>,
-  },
-  {
-    id: 'plugins', labelKey: 'admin.tabs.plugins', beta: true,
-    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3v6M18 3v6M6 21v-6M18 21v-6M4 9h16v3a6 6 0 01-6 6h-4a6 6 0 01-6-6V9z"/></svg>,
   },
   // Administration
   {
@@ -8702,9 +8596,7 @@ function makeSearchIndex(t) {
     // Integrations
     { label: t('admin.integrations.todoist.title'), keywords: ['todoist', 'tasks', 'to-do', 'carddav', 'contacts sync'], tab: 'integrations', breadcrumb: tabLabel('integrations') },
     { label: t('admin.ai.title'), keywords: ['ai', 'artificial intelligence', 'chatgpt', 'ollama', 'llm', 'language model', 'summarize', 'draft', 'compose assistant', 'openai', 'local ai', 'inference', 'gpt'], tab: 'ai', adminOnly: true, breadcrumb: tabLabel('ai') },
-    { label: t('admin.plugins.title'), keywords: ['plugin', 'plugins', 'extension', 'extensions', 'add-on', 'addon', 'gtd', 'activate', 'enable feature', 'modules'], tab: 'plugins', breadcrumb: tabLabel('plugins') },
     { label: t('admin.categories.title'), keywords: ['categories', 'categorize', 'newsletter', 'promotion', 'social', 'automated', 'inbox tabs', 'sort emails', 'classify'], tab: 'categories', breadcrumb: tabLabel('categories') },
-    { label: t('admin.categories.gtdReveal'), keywords: ['gtd', 'todo', 'getting things done', 'watch', 'delegated', 'someday', 'reference', 'next action', 'waiting', 'inbox zero', 'pet'], tab: 'categories', subtab: 'gtd', breadcrumb: `${tabLabel('categories')} › ${t('admin.categories.gtdReveal')}` },
     // Security
     { label: t('admin.security.totpTitle'), keywords: ['2fa', 'totp', 'authenticator', 'two factor', 'otp', 'two-factor', 'mfa', 'security code'], tab: 'security', subtab: 'security', breadcrumb: secCrumb },
     { label: t('admin.apiTokens.title'), keywords: ['api', 'token', 'api token', 'access token', 'personal access token', 'bearer', 'mcp', 'script', 'revoke'], tab: 'security', subtab: 'security', breadcrumb: secCrumb },
@@ -8844,7 +8736,7 @@ export default function AdminPanel() {
       {adminTab === 'calendar-list' && <CalendarListTab />}
       {adminTab === 'antispam' && <SpamSettings />}
       {adminTab === 'rules' && <RulesAndBlockListTab initialSubTab={pendingSubTab} />}
-      {adminTab === 'categories' && <CategoriesSection initialSubTab={pendingSubTab} />}
+      {adminTab === 'categories' && <CategoriesSection />}
       {adminTab === 'cleanup' && <MailboxCleanupTab />}
       {adminTab === 'appearance' && <AppearanceTab initialSubTab={pendingSubTab} />}
       {adminTab === 'integrations' && <IntegrationsTab />}
@@ -8858,7 +8750,6 @@ export default function AdminPanel() {
       {adminTab === 'shortcuts' && !isMobile && <ShortcutsTab />}
       {adminTab === 'ai' && <AISection />}
       {adminTab === 'ai-actions' && <AiActionsTab />}
-      {adminTab === 'plugins' && <PluginsSection onNavigate={navigateTo} />}
       {adminTab === 'about' && <AboutTab />}
     </>
   );
@@ -8979,7 +8870,7 @@ export default function AdminPanel() {
           </div>
 
           {/* Scrollable tab list — keeps the Close button pinned even when the tab list is taller
-              than the modal (e.g. once several plugins/beta tabs are present). */}
+              than the modal (e.g. once several beta tabs are present). */}
           {/* overflowX hidden: overflowY:auto would otherwise promote overflow-x to auto too, so a
               long label in any locale (e.g. German "Tastaturkürzel") would show a horizontal
               scrollbar. Labels wrap instead of overflowing (see the tab buttons below). */}

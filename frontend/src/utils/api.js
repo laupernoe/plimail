@@ -1,4 +1,3 @@
-import { orderedRead } from './readOrder.js';
 
 const BASE = '/api';
 
@@ -49,8 +48,6 @@ async function request(method, path, body, extraHeaders) {
       ...(typeof err.serverNow === 'string' ? { serverNow: err.serverNow } : {}),
       // What a scheduled message is doing when the server refused to change it (sending, sent...).
       ...(typeof err.status === 'string' ? { state: err.status } : {}),
-      // A GTD label row that named another message on the server, so nothing was removed (#665).
-      ...(err.changed === true ? { changed: true } : {}),
     });
   }
   // No Content (a DELETE): there is no body to read.
@@ -408,9 +405,7 @@ export const api = {
     if (unified) qs.set('unified', 'true');
     return request('GET', `/mail/thread?${qs}`);
   },
-  // Per message, in the order the user acted (utils/readOrder.js). `since`, from reserveReadIntent,
-  // leaves out the messages acted on after it was taken.
-  bulkRead: (ids, read, { since } = {}) => orderedRead(ids, list => request('POST', '/mail/messages/bulk-read', { ids: list, read }), { since }),
+  bulkRead: (ids, read) => request('POST', '/mail/messages/bulk-read', { ids, read }),
   bulkStar: (ids, starred) => request('POST', '/mail/messages/bulk-star', { ids, starred }),
   markStarred: (id, starred) => request('PATCH', `/mail/messages/${id}/star`, { starred }),
   markAllRead: (accountId, folder) => request('POST', '/mail/mark-all-read', { accountId, folder }),
@@ -670,38 +665,6 @@ export const api = {
     refreshSource: (id) => request('POST', `/categories/sources/${id}/refresh`),
     recategorize: (accountId) => request('POST', `/categories/recategorize/${accountId}`),
     aiClassify: (messageId) => request('POST', `/categories/ai-classify/${messageId}`),
-  },
-
-  // GTD — sections feed (rail + tabs) and classify/unclassify (COPY / remove copy)
-  getGtdSections: (params) => {
-    const p = new URLSearchParams();
-    if (params?.accountId) p.set('accountId', params.accountId);
-    if (params?.limit != null) p.set('limit', params.limit);
-    const qs = p.toString();
-    return request('GET', `/gtd/sections${qs ? '?' + qs : ''}`);
-  },
-  gtdMetadata: (accountId, messageIds) => request('POST', '/gtd/metadata', { accountId, messageIds }),
-  gtdClassify: (messageId, state) => request('POST', '/gtd/classify', { messageId, state }),
-  gtdUndoClassify: (undoToken) => request('POST', '/gtd/classify/undo', undoToken),
-  gtdUnclassify: (messageId, state) => request('DELETE', '/gtd/classify', { messageId, state }),
-  // GTD "done": strip the row's label(s) for these states, mark read, archive the INBOX
-  // copy. id is the rail head's row id (its label-folder copy); the server resolves the
-  // INBOX copy from the shared Message-ID.
-  gtdDone: (id, states) => request('POST', '/gtd/done', { id, states }),
-  gtdEnsureFolders: (accountId, folders) => request('POST', '/gtd/folders/ensure', { accountId, folders }),
-
-  // GTD — Inbox-Zero pet. Import uploads your own pet (pet.json text + a base64 spritesheet)
-  // and caches it server-side; meta returns the animation descriptor; the sheet URL is used
-  // directly as an <img>/background src (authenticated same-origin, cookies ride along).
-  importGtdPet: (payload) => request('POST', '/gtd/pet/import', payload),
-  getGtdPetMeta: (slug) => request('GET', `/gtd/pet/${encodeURIComponent(slug)}/meta`),
-  gtdPetSheetUrl: (slug) => `${BASE}/gtd/pet/${encodeURIComponent(slug)}/sheet`,
-
-  // Plugins — registered plugins for this build plus the user's per-user activation. Activation is
-  // independent of a plugin's own per-account config (e.g. GTD's gtd_enabled).
-  plugins: {
-    list: () => request('GET', '/plugins'),
-    setActivated: (id, activated) => request('PATCH', `/plugins/${encodeURIComponent(id)}`, { activated }),
   },
 
   // Todoist integration

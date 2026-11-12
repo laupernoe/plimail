@@ -880,8 +880,7 @@
     "groups": {
       "composeSearch": "Verfassen & Suche",
       "navigation": "Navigation",
-      "messageActions": "Nachrichtenaktionen",
-      "gtd": "GTD"
+      "messageActions": "Nachrichtenaktionen"
     },
     "actions": {
       "toggleLeftSidebar": {
@@ -975,31 +974,6 @@
       "printMessage": {
         "label": "Drucken",
         "description": "Die aktuelle Nachricht drucken"
-      },
-      "gtdTodo": {
-        "label": "Als Aufgabe markieren",
-        "description": "Die ausgewählte Nachricht als Aufgabe einordnen"
-      },
-      "gtdWatch": {
-        "label": "Als Beobachten markieren",
-        "description": "Die ausgewählte Nachricht als Beobachten einordnen"
-      },
-      "gtdDelegated": {
-        "label": "Als Delegiert markieren",
-        "description": "Die ausgewählte Nachricht als Delegiert einordnen"
-      },
-      "gtdReference": {
-        "description": "Ausgewählte Nachricht als Referenz einordnen"
-      },
-      "gtdSomeday": {
-        "description": "Ausgewählte Nachricht als Irgendwann einordnen"
-      },
-      "gtdDone": {
-        "description": "Ausgewählte GTD-Nachricht abschließen"
-      },
-      "toggleRightSidebar": {
-        "label": "Rechte Seitenleiste umschalten",
-        "description": "Rechte Seitenleiste aus- oder einblenden"
       }
     }
   },
@@ -1086,7 +1060,6 @@
       "groupAiExtensions": "KI und Erweiterungen",
       "groupAdmin": "Administration",
       "behavior": "Verhalten",
-      "plugins": "Plugins",
       "backup": "Sicherung",
       "mailSignIn": "E-Mail-Anbieter",
       "groupCalendar": "Kalender",
@@ -1694,41 +1667,7 @@
       "recategorize": "Neu kategorisieren",
       "recategorizing": "Verarbeite…",
       "recategorized": "Neukategorisierung gestartet.",
-      "selectAccount": "Konto auswählen",
-      "gtdReveal": "GTD",
-      "gtdRevealDesc": "Blendet unten die GTD-Einstellungen pro Konto ein; jedes Konto behält seinen eigenen Schalter."
-    },
-    "gtd": {
-      "description": "Verwandeln Sie Mailflow in ein GTD-System. Aktivieren Sie es pro Konto und ordnen Sie jeden Zustand dem IMAP-Ordner zu, der sein Label enthält.",
-      "noAccounts": "Fügen Sie zuerst ein E-Mail-Konto hinzu, um GTD einzurichten.",
-      "enableDesc": "GTD ist aktiv. Labels werden als Ordner synchronisiert und Zustände wechseln automatisch.",
-      "enableHint": "GTD-Labels und automatische Zustandswechsel für dieses Konto aktivieren.",
-      "foldersTitle": "Label-Ordner",
-      "foldersDesc": "Jeder GTD-Zustand wird einem IMAP-Ordner zugeordnet. Lassen Sie ein Feld leer, um den Standardnamen zu verwenden.",
-      "savedOk": "Ordnerzuordnung gespeichert.",
-      "saveFailed": "Ordnerzuordnung konnte nicht gespeichert werden.",
-      "createFolders": "Fehlende Ordner erstellen",
-      "creating": "Wird erstellt…",
-      "createResult": "{{created}} erstellt, {{existing}} bereits vorhanden.",
-      "createFailed": "Ordner konnten nicht erstellt werden.",
-      "duplicateFolder": "Diese GTD-Zustände verweisen auf denselben Ordner: {{states}}. Weisen Sie jedem Zustand einen anderen Ordner zu.",
-      "rejectedFolders": "Einige Ordnernamen waren ungültig und wurden auf die Standardwerte zurückgesetzt: {{states}}.",
-      "pet": {
-        "title": "Inbox-Zero-Tier",
-        "description": "Ersetze bei Inbox Zero den Standardhund durch ein eigenes Tier.",
-        "clear": "Standardhund verwenden",
-        "current": "Aktuelles Tier: {{slug}}",
-        "usingDog": "Standardhund wird verwendet.",
-        "hoverHint": "Zum Animieren mit der Maus darüberfahren.",
-        "importTitle": "Eigenes importieren",
-        "importHint": "Lade eine pet.json und ihr Spritesheet hoch (PNG, WebP oder GIF).",
-        "chooseJson": "pet.json-Datei",
-        "chooseSheet": "Spritesheet-Bild",
-        "import": "Importieren",
-        "importing": "Wird importiert…",
-        "imported": "{{name}} importiert — bewege den Mauszeiger über die Vorschau, um es zu sehen.",
-        "importFailed": "Dieses Tier konnte nicht importiert werden."
-      }
+      "selectAccount": "Konto auswählen"
     },
     "systemEmail": {
       "tabUsers": "Benutzer & Einladungen",
@@ -2056,15 +1995,6 @@
       "downloadFailed": "Die Sicherung konnte nicht gestartet werden.",
       "connectionLost": "Die Verbindung ist während der Wiederherstellung abgebrochen, daher ist das Ergebnis unbekannt. Diese Seite wird neu geladen, sobald MailFlow wieder antwortet; prüfen Sie dann, ob Ihre Daten wiederhergestellt wurden.",
       "tooLarge": "Die Datei ist größer, als der Proxy vor MailFlow zulässt."
-    },
-    "plugins": {
-      "title": "Plugins",
-      "description": "Aktivieren oder deaktivieren Sie optionale Funktionen für Ihr Konto. Ein aktiviertes Plugin fügt eigene Einstellungen und Oberflächen hinzu.",
-      "activated": "Aktiviert",
-      "deactivated": "Nicht aktiviert",
-      "empty": "In dieser Version sind keine Plugins verfügbar.",
-      "error": "Das Plugin konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
-      "configureIn": "Optionen in {{location}} konfigurieren"
     }
   },
   "blockList": {
@@ -2204,45 +2134,6 @@
     "creating": "Wird erstellt...",
     "taskCreated": "Aufgabe in Todoist erstellt",
     "openTask": "In Todoist öffnen"
-  },
-  "rightSidebar": {
-    "hide": "Rechte Seitenleiste ausblenden",
-    "show": "Rechte Seitenleiste einblenden"
-  },
-  "gtd": {
-    "oldestLabeledAge": "{{state}}: Alter der ältesten Nachricht mit diesem Label (Tage): {{count}}",
-    "title": "GTD",
-    "inbox": "Posteingang",
-    "waiting": "Wartet",
-    "inboxZero": "Posteingang leer ✓",
-    "allClear": "Alles erledigt",
-    "allClearHint": "Nichts wartet auf dich.",
-    "showAll": "Alle {{count}} anzeigen",
-    "showSome": "{{available}} von {{total}} anzeigen",
-    "showLess": "Weniger anzeigen",
-    "toggleSection": "{{section}} umschalten",
-    "tabEmpty": "Noch nichts hier",
-    "removeFrom": "Aus {{state}} entfernen",
-    "classified": "Label angewendet",
-    "classifiedMany": "{{count}} als {{state}} markiert",
-    "classifiedSome": "{{count}} von {{total}} als {{state}} markiert",
-    "classifyFailed": "Label konnte nicht angewendet werden",
-    "undoFailed": "Label konnte nicht rückgängig gemacht werden",
-    "removed": "Label entfernt",
-    "removeFailed": "Label konnte nicht entfernt werden",
-    "onlyCopy": "Dies ist die einzige Kopie der Nachricht. Das Entfernen der Markierung würde sie löschen. Archivieren oder verschieben Sie sie stattdessen.",
-    "labelChanged": "Diese Markierung hat sich auf dem Server geändert und wurde nicht entfernt. Aktualisieren Sie und versuchen Sie es erneut.",
-    "done": "Als erledigt markieren",
-    "doneFailed": "Konnte nicht als erledigt markiert werden",
-    "doneArchiveFailed": "Als erledigt markiert, aber Archivieren fehlgeschlagen – noch im Posteingang",
-    "doneThreadRemains": "Einige Nachrichten dieser Konversation konnten nicht entfernt werden, daher bleibt sie in ihrem GTD-Bereich",
-    "state": {
-      "todo": "Aufgabe",
-      "watch": "Beobachten",
-      "delegated": "Delegiert",
-      "someday": "Irgendwann",
-      "reference": "Referenz"
-    }
   },
   "window": {
     "minimize": "Minimieren",

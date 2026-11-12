@@ -44,17 +44,6 @@ describe('buildKeyMap', () => {
     assert.equal(warn.mock.callCount(), 0);
   });
 
-  it('maps the GTD default keys (t/w/d) with no startup collision', (t) => {
-    // buildKeyMap runs at app startup with the merged defaults+overrides; the new
-    // GTD keys must not collide with any existing default.
-    const warn = t.mock.method(console, 'warn', () => {});
-    const map = buildKeyMap();
-    assert.equal(warn.mock.callCount(), 0, 'default key set must have no collisions');
-    assert.equal(map.t, 'gtdTodo');
-    assert.equal(map.w, 'gtdWatch');
-    assert.equal(map.d, 'gtdDelegated');
-  });
-
   it('warns and keeps last-writer-wins when an override collides with a default key', (t) => {
     const warn = t.mock.method(console, 'warn', () => {});
     // 'archive' defaults to 'e'; override 'delete' (default '#') to the same key.
@@ -87,25 +76,15 @@ describe('buildModKeyMap', () => {
     assert.match(message, /"printMessage"/);
     assert.equal(map.p, 'printMessage', 'later action (printMessage) should win');
   });
-
-  it('binds toggleRightSidebar to ctrl+/ without colliding with the plain "/" search key', (t) => {
-    // ctrl+/ (right-sidebar toggle) and bare / (focusSearch) resolve in different maps, so
-    // they must coexist with no collision warning.
-    const warn = t.mock.method(console, 'warn', () => {});
-    const modMap = buildModKeyMap();
-    const keyMap = buildKeyMap();
-    assert.equal(modMap['/'], 'toggleRightSidebar', 'ctrl+/ resolves to the right-sidebar toggle');
-    assert.equal(keyMap['/'], 'focusSearch', 'bare / stays the search key (separate map)');
-    assert.equal(warn.mock.callCount(), 0);
-  });
 });
 
 describe('modifier shortcuts', () => {
-  it('binds GTD Done to Shift+E while leaving Firefox Ctrl+Shift+E available', () => {
-    assert.equal(resolveShortcutAction({ key: 'E', ctrlKey: true, shiftKey: true }), null);
-    assert.equal(resolveShortcutAction({ key: 'e', ctrlKey: true, shiftKey: false }), null);
-    assert.equal(resolveShortcutAction({ key: 'E', ctrlKey: false, shiftKey: true }), 'gtdDone');
-    assert.equal(resolveShortcutAction(keyEvent('E', { ctrlKey: true, shiftKey: true }), { gtdDone: 'ctrl+shift+e' }), 'gtdDone');
+  it('resolves a Shift binding without claiming its Ctrl+Shift form', () => {
+    const overrides = { toggleStar: 'shift+e' };
+    assert.equal(resolveShortcutAction({ key: 'E', ctrlKey: true, shiftKey: true }, overrides), null);
+    assert.equal(resolveShortcutAction({ key: 'e', ctrlKey: true, shiftKey: false }, overrides), null);
+    assert.equal(resolveShortcutAction({ key: 'E', ctrlKey: false, shiftKey: true }, overrides), 'toggleStar');
+    assert.equal(resolveShortcutAction(keyEvent('E', { ctrlKey: true, shiftKey: true }), { toggleStar: 'ctrl+shift+e' }), 'toggleStar');
   });
 
   it('reports the final winner of a full modifier collision before dispatch', (t) => {

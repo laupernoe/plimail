@@ -118,8 +118,8 @@ describe('advanceSelectionAfterRemoval', () => {
     assert.equal(useStore.getState().selectedMessageId, 'r3');
   });
 
-  // A notification, a link or the GTD sidebar parks the message it opens under __dl_<id>, and the
-  // entry outlives that open; a pick from the list ends it (selectListedMessage).
+  // A notification or a link parks the message it opens under __dl_<id>, and the entry outlives
+  // that open; a pick from the list ends it (selectListedMessage).
   test('without a list mounted the row is picked as the list picks one', () => {
     unregister();
     unregister = null;

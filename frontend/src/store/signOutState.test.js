@@ -59,8 +59,7 @@ test('nor the mailbox that was on screen', () => {
     messageWindows: [{ id: 1, messageId: 'm1' }],
     notifications: [{ id: 1, title: 'Snoozed', body: 'Salary review' }],
     backfillProgress: { 'acct-a': { synced: 10, total: 20 } },
-    gtdSections: { now: [{ id: 'm1', subject: 'Salary review' }] }, categoryCounts: { updates: 3 },
-    activeGtdTab: 'now',
+    categoryCounts: { updates: 3 },
   };
   useStore.setState(mailbox);
   sessionExpires();
@@ -93,13 +92,13 @@ test('nor the message open at the lock when the page reloads while Sign out wait
 });
 
 test('nor the settings held only in memory', () => {
-  // loadPreferences replaces enabledPlugins and aiActions only once it resolves, and the rest
+  // loadPreferences replaces aiActions only once it resolves, and the rest
   // only when the new user has saved them.
   const settings = {
-    enabledPlugins: ['gtd'], aiActions: [{ id: 'hr', label: 'Summarise for HR', prompt: 'Summarise' }],
+    aiActions: [{ id: 'hr', label: 'Summarise for HR', prompt: 'Summarise' }],
     blockRemoteImages: false, imageWhitelist: { addresses: ['sender@example.invalid'], domains: [] },
     hiddenFolders: { 'acct-a': ['HR'] }, shortcuts: { archive: 'z' }, autoLockMinutes: 5,
-    categorizationEnabled: true, gtdPetSlug: 'cat',
+    categorizationEnabled: true,
     autoOpenReplyDrafts: true, afterRemove: 'list', darkEmailBodies: false,
     favoriteFolders: [{ accountId: 'acct-a', path: 'HR' }], recentFolders: [{ accountId: 'acct-a', path: 'HR' }],
     defaultSender: 'account:acct-a', collapsedFolders: ['acct-a:HR'], expandedAccounts: { 'acct-a': true },

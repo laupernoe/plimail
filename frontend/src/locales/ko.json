@@ -874,8 +874,7 @@
     "groups": {
       "navigation": "탐색",
       "composeSearch": "작성 및 검색",
-      "messageActions": "메시지 작업",
-      "gtd": "GTD"
+      "messageActions": "메시지 작업"
     },
     "visibleMailbox": {
       "description": "화면에 표시된 {{number}}번 편지함 열기",
@@ -974,31 +973,6 @@
       "printMessage": {
         "label": "인쇄",
         "description": "현재 메시지 인쇄"
-      },
-      "gtdTodo": {
-        "label": "Todo로 표시",
-        "description": "선택한 메시지를 Todo로 분류"
-      },
-      "gtdWatch": {
-        "label": "Watch로 표시",
-        "description": "선택한 메시지를 Watch로 분류"
-      },
-      "gtdDelegated": {
-        "label": "위임됨(Delegated)으로 표시",
-        "description": "선택한 메시지를 위임됨으로 분류"
-      },
-      "toggleRightSidebar": {
-        "description": "오른쪽 사이드바 숨기기 또는 표시",
-        "label": "오른쪽 사이드바 전환"
-      },
-      "gtdReference": {
-        "description": "선택한 메시지를 참조로 분류"
-      },
-      "gtdSomeday": {
-        "description": "선택한 메시지를 언젠가로 분류"
-      },
-      "gtdDone": {
-        "description": "선택한 GTD 메시지를 완료로 표시"
       }
     },
     "browserMailboxFallback": "브라우저 환경: g 입력 후 1–9를 누르면 해당 편지함으로 이동하고, g 입력 후 l을 누르면 라벨 선택기가 열립니다."
@@ -1084,7 +1058,6 @@
       "groupMail": "메일",
       "groupAdmin": "관리",
       "behavior": "동작",
-      "plugins": "플러그인",
       "backup": "백업",
       "groupAiExtensions": "AI 및 확장",
       "mailSignIn": "이메일 제공업체",
@@ -1767,43 +1740,9 @@
       "deleteConfirm": "이 소스를 삭제하시겠습니까?",
       "recategorize": "재분류",
       "recategorizeDesc": "현재 소스를 사용하여 계정의 기존 받은 편지함 메시지를 모두 다시 분류합니다.",
-      "gtdReveal": "GTD",
       "recategorizeTitle": "메시지 다시 분류",
       "selectAccount": "계정 선택",
-      "recategorized": "재분류가 시작되었습니다.",
-      "gtdRevealDesc": "아래에서 계정별 GTD 설정을 확인하세요. 각 계정은 자체적인 켜기/끄기 토글을 유지합니다."
-    },
-    "gtd": {
-      "noAccounts": "GTD를 구성하려면 먼저 이메일 계정을 추가하세요.",
-      "foldersTitle": "라벨 폴더",
-      "enableDesc": "GTD가 켜져 있습니다. 라벨이 폴더와 동기화되고 상태가 자동으로 전환됩니다.",
-      "enableHint": "이 계정에 대해 GTD 라벨과 자동 상태 전환을 사용 설정하세요.",
-      "description": "MailFlow를 GTD 시스템으로 전환하세요. 계정별로 활성화한 다음 각 상태를 해당 라벨이 있는 IMAP 폴더에 매핑합니다.",
-      "creating": "만드는 중…",
-      "savedOk": "폴더 매핑이 저장되었습니다.",
-      "saveFailed": "폴더 매핑을 저장할 수 없습니다.",
-      "createFailed": "폴더를 생성할 수 없습니다.",
-      "foldersDesc": "각 GTD 상태는 IMAP 폴더에 매핑됩니다. 기본 이름을 사용하려면 필드를 비워 두세요.",
-      "rejectedFolders": "일부 폴더 이름이 잘못되어 기본값({{states}})으로 재설정되었습니다.",
-      "createFolders": "누락된 폴더 생성",
-      "pet": {
-        "title": "받은편지함 제로 애완동물",
-        "clear": "기본 개 사용",
-        "hoverHint": "마우스를 움직이면 움직입니다.",
-        "current": "현재 애완동물: {{slug}}",
-        "usingDog": "기본 개를 사용합니다.",
-        "importTitle": "직접 가져오기",
-        "description": "받은편지함 0의 기본 개를 자신만의 애완동물로 교체하세요.",
-        "importing": "가져오는 중…",
-        "import": "가져오기",
-        "imported": "가져온 {{name}} — 미리보기에 마우스를 올려서 움직이는지 확인하세요.",
-        "importHint": "pet.json 및 해당 스프라이트시트(PNG, WebP 또는 GIF)를 업로드하세요.",
-        "importFailed": "해당 애완동물을 가져올 수 없습니다.",
-        "chooseSheet": "스프라이트시트 이미지",
-        "chooseJson": "pet.json 파일"
-      },
-      "createResult": "{{created}}이(가) 생성되었습니다. {{existing}}이(가) 이미 존재합니다.",
-      "duplicateFolder": "이러한 GTD 상태는 동일한 폴더({{states}})에 매핑됩니다. 각 상태에 다른 폴더를 지정하십시오."
+      "recategorized": "재분류가 시작되었습니다."
     },
     "systemEmail": {
       "host": "SMTP 호스트",
@@ -2056,15 +1995,6 @@
       "downloadFailed": "백업을 시작할 수 없습니다.",
       "connectionLost": "복원 중에 연결이 끊어져 결과를 알 수 없습니다. MailFlow가 다시 응답하면 이 페이지가 새로 고쳐집니다. 그런 다음 데이터가 복원된 내용인지 확인하세요.",
       "tooLarge": "파일이 MailFlow 앞에 있는 프록시가 허용하는 크기보다 큽니다."
-    },
-    "plugins": {
-      "title": "플러그인",
-      "activated": "활성화됨",
-      "error": "플러그인을 업데이트할 수 없습니다. 다시 시도해 주세요.",
-      "deactivated": "활성화되지 않음",
-      "empty": "이 빌드에서는 플러그인을 사용할 수 없습니다.",
-      "description": "계정에 대한 선택적 기능을 켜거나 끄십시오. 플러그인을 활성화하면 자체 설정과 인터페이스가 추가됩니다.",
-      "configureIn": "{{location}}에서 옵션 구성"
     }
   },
   "blockList": {
@@ -2204,45 +2134,6 @@
     "creating": "만드는 중...",
     "openTask": "Todoist에서 열기",
     "priorityNormal": "우선순위 없음"
-  },
-  "gtd": {
-    "oldestLabeledAge": "{{state}}: 라벨이 있는 가장 오래된 메일의 경과 일수: {{count}}",
-    "title": "GTD",
-    "inbox": "받은편지함",
-    "waiting": "대기 중",
-    "showLess": "간략히 보기",
-    "allClear": "모두 처리됨",
-    "tabEmpty": "아직 아무것도 없습니다",
-    "showSome": "{{total}} 중 {{available}} 표시",
-    "removeFrom": "{{state}}에서 제거",
-    "showAll": "{{count}} 모두 표시",
-    "allClearHint": "처리할 항목이 없습니다.",
-    "classifyFailed": "라벨을 적용할 수 없습니다.",
-    "classified": "라벨이 적용됨",
-    "classifiedMany": "{{count}}개를 {{state}}(으)로 지정함",
-    "classifiedSome": "{{total}}개 중 {{count}}개를 {{state}}(으)로 지정함",
-    "toggleSection": "{{section}} 전환",
-    "inboxZero": "받은 편지함 제로 ✓",
-    "done": "완료로 표시",
-    "state": {
-      "watch": "확인",
-      "delegated": "위임됨",
-      "reference": "참조",
-      "todo": "할 일",
-      "someday": "언젠가"
-    },
-    "doneFailed": "완료로 표시할 수 없습니다.",
-    "undoFailed": "라벨을 실행취소할 수 없습니다.",
-    "removed": "라벨이 삭제됨",
-    "removeFailed": "라벨을 삭제할 수 없습니다.",
-    "onlyCopy": "이 메시지의 유일한 사본이므로 라벨을 삭제하면 메시지도 삭제됩니다. 대신 보관하거나 이동하세요.",
-    "labelChanged": "이 라벨이 서버에서 변경되어 삭제되지 않았습니다. 새로고침한 후 다시 시도하세요.",
-    "doneArchiveFailed": "완료로 표시했지만 보관에 실패했습니다. 여전히 받은편지함에 있습니다.",
-    "doneThreadRemains": "이 대화의 일부 메시지를 정리하지 못해 GTD 섹션에 그대로 남아 있습니다"
-  },
-  "rightSidebar": {
-    "show": "오른쪽 사이드바 표시",
-    "hide": "오른쪽 사이드바 숨기기"
   },
   "window": {
     "minimize": "최소화",

@@ -26,8 +26,7 @@ import { aiReplyAvailable } from '../utils/aiReply.js';
 import MessageBodyView from './MessageBodyView.jsx';
 import { copyToClipboard } from '../utils/clipboard.js';
 import { saveSenderCategory } from '../utils/senderCategory.js';
-import { buildMovePickerSections, movePickerSectionHeading, movePickerFoldersEmpty, runMovePickerAction } from '../utils/folderDisplay.js';
-import { PluginSlot, usePluginCollected } from '../plugins/PluginSlot.jsx';
+import { buildMovePickerSections, movePickerSectionHeading, movePickerFoldersEmpty } from '../utils/folderDisplay.js';
 import FolderPathLabel from './FolderPathLabel.jsx';
 import SpamBadge from './SpamBadge.jsx';
 import SpamExplainModal from './SpamExplainModal.jsx';
@@ -596,7 +595,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
   });
 
   // Both drafts are built by the shared util, so replying from the list, from the
-  // reading pane, from a conversation and from GTD triage all produce the same draft.
+  // reading pane and from a conversation all produce the same draft.
   // The body is already loaded here, so it is handed over rather than refetched.
   const loadedBody = async () => body;
 
@@ -719,11 +718,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
         cancelScheduledMarkReadFor(message.id);
         clearReadGuard(message.id);
       },
-      // The GTD rail shows its own copy of the thread, as the u hotkey keeps it in step.
-      update: (id, fields) => {
-        updateMessage(id, fields);
-        useStore.getState().markGtdThreadRead(message.message_id || message.id, fields.is_read);
-      },
+      update: updateMessage,
       incrementUnread, decrementUnread, adjustCategoryCount,
       patch: api.bulkRead,
     }) && (isMobile || (listFirst && !windowMode))) setSelectedMessage(null);
@@ -739,7 +734,6 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
     autoMarkReadTimerRef.current = null;
     cancelScheduledMarkReadFor(message.id);
     applyMarkRead(message);
-    useStore.getState().markGtdThreadRead(message.message_id || message.id, true);
   }, [message]);
 
   const handleToggleRead = useCallback(() => {
@@ -902,19 +896,14 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
     if (!showMovePicker) setMoveSearch('');
   }, [showMovePicker]);
 
-  const movePluginSections = usePluginCollected('move-picker-sections', {
-    account, messages: message ? [message] : [], currentFolder: message?.folder,
-    onClose: () => setShowMovePicker(false), t,
-  });
   const moveSections = message
     ? buildMovePickerSections({
         folders: movePickerFolders, recents: recentFolders, favorites: favoriteFolders,
-        pluginSections: movePluginSections, accountId: message.account_id,
+        accountId: message.account_id,
         currentFolder: message.folder, query: moveSearch,
       })
     : [];
   const moveFoldersEmpty = movePickerFoldersEmpty(moveSections, movePickerFolders);
-  const closeMovePicker = () => setShowMovePicker(false);
 
   if (!message) {
     // A detached window with no message is mid-close (see auto-close effect above) —
@@ -1493,22 +1482,18 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
                             {heading}
                           </div>
                         )}
-                        {section.rows.map(row => {
-                          const isAction = row.kind === 'action';
-                          const f = row.folder;
-                          return (
-                            <button
-                              key={isAction ? `action-${row.item.key}` : f.path}
-                              onClick={isAction ? () => runMovePickerAction(row.item, closeMovePicker) : () => handleMoveToFolder(f.path)}
-                              style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: 13, cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s' }}
-                              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-                              onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                            >
-                              <span style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>{isAction ? row.item.renderIcon(13) : <FolderIcon specialUse={f.special_use} />}</span>
-                              {isAction ? <FolderPathLabel label={row.item.label} /> : <FolderPathLabel folder={f} label={f.favoriteLabel} />}
-                            </button>
-                          );
-                        })}
+                        {section.folders.map(f => (
+                          <button
+                            key={f.path}
+                            onClick={() => handleMoveToFolder(f.path)}
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: 13, cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s' }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                          >
+                            <span style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}><FolderIcon specialUse={f.special_use} /></span>
+                            <FolderPathLabel folder={f} label={f.favoriteLabel} />
+                          </button>
+                        ))}
                         {(i < moveSections.length - 1 || moveFoldersEmpty) && <div style={{ height: 1, background: 'var(--border-subtle)', margin: '3px 0' }} />}
                       </Fragment>
                     );
@@ -1589,7 +1574,6 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
                 })()}
               </span>
               <SpamBadge message={message} onClick={(m) => setSpamExplainMessageId(m.id)} />
-              <PluginSlot name="message-header-meta" ctx={{ message, account }} />
             </div>
           </div>
 
@@ -2064,20 +2048,16 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
                           {heading}
                         </div>
                       )}
-                      {section.rows.map(row => {
-                        const isAction = row.kind === 'action';
-                        const f = row.folder;
-                        return (
-                          <button
-                            key={isAction ? `action-${row.item.key}` : f.path}
-                            onClick={isAction ? () => runMovePickerAction(row.item, closeMovePicker) : () => handleMoveToFolder(f.path)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', minHeight: 48, padding: '0 20px', background: 'none', border: 'none', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: 15, cursor: 'pointer', textAlign: 'left' }}
-                          >
-                            <span style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>{isAction ? row.item.renderIcon(18) : <FolderIcon specialUse={f.special_use} size={18} />}</span>
-                            {isAction ? <FolderPathLabel label={row.item.label} /> : <FolderPathLabel folder={f} label={f.favoriteLabel} />}
-                          </button>
-                        );
-                      })}
+                      {section.folders.map(f => (
+                        <button
+                          key={f.path}
+                          onClick={() => handleMoveToFolder(f.path)}
+                          style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', minHeight: 48, padding: '0 20px', background: 'none', border: 'none', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: 15, cursor: 'pointer', textAlign: 'left' }}
+                        >
+                          <span style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}><FolderIcon specialUse={f.special_use} size={18} /></span>
+                          <FolderPathLabel folder={f} label={f.favoriteLabel} />
+                        </button>
+                      ))}
                       {i < moveSections.length - 1 && <div style={{ height: 6 }} />}
                     </Fragment>
                   );

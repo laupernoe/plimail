@@ -122,7 +122,6 @@ const SAME_VALUE_ALLOWED = {
   'admin.about.kofi':                       'any', // Ko-fi — brand name, same everywhere
   'admin.about.githubSponsors':             'any', // GitHub Sponsors — product name, same everywhere
   'admin.ai.subscriptionProviderChatgpt':    'any', // ChatGPT Plus/Pro (Codex Subscription) — product name, same everywhere
-  'admin.categories.gtdReveal':             'any', // "GTD" — brand-like acronym, same everywhere
   'admin.accounts.imapHostPh':              'any', // imap.gmail.com
   'admin.accounts.presetGmail':             'any', // Gmail
   'admin.accounts.presetIcloud':            'any', // iCloud
@@ -162,10 +161,6 @@ const SAME_VALUE_ALLOWED = {
 
   // "Website" — international term, same in de and en
   'admin.about.website': [['de', 'en']],
-
-  // "Plugins" — loanword, same spelling in de and en (it uses singular "Plugin")
-  'admin.tabs.plugins':  [['de', 'en', 'ptBR']],
-  'admin.plugins.title': [['de', 'en', 'ptBR']],
 
   // "Alias" — Latin origin, same spelling in es, fr, it
   'admin.accounts.aliases': [['es', 'fr', 'it'], ['cs', 'pl']],
@@ -371,13 +366,7 @@ const SAME_VALUE_ALLOWED = {
   // "Social" — international term used as-is in en, es, and it
   'messageList.categories.social': [['en', 'es', 'it', 'ptBR']],
 
-  // ── GTD ────────────────────────────────────────────────────────────────────
-  // "GTD" — acronym (Getting Things Done), same in every locale
-  'gtd.title': 'any',
-
   // ── Keyboard shortcuts ─────────────────────────────────────────────────────
-  // "GTD" — acronym group heading, same in every locale (like admin.categories.gtdReveal)
-  'shortcuts.groups.gtd': 'any',
   // "Navigation" — spelled identically in de, en, fr (es "Navegación", it "Navigazione")
   'shortcuts.groups.navigation': [['de', 'en', 'fr']],
 
@@ -405,7 +394,6 @@ const SAME_VALUE_ALLOWED = {
   'admin.messageList.markReadDelaySeconds': [['cs', 'pl'], ['es', 'ptBR']],
   'admin.messageList.markReadDelaySeconds_other': [['cs', 'pl'], ['es', 'ptBR']],
   'admin.tabs.categories': [['cs', 'pl']],
-  'gtd.state.reference': [['cs', 'en']],
 
   // ── Brazilian Portuguese (ptBR) ────────────────────────────────────────────
   // Portuguese shares a large vocabulary with Spanish (and some with Italian),
@@ -429,8 +417,6 @@ const SAME_VALUE_ALLOWED = {
   'admin.blockList.addButton':                       [['es', 'ptBR']], // "Bloquear"
   'admin.categories.recategorize':                   [['es', 'ptBR']], // "Recategorizar"
   'admin.folderMappings.sent':                       [['es', 'ptBR']], // "Enviados"
-  'admin.gtd.pet.import':                            [['es', 'ptBR']], // "Importar"
-  'admin.gtd.pet.importing':                         [['es', 'ptBR']], // "Importando…"
   'admin.integrations.carddav.connect':              [['es', 'ptBR']], // "Conectar"
   'admin.integrations.carddav.connected':            [['es', 'ptBR']], // "Conectado"
   'admin.integrations.carddav.connecting':           [['es', 'ptBR']], // "Conectando…"
@@ -503,11 +489,6 @@ const SAME_VALUE_ALLOWED = {
   'contextMenu.replyAll':                            [['es', 'ptBR']], // "Responder a todos"
   'contextMenu.snooze.custom':                       [['es', 'ptBR']], // "Personalizado..."
   'diagnostics.section':                             [['es', 'ptBR']], // "Diagnóstico"
-  'gtd.classified':                                  [['es', 'ptBR']], // "Etiqueta aplicada"
-  'gtd.inboxZero':                                   [['en', 'ptBR']], // "Inbox Zero ✓"
-  'gtd.showLess':                                    [['es', 'ptBR']], // "Mostrar menos"
-  'gtd.showSome':                                    [['es', 'ptBR']], // "Mostrar {{available}} de {{total}}"
-  'gtd.toggleSection':                               [['es', 'ptBR']], // "Alternar {{section}}"
   'lockScreen.unlockButton':                         [['es', 'ptBR']], // "Desbloquear"
   'lockScreen.unlocking':                            [['es', 'ptBR']], // "Desbloqueando…"
   'login.emailOtp.codePh':                           [['es', 'ptBR']], // "Código de 6 dígitos"
@@ -703,11 +684,6 @@ const DYNAMIC_KEYS = new Set([
   'messageList.categories.promotion',
   'messageList.categories.automated',
   'messageList.categories.social',
-  // t(`gtd.state.${state}`) — GTD state labels referenced via template literal for
-  // the merged-Waiting kind chip and the classify submenu (watch/delegated never
-  // appear as literals; the other three do via the tab pills).
-  'gtd.state.watch',
-  'gtd.state.delegated',
   // Antispam v0.2 — template-literal keys (SpamSettings/SpamBadge/SpamExplainModal)
   'spam.maturity.mature',
   'spam.maturity.fresh',
