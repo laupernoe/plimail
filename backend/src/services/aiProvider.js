@@ -9,10 +9,13 @@ import { aiEnabledForNewUser, setAiEnabledForNewUser } from './aiNewUsers.js';
 
 export const AI_PROVIDER_API_KEY = 'api-key';
 export const AI_PROVIDER_CHATGPT = 'chatgpt';
+export const AI_PROVIDER_OPENROUTER = 'openrouter';
 export const MASKED_API_KEY = '••••••••';
 export const DEFAULT_CODEX_MODEL = 'gpt-5.6-luna';
+export const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
+export const DEFAULT_OPENROUTER_MODEL = 'mistralai/mistral-nemo';
 
-const PROVIDERS = new Set([AI_PROVIDER_API_KEY, AI_PROVIDER_CHATGPT]);
+const PROVIDERS = new Set([AI_PROVIDER_API_KEY, AI_PROVIDER_CHATGPT, AI_PROVIDER_OPENROUTER]);
 const ERROR_BODY_LIMIT_BYTES = 8 * 1024;
 const JSON_BODY_LIMIT_BYTES = 2 * 1024 * 1024;
 const SSE_EVENT_LIMIT_BYTES = 256 * 1024;
@@ -45,6 +48,9 @@ export function normalizeAiConfig(raw = {}) {
   const chatgptSource = raw.chatgptConfig && typeof raw.chatgptConfig === 'object'
     ? raw.chatgptConfig
     : {};
+  const openrouterSource = raw.openrouterConfig && typeof raw.openrouterConfig === 'object'
+    ? raw.openrouterConfig
+    : {};
   const provider = PROVIDERS.has(raw.provider) ? raw.provider : AI_PROVIDER_API_KEY;
   return {
     enabled: raw.enabled !== false,
@@ -56,6 +62,10 @@ export function normalizeAiConfig(raw = {}) {
     },
     chatgptConfig: {
       model: cleanString(chatgptSource.model) || DEFAULT_CODEX_MODEL,
+    },
+    openrouterConfig: {
+      apiKey: openrouterSource.apiKey || null,
+      model: cleanString(openrouterSource.model) || DEFAULT_OPENROUTER_MODEL,
     },
     features: {
       compose: raw.features?.compose !== false,
@@ -72,7 +82,17 @@ function publicConfig(config) {
       ...config.apiKeyConfig,
       apiKey: config.apiKeyConfig.apiKey ? MASKED_API_KEY : '',
     },
+    openrouterConfig: {
+      ...config.openrouterConfig,
+      apiKey: config.openrouterConfig.apiKey ? MASKED_API_KEY : '',
+    },
   };
+}
+
+// OpenRouter asks apps to say who they are (HTTP-Referer, X-Title). Fixed values on purpose:
+// the instance's own address or name would identify the deployment, so only the app goes out.
+export function openRouterAttributionHeaders() {
+  return { 'HTTP-Referer': 'https://mailflow.sh', 'X-Title': 'MailFlow' };
 }
 
 function redactSecrets(value, secrets = []) {
@@ -194,10 +214,20 @@ export function createAiProvider({
     const storedKey = typeof incomingKey === 'string' && incomingKey && incomingKey !== MASKED_API_KEY
       ? encryptFn(incomingKey)
       : (existing?.apiKeyConfig.apiKey || null);
+    const incomingRouter = input.openrouterConfig || {};
+    const routerKey = incomingRouter.apiKey;
+    const storedRouterKey = typeof routerKey === 'string' && routerKey.trim() && routerKey !== MASKED_API_KEY
+      ? encryptFn(routerKey.trim())
+      : (existing?.openrouterConfig.apiKey || null);
     const config = normalizeAiConfig({
       ...input,
       apiKeyConfig: { ...incomingApi, apiKey: storedKey },
+      openrouterConfig: { ...incomingRouter, apiKey: storedRouterKey },
     });
+
+    if (config.enabled && config.provider === AI_PROVIDER_OPENROUTER && !config.openrouterConfig.apiKey) {
+      throw new AiProviderError('OpenRouter API key is required', { status: 400 });
+    }
 
     if (config.enabled && config.provider === AI_PROVIDER_API_KEY
         && (!config.apiKeyConfig.baseUrl || !config.apiKeyConfig.model)) {
@@ -239,30 +269,50 @@ export function createAiProvider({
         && (!config.apiKeyConfig.baseUrl || !config.apiKeyConfig.model)) {
       throw new AiProviderError('AI provider not fully configured');
     }
+    if (config.provider === AI_PROVIDER_OPENROUTER && !config.openrouterConfig.apiKey) {
+      throw new AiProviderError('AI provider not fully configured');
+    }
     return config;
   }
 
-  function apiKeyCredential(config) {
-    return config.apiKeyConfig.apiKey ? decryptFn(config.apiKeyConfig.apiKey) : null;
+  // OpenRouter speaks the OpenAI chat-completions protocol, so it shares the api-key code path with
+  // a fixed base URL, its own key and model, and the attribution headers.
+  function apiEndpoint(config) {
+    if (config.provider === AI_PROVIDER_OPENROUTER) {
+      const key = config.openrouterConfig.apiKey;
+      return {
+        baseUrl: OPENROUTER_BASE_URL,
+        apiKey: key ? decryptFn(key) : null,
+        model: config.openrouterConfig.model,
+        extraHeaders: openRouterAttributionHeaders(),
+      };
+    }
+    const key = config.apiKeyConfig.apiKey;
+    return {
+      baseUrl: config.apiKeyConfig.baseUrl,
+      apiKey: key ? decryptFn(key) : null,
+      model: config.apiKeyConfig.model,
+      extraHeaders: {},
+    };
   }
 
-  function apiKeyHeaders(apiKey) {
-    const headers = { 'Content-Type': 'application/json' };
+  function apiKeyHeaders(apiKey, extraHeaders = {}) {
+    const headers = { 'Content-Type': 'application/json', ...extraHeaders };
     if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
     return headers;
   }
 
   async function completeApiKey(config, messages, { signal, maxTokens, allowEmpty = false } = {}) {
-    const apiKey = apiKeyCredential(config);
+    const { apiKey, baseUrl, model, extraHeaders } = apiEndpoint(config);
     const body = {
-      model: config.apiKeyConfig.model,
+      model,
       messages,
       ...(Number.isFinite(maxTokens) ? { max_tokens: maxTokens } : {}),
       stream: false,
     };
-    const request = await openProviderRequest(fetchFn, `${config.apiKeyConfig.baseUrl}/chat/completions`, {
+    const request = await openProviderRequest(fetchFn, `${baseUrl}/chat/completions`, {
       method: 'POST',
-      headers: apiKeyHeaders(apiKey),
+      headers: apiKeyHeaders(apiKey, extraHeaders),
       body: JSON.stringify(body),
     }, { signal });
     try {
@@ -296,11 +346,11 @@ export function createAiProvider({
   }
 
   async function* streamApiKey(config, messages, { signal } = {}) {
-    const apiKey = apiKeyCredential(config);
-    const request = await openProviderRequest(fetchFn, `${config.apiKeyConfig.baseUrl}/chat/completions`, {
+    const { apiKey, baseUrl, model, extraHeaders } = apiEndpoint(config);
+    const request = await openProviderRequest(fetchFn, `${baseUrl}/chat/completions`, {
       method: 'POST',
-      headers: apiKeyHeaders(apiKey),
-      body: JSON.stringify({ model: config.apiKeyConfig.model, messages, stream: true }),
+      headers: apiKeyHeaders(apiKey, extraHeaders),
+      body: JSON.stringify({ model, messages, stream: true }),
     }, { signal, timeoutMs: 120_000 });
     try {
       const { response } = request;
@@ -327,7 +377,7 @@ export function createAiProvider({
 
   async function completeText(messages, options = {}) {
     const config = await requireSelectedConfig();
-    if (config.provider === AI_PROVIDER_API_KEY) return completeApiKey(config, messages, options);
+    if (config.provider !== AI_PROVIDER_CHATGPT) return completeApiKey(config, messages, options);
     let credentials = await getCodexAccessFn();
     try {
       return await completeCodexTextFn(codexRequest(config, messages, options, credentials));
@@ -340,7 +390,7 @@ export function createAiProvider({
 
   async function* streamChat(messages, options = {}) {
     const config = await requireSelectedConfig();
-    if (config.provider === AI_PROVIDER_API_KEY) {
+    if (config.provider !== AI_PROVIDER_CHATGPT) {
       yield* streamApiKey(config, messages, options);
       return;
     }
@@ -378,6 +428,10 @@ export function createAiProvider({
       const enabled = Boolean(config.apiKeyConfig.baseUrl && config.apiKeyConfig.model);
       return { enabled, provider: config.provider, features: config.features, reconnectRequired: false };
     }
+    if (config.provider === AI_PROVIDER_OPENROUTER) {
+      const enabled = Boolean(config.openrouterConfig.apiKey && config.openrouterConfig.model);
+      return { enabled, provider: config.provider, features: config.features, reconnectRequired: false };
+    }
     const connection = await getCodexStatusFn();
     return {
       enabled: connection.connected === true && Boolean(config.chatgptConfig.model),
@@ -400,7 +454,42 @@ export function createAiProvider({
     return { ok: true };
   }
 
+  // The public model catalogue (no key needed): id, name, context length and prices per million
+  // tokens, so the admin can pick a model knowing what it costs. Cheapest first within a search.
+  async function listOpenRouterModels({ signal } = {}) {
+    const request = await openProviderRequest(fetchFn, `${OPENROUTER_BASE_URL}/models`, {
+      method: 'GET',
+      headers: { Accept: 'application/json', ...openRouterAttributionHeaders() },
+    }, { signal, timeoutMs: 20_000 });
+    try {
+      const { response } = request;
+      const text = await readLimited(response, response.ok ? 8 * 1024 * 1024 : ERROR_BODY_LIMIT_BYTES);
+      if (!response.ok) throw providerError(response.status, text);
+      const data = parseJson(text)?.data;
+      if (!Array.isArray(data)) throw new AiProviderError('OpenRouter returned an invalid model list', { status: 502, expose: true });
+      const perMillion = (value) => {
+        const n = Number.parseFloat(value);
+        return Number.isFinite(n) && n >= 0 ? Math.round(n * 1e6 * 1e4) / 1e4 : null;
+      };
+      return data
+        .filter(m => typeof m?.id === 'string' && m.id)
+        .map(m => ({
+          id: m.id,
+          name: typeof m.name === 'string' && m.name ? m.name : m.id,
+          contextLength: Number.isFinite(m.context_length) ? m.context_length : null,
+          promptPrice: perMillion(m.pricing?.prompt),
+          completionPrice: perMillion(m.pricing?.completion),
+        }))
+        .sort((a, b) => a.id.localeCompare(b.id));
+    } catch (error) {
+      throw providerRequestError(error, request, signal);
+    } finally {
+      request.cleanup();
+    }
+  }
+
   return {
+    listOpenRouterModels,
     loadAiConfig,
     getAdminAiConfig,
     getAiNewUsersEnabled,
@@ -415,6 +504,7 @@ export function createAiProvider({
 
 const defaultProvider = createAiProvider();
 
+export const listOpenRouterModels = defaultProvider.listOpenRouterModels;
 export const loadAiConfig = defaultProvider.loadAiConfig;
 export const getAdminAiConfig = defaultProvider.getAdminAiConfig;
 export const getAiNewUsersEnabled = defaultProvider.getAiNewUsersEnabled;

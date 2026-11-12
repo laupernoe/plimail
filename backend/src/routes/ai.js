@@ -5,6 +5,7 @@ import {
   deleteAiConfig,
   getAdminAiConfig,
   getAiNewUsersEnabled,
+  listOpenRouterModels,
   saveAiConfig,
   streamChat,
   testAiProvider,
@@ -110,6 +111,14 @@ router.post('/admin/ai/test', requireAdmin, async (_req, res) => {
     res.json(await testAiProvider());
   } catch (error) {
     serviceError(res, error, 'AI provider test failed');
+  }
+});
+
+router.get('/admin/ai/openrouter/models', requireAdmin, async (_req, res) => {
+  try {
+    res.json({ models: await listOpenRouterModels() });
+  } catch (error) {
+    serviceError(res, error, 'Failed to load OpenRouter models');
   }
 });
 
