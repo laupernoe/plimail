@@ -3,11 +3,11 @@
 // different keys run independently.
 //
 // Used by the account update route to serialize a single account's reconnect
-// triggers. A rapid gtd_enabled double-toggle would otherwise fire two overlapping
-// disconnect→connect chains; connectAccount's in-progress guard silently drops the
-// second, which can leave the GTD sync tick's armed state out of sync with the
+// triggers. A rapid double-toggle of a setting that needs a reconnect would otherwise
+// fire two overlapping disconnect→connect chains; connectAccount's in-progress guard
+// silently drops the second, which can leave the connection out of sync with the
 // final DB value. Queuing the reconnects per account id makes the last-scheduled
-// reconnect run last, so the armed state reflects the final row.
+// reconnect run last, so the connection reflects the final row.
 //
 // Each key's chained tail is dropped once idle, so keys don't leak.
 export function createKeyedSerializer() {

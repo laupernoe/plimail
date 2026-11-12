@@ -1139,7 +1139,7 @@ function MailboxList() {
     addNotification, t,
   ]);
 
-  // Antispam helpers (v0.1).
+  // Mark-as-spam / mark-as-ham helpers.
   //
   // Strategy for both mark-as-spam and mark-as-ham:
   //   1. Optimistically remove the message(s) from the visible list and decrement

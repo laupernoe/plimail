@@ -2368,7 +2368,7 @@ export async function ensureMailbox(client, path, { resolvePath = false } = {}) 
 // Resolve the server's REAL casing for a mailbox that already exists, by case-insensitive
 // lookup against the folder LIST. On a case-insensitive server "TODO" can already exist when
 // "Todo" was requested; imapflow's already-exists result echoes the REQUESTED casing, which,
-// if persisted (planGtdFolderPersist), never case-matches the synced rows' folder value and
+// if persisted, never case-matches the synced rows' folder value and
 // silently zeroes the state. An exact match wins: a case-sensitive server can hold both
 // "Snoozed" and a user's own "snoozed", and the CREATE collided with the exact one.
 // Best-effort: any list failure (or a client without list) falls back to the caller's known
