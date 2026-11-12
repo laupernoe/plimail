@@ -117,7 +117,8 @@ function whenText(occ, { lang, timeZone }) {
   }
   const zone = (() => { try { new Intl.DateTimeFormat('en', { timeZone }); return timeZone; } catch { return 'UTC'; } })();
   const f = new Intl.DateTimeFormat(locale, { dateStyle: 'full', timeStyle: 'short', timeZone: zone });
-  const t = new Intl.DateTimeFormat(locale, { timeStyle: 'short', timeZone: zone, timeZoneName: 'short' });
+  // timeStyle cannot be combined with timeZoneName: Intl throws.
+  const t = new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit', timeZone: zone, timeZoneName: 'short' });
   return `${f.format(new Date(occ.start))} – ${t.format(new Date(occ.end))}`;
 }
 
