@@ -59,7 +59,7 @@ export default function BusinessNotice({ hidden = false }) {
           target="_blank"
           rel="noopener noreferrer"
           style={{
-            background: 'var(--accent)', color: '#fff', borderRadius: 5, padding: '4px 10px',
+            background: 'var(--accent)', color: 'var(--accent-text)', borderRadius: 5, padding: '4px 10px',
             fontSize: 11, fontWeight: 600, textDecoration: 'none',
           }}
         >

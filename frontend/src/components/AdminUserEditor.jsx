@@ -200,7 +200,7 @@ export default function AdminUserEditor({ user, isSelf, onClose, onSaved, onChan
           </button>
           <button type="submit" disabled={saving} style={{
             padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 500, border: 'none',
-            background: 'var(--accent)', color: '#fff', cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1,
+            background: 'var(--accent)', color: 'var(--accent-text)', cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1,
           }}>
             {saving ? t('common.saving') : t('common.save')}
           </button>

@@ -121,7 +121,7 @@ export default class ErrorBoundary extends React.Component {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              style={{ ...button, background: 'var(--accent, #6366f1)', color: '#fff', borderColor: 'transparent' }}
+              style={{ ...button, background: 'var(--accent)', color: 'var(--accent-text)', borderColor: 'transparent' }}
             >
               Reload
             </button>

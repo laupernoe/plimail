@@ -8,10 +8,12 @@ const PLAIN_HTML = { html: '<p>Hello</p>', darkCss: null, lightOnly: false };
 const TEXT = { html: null, text: 'hi' };
 
 describe('isDarkTheme', () => {
-  test('goes by the background, not the name', () => {
-    assert.equal(isDarkTheme('dark'), true);
+  test('selfhostr is dark, selfhostr-light is not', () => {
+    assert.equal(isDarkTheme('selfhostr'), true);
+    assert.equal(isDarkTheme('selfhostr-light'), false);
+  });
+  test('an unknown stored theme is treated like system (dark without a light OS)', () => {
     assert.equal(isDarkTheme('nord'), true);
-    for (const light of ['light', 'catppuccin_latte', 'parchment', 'winxp', 'win9x']) assert.equal(isDarkTheme(light), false, light);
   });
 });
 

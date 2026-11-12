@@ -92,7 +92,7 @@ function GtdPetBlock() {
 
         <button onClick={handleImport} disabled={importing || !petJsonFile || !sheetFile} style={{
           marginTop: 12, padding: '7px 14px', background: 'var(--accent)', border: 'none', borderRadius: 6,
-          color: 'white', fontSize: 13, whiteSpace: 'nowrap',
+          color: 'var(--accent-text)', fontSize: 13, whiteSpace: 'nowrap',
           cursor: (importing || !petJsonFile || !sheetFile) ? 'default' : 'pointer',
           opacity: (importing || !petJsonFile || !sheetFile) ? 0.5 : 1,
         }}>
@@ -239,7 +239,7 @@ function GtdAccountBlock({ account }) {
         >
           <span style={{
             position: 'absolute', top: 2, left: enabled ? 18 : 2, width: 16, height: 16,
-            borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+            borderRadius: '50%', background: enabled ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
           }} />
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -287,7 +287,7 @@ function GtdAccountBlock({ account }) {
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={handleSave} disabled={saving} style={{
               padding: '7px 14px', background: 'var(--accent)', border: 'none', borderRadius: 6,
-              color: 'white', fontSize: 13, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.5 : 1,
+              color: 'var(--accent-text)', fontSize: 13, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.5 : 1,
             }}>
               {saving ? t('common.saving') : t('common.save')}
             </button>
@@ -382,7 +382,7 @@ export default function GtdSettings({ initialSubTab }) {
         >
           <span style={{
             position: 'absolute', top: 2, left: gtdRevealed ? 18 : 2, width: 16, height: 16,
-            borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+            borderRadius: '50%', background: gtdRevealed ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
           }} />
         </button>
         <div>

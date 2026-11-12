@@ -1756,7 +1756,7 @@ export default function Sidebar() {
             >
               <span style={{
                 position: 'absolute', top: 2, width: 16, height: 16, borderRadius: '50%',
-                background: 'white', transition: 'left 0.2s',
+                background: blockRemoteImages ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
                 left: blockRemoteImages ? 18 : 2,
               }} />
             </button>
@@ -1785,7 +1785,7 @@ export default function Sidebar() {
             >
               <span style={{
                 position: 'absolute', top: 2, width: 16, height: 16, borderRadius: '50%',
-                background: 'white', transition: 'left 0.2s',
+                background: searchAllFolders ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
                 left: searchAllFolders ? 18 : 2,
               }} />
             </button>
@@ -2040,7 +2040,7 @@ export default function Sidebar() {
             >
               <span style={{
                 position: 'absolute', top: 2, width: 16, height: 16, borderRadius: '50%',
-                background: 'white', transition: 'left 0.2s',
+                background: blockRemoteImages ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
                 left: blockRemoteImages ? 18 : 2,
               }} />
             </button>
@@ -2068,7 +2068,7 @@ export default function Sidebar() {
             >
               <span style={{
                 position: 'absolute', top: 2, width: 16, height: 16, borderRadius: '50%',
-                background: 'white', transition: 'left 0.2s',
+                background: searchAllFolders ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
                 left: searchAllFolders ? 18 : 2,
               }} />
             </button>
@@ -2151,7 +2151,7 @@ export default function Sidebar() {
               }}>{t('common.cancel')}</button>
               <button onClick={() => { const fn = confirmDialog.onConfirm; setConfirmDialog(null); fn(); }} className="btn-press" style={{
                 padding: '7px 16px', borderRadius: 7, border: 'none',
-                background: 'var(--red)', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 500,
+                background: 'var(--red)', color: 'var(--status-text)', cursor: 'pointer', fontSize: 13, fontWeight: 500,
               }}>{t('common.delete')}</button>
             </div>
           </div>

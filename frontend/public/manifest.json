@@ -4,8 +4,8 @@
   "description": "Your unified inbox",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0f11",
-  "theme_color": "#7c6af7",
+  "background_color": "#07080a",
+  "theme_color": "#eceef1",
   "orientation": "portrait-primary",
   "protocol_handlers": [
     { "protocol": "mailto", "url": "/?mailto=%s" }
