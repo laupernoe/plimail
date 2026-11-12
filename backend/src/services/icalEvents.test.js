@@ -457,3 +457,14 @@ describe('an invitation to one occurrence of a series', () => {
     expect(removeOccurrence(ONE, occ.recurrenceId)).toBeNull();
   });
 });
+
+describe('a series made a single event', () => {
+  it('leaves no exception, exclusion or extra date behind', () => {
+    const edited = applyEdit(removeOccurrence(WEEKLY, '2026-10-26T09:00:00'), { summary: 'Moved', allDay: false, start: '2026-11-04T09:00:00Z', end: '2026-11-04T09:30:00Z' },
+      { scope: 'this', recurrenceId: '2026-11-02T09:00:00' });
+    const withRdate = edited.replace('RRULE:FREQ=WEEKLY;BYDAY=MO', 'RRULE:FREQ=WEEKLY;BYDAY=MO\r\nRDATE;TZID=Europe/Zurich:20261021T090000');
+    const out = applyEdit(withRdate, { recurrence: null }, { scope: 'all' });
+    expect(out.slice(out.indexOf('BEGIN:VEVENT'))).not.toMatch(/RRULE|RDATE|EXDATE|RECURRENCE-ID/);
+    expect(expandResource(out, ...range('2026-10-01T00:00:00Z', '2026-12-01T00:00:00Z')).map(o => o.start)).toEqual(['2026-10-19T07:00:00.000Z']);
+  });
+});

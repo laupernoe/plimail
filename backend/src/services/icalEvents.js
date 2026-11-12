@@ -813,6 +813,7 @@ function editSeries(root, input, recurrenceId, zones, opts) {
   const { master, overrides } = masterAndOverrides(root);
   if (!master) return editOverridesOnly(root, overrides, input, recurrenceId, zones, opts);
   const b = bounds(master, zones);
+  const wasSeries = isSeries(master);
   const before = timing(master, zones);
   applyText(master, input);
   if (input.start !== undefined) {
@@ -858,6 +859,13 @@ function editSeries(root, input, recurrenceId, zones, opts) {
     if (input.recurrence !== undefined) setRecurrence(master, input.recurrence, input, tzid, zones);
   } else if (input.recurrence !== undefined) {
     setRecurrence(master, input.recurrence, { allDay: b.allDay }, b.tzid, zones);
+  }
+  // A series made a single event takes its exclusions, extra dates and exceptions with it, or they
+  // would linger as stray events of an event that no longer repeats.
+  if (input.recurrence === null && wasSeries) {
+    master.removeAllProperties('rdate');
+    master.removeAllProperties('exdate');
+    overrides.forEach(o => root.removeSubcomponent(o));
   }
   if (input.reminderMinutes !== undefined) setReminder(master, input.reminderMinutes);
   if (input.attendees !== undefined) {
