@@ -512,6 +512,43 @@ describe('insertCopiedSibling', () => {
   });
 });
 
+describe('copyMessage — after the server confirmed the copy', () => {
+  const account = { ...baseAccount, id: 'copy-cache-account', user_id: 'user-1', email_address: 'me@example.test' };
+  async function copyWith(insert) {
+    const client = Object.assign(new EventEmitter(), { usable: true, connect: vi.fn().mockResolvedValue(),
+      close: vi.fn(), logout: vi.fn().mockResolvedValue(), noop: vi.fn().mockResolvedValue(),
+      getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+      messageCopy: vi.fn().mockResolvedValue({ uidValidity: 9n, uidMap: new Map([[100, 5001]]) }) });
+    ImapFlow.mockImplementation(function () { return client; });
+    getConnectionPolicy.mockResolvedValue({ allowPrivateHosts: true, allowInsecureTls: true });
+    resolveForConnection.mockResolvedValue({ host: '127.0.0.1', addresses: ['127.0.0.1'], servername: null });
+    query.mockReset().mockImplementation(sql => {
+      if (sql.includes('FROM email_accounts')) return Promise.resolve({ rows: [account] });
+      if (sql.includes('INSERT INTO messages')) return insert();
+      return Promise.resolve({ rows: [] });
+    });
+    const manager = Object.create(ImapManager.prototype);
+    manager.syncFolderOnDemand = vi.fn().mockResolvedValue();
+    const result = await manager.copyMessage(account.id, 100, 'INBOX', 'Todo');
+    return { result, manager, client };
+  }
+
+  it('reports the copy and syncs the destination when caching it fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { result, manager, client } = await copyWith(() => Promise.reject(new Error('synthetic insert failure')));
+    expect(client.messageCopy).toHaveBeenCalledTimes(1);
+    expect(result).toBe(5001);
+    expect(manager.syncFolderOnDemand).toHaveBeenCalledWith(account, 'Todo');
+    console.error.mockRestore();
+  });
+
+  it('does not sync the destination when the copy was cached', async () => {
+    const { result, manager } = await copyWith(() => Promise.resolve({ rows: [{ id: 'row-new', is_read: true }] }));
+    expect(result).toBe(5001);
+    expect(manager.syncFolderOnDemand).not.toHaveBeenCalled();
+  });
+});
+
 // ── upsertDraftMessageRecord — the row a reopened draft is built from ───────
 
 describe('upsertDraftMessageRecord', () => {
@@ -1329,6 +1366,71 @@ describe('syncMessages — unread_count recompute ordering (folder badge fix)', 
     expect(recomputeIdx).toBeGreaterThanOrEqual(0);
     expect(recomputeIdx).toBeGreaterThan(insertIdx);            // recompute strictly after insert
     expect(query.mock.calls[recomputeIdx][1]).toEqual(['acct-junk', 'Junk']); // scoped to this folder
+  });
+});
+
+describe('syncFolderOnDemand — a request during a running pass', () => {
+  const account = { id: 'a1', user_id: 'u1' };
+  const deferred = () => { let resolve, reject; const promise = new Promise((res, rej) => { resolve = res; reject = rej; }); return { promise, resolve, reject }; };
+  const manager = () => Object.assign(Object.create(ImapManager.prototype), {
+    onDemandSyncing: new Map(), broadcast: vi.fn(), _syncFolderViaPool: vi.fn(),
+  });
+  beforeEach(() => vi.spyOn(console, 'log').mockImplementation(() => {}));
+  afterEach(() => vi.restoreAllMocks());
+
+  it('runs one more pass after the running one, and resolves only when that pass is done', async () => {
+    const mgr = manager();
+    const first = deferred();
+    const second = deferred();
+    mgr._syncFolderViaPool.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    const owner = mgr.syncFolderOnDemand(account, 'Todo');
+    let settled = false;
+    const caller = mgr.syncFolderOnDemand(account, 'Todo').then(() => { settled = true; });
+    first.resolve();
+    await owner;
+    await vi.waitFor(() => expect(mgr._syncFolderViaPool).toHaveBeenCalledTimes(2));
+    expect(settled).toBe(false);
+    second.resolve();
+    await caller;
+    expect(mgr.onDemandSyncing.size).toBe(0);
+    expect(mgr.broadcast).toHaveBeenCalledTimes(2);
+  });
+
+  it('shares that one follow-up pass among every caller that arrives meanwhile', async () => {
+    const mgr = manager();
+    const first = deferred();
+    mgr._syncFolderViaPool.mockReturnValueOnce(first.promise).mockResolvedValue();
+    const owner = mgr.syncFolderOnDemand(account, 'Todo');
+    const callers = [1, 2, 3].map(() => mgr.syncFolderOnDemand(account, 'Todo'));
+    first.resolve();
+    await Promise.all([owner, ...callers]);
+    expect(mgr._syncFolderViaPool).toHaveBeenCalledTimes(2);
+  });
+
+  it('rejects with the failure of the pass, and still gives a waiting caller its own pass', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const mgr = manager();
+    const first = deferred();
+    const error = new Error('synthetic FETCH failure');
+    mgr._syncFolderViaPool.mockReturnValueOnce(first.promise).mockResolvedValue();
+    const owner = mgr.syncFolderOnDemand(account, 'Todo');
+    const caller = mgr.syncFolderOnDemand(account, 'Todo');
+    first.reject(error);
+    await expect(owner).rejects.toBe(error);
+    await expect(caller).resolves.toBeUndefined();
+    expect(mgr._syncFolderViaPool).toHaveBeenCalledTimes(2);
+    expect(mgr.onDemandSyncing.size).toBe(0);
+  });
+
+  it('waits for a running spam poll of the folder before its own pass', async () => {
+    const mgr = manager();
+    const spam = deferred();
+    mgr._syncFolderViaPool.mockReturnValueOnce(spam.promise).mockResolvedValue();
+    const poll = mgr._claimFolderSync('a1:Junk', () => mgr._syncFolderViaPool(account, 'Junk', 50));
+    const caller = mgr.syncFolderOnDemand(account, 'Junk');
+    spam.resolve();
+    await Promise.all([poll, caller]);
+    expect(mgr._syncFolderViaPool).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -3794,6 +3896,19 @@ describe('folder integrity reconciliation safety', () => {
     const deletion = query.mock.calls.find(([sql]) => sql.startsWith('DELETE'));
     expect(deletion[1][2]).toEqual([1]);
     expect(deletion[0]).toContain('uid_validity=$5');
+  });
+  it('recounts the folder from its visible rows after deleting rows the server no longer has', async () => {
+    const { mgr } = setup([]);
+    query.mockImplementation(sql => Promise.resolve(sql.startsWith('DELETE')
+      ? { rows: [], rowCount: 1 } : { rows: [{ uid: '1', synced_at: new Date(0) }], rowCount: 1 }));
+    await mgr._refreshObservedFolder(acct, 'Sent', observed);
+    const sqls = query.mock.calls.map(([sql]) => sql);
+    const deletion = sqls.findIndex(sql => sql.startsWith('DELETE'));
+    const recount = sqls.findIndex(sql => sql.includes('SET total_count'));
+    expect(deletion).toBeGreaterThanOrEqual(0);
+    expect(recount).toBeGreaterThan(deletion);
+    expect(query.mock.calls[recount][1]).toEqual([acct.id, 'Sent']);
+    expect(sqls[recount].match(/NOT m\.is_deleted/g)).toHaveLength(2);
   });
   it('backs off unresolved membership without blocking other folders or advancing a checkpoint', async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
