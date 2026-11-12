@@ -81,7 +81,7 @@ describe('POST /api/mail/draft — local row persistence', () => {
     expect(meta.fromEmail).toBe('matthias@example.com');
     expect(meta.bodyHtml).toContain('hello mike');
     expect(meta.bodyText).toContain('hello mike');
-    expect(meta.messageId).toMatch(/^<[0-9a-f]+@mailflow\.sh>$/);
+    expect(meta.messageId).toMatch(/^<[0-9a-f]+@example\.com>$/);
   });
 
   it("tells the user's other tabs that a Drafts folder changed", async () => {
