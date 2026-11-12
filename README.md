@@ -26,10 +26,9 @@ for speed, and sends flag changes, moves and deletes back to IMAP.
 - **Unified inbox** across any number of IMAP/SMTP accounts, with OAuth sign-in for Google and Microsoft
 - **Threads, search, snooze, rules, categories, unsubscribe, scheduled send, drafts**
 - **Calendars** over CalDAV, with their own settings and an upcoming-events pane
-- **Contacts** from CardDAV, with autocomplete learned from sent mail
+- **Contacts**, served to phones and desktop apps as a CardDAV address book, with autocomplete learned from sent mail
 - **Themes, layouts, keyboard shortcuts and 11 interface languages**
 - **PWA, desktop (Electron) and Android shells**, web push notifications
-- **Plugins** through a sandboxed API (see `backend/src/plugins/README.md`)
 - **Single sign-on** (OIDC), TOTP, invite-only registration, API tokens
 - Remote images are proxied, and message HTML is sanitized before it is stored
 

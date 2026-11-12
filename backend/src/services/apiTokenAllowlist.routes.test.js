@@ -10,13 +10,11 @@ import sendRoutes from '../routes/send.js';
 import draftRoutes from '../routes/draft.js';
 import scheduledRoutes from '../routes/scheduled.js';
 import accountRoutes from '../routes/accounts.js';
-import { accountSpamRouter } from '../routes/spam.js';
 import searchRoutes from '../routes/search.js';
 import apiTokenRoutes from '../routes/apiTokens.js';
 import aiRoutes from '../routes/ai.js';
 import categoriesRoutes from '../routes/categories.js';
 import oidcApiRouter from '../routes/oidc.js';
-import { loadBundledPlugins } from '../plugins/loadPlugins.js';
 import { API_TOKEN_ROUTES, matchApiTokenRoute } from './apiTokenAllowlist.js';
 
 // The routers index.js mounts where an allowlisted request can reach them, by the names it mounts
@@ -24,8 +22,8 @@ import { API_TOKEN_ROUTES, matchApiTokenRoute } from './apiTokenAllowlist.js';
 // entry: a token may draft, never send; nor has the OIDC API, link-confirm included: a token
 // cannot vouch for anyone); ai and categories sit under /api ahead of the inline routes, so a
 // request walks through them too.
-const ROUTERS = { mailRoutes, sendRoutes, draftRoutes, scheduledRoutes, accountRoutes, accountSpamRouter, searchRoutes, apiTokenRoutes, aiRoutes, categoriesRoutes, oidcApiRouter };
-const REVIEWED = new Set(['mailRoutes', 'sendRoutes', 'draftRoutes', 'scheduledRoutes', 'accountRoutes', 'accountSpamRouter', 'searchRoutes', 'apiTokenRoutes', 'oidcApiRouter']);
+const ROUTERS = { mailRoutes, sendRoutes, draftRoutes, scheduledRoutes, accountRoutes, searchRoutes, apiTokenRoutes, aiRoutes, categoriesRoutes, oidcApiRouter };
+const REVIEWED = new Set(['mailRoutes', 'sendRoutes', 'draftRoutes', 'scheduledRoutes', 'accountRoutes', 'searchRoutes', 'apiTokenRoutes', 'oidcApiRouter']);
 // Routes index.js defines itself, reviewed for any valid token.
 const INLINE = ['/api/health', '/api/version'];
 
@@ -37,8 +35,6 @@ const shape = path => path.replace(/:\w+/g, ':param');
 // one of the forms below, or this cannot tell what it reaches.
 const INDEX = readFileSync(new URL('../index.js', import.meta.url), 'utf8');
 const ROUTING = (() => {
-  const plugins = [];
-  loadBundledPlugins({ register: plugin => plugins.push(plugin) });
   const routing = [];
   const STATEMENT = /app\.use\((.*)|^app\.(get|post|put|patch|delete|all)\('([^']+)',/gm;
   for (const [, use, method, path] of INDEX.matchAll(STATEMENT)) {
@@ -48,11 +44,7 @@ const ROUTING = (() => {
     }
     const mount = /^'([^']+)', (\w+)\);$/.exec(use.trim());
     if (mount) routing.push({ owner: mount[2], prefix: mount[1], router: ROUTERS[mount[2]] });
-    else if (use.startsWith('plugin.router.base, plugin.router.handler)')) {
-      for (const plugin of plugins.filter(p => p.router)) {
-        routing.push({ owner: `plugin ${plugin.id}`, prefix: plugin.router.base, router: plugin.router.handler });
-      }
-    } else if (!use.startsWith('(') && !use.startsWith('corsExceptDav(')) {
+    else if (!use.startsWith('(') && !use.startsWith('corsExceptDav(')) {
       // Middleware is an inline function or the CORS wrapper; anything else may be a router.
       throw new Error(`index.js has an app.use this test cannot read: app.use(${use.slice(0, 60)}`);
     }

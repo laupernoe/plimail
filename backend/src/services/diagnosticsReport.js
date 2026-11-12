@@ -13,7 +13,6 @@ import { readFileSync } from 'fs';
 import { query } from './db.js';
 import { redisClient } from './redis.js';
 import { loadAiConfig } from './aiProvider.js';
-import { getActivatedPlugins } from '../plugins/activation.js';
 import { getWarningsRaw, getConnectionStats, getSyncSignalsRaw } from './diagnosticsRing.js';
 import { getPerformanceSnapshot } from './performanceMetrics.js';
 import { scheduledSendReport } from './scheduledSendStatus.js';
@@ -178,12 +177,6 @@ export async function buildServerReport(userId, salt) {
     if (ai) { aiEnabled = ai.enabled === true; aiProvider = ai.provider || null; }
   } catch { /* config unreadable — leave defaults */ }
 
-  let plugins = {};
-  try {
-    const activated = await getActivatedPlugins(userId);
-    plugins = Object.fromEntries([...activated].map(p => [p, 'enabled']));
-  } catch { /* leave empty */ }
-
   let dbOk = true;
   try { await query('SELECT 1'); } catch { dbOk = false; }
   let redisOk = true;
@@ -228,7 +221,7 @@ export async function buildServerReport(userId, salt) {
     syncSignals,
     connection: getConnectionStats(),
     performance: getPerformanceSnapshot(),
-    config: { aiEnabled, aiProvider, plugins },
+    config: { aiEnabled, aiProvider },
     scheduledSend,
   };
 }

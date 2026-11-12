@@ -14,12 +14,12 @@ const folders = [
   { path: 'Disabled', name: 'Disabled', no_select: true },
 ];
 
-test('picker captures selected message identity from a sidebar section', () => {
-  const s = { selectedMessageId: 'rail', messages: [{ id: 'other' }], searchResults: [], threadMessages: {},
-    gtdSections: { todo: { threads: [{ id: 'rail', account_id: 'a1', folder: 'Action' }] } } };
+test('picker captures the selected message identity', () => {
+  const s = { selectedMessageId: 'picked', messages: [{ id: 'other' }, { id: 'picked', account_id: 'a1', folder: 'Action' }],
+    searchResults: [], threadMessages: {} };
   const captured = selectedPickerMessage(s);
   s.selectedMessageId = 'other';
-  assert.deepEqual(captured, { id: 'rail', account_id: 'a1', folder: 'Action', thread_id: undefined, message_count: undefined });
+  assert.deepEqual(captured, { id: 'picked', account_id: 'a1', folder: 'Action', thread_id: undefined, message_count: undefined });
 });
 
 test('picker captures the frontmost open message window when the list has no selection', () => {

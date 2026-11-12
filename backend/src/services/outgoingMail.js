@@ -11,14 +11,13 @@ import { generateVCard } from '../utils/vcard.js';
 import { createAccountSmtpTransport } from './smtpTransport.js';
 import { imapManager } from '../index.js';
 import { providerProfile, PROVIDERS } from './imapManager.js';
-import { pluginRegistry } from '../plugins/registry.js';
 import { deleteSentDraft } from './draftCopies.js';
 import { truncateFilename, safeFilename } from '../utils/contentDisposition.js';
 import { SMTP_AUTH_DISABLED, isSmtpAuthDisabled } from './smtpRefusals.js';
 
 // The outgoing message pipeline: validate what the composer sent, resolve the From identity and
 // any forwarded content, build the message, deliver it over SMTP and record it (Sent copy, Sent
-// row, learned recipients, plugin hook). POST /send calls these in order; the route itself keeps
+// row, learned recipients). POST /send calls these in order; the route itself keeps
 // only what belongs to the request: the idempotency key, the undo hold and the response.
 
 export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -610,8 +609,7 @@ async function learnRecipients(userId, allRecipients, now) {
 }
 
 // Delivers a prepared message over SMTP and records it: deletes the draft it was written in,
-// learns its recipients, stores the Sent copy exactly once and its Sent row, and runs the
-// plugins' onSentMessage hook. Resolves the send result ({ ok, sentCopySaved?, rejected?,
+// learns its recipients and stores the Sent copy exactly once and its Sent row. Resolves the send result ({ ok, sentCopySaved?, rejected?,
 // sentFolder?, messageId? }); rejects, only when SMTP did not accept the message, with an error
 // whose publicMessage is safe to show the user, the SMTP error as its cause, and that error's
 // responseCode, code and command where it has them.
@@ -714,13 +712,6 @@ export async function deliverAndRecord(
           }
           setTimeout(() => {
             imapManager.syncFolderOnDemand(account, sentFolder)
-              // Once the Sent copy is in the DB, notify label plugins the message synced: GTD
-              // re-runs transitions for its thread (a reply to a Todo/Someday thread means the
-              // owner acted, so that label should drop). The sent message reaches no other hook
-              // (Sent isn't INBOX, and the tick watches only the state folders), so this is the
-              // only trigger. The hook swallows per-plugin errors; the next inbound sync / tick
-              // self-heals.
-              .then(() => pluginRegistry.runHook('onSentMessage', { imapManager: imapManager.pluginFacade, account, messageId: mailOptions.messageId }))
               .catch(e => console.error(`Post-append sync failed: ${e.message}`));
           }, 1000);
         } catch (appendErr) {
@@ -740,14 +731,9 @@ export async function deliverAndRecord(
         if (sentMeta) scheduleSentMetadataUpsert(account, sentFolder, mailOptions, sentMeta);
         // Server auto-saves via SMTP; just sync after a delay. Two attempts because the
         // provider (e.g. Gmail) can be slow to expose the sent message; the 3s pass usually
-        // catches it, the 15s pass is the safety net. GTD transitions run after each: the 3s
-        // attempt may miss (Sent copy not yet visible, so an empty thread set and a no-op) and
-        // the 15s attempt then catches it; if 3s already stripped, 15s is an idempotent no-op.
+        // catches it, the 15s pass is the safety net.
         const syncAttempt = (label) => imapManager.syncFolderOnDemand(account, sentFolder)
-          .then(() => {
-            console.log(`Post-send ${label} sync done: ${redactEmail(account.email_address)}/${sentFolder}`);
-            return pluginRegistry.runHook('onSentMessage', { imapManager: imapManager.pluginFacade, account, messageId: mailOptions.messageId });
-          })
+          .then(() => console.log(`Post-send ${label} sync done: ${redactEmail(account.email_address)}/${sentFolder}`))
           .catch(e => console.error(`Post-send ${label} sync failed: ${e.message}`));
         setTimeout(() => syncAttempt('3s'), 3000);
         setTimeout(() => syncAttempt('15s'), 15000);

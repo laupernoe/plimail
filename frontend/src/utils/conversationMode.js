@@ -26,6 +26,5 @@ export function conversationModeTransition(mode, activeMode = null) {
     expandedThreadId: null,
     threadMessages: {},
     selectedMessageId: null,
-    selectedMessageSource: null,
   };
 }

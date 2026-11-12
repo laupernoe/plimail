@@ -897,8 +897,7 @@
     "groups": {
       "composeSearch": "Napisz i wyszukaj",
       "navigation": "Nawigacja",
-      "messageActions": "Działania na wiadomościach",
-      "gtd": "GTD"
+      "messageActions": "Działania na wiadomościach"
     },
     "actions": {
       "toggleLeftSidebar": {
@@ -992,31 +991,6 @@
       "printMessage": {
         "label": "Drukuj",
         "description": "Drukuj bieżącą wiadomość"
-      },
-      "gtdTodo": {
-        "label": "Oznacz jako Do zrobienia",
-        "description": "Sklasyfikuj zaznaczoną wiadomość jako do zrobienia"
-      },
-      "gtdWatch": {
-        "label": "Oznacz jako Obserwuj",
-        "description": "Sklasyfikuj zaznaczoną wiadomość jako obserwuj"
-      },
-      "gtdDelegated": {
-        "label": "Oznacz jako Delegowane",
-        "description": "Sklasyfikuj zaznaczoną wiadomość jako delegowane"
-      },
-      "gtdReference": {
-        "description": "Oznacz wybraną wiadomość jako Materiały"
-      },
-      "gtdSomeday": {
-        "description": "Oznacz wybraną wiadomość jako Kiedyś"
-      },
-      "gtdDone": {
-        "description": "Ukończ wybraną wiadomość GTD"
-      },
-      "toggleRightSidebar": {
-        "label": "Przełącz prawy panel",
-        "description": "Ukryj lub pokaż prawy panel boczny"
       }
     }
   },
@@ -1052,26 +1026,6 @@
     "errorProcess": "Nie udało się przetworzyć obrazu."
   },
   "admin": {
-    "cleanup": {
-      "title": "Porządki w skrzynce",
-      "intro": "Znajdź masową pocztę zaśmiecającą skrzynkę odbiorczą i uporządkuj ją. Wybierz, czy ją zarchiwizować (zachowana i przeszukiwalna), czy przenieść do kosza (można ją odzyskać, dopóki go nie opróżnisz).",
-      "account": "Konto",
-      "summary": "{{bulk}} z {{total}} wiadomości w skrzynce to poczta masowa ({{pct}}%).",
-      "tier1Title": "Najwięksi nadawcy masowi",
-      "tier1Desc": "To nadawcy newsletterów i marketingu o największej liczbie wiadomości w Twojej skrzynce odbiorczej. Działanie na jednym przetwarza całą pocztę tego nadawcy w skrzynce odbiorczej wybraną akcją.",
-      "noneFound": "Nie znaleziono nadawców masowych.",
-      "moveToTrash": "Przenieś do Kosza",
-      "confirm": "Przenieść wszystkie {{count}} wiadomości od {{sender}} do Kosza? Można je odzyskać z Kosza, dopóki go nie opróżnisz.",
-      "tier2Title": "Typowe hasła promocyjne",
-      "tier2Desc": "Wyszukaj te hasła, aby samodzielnie przejrzeć i usunąć resztę. Dotyczą wielu nadawców, więc przejrzyj wyniki przed usunięciem.",
-      "tier3Title": "Sprzątanie reszty",
-      "tier3Desc": "W przypadku pozostałych wyszukaj według nadawcy lub słowa kluczowego, zaznacz wszystko i usuń. Usunięcia najpierw trafiają do Kosza, więc możesz sprawdzić przed jego opróżnieniem.",
-      "action": "Akcja porządkowania",
-      "actionArchive": "Archiwizuj (zalecane)",
-      "archive": "Archiwizuj",
-      "confirmArchive": "Zarchiwizować wszystkie {{count}} wiadomości od {{sender}} w skrzynce odbiorczej? Pozostaną w folderze Archiwum i nadal będą dostępne w wyszukiwaniu.",
-      "noArchiveFolder": "To konto nie ma folderu archiwum, więc dostępne jest tylko Przenieś do kosza."
-    },
     "title": "Ustawienia",
     "close": "Zamknij",
     "behavior": {
@@ -1080,7 +1034,6 @@
       "sync": "Synchronizacja"
     },
     "tabs": {
-      "cleanup": "Porządki",
       "accounts": "Konta",
       "rules": "Reguły",
       "appearance": "Wygląd",
@@ -1090,20 +1043,17 @@
       "shortcuts": "Skróty",
       "users": "Użytkownicy",
       "sso": "SSO",
-      "integrations": "Integracje",
       "theme": "Motyw",
       "fontsAndLanguage": "Język i czcionka",
       "about": "Informacje",
       "ai": "Asystent AI",
       "aiActions": "Działania AI",
-      "antispam": "Antyspam",
       "categories": "Kategorie",
       "groupMail": "Poczta",
       "groupPreferences": "Preferencje",
       "groupAiExtensions": "AI i rozszerzenia",
       "groupAdmin": "Administracja",
       "behavior": "Zachowanie",
-      "plugins": "Wtyczki",
       "backup": "Kopia zapasowa",
       "mailSignIn": "Dostawcy poczty",
       "groupCalendar": "Kalendarz",
@@ -1253,15 +1203,6 @@
       "categorizationSection": "Kategoryzowanie poczty",
       "categorizationEnabled": "Włącz kategoryzowanie skrzynki odbiorczej",
       "categorizationEnabledDesc": "Sortuj przychodzące wiadomości do kart kategorii. Domyślnie wyłączone.",
-      "antispamSection": "Antyspam",
-      "antispamEnabled": "Włącz antyspam dla tego konta",
-      "antispamEnabledDesc": "Przychodzące wiadomości są klasyfikowane automatycznie; spam o wysokiej pewności jest przenoszony do folderu Junk.",
-      "trustedAuthservLabel": "Zaufany identyfikator Authentication-Results",
-      "trustedAuthservPlaceholder": "mx.example.com",
-      "trustedAuthservDesc": "Uwzględniane są tylko nagłówki Authentication-Results zapisane przez ten identyfikator. Pozostaw puste, aby ignorować wszystkie — niezaufany nagłówek może twierdzić dowolny wynik, także pass.",
-      "trustedAuthservDetected": "Widziane w ostatnich wiadomościach (kliknij, aby użyć):",
-      "trustedAuthservDetectedNone": "Brak danych — wiadomości są analizowane, gdy antyspam jest włączony dla tego konta.",
-      "trustedAuthservWarn": "Ufaj tylko identyfikatorowi, który rozpoznajesz jako serwer odbierający Twojego dostawcy.",
       "enabledGlobally": "Włączone globalnie",
       "microsoftImapNoteSignIn": "Microsoft nie przyjmuje już haseł do skrzynek Outlook.com, Hotmail, Live i MSN. Zaloguj się przez Microsoft: hasło aplikacji nie jest potrzebne.",
       "deleteScheduled": "Zaplanowane, jeszcze niewysłane wiadomości usuwane razem z nim: {{n}}.",
@@ -1799,41 +1740,7 @@
       "recategorize": "Kategoryzuj ponownie",
       "recategorizing": "Przetwarzanie…",
       "recategorized": "Rozpoczęto ponowną kategoryzację.",
-      "selectAccount": "Zaznacz konto",
-      "gtdReveal": "GTD",
-      "gtdRevealDesc": "Pokaż poniższe ustawienia GTD dla poszczególnych kont; każde konto ma własny przełącznik."
-    },
-    "gtd": {
-      "description": "Zamień Plimail w system GTD. Włącz go dla każdego konta, a następnie przypisz każdy stan do folderu IMAP zawierającego jego etykietę.",
-      "noAccounts": "Najpierw dodaj konto e-mail, aby skonfigurować GTD.",
-      "enableDesc": "GTD jest włączone. Etykiety są synchronizowane jako foldery, a zmiany stanów odbywają się automatycznie.",
-      "enableHint": "Włącz etykiety GTD i automatyczne zmiany stanów dla tego konta.",
-      "foldersTitle": "Foldery etykiet",
-      "foldersDesc": "Każdy stan GTD jest przypisany do folderu IMAP. Pozostaw pole puste, aby użyć domyślnej nazwy.",
-      "savedOk": "Mapowanie folderów zapisano.",
-      "saveFailed": "Nie udało się zapisać mapowania folderów.",
-      "createFolders": "Utwórz brakujące foldery",
-      "creating": "Tworzenie…",
-      "createResult": "Utworzono: {{created}}, już istniało: {{existing}}.",
-      "createFailed": "Nie udało się utworzyć folderów.",
-      "duplicateFolder": "Te stany GTD są przypisane do tego samego folderu: {{states}}. Przypisz każdemu stanowi inny folder.",
-      "rejectedFolders": "Niektóre nazwy folderów były nieprawidłowe i przywrócono ich wartości domyślne: {{states}}.",
-      "pet": {
-        "title": "Zwierzak Inbox Zero ✓",
-        "description": "Zastąp domyślnego psa w skrzynce odbiorczej zero własnym zwierzakiem.",
-        "clear": "Użyj domyślnego psa",
-        "current": "Bieżący zwierzak: {{slug}}",
-        "usingDog": "Używany jest domyślny pies.",
-        "hoverHint": "Najedź, aby uruchomić animację.",
-        "importTitle": "Importuj własnego zwierzaka",
-        "importHint": "Prześlij plik pet.json oraz arkusz sprite’ów (PNG, WebP lub GIF).",
-        "chooseJson": "Plik pet.json",
-        "chooseSheet": "Arkusz sprite’ów",
-        "import": "Importuj",
-        "importing": "Importowanie…",
-        "imported": "Zaimportowano {{name}} — najedź na podgląd, aby zobaczyć animację.",
-        "importFailed": "Nie udało się zaimportować tego zwierzaka."
-      }
+      "selectAccount": "Zaznacz konto"
     },
     "systemEmail": {
       "tabUsers": "Użytkownicy i zaproszenia",
@@ -1923,7 +1830,6 @@
       "errorSecretRequired": "Sekret klienta jest wymagany."
     },
     "integrations": {
-      "title": "Integracje",
       "loading": "Wczytywanie…",
       "microsoft": {
         "setupTitle": "Konfiguracja rejestracji aplikacji Azure",
@@ -1964,45 +1870,6 @@
         "redirectUriNote": "Musi dokładnie odpowiadać autoryzowanemu adresowi przekierowania klienta OAuth. Sugerowany: {{uri}}",
         "save": "Zapisz konfigurację",
         "remove": "Usuń"
-      },
-      "todoist": {
-        "title": "Todoist",
-        "description": "Integracja z osobistym menedżerem zadań",
-        "connect": "Połącz",
-        "connecting": "Łączenie…",
-        "disconnect": "Rozłącz",
-        "connected": "Połączono",
-        "notConnected": "Niepołączone",
-        "tokenLabel": "Osobisty token API",
-        "tokenPh": "Wklej swój token API Todoist",
-        "help": "Znajdź swój token w Todoist: Ustawienia → Integracje → Deweloper"
-      },
-      "carddav": {
-        "title": "Kontakty CardDAV",
-        "description": "Synchronizuj kontakty z serwerem CardDAV, takim jak Nextcloud.",
-        "connected": "Połączono",
-        "notConnected": "Niepołączone",
-        "serverLabel": "Adres URL serwera",
-        "serverPh": "https://chmurowy.example.com",
-        "userLabel": "Nazwa użytkownika",
-        "userPh": "Nazwa użytkownika Nextcloud",
-        "passLabel": "Hasło aplikacji",
-        "passPh": "Hasło aplikacji (nie hasło logowania)",
-        "dupLabel": "Gdy kontakt już istnieje",
-        "dupSeparate": "Zachowaj oba (osobna książka adresowa)",
-        "dupMerge": "Scal — pierwszeństwo ma CardDAV",
-        "dupSkip": "Pomiń kontakt CardDAV",
-        "intervalLabel": "Częstotliwość synchronizacji (minuty)",
-        "connect": "Połącz",
-        "connecting": "Łączenie…",
-        "connectFailed": "Nie udało się połączyć",
-        "disconnect": "Rozłącz",
-        "syncNow": "Synchronizuj teraz",
-        "syncing": "Synchronizowanie…",
-        "lastSync": "Ostatnia synchronizacja: {{when}}",
-        "summary": "{{contacts}} kontaktów w {{books}} książkach adresowych",
-        "syncFailed": "Ostatnia synchronizacja nie powiodła się: {{error}}",
-        "help": "Użyj hasła aplikacji Nextcloud, nie hasła logowania — użytkownicy SSO muszą utworzyć je w Ustawienia → Bezpieczeństwo. Kontakty są synchronizowane jednokierunkowo i są tylko do odczytu w Plimail."
       }
     },
     "ssoLinked": {
@@ -2054,7 +1921,7 @@
     },
     "backup": {
       "title": "Kopia zapasowa i przywracanie",
-      "intro": "Kopia zapasowa zawiera dane tego Plimail: użytkowników, konta e-mail, reguły, kontakty, ustawienia, dane wtyczek i uczenie antyspamowe. Poczta z pamięci podręcznej jest po przywróceniu pobierana ponownie z Twoich serwerów pocztowych, chyba że ją dołączysz. Plik nie zawiera tego, co ustawiono w .env: nowy serwer potrzebuje tego samego ENCRYPTION_KEY oraz, jeśli je tam ustawiono, tych samych kluczy VAPID i ustawień klienta OAuth.",
+      "intro": "Kopia zapasowa zawiera dane tego Plimail: użytkowników, konta e-mail, reguły, kontakty i ustawienia. Poczta z pamięci podręcznej jest po przywróceniu pobierana ponownie z Twoich serwerów pocztowych, chyba że ją dołączysz. Plik nie zawiera tego, co ustawiono w .env: nowy serwer potrzebuje tego samego ENCRYPTION_KEY oraz, jeśli je tam ustawiono, tych samych kluczy VAPID i ustawień klienta OAuth.",
       "sensitive": "Plik zawiera skróty haseł, oczekujące linki z zaproszeniami i dane logowania do Twoich kont. Dane logowania są zaszyfrowane kluczem ENCRYPTION_KEY tego serwera; reszta jest czytelna, podobnie jak każda wiadomość, jeśli dołączono pocztę z pamięci podręcznej. Przechowuj plik w bezpiecznym miejscu. Można go przywrócić tylko na serwerze używającym tego samego klucza.",
       "includeMail": "Dołącz pocztę z pamięci podręcznej",
       "includeMailDesc": "Zapisuje także lokalną kopię każdej zsynchronizowanej wiadomości, przez co plik jest znacznie większy. Bez niej przywracanie ponownie pobiera pocztę, a najnowsze nieprzeczytane wiadomości w każdej skrzynce odbiorczej przychodzą jako nowa poczta: reguły skrzynki odbiorczej działają na nich ponownie, także przekazywanie dalej. Wybór obowiązuje dla każdej kopii, dopóki go nie zmienisz.",
@@ -2074,15 +1941,6 @@
       "downloadFailed": "Nie udało się rozpocząć tworzenia kopii zapasowej.",
       "connectionLost": "Połączenie zostało przerwane podczas przywracania, więc jego wynik jest nieznany. Ta strona odświeży się, gdy Plimail znów zacznie odpowiadać; sprawdź wtedy, czy dane zostały przywrócone.",
       "tooLarge": "Plik jest większy, niż pozwala serwer proxy przed Plimail."
-    },
-    "plugins": {
-      "title": "Wtyczki",
-      "description": "Włączaj i wyłączaj opcjonalne funkcje dla swojego konta. Włączenie wtyczki dodaje własne ustawienia i interfejs.",
-      "activated": "Aktywne",
-      "deactivated": "Nieaktywne",
-      "empty": "Brak wtyczek w tej wersji.",
-      "error": "Nie udało się zaktualizować wtyczki. Spróbuj ponownie.",
-      "configureIn": "Skonfiguruj opcje w {{location}}"
     }
   },
   "blockList": {
@@ -2099,67 +1957,6 @@
     "failBody": "Serwer pocztowy odrzucił przeniesienie.",
     "failHamBody": "Serwer pocztowy odrzucił przeniesienie.",
     "failBodyBulk": "Nie udało się przenieść {{count}} wiadomości.",
-    "title": "Antyspam",
-    "subtitle": "Filtr antyspamowy ML dla pojedynczego użytkownika. Uczy się na podstawie ręcznych oznaczeń spam/nie spam; nowe wiadomości są klasyfikowane automatycznie, gdy opcja jest włączona dla konta.",
-    "saved": "Ustawienia zapisane",
-    "resetAllDone": "Dane treningowe wyczyszczone — usunięto {{n}} rekordów",
-    "retrainDone": "Ponowne trenowanie zakończone — przetworzono {{n}} użytkowników",
-    "retrainBusy": "Ponowne uczenie już trwa — zakończy się samo",
-    "statusTitle": "Stan modelu",
-    "statusHelp": "Model jest przypisany do użytkownika i współdzielony między jego kontami. Poniżej 50 rekordów treningowych używane są tylko wbudowane reguły.",
-    "statMaturity": "Dojrzałość",
-    "statRecords": "Rekordy treningowe",
-    "statVersion": "Wersja modelu",
-    "statLastTrained": "Ostatnie trenowanie",
-    "statDecay": "Okno wygaszania",
-    "never": "nigdy",
-    "days": "dni",
-    "maturity": {
-      "mature": "Dojrzały",
-      "fresh": "Świeży",
-      "insufficient": "Niewystarczający"
-    },
-    "masterEnable": "Włącz antyspam",
-    "masterEnableHelp": "Główny przełącznik automatycznej klasyfikacji. Każde konto ma dodatkowo własny przełącznik.",
-    "perAccountHint": "Przełącznik dla konta: Konta → wybierz konto → sekcja Antyspam.",
-    "thresholdsTitle": "Progi",
-    "thresholdsHelp": "Wyższe wartości oznaczają mniej fałszywych alarmów, ale przepuszczają więcej spamu.",
-    "spamThreshold": "Próg spamu",
-    "autoMoveThreshold": "Próg automatycznego przenoszenia",
-    "save": "Zapisz",
-    "decayTitle": "Wygaszanie treningu",
-    "decayHelp": "Starsze dane treningowe mają niższą wagę zgodnie z tym okresem połowicznego rozpadu (7–365 dni).",
-    "dangerTitle": "Strefa niebezpieczna",
-    "retrainNow": "Trenuj ponownie teraz",
-    "resetConfirmWarn": "Ta operacja jest nieodwracalna: wszystkie dane treningowe zostaną usunięte.",
-    "resetConfirmYes": "Tak, usuń dane treningowe",
-    "resetAll": "Usuń wszystkie dane treningowe",
-    "deletionsTitle": "Ostatnie usunięcia",
-    "deleteScope": {
-      "per_account": "Jedno konto",
-      "all": "Wszystkie konta"
-    },
-    "records": "rekordów",
-    "howItWorks": "Jak to działa: Twoje ręczne oznaczenia „Oznacz jako spam” / „Nie spam” trenują model. Wiadomości sklasyfikowane automatycznie nigdy go nie douczają. Reguły są zawsze aktywne; model ML dołącza od 50 rekordów.",
-    "badgeLabel": "spam",
-    "badgeTitle": "Automatycznie sklasyfikowano jako spam — kliknij, aby zobaczyć szczegóły",
-    "explainTitle": "Dlaczego oznaczono to jako spam?",
-    "explainVerdict": "Werdykt",
-    "explainMethod": "Metoda",
-    "explainConfidence": "Pewność",
-    "verdict": {
-      "spam": "Spam",
-      "ham": "Nie spam",
-      "unsure": "Niepewne"
-    },
-    "method": {
-      "rules": "Reguły",
-      "blended": "Reguły + ML"
-    },
-    "rulesFiredTitle": "Aktywowane reguły",
-    "noRulesFired": "Nie aktywowano żadnej reguły",
-    "mlTokensTitle": "Najważniejsze tokeny",
-    "noMlTokens": "Brak tokenów ML",
     "conversationMovedToSpam": "Konwersacja przeniesiona do spamu",
     "nothingFromAccount": "W tej konwersacji nie ma nic z tego konta do oznaczenia jako spam",
     "nothingInConversation": "W tej konwersacji nie ma nic do oznaczenia jako spam"
@@ -2200,67 +1997,7 @@
       "work": "Praca",
       "home": "Dom",
       "other": "Inne"
-    },
-    "carddavBadge": "Zsynchronizowano z CardDAV"
-  },
-  "todoist": {
-    "title": "Utwórz zadanie Todoist",
-    "taskTitle": "Tytuł zadania",
-    "taskTitlePh": "Co trzeba zrobić?",
-    "description": "Opis",
-    "descriptionPh": "Opcjonalne notatki...",
-    "project": "Projekt",
-    "inbox": "Skrzynka odbiorcza",
-    "labels": "Etykiety",
-    "priority": "Priorytet",
-    "priorityUrgent": "Pilne",
-    "priorityHigh": "Wysoki",
-    "priorityMedium": "Średni",
-    "priorityNormal": "Brak priorytetu",
-    "dueDate": "Termin",
-    "create": "Utwórz zadanie",
-    "creating": "Tworzenie…",
-    "taskCreated": "Utworzono zadanie w Todoist",
-    "openTask": "Otwórz w Todoist"
-  },
-  "rightSidebar": {
-    "hide": "Ukryj prawy pasek boczny",
-    "show": "Pokaż prawy pasek boczny"
-  },
-  "gtd": {
-    "oldestLabeledAge": "{{state}}: wiek najstarszej wiadomości z tą etykietą (dni): {{count}}",
-    "title": "GTD",
-    "inbox": "Odebrane",
-    "waiting": "Oczekujące",
-    "inboxZero": "Pusta skrzynka ✓",
-    "allClear": "Wszystko gotowe",
-    "allClearHint": "Nic na Ciebie nie czeka.",
-    "showAll": "Pokaż wszystkie ({{count}})",
-    "showSome": "Pokaż {{available}} z {{total}}",
-    "showLess": "Pokaż mniej",
-    "toggleSection": "Przełącz sekcję {{section}}",
-    "tabEmpty": "Nie ma tu jeszcze żadnych elementów",
-    "removeFrom": "Usuń ze stanu {{state}}",
-    "classified": "Zastosowano etykietę",
-    "classifiedMany": "Oznaczono {{count}} jako {{state}}",
-    "classifiedSome": "Oznaczono {{count}} z {{total}} jako {{state}}",
-    "classifyFailed": "Nie udało się zastosować etykiety",
-    "removed": "Usunięto etykietę",
-    "removeFailed": "Nie udało się usunąć etykiety",
-    "onlyCopy": "To jedyna kopia wiadomości, więc usunięcie etykiety by ją skasowało. Zamiast tego zarchiwizuj ją lub przenieś.",
-    "labelChanged": "Ta etykieta zmieniła się na serwerze i nie została usunięta. Odśwież i spróbuj ponownie.",
-    "done": "Oznacz jako wykonane",
-    "doneFailed": "Nie udało się oznaczyć jako gotowe",
-    "doneArchiveFailed": "Oznaczono jako gotowe, ale archiwizacja nie powiodła się — wiadomość nadal znajduje się w skrzynce odbiorczej",
-    "doneThreadRemains": "Nie udało się usunąć niektórych wiadomości z tej rozmowy, więc pozostaje ona w swojej sekcji GTD",
-    "state": {
-      "todo": "Do zrobienia",
-      "watch": "Do obserwowania",
-      "delegated": "Delegowane",
-      "someday": "Kiedyś",
-      "reference": "Materiały"
-    },
-    "undoFailed": "Nie udało się cofnąć etykiety"
+    }
   },
   "window": {
     "minimize": "Minimalizuj",

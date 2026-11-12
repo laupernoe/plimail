@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// The account, alias, message and contact checks in the accounts, rules, spam, draft,
+// The account, alias, message and contact checks in the accounts, rules, draft,
 // categories and contacts routes, which go through services/ownership.js: another user's
 // resource is refused with the status and body it always was, before anything is written or
 // sent to IMAP, and the owner gets past the check. (Mail routes: mail.ownership.test.js.)
@@ -26,7 +26,6 @@ vi.mock('../services/categorizer.js', () => ({
   invalidateSocialDomainCache: vi.fn(), backfillCategories: vi.fn(async () => {}),
   aiClassifyMessage: vi.fn(async () => 'newsletter'), BUILTIN_SETS: {},
 }));
-vi.mock('../services/spamAuthservIds.js', () => ({ detectAuthservIds: vi.fn(async () => ({ analyzed: 0, detected: [] })) }));
 // The real lookups, watched, so each route's columns and filters can be pinned.
 vi.mock('../services/ownership.js', async (importOriginal) => {
   const real = await importOriginal();
@@ -37,7 +36,6 @@ vi.mock('../services/ownership.js', async (importOriginal) => {
 import express from 'express';
 import accountRoutes from './accounts.js';
 import rulesRoutes from './rules.js';
-import spamRoutes, { accountSpamRouter } from './spam.js';
 import draftRoutes from './draft.js';
 import categoriesRoutes from './categories.js';
 import contactsRoutes from './contacts.js';
@@ -54,11 +52,11 @@ const CONTACT_ID = 'd4d4d4d4-4444-4444-8444-d4d4d4d4d4d4';
 const BOOK_ID = 'e5e5e5e5-5555-4555-8555-e5e5e5e5e5e5';
 
 const ACCOUNTS = {
-  [ACCOUNT_ID]: { id: ACCOUNT_ID, user_id: OWNER, name: 'Me', email_address: 'me@example.com', protocol: 'imap', enabled: true, folder_mappings: { drafts: 'Drafts' }, oauth_provider: null, trusted_authserv_id: 'mx.example' },
+  [ACCOUNT_ID]: { id: ACCOUNT_ID, user_id: OWNER, name: 'Me', email_address: 'me@example.com', protocol: 'imap', enabled: true, folder_mappings: { drafts: 'Drafts' }, oauth_provider: null },
   [SECOND_ACCOUNT_ID]: { id: SECOND_ACCOUNT_ID, user_id: OWNER, name: 'Me too', email_address: 'me2@example.com', protocol: 'imap', enabled: true, folder_mappings: { drafts: 'Drafts' }, oauth_provider: null },
 };
-const message = () => ({ id: MESSAGE_ID, account_id: ACCOUNT_ID, uid: 7, folder: 'INBOX', message_id: '<m1@example.com>', subject: 'Weekly', from_email: 'news@example.com', snippet: 'Hi', spam_details: null, owner_id: OWNER, folder_mappings: {} });
-const contact = () => ({ id: CONTACT_ID, uid: 'u-1', user_id: OWNER, address_book_id: BOOK_ID, display_name: 'Ann', first_name: null, last_name: null, primary_email: 'ann@example.com', emails: [{ value: 'ann@example.com' }], phones: [], organization: null, notes: null, source: 'local', book_source: 'local', read_only: false });
+const message = () => ({ id: MESSAGE_ID, account_id: ACCOUNT_ID, uid: 7, folder: 'INBOX', message_id: '<m1@example.com>', subject: 'Weekly', from_email: 'news@example.com', snippet: 'Hi', owner_id: OWNER, folder_mappings: {} });
+const contact = () => ({ id: CONTACT_ID, uid: 'u-1', user_id: OWNER, address_book_id: BOOK_ID, display_name: 'Ann', first_name: null, last_name: null, primary_email: 'ann@example.com', emails: [{ value: 'ann@example.com' }], phones: [], organization: null, notes: null, });
 
 const flat = sql => sql.replace(/\s+/g, ' ').trim();
 let writes;
@@ -94,8 +92,6 @@ beforeAll(async () => {
   const app = express();
   app.use(express.json());
   app.use('/api/accounts', accountRoutes);
-  app.use('/api/accounts', accountSpamRouter);
-  app.use('/api/spam', spamRoutes);
   app.use('/api/mail', draftRoutes);
   app.use('/api/rules', rulesRoutes);
   app.use('/api/contacts', contactsRoutes);
@@ -158,9 +154,6 @@ const cases = [
   ['DELETE /accounts/:id/aliases/:aliasId', { method: 'DELETE', path: `/accounts/${ACCOUNT_ID}/aliases/${ALIAS_ID}` }, aliasNotFound, { status: 200, json: { ok: true } }],
   ['GET /accounts/:id/folders', { path: `/accounts/${ACCOUNT_ID}/folders` }, accountNotFound, { status: 200, json: [] }],
   ['POST /accounts/:id/reindex', { method: 'POST', path: `/accounts/${ACCOUNT_ID}/reindex` }, accountNotFound, { status: 200, json: { ok: true, alreadyRunning: false } }],
-  ['POST /accounts/:id/spam/reset-training', { method: 'POST', path: `/accounts/${ACCOUNT_ID}/spam/reset-training`, body: { confirm: true } }, accountNotFound, { status: 200 }],
-  ['GET /spam/authserv-ids', { path: `/spam/authserv-ids?accountId=${ACCOUNT_ID}` }, accountNotFound, { status: 200, json: { accountId: ACCOUNT_ID, trustedAuthservId: 'mx.example', analyzed: 0, detected: [] } }],
-  ['GET /spam/explain', { path: `/spam/explain?messageId=${MESSAGE_ID}` }, messageNotFound, { status: 200 }],
   ['POST /rules/run', { method: 'POST', path: '/rules/run', body: { accountId: ACCOUNT_ID } }, accountNotFound, { status: 202 }],
   ['POST /rules', { method: 'POST', path: '/rules', body: rule }, { status: 403, json: { error: 'Account not found' } }, { status: 201 }],
   ['PUT /rules/:id', { method: 'PUT', path: `/rules/${ALIAS_ID}`, body: rule }, { status: 403, json: { error: 'Account not found' } }, { status: 200 }],
@@ -216,8 +209,7 @@ describe('replacing a draft saved in another account', () => {
 // The lookup each route makes for the owner: which helper, with which arguments, exactly.
 // Columns are compared with whitespace collapsed.
 const CONTACT_VIEW = `c.id, c.uid, c.display_name, c.first_name, c.last_name, c.primary_email, c.emails, c.phones, c.organization,
-  c.notes, c.photo_data, c.is_auto, c.send_count, c.last_sent, c.etag, c.vcard, c.created_at, c.updated_at,
-  (ab.source = 'carddav') AS read_only`;
+  c.notes, c.photo_data, c.is_auto, c.send_count, c.last_sent, c.etag, c.vcard, c.created_at, c.updated_at`;
 const LOOKUPS = {
   'PUT /accounts/:id': ['findOwnedAccount', ACCOUNT_ID, { columns: 'id, oauth_provider' }],
   'DELETE /accounts/:id': ['findOwnedAccount', ACCOUNT_ID, { columns: 'id' }],
@@ -228,9 +220,6 @@ const LOOKUPS = {
   'DELETE /accounts/:id/aliases/:aliasId': ['findOwnedAlias', ACCOUNT_ID, ALIAS_ID],
   'GET /accounts/:id/folders': ['findOwnedAccount', ACCOUNT_ID, { columns: 'id' }],
   'POST /accounts/:id/reindex': ['findOwnedAccount', ACCOUNT_ID, { enabled: true, protocol: 'imap' }],
-  'POST /accounts/:id/spam/reset-training': ['findOwnedAccount', ACCOUNT_ID, { columns: 'id' }],
-  'GET /spam/authserv-ids': ['findOwnedAccount', ACCOUNT_ID, { columns: 'id, trusted_authserv_id' }],
-  'GET /spam/explain': ['findOwnedMessage', MESSAGE_ID, { columns: 'm.*, a.user_id AS owner_id, a.folder_mappings' }],
   'POST /rules/run': ['findOwnedAccount', ACCOUNT_ID, { columns: 'id' }],
   'POST /rules': ['findOwnedAccount', ACCOUNT_ID, { columns: 'id' }],
   'PUT /rules/:id': ['findOwnedAccount', ACCOUNT_ID, { columns: 'id' }],
@@ -239,8 +228,8 @@ const LOOKUPS = {
   'DELETE /mail/draft/:uid': ['findOwnedAccount', ACCOUNT_ID],
   'POST /categories/ai-classify/:messageId': ['findOwnedMessage', MESSAGE_ID, { columns: 'm.subject, m.from_email, m.snippet', live: true }],
   'GET /contacts/:id': ['findOwnedContact', CONTACT_ID, { columns: CONTACT_VIEW }],
-  'PATCH /contacts/:id': ['findOwnedContact', CONTACT_ID, { columns: 'c.*, ab.source AS book_source' }],
-  'DELETE /contacts/:id': ['findOwnedContact', CONTACT_ID, { columns: 'ab.source' }],
+  'PATCH /contacts/:id': ['findOwnedContact', CONTACT_ID],
+  'DELETE /contacts/:id': ['findOwnedContact', CONTACT_ID, { columns: 'c.id' }],
 };
 const normalize = arg => (arg?.columns ? { ...arg, columns: flat(arg.columns) } : arg);
 const lookupsMade = () => ['findOwnedAccount', 'findOwnedMessage', 'findOwnedAlias', 'findOwnedContact']

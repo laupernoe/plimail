@@ -881,8 +881,7 @@
     "groups": {
       "composeSearch": "Rédaction et recherche",
       "navigation": "Navigation",
-      "messageActions": "Actions sur les messages",
-      "gtd": "GTD"
+      "messageActions": "Actions sur les messages"
     },
     "actions": {
       "toggleLeftSidebar": {
@@ -976,31 +975,6 @@
       "printMessage": {
         "label": "Imprimer",
         "description": "Imprimer le message actuel"
-      },
-      "gtdTodo": {
-        "label": "Marquer À faire",
-        "description": "Classer le message sélectionné comme À faire"
-      },
-      "gtdWatch": {
-        "label": "Marquer Surveiller",
-        "description": "Classer le message sélectionné comme Surveiller"
-      },
-      "gtdDelegated": {
-        "label": "Marquer Délégué",
-        "description": "Classer le message sélectionné comme Délégué"
-      },
-      "gtdReference": {
-        "description": "Classer le message sélectionné en Référence"
-      },
-      "gtdSomeday": {
-        "description": "Classer le message sélectionné en Un jour"
-      },
-      "gtdDone": {
-        "description": "Terminer le message GTD sélectionné"
-      },
-      "toggleRightSidebar": {
-        "label": "Afficher ou masquer la barre latérale droite",
-        "description": "Masquer ou afficher la barre latérale droite"
       }
     }
   },
@@ -1036,26 +1010,6 @@
     "errorProcess": "Impossible de traiter l'image."
   },
   "admin": {
-    "cleanup": {
-      "title": "Nettoyage de la boîte",
-      "intro": "Repérez les courriers en masse qui encombrent votre boîte de réception et faites le vide. Choisissez de les archiver (conservés et consultables) ou de les déplacer vers la corbeille (récupérables jusqu'à ce que vous la vidiez).",
-      "account": "Compte",
-      "summary": "{{bulk}} des {{total}} messages de la boîte sont du courrier de masse ({{pct}}%).",
-      "tier1Title": "Principaux expéditeurs de masse",
-      "tier1Desc": "Voici les expéditeurs de newsletters et de marketing les plus volumineux de votre boîte de réception. Agir sur l'un traite tout le courrier de cet expéditeur dans la boîte de réception avec l'action choisie.",
-      "noneFound": "Aucun expéditeur de masse trouvé.",
-      "moveToTrash": "Mettre à la Corbeille",
-      "confirm": "Mettre à la Corbeille les {{count}} messages de {{sender}} ? Ils restent récupérables depuis la Corbeille jusqu’à ce que vous la vidiez.",
-      "tier2Title": "Termes promotionnels courants",
-      "tier2Desc": "Recherchez ces termes pour examiner et supprimer le reste vous-même. Ils concernent de nombreux expéditeurs, alors parcourez les résultats avant de supprimer.",
-      "tier3Title": "Nettoyer le reste",
-      "tier3Desc": "Pour le reste, recherchez par expéditeur ou mot-clé, tout sélectionner, puis supprimez. Les suppressions passent d’abord par la Corbeille, vous pouvez donc vérifier avant de la vider.",
-      "action": "Action de nettoyage",
-      "actionArchive": "Archiver (recommandé)",
-      "archive": "Archiver",
-      "confirmArchive": "Archiver les {{count}} messages de {{sender}} dans la boîte de réception ? Ils resteront dans votre dossier Archive et resteront consultables.",
-      "noArchiveFolder": "Ce compte n'a pas de dossier d'archive ; seule l'option Déplacer vers la corbeille est disponible."
-    },
     "title": "Paramètres",
     "close": "Fermer",
     "behavior": {
@@ -1064,7 +1018,6 @@
       "sync": "Synchronisation"
     },
     "tabs": {
-      "cleanup": "Nettoyage",
       "accounts": "Comptes",
       "rules": "Règles",
       "appearance": "Apparence",
@@ -1074,20 +1027,17 @@
       "shortcuts": "Raccourcis",
       "users": "Utilisateurs",
       "sso": "SSO",
-      "integrations": "Intégrations",
       "theme": "Thème",
       "fontsAndLanguage": "Langue & Police",
       "about": "À propos",
       "ai": "Assistant IA",
       "aiActions": "Actions IA",
-      "antispam": "Antispam",
       "categories": "Catégories",
       "groupMail": "Courrier",
       "groupPreferences": "Préférences",
       "groupAiExtensions": "IA et extensions",
       "groupAdmin": "Administration",
       "behavior": "Comportement",
-      "plugins": "Extensions",
       "backup": "Sauvegarde",
       "mailSignIn": "Fournisseurs de messagerie",
       "groupCalendar": "Calendrier",
@@ -1237,15 +1187,6 @@
       "categorizationSection": "Catégorisation des e-mails",
       "categorizationEnabled": "Activer la catégorisation",
       "categorizationEnabledDesc": "Classe les e-mails entrants dans des onglets de catégories. Désactivé par défaut.",
-      "antispamSection": "Antispam",
-      "antispamEnabled": "Activer l'antispam pour ce compte",
-      "antispamEnabledDesc": "Les messages entrants sont classés automatiquement ; le spam à haute confiance est déplacé vers le dossier Junk.",
-      "trustedAuthservLabel": "ID Authentication-Results de confiance",
-      "trustedAuthservPlaceholder": "mx.example.com",
-      "trustedAuthservDesc": "Seuls les en-têtes Authentication-Results écrits par cet ID sont pris en compte. Laissez vide pour les ignorer tous : un en-tête non fiable peut annoncer n'importe quel résultat, même un pass.",
-      "trustedAuthservDetected": "Vus dans vos messages récents (cliquez pour utiliser) :",
-      "trustedAuthservDetectedNone": "Pas encore de données : les messages sont analysés lorsque l'antispam est actif pour ce compte.",
-      "trustedAuthservWarn": "Ne faites confiance qu'à un ID que vous reconnaissez comme le serveur de réception de votre fournisseur.",
       "enabledGlobally": "Activé globalement",
       "microsoftImapNoteSignIn": "Microsoft n'accepte plus les mots de passe pour les boîtes Outlook.com, Hotmail, Live et MSN. Connectez-vous plutôt avec Microsoft : aucun mot de passe d'application n'est nécessaire.",
       "deleteScheduled": "Messages programmés pas encore envoyés supprimés avec lui : {{n}}.",
@@ -1780,41 +1721,7 @@
       "recategorize": "Recatégoriser",
       "recategorizing": "Traitement…",
       "recategorized": "Recatégorisation démarrée.",
-      "selectAccount": "Sélectionner un compte",
-      "gtdReveal": "GTD",
-      "gtdRevealDesc": "Affiche ci-dessous les réglages GTD par compte ; chaque compte garde son propre interrupteur."
-    },
-    "gtd": {
-      "description": "Transformez Plimail en système GTD. Activez-le par compte, puis associez chaque état au dossier IMAP qui contient son étiquette.",
-      "noAccounts": "Ajoutez d'abord un compte de messagerie pour configurer GTD.",
-      "enableDesc": "GTD est activé. Les étiquettes se synchronisent comme des dossiers et les états changent automatiquement.",
-      "enableHint": "Activer les étiquettes GTD et les transitions d'état automatiques pour ce compte.",
-      "foldersTitle": "Dossiers d'étiquettes",
-      "foldersDesc": "Chaque état GTD correspond à un dossier IMAP. Laissez un champ vide pour utiliser le nom par défaut.",
-      "savedOk": "Association des dossiers enregistrée.",
-      "saveFailed": "Impossible d'enregistrer l'association des dossiers.",
-      "createFolders": "Créer les dossiers manquants",
-      "creating": "Création…",
-      "createResult": "{{created}} créés, {{existing}} déjà présents.",
-      "createFailed": "Impossible de créer les dossiers.",
-      "duplicateFolder": "Ces états GTD pointent vers le même dossier : {{states}}. Attribuez un dossier différent à chaque état.",
-      "rejectedFolders": "Certains noms de dossier étaient invalides et ont été réinitialisés à leurs valeurs par défaut : {{states}}.",
-      "pet": {
-        "title": "Mascotte de boîte vide",
-        "description": "Remplacez le chien par défaut en boîte vide par une mascotte à vous.",
-        "clear": "Utiliser le chien par défaut",
-        "current": "Mascotte actuelle : {{slug}}",
-        "usingDog": "Le chien par défaut est utilisé.",
-        "hoverHint": "Survolez pour animer.",
-        "importTitle": "Importez la vôtre",
-        "importHint": "Téléversez un pet.json et son spritesheet (PNG, WebP ou GIF).",
-        "chooseJson": "Fichier pet.json",
-        "chooseSheet": "Image du spritesheet",
-        "import": "Importer",
-        "importing": "Importation…",
-        "imported": "{{name}} importée — survolez l’aperçu pour la voir bouger.",
-        "importFailed": "Impossible d’importer cette mascotte."
-      }
+      "selectAccount": "Sélectionner un compte"
     },
     "systemEmail": {
       "tabUsers": "Utilisateurs et invitations",
@@ -1904,7 +1811,6 @@
       "passwordLoginEnabled": "La connexion par mot de passe est activée"
     },
     "integrations": {
-      "title": "Intégrations",
       "loading": "Chargement…",
       "microsoft": {
         "setupTitle": "Configuration de l'inscription d'application Azure",
@@ -1945,45 +1851,6 @@
         "redirectUriNote": "Elle doit correspondre exactement à une URI de redirection autorisée sur le client OAuth. Suggestion : {{uri}}",
         "save": "Enregistrer la configuration",
         "remove": "Supprimer"
-      },
-      "todoist": {
-        "title": "Todoist",
-        "description": "Intégration du gestionnaire de tâches personnel",
-        "connect": "Connecter",
-        "connecting": "Connexion...",
-        "disconnect": "Déconnecter",
-        "connected": "Connecté",
-        "notConnected": "Non connecté",
-        "tokenLabel": "Jeton d'API personnel",
-        "tokenPh": "Collez votre jeton d'API Todoist",
-        "help": "Trouvez votre jeton dans Todoist Paramètres → Intégrations → Développeur"
-      },
-      "carddav": {
-        "title": "Contacts CardDAV",
-        "description": "Synchronisez les contacts depuis un serveur CardDAV comme Nextcloud.",
-        "connected": "Connecté",
-        "notConnected": "Non connecté",
-        "serverLabel": "URL du serveur",
-        "serverPh": "https://cloud.exemple.com",
-        "userLabel": "Nom d'utilisateur",
-        "userPh": "votre nom d'utilisateur Nextcloud",
-        "passLabel": "Mot de passe d'application",
-        "passPh": "mot de passe d'application (pas votre mot de passe de connexion)",
-        "dupLabel": "Lorsqu'un contact existe déjà",
-        "dupSeparate": "Garder les deux (carnet séparé)",
-        "dupMerge": "Fusionner — CardDAV l'emporte",
-        "dupSkip": "Ignorer le contact CardDAV",
-        "intervalLabel": "Intervalle de synchronisation (minutes)",
-        "connect": "Connecter",
-        "connecting": "Connexion…",
-        "connectFailed": "Échec de la connexion",
-        "disconnect": "Déconnecter",
-        "syncNow": "Synchroniser maintenant",
-        "syncing": "Synchronisation…",
-        "lastSync": "Dernière synchro : {{when}}",
-        "summary": "{{contacts}} contacts dans {{books}} carnets",
-        "syncFailed": "Échec de la dernière synchro : {{error}}",
-        "help": "Utilisez un mot de passe d'application Nextcloud, pas votre mot de passe de connexion — les utilisateurs SSO doivent en créer un dans Paramètres → Sécurité. Les contacts sont synchronisés à sens unique et en lecture seule dans Plimail."
       }
     },
     "ssoLinked": {
@@ -2035,7 +1902,7 @@
     },
     "backup": {
       "title": "Sauvegarde et restauration",
-      "intro": "Une sauvegarde contient les données de ce Plimail : utilisateurs, comptes de messagerie, règles, contacts, réglages, données des extensions et apprentissage antispam. Le courrier en cache est retéléchargé depuis vos serveurs de messagerie après une restauration, sauf si vous l'incluez. Le fichier ne contient pas ce qui est défini dans .env : un nouveau serveur a besoin de la même ENCRYPTION_KEY et, si vous les y avez définis, des mêmes clés VAPID et réglages de client OAuth.",
+      "intro": "Une sauvegarde contient les données de ce Plimail : utilisateurs, comptes de messagerie, règles, contacts et réglages. Le courrier en cache est retéléchargé depuis vos serveurs de messagerie après une restauration, sauf si vous l'incluez. Le fichier ne contient pas ce qui est défini dans .env : un nouveau serveur a besoin de la même ENCRYPTION_KEY et, si vous les y avez définis, des mêmes clés VAPID et réglages de client OAuth.",
       "sensitive": "Le fichier contient les empreintes des mots de passe, les liens d'invitation en attente et les identifiants de vos comptes. Les identifiants sont chiffrés avec l'ENCRYPTION_KEY de ce serveur ; le reste est lisible, tout comme chaque message si le courrier en cache est inclus. Conservez le fichier en lieu sûr. Il ne peut être restauré que sur un serveur utilisant la même clé.",
       "includeMail": "Inclure le courrier en cache",
       "includeMailDesc": "Enregistre aussi la copie locale de chaque message synchronisé, ce qui rend le fichier bien plus volumineux. Sans elle, une restauration retélécharge le courrier, et les messages non lus les plus récents de chaque boîte de réception arrivent comme du nouveau courrier : les règles de la boîte de réception s'y appliquent de nouveau, transferts compris. Ce choix s'applique à chaque sauvegarde jusqu'à ce que vous le changiez.",
@@ -2055,15 +1922,6 @@
       "downloadFailed": "La sauvegarde n'a pas pu démarrer.",
       "connectionLost": "La connexion a été perdue pendant la restauration, son résultat est donc inconnu. Cette page se rechargera dès que Plimail répondra de nouveau ; vérifiez alors que vos données sont bien celles restaurées.",
       "tooLarge": "Le fichier dépasse la taille autorisée par le proxy placé devant Plimail."
-    },
-    "plugins": {
-      "title": "Extensions",
-      "description": "Activez ou désactivez des fonctionnalités optionnelles pour votre compte. Une extension activée ajoute ses propres réglages et son interface.",
-      "activated": "Activée",
-      "deactivated": "Non activée",
-      "empty": "Aucune extension n'est disponible dans cette version.",
-      "error": "Impossible de mettre à jour l'extension. Veuillez réessayer.",
-      "configureIn": "Configurer les options dans {{location}}"
     }
   },
   "blockList": {
@@ -2080,67 +1938,6 @@
     "failBody": "Le serveur de messagerie a refusé le déplacement.",
     "failHamBody": "Le serveur de messagerie a refusé le déplacement.",
     "failBodyBulk": "{{count}} messages n'ont pas pu être déplacés.",
-    "title": "Antispam",
-    "subtitle": "Filtre antispam ML par utilisateur. Entraîné par vos retours manuels spam/non-spam ; les nouveaux messages sont classés automatiquement si activé par compte.",
-    "saved": "Paramètres enregistrés",
-    "resetAllDone": "Données d'entraînement réinitialisées — {{n}} enregistrements supprimés",
-    "retrainDone": "Réentraînement terminé — {{n}} utilisateur(s) traités",
-    "retrainBusy": "Un réentraînement est déjà en cours — il se terminera tout seul",
-    "statusTitle": "État du modèle",
-    "statusHelp": "Le modèle est par utilisateur et partagé entre les comptes. Sous 50 enregistrements, seules les règles intégrées sont utilisées.",
-    "statMaturity": "Maturité",
-    "statRecords": "Enregistrements",
-    "statVersion": "Version du modèle",
-    "statLastTrained": "Dernier entraînement",
-    "statDecay": "Fenêtre de decay",
-    "never": "jamais",
-    "days": "jours",
-    "maturity": {
-      "mature": "Mature",
-      "fresh": "Récent",
-      "insufficient": "Insuffisant"
-    },
-    "masterEnable": "Activer l'antispam",
-    "masterEnableHelp": "Interrupteur principal de la classification automatique. Chaque compte a aussi son propre interrupteur.",
-    "perAccountHint": "Interrupteur par compte : Comptes → sélectionner un compte → section Antispam.",
-    "thresholdsTitle": "Seuils",
-    "thresholdsHelp": "Valeurs plus hautes = moins de faux positifs mais plus de spam passe.",
-    "spamThreshold": "Seuil de spam",
-    "autoMoveThreshold": "Seuil de déplacement auto",
-    "save": "Enregistrer",
-    "decayTitle": "Decay d'entraînement",
-    "decayHelp": "Les données anciennes sont pondérées moins avec cette demi-vie (7–365 jours).",
-    "dangerTitle": "Zone dangereuse",
-    "retrainNow": "Réentraîner maintenant",
-    "resetConfirmWarn": "C'est irréversible : toutes vos données d'entraînement seront supprimées.",
-    "resetConfirmYes": "Oui, supprimer les données",
-    "resetAll": "Réinitialiser toutes les données d'entraînement",
-    "deletionsTitle": "Suppressions récentes",
-    "deleteScope": {
-      "per_account": "Un compte",
-      "all": "Tous les comptes"
-    },
-    "records": "enregistrements",
-    "howItWorks": "Comment ça marche : vos choix manuels Marquer comme spam / Non-spam entraînent le modèle. Les messages classés automatiquement ne le ré-entraînent jamais. Les règles sont toujours actives ; le modèle ML s'ajoute avec 50+ enregistrements.",
-    "badgeLabel": "INDEX SPAM",
-    "badgeTitle": "Classé automatiquement comme spam — cliquer pour les détails",
-    "explainTitle": "Pourquoi marqué comme spam ?",
-    "explainVerdict": "Verdict",
-    "explainMethod": "Méthode",
-    "explainConfidence": "Confiance",
-    "verdict": {
-      "spam": "Spam",
-      "ham": "Non-spam",
-      "unsure": "Incertain"
-    },
-    "method": {
-      "rules": "Règles",
-      "blended": "Règles + ML"
-    },
-    "rulesFiredTitle": "Règles déclenchées",
-    "noRulesFired": "Aucune règle déclenchée",
-    "mlTokensTitle": "Principaux tokens",
-    "noMlTokens": "Aucun token ML",
     "conversationMovedToSpam": "Conversation déplacée dans le dossier Spam",
     "nothingFromAccount": "Aucun message de ce compte à marquer comme spam dans cette conversation",
     "nothingInConversation": "Aucun message à marquer comme spam dans cette conversation"
@@ -2181,66 +1978,6 @@
       "work": "Travail",
       "home": "Domicile",
       "other": "Autre"
-    },
-    "carddavBadge": "Synchronisé depuis CardDAV"
-  },
-  "todoist": {
-    "title": "Créer une tâche Todoist",
-    "taskTitle": "Titre de la tâche",
-    "taskTitlePh": "Que faut-il faire ?",
-    "description": "Description",
-    "descriptionPh": "Notes optionnelles...",
-    "project": "Projet",
-    "inbox": "Boîte de réception",
-    "labels": "Étiquettes",
-    "priority": "Priorité",
-    "priorityUrgent": "Urgent",
-    "priorityHigh": "Haute",
-    "priorityMedium": "Moyenne",
-    "priorityNormal": "Sans priorité",
-    "dueDate": "Date d'échéance",
-    "create": "Créer la tâche",
-    "creating": "Création...",
-    "taskCreated": "Tâche créée dans Todoist",
-    "openTask": "Ouvrir dans Todoist"
-  },
-  "rightSidebar": {
-    "hide": "Masquer la barre latérale droite",
-    "show": "Afficher la barre latérale droite"
-  },
-  "gtd": {
-    "oldestLabeledAge": "{{state}} : âge du plus ancien message portant cette étiquette (jours) : {{count}}",
-    "title": "GTD",
-    "inbox": "Boîte de réception",
-    "waiting": "En attente",
-    "inboxZero": "Boîte vide ✓",
-    "allClear": "Tout est clair",
-    "allClearHint": "Rien ne vous attend.",
-    "showAll": "Afficher les {{count}}",
-    "showSome": "Afficher {{available}} sur {{total}}",
-    "showLess": "Afficher moins",
-    "toggleSection": "Basculer {{section}}",
-    "tabEmpty": "Rien ici pour l'instant",
-    "removeFrom": "Retirer de {{state}}",
-    "classified": "Étiquette appliquée",
-    "classifiedMany": "{{count}} étiquetés {{state}}",
-    "classifiedSome": "{{count}} sur {{total}} étiquetés {{state}}",
-    "classifyFailed": "Impossible d'appliquer l'étiquette",
-    "undoFailed": "Impossible d'annuler l'étiquette",
-    "removed": "Étiquette retirée",
-    "removeFailed": "Impossible de retirer l'étiquette",
-    "onlyCopy": "C'est la seule copie du message : retirer le libellé la supprimerait. Archivez-le ou déplacez-le plutôt.",
-    "labelChanged": "Ce libellé a changé sur le serveur et n'a pas été retiré. Actualisez et réessayez.",
-    "done": "Marquer comme terminé",
-    "doneFailed": "Impossible de marquer comme terminé",
-    "doneArchiveFailed": "Marqué comme terminé, mais l'archivage a échoué — toujours dans la boîte de réception",
-    "doneThreadRemains": "Certains messages de cette conversation n'ont pas pu être retirés, elle reste donc dans sa section GTD",
-    "state": {
-      "todo": "À faire",
-      "watch": "Surveiller",
-      "delegated": "Délégué",
-      "someday": "Un jour",
-      "reference": "Référence"
     }
   },
   "window": {

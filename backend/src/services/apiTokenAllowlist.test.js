@@ -131,7 +131,7 @@ describe('the API token allowlist matcher', () => {
   });
 
   it('takes only a UUID where the entry says :uuid, so literal siblings never pass for one', () => {
-    for (const id of ['bulk-read', 'bulk-move', 'mailbox-usage', '1', `${ID}x`, ID.slice(1), ID.replaceAll('-', ''), `{${ID}}`, ' ' + ID]) {
+    for (const id of ['bulk-read', 'bulk-move', 'category-counts', '1', `${ID}x`, ID.slice(1), ID.replaceAll('-', ''), `{${ID}}`, ' ' + ID]) {
       expect(matchApiTokenRoute('GET', `/api/mail/messages/${id}`), id).toBe(null);
       expect(matchApiTokenRoute('GET', `/api/mail/messages/${id}/body`), id).toBe(null);
       expect(matchApiTokenRoute('GET', `/api/accounts/${id}/folders`), id).toBe(null);

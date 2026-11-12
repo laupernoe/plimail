@@ -6,7 +6,7 @@ vi.mock('../middleware/auth.js', () => ({
   requireAuth: (req, _res, next) => { req.session = { userId: 'user-1' }; next(); },
 }));
 const imapManager = vi.hoisted(() => ({
-  snoozedRows: vi.fn(), wakeSnoozed: vi.fn(), isWakingSnooze: vi.fn(() => false), broadcast: vi.fn(), scheduleCountRefresh: vi.fn(), pluginFacade: {},
+  snoozedRows: vi.fn(), wakeSnoozed: vi.fn(), isWakingSnooze: vi.fn(() => false), broadcast: vi.fn(), scheduleCountRefresh: vi.fn(),
 }));
 vi.mock('../index.js', () => ({ imapManager }));
 

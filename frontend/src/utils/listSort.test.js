@@ -36,7 +36,6 @@ test('only folders and All Inboxes can be sorted', () => {
   assert.equal(isSortableList({ accountId: null, folder: 'Snoozed' }), false);
   assert.equal(isSortableList({ accountId: null, folder: '__scheduled__' }), false);
   assert.equal(isSortableList({ accountId: 'acct-1', folder: 'INBOX', searchQuery: 'invoice' }), false);
-  assert.equal(isSortableList({ accountId: 'acct-1', folder: 'INBOX', gtdTab: true }), false);
 });
 
 const rows = [

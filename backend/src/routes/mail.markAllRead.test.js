@@ -12,7 +12,6 @@ import express from 'express';
 import mailRoutes from './mail.js';
 import { query } from '../services/db.js';
 import { imapManager } from '../index.js';
-import { pluginRegistry } from '../plugins/registry.js';
 
 const ACCOUNT_ID = 'e5e5e5e5-5555-4555-8555-e5e5e5e5e5e5';
 const ACCOUNT = { id: ACCOUNT_ID, user_id: 'user-1' };
@@ -77,23 +76,5 @@ describe('POST /api/mail/mark-all-read', () => {
       : [] }));
     expect((await markAllRead()).status).toBe(200);
     expect(imapManager.markAllReadImap).toHaveBeenCalledWith(ACCOUNT, 'INBOX', { uidCeiling: 12 });
-  });
-
-  it('still writes \\Seen to the folder when the label copies step fails', async () => {
-    imapManager.markAllReadImap.mockResolvedValue();
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const active = vi.spyOn(pluginRegistry, 'hasActiveAsync').mockRejectedValue(new Error('connection reset'));
-    query.mockImplementation((sql) => Promise.resolve({ rows:
-      sql.includes('FROM email_accounts') ? [ACCOUNT]
-      : sql.includes('RETURNING m.id') ? [{ id: 'a', uid: 5, message_id: '<m@x>', was_read: false }]
-      : [] }));
-    try {
-      expect((await markAllRead()).status).toBe(200);
-      expect(imapManager.markAllReadImap).toHaveBeenCalledWith(ACCOUNT, 'INBOX', { uidCeiling: 5 });
-      expect(warn).toHaveBeenCalledWith('Mark-all-read label copies failed:', 'connection reset');
-    } finally {
-      warn.mockRestore();
-      active.mockRestore();
-    }
   });
 });

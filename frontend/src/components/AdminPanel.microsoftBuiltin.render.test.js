@@ -80,7 +80,6 @@ beforeEach(() => {
   saved = [];
   switched = [];
   api.setMsBuiltinApp = async (enabled) => { switched.push(enabled); status = { ...status, builtinApp: enabled, personalVia: enabled ? status.personalVia || 'shared' : (status.personalVia === 'own' ? 'own' : null) }; return { ok: true }; };
-  api.todoist.status = async () => ({ connected: false });
   api.getIntegrations = async () => ({});
   api.saveIntegration = async (provider, config) => { saved.push([provider, config]); return { ok: true }; };
   googleStatus = { configured: false };
@@ -96,14 +95,13 @@ async function openTab(tab, { isAdmin, microsoft = BUILTIN }) {
 }
 
 // Settings > Email providers (#674): app configuration for administrators only. Users add their
-// accounts under Add account; Integrations keeps the apps (Todoist, CardDAV) for everyone.
+// accounts under Add account.
 describe('who sees what', () => {
-  test('a non-admin has no Email providers section, and Integrations shows no mail sign-in', async () => {
-    await openTab('integrations', { isAdmin: false });
+  test('a non-admin has no Email providers section, and other tabs show no mail sign-in', async () => {
+    await openTab('ai-actions', { isAdmin: false });
     assert.ok(!text().includes('admin.tabs.mailSignIn'));
     assert.ok(!text().includes(PREFIX + 'setupTitle'));
     assert.ok(!text().includes('mailSignIn.'));
-    assert.ok(text().includes('admin.integrations.todoist.title'));
   });
 
   test('even asked for directly, Email providers renders nothing for a non-admin', async () => {

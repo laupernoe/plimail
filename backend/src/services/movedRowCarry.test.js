@@ -5,17 +5,17 @@ import { CARRY_MS, carryUpdate, clearCarries, hasCarries, rememberDroppedRows, t
 const ACC = 'acc-1';
 const row = (over = {}) => ({
   account_id: ACC, message_id: '<m1@x>', date: '2026-11-04T10:00:00.000Z',
-  spam_user_override: null, spam_verdict: 'spam', category: 'promotions', subject: 'not carried', ...over,
+  category: 'promotions', unsubscribed_at: null, subject: 'not carried', ...over,
 });
 
 describe('movedRowCarry', () => {
   beforeEach(() => clearCarries());
 
   it('hands the destination sync what only Plimail knew, once', () => {
-    rememberDroppedRows('INBOX', [row()], { spam_user_override: 'ham', spam_verdict: 'ham' });
+    rememberDroppedRows('INBOX', [row()]);
     expect(hasCarries()).toBe(true);
     const carried = takeCarry(ACC, 'INBOX', '<m1@x>', new Date('2026-11-04T10:00:00Z'));
-    expect(carried).toEqual({ spam_user_override: 'ham', spam_verdict: 'ham', category: 'promotions' });
+    expect(carried).toEqual({ category: 'promotions', unsubscribed_at: null });
     expect(takeCarry(ACC, 'INBOX', '<m1@x>', new Date('2026-11-04T10:00:00Z'))).toBeNull();
   });
 
@@ -49,15 +49,15 @@ describe('movedRowCarry', () => {
 
   it('lets go after the carry window', () => {
     const now = Date.now();
-    rememberDroppedRows('INBOX', [row()], {}, now);
+    rememberDroppedRows('INBOX', [row()], now);
     expect(takeCarry(ACC, 'INBOX', '<m1@x>', '2026-11-04T10:00:00Z', now + CARRY_MS + 1)).toBeNull();
     expect(hasCarries()).toBe(false);
   });
 
   it('builds the UPDATE that puts the columns back', () => {
-    const u = carryUpdate('row-1', { spam_user_override: 'ham', spam_details: { a: 1 }, plugin_annotations: null, bcc_addresses: [{ email: 'b@x' }] });
-    expect(u.text).toBe('UPDATE messages SET spam_details = $2::jsonb, spam_user_override = $3, plugin_annotations = COALESCE($4::jsonb, plugin_annotations), bcc_addresses = $5::jsonb WHERE id = $1');
-    expect(u.params).toEqual(['row-1', '{"a":1}', 'ham', null, '[{"email":"b@x"}]']);
+    const u = carryUpdate('row-1', { category: 'social', bcc_addresses: [{ email: 'b@x' }] });
+    expect(u.text).toBe('UPDATE messages SET category = $2, bcc_addresses = $3::jsonb WHERE id = $1');
+    expect(u.params).toEqual(['row-1', 'social', '[{"email":"b@x"}]']);
     expect(carryUpdate('row-1', {})).toBeNull();
     expect(carryUpdate('row-1', { subject: 'x' })).toBeNull();
   });

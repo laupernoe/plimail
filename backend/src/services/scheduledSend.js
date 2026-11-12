@@ -17,8 +17,8 @@ import { resolveSentFolder } from '../utils/mailUtils.js';
 import { imapManager } from '../index.js';
 
 // The scheduled sender (#543): finds due scheduled messages, claims them, and sends each through
-// the same pipeline as Send (services/outgoingMail.js), so threading, the Sent copy, recipient
-// learning and plugin hooks behave as for any send.
+// the same pipeline as Send (services/outgoingMail.js), so threading, the Sent copy
+// and recipient learning behave as for any send.
 //
 // At most once, never silently zero. A claim is a row in 'sending' with this process's
 // claim_token, and every later update of the row names that token, so a claim that recovery or

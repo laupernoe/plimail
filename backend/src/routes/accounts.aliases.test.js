@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 
 // Alias CRUD is exercised through the mounted accounts router so these tests cover the
-// ownership checks, successful mutations, and the owner-address cache boundary together.
+// ownership checks and successful mutations together.
 // The DB, app entrypoint, and auth middleware are stubbed to keep the harness isolated.
 vi.mock('../services/db.js', () => ({ query: vi.fn() }));
 vi.mock('../middleware/auth.js', () => ({
@@ -14,13 +14,8 @@ vi.mock('../index.js', () => ({ imapManager: {} }));
 import 'express-async-errors';
 import express from 'express';
 import { query } from '../services/db.js';
-import { pluginRegistry } from '../plugins/registry.js';
 import accountRoutes from './accounts.js';
 
-// The route now signals identity changes through the generic `onAccountIdentityChanged` hook
-// (GTD's owner-address cache invalidation lives behind it), so we assert the hook dispatch as the
-// boundary rather than the plugin-internal cache call.
-let identityHook;
 
 const URL_ACCOUNT_ID = '11111111-1111-4111-8111-111111111111';
 const CHECKED_ACCOUNT_ID = '22222222-2222-4222-8222-222222222222';
@@ -97,32 +92,19 @@ afterAll(async () => {
 
 beforeEach(() => {
   query.mockReset();
-  identityHook = vi.spyOn(pluginRegistry, 'runHook').mockResolvedValue([]);
   stubQueries();
 });
 
-afterEach(() => { identityHook.mockRestore(); });
 
-// Assert the onAccountIdentityChanged hook fired exactly once for the given account.
-function expectIdentityInvalidated(accountId) {
-  const calls = identityHook.mock.calls.filter(([name]) => name === 'onAccountIdentityChanged');
-  expect(calls).toHaveLength(1);
-  expect(calls[0][1]).toEqual({ accountId });
-}
-function expectNoIdentityInvalidation() {
-  expect(identityHook.mock.calls.filter(([name]) => name === 'onAccountIdentityChanged')).toHaveLength(0);
-}
-
-describe('account alias mutations invalidate the owner-address cache', () => {
-  it('invalidates the URL account once after a successful INSERT', async () => {
+describe('account alias mutations', () => {
+  it('inserts an alias on the URL account', async () => {
     const res = await request('POST', `${URL_ACCOUNT_ID}/aliases`, aliasBody);
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(insertedAlias);
-    expectIdentityInvalidated(URL_ACCOUNT_ID);
   });
 
-  it('invalidates the ownership-check account once after a successful UPDATE', async () => {
+  it('updates an alias the user owns', async () => {
     const res = await request('PUT', `${URL_ACCOUNT_ID}/aliases/${ALIAS_ID}`, {
       ...aliasBody,
       name: 'Updated',
@@ -130,21 +112,18 @@ describe('account alias mutations invalidate the owner-address cache', () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(updatedAlias);
-    expectIdentityInvalidated(CHECKED_ACCOUNT_ID);
   });
 
-  it('invalidates the ownership-check account once after a successful DELETE', async () => {
+  it('deletes an alias the user owns', async () => {
     const res = await request('DELETE', `${URL_ACCOUNT_ID}/aliases/${ALIAS_ID}`);
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
-    expectIdentityInvalidated(CHECKED_ACCOUNT_ID);
   });
 });
 
-// A missing ownership row exits before mutation, so neither a guessed URL account nor a stale
-// alias account may be evicted from the owner-address cache.
-describe('account alias ownership failures do not invalidate the cache', () => {
+// A missing ownership row exits before mutation.
+describe('account alias ownership failures', () => {
   it('returns 404 for PUT when the alias ownership check finds no row', async () => {
     stubQueries({ checkedAccountId: null });
 
@@ -152,7 +131,6 @@ describe('account alias ownership failures do not invalidate the cache', () => {
 
     expect(res.status).toBe(404);
     expect(query).toHaveBeenCalledTimes(1);
-    expectNoIdentityInvalidation();
   });
 
   it('returns 404 for DELETE when the alias ownership check finds no row', async () => {
@@ -162,20 +140,17 @@ describe('account alias ownership failures do not invalidate the cache', () => {
 
     expect(res.status).toBe(404);
     expect(query).toHaveBeenCalledTimes(1);
-    expectNoIdentityInvalidation();
   });
 });
 
-// Cache invalidation is sequenced after the mutation. A rejected write reaches the app-level
-// async error boundary as a 500 and must leave the existing cache entry untouched.
-describe('account alias mutation failures do not invalidate the cache', () => {
-  it('returns 500 without invalidating when INSERT rejects', async () => {
+// A rejected write reaches the app-level async error boundary as a 500.
+describe('account alias mutation failures', () => {
+  it('returns 500 when INSERT rejects', async () => {
     stubQueries({ mutationError: new Error('insert failed') });
 
     const res = await request('POST', `${URL_ACCOUNT_ID}/aliases`, aliasBody);
 
     expect(res.status).toBe(500);
     expect(query).toHaveBeenCalledTimes(2);
-    expectNoIdentityInvalidation();
   });
 });

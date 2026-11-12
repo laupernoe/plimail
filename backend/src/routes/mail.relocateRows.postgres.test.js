@@ -32,8 +32,8 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('relocateRows on Postgr
   beforeEach(async () => {
     clearCarries();
     await database.query('TRUNCATE messages');
-    const insert = `INSERT INTO messages (id, account_id, uid, folder, message_id, date, subject, spam_user_override, category)
-      VALUES ($1, $2, $3, 'Junk', $4, '2026-11-04T10:00:00Z', $5, 'ham', 'social')`;
+    const insert = `INSERT INTO messages (id, account_id, uid, folder, message_id, date, subject, category)
+      VALUES ($1, $2, $3, 'Junk', $4, '2026-11-04T10:00:00Z', $5, 'social')`;
     await database.query(insert, [A, ACC, 10, '<a@x>', 'Known']);
     await database.query(insert, [B, ACC, 11, '<b@x>', 'Unknown']);
   });
@@ -41,21 +41,21 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('relocateRows on Postgr
   it('moves a row with a new uid, and drops one without for the sync to file with its state', async () => {
     await relocateRows([A, B], new Map([[A, 500]]), 'INBOX');
 
-    const { rows } = await database.query('SELECT uid, folder, subject, spam_user_override, category FROM messages ORDER BY uid');
-    expect(rows).toEqual([{ uid: '500', folder: 'INBOX', subject: 'Known', spam_user_override: 'ham', category: 'social' }]);
+    const { rows } = await database.query('SELECT uid, folder, subject, category FROM messages ORDER BY uid');
+    expect(rows).toEqual([{ uid: '500', folder: 'INBOX', subject: 'Known', category: 'social' }]);
     expect(takeCarry(ACC, 'INBOX', '<a@x>', '2026-11-04T10:00:00Z')).toBeNull();
-    expect(takeCarry(ACC, 'INBOX', '<b@x>', '2026-11-04T10:00:00Z')).toMatchObject({ spam_user_override: 'ham', category: 'social' });
+    expect(takeCarry(ACC, 'INBOX', '<b@x>', '2026-11-04T10:00:00Z')).toMatchObject({ category: 'social' });
   });
 
   it('keeps the row a sync already filed at the new uid, with what only Plimail knew, and does not count it as dropped', async () => {
-    await database.query(`INSERT INTO messages (account_id, uid, folder, message_id, subject, spam_verdict, unsubscribed_at)
-      VALUES ($1, 500, 'INBOX', '<a@x>', 'Synced', 'spam', '2026-11-01')`, [ACC]);
+    await database.query(`INSERT INTO messages (account_id, uid, folder, message_id, subject, category, unsubscribed_at)
+      VALUES ($1, 500, 'INBOX', '<a@x>', 'Synced', 'promotions', '2026-11-01')`, [ACC]);
     await relocateRows([A], new Map([[A, 500]]), 'INBOX');
 
-    const { rows } = await database.query("SELECT subject, spam_user_override, category, spam_verdict, unsubscribed_at FROM messages WHERE folder = 'INBOX'");
-    // The server's copy stays (subject); the "Not spam" decision and category come back; what the
-    // moved row never had keeps the synced row's value.
-    expect(rows).toEqual([{ subject: 'Synced', spam_user_override: 'ham', category: 'social', spam_verdict: 'spam', unsubscribed_at: '2026-11-01' }]);
+    const { rows } = await database.query("SELECT subject, category, unsubscribed_at FROM messages WHERE folder = 'INBOX'");
+    // The server's copy stays (subject); the category comes back; what the moved row never had
+    // keeps the synced row's value.
+    expect(rows).toEqual([{ subject: 'Synced', category: 'social', unsubscribed_at: '2026-11-01' }]);
     expect(takeCarry(ACC, 'INBOX', '<a@x>', '2026-11-04T10:00:00Z')).toBeNull();
   });
 });

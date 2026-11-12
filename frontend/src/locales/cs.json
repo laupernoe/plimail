@@ -858,8 +858,7 @@
       "work": "Pracovní",
       "home": "Domů",
       "other": "Jiný"
-    },
-    "carddavBadge": "Synchronizováno z CardDAV"
+    }
   },
   "contextMenu": {
     "find": "Najít",
@@ -914,45 +913,6 @@
       "search": "Hledat složky…"
     }
   },
-  "gtd": {
-    "oldestLabeledAge": "{{state}}: stáří nejstarší zprávy s tímto štítkem (dny): {{count}}",
-    "title": "GTD",
-    "inbox": "Doručené",
-    "waiting": "Čeká se",
-    "inboxZero": "Prázdná schránka ✓",
-    "allClear": "Vše vyřízeno",
-    "allClearHint": "Nic nečeká na vaše vyřízení.",
-    "showAll": "Zobrazit vše ({{count}})",
-    "showSome": "Zobrazit {{available}} z {{total}}",
-    "showLess": "Zobrazit méně",
-    "toggleSection": "Zobrazit nebo skrýt {{section}}",
-    "tabEmpty": "Zatím tu nic není",
-    "removeFrom": "Odebrat ze stavu {{state}}",
-    "classified": "Štítek použit",
-    "classifiedMany": "Štítek {{state}} použit u {{count}}",
-    "classifiedSome": "Štítek {{state}} použit u {{count}} z {{total}}",
-    "classifyFailed": "Štítek se nepodařilo použít",
-    "removed": "Štítek odebrán",
-    "removeFailed": "Štítek se nepodařilo odebrat",
-    "onlyCopy": "Toto je jediná kopie zprávy, odebráním štítku by se smazala. Místo toho ji archivujte nebo přesuňte.",
-    "labelChanged": "Tento štítek se na serveru změnil a nebyl odebrán. Obnovte stránku a zkuste to znovu.",
-    "done": "Označit jako hotové",
-    "doneFailed": "Nepodařilo se označit jako hotové",
-    "doneArchiveFailed": "Označeno jako hotové, ale archivace se nezdařila — zpráva zůstává v Doručené poště",
-    "doneThreadRemains": "Některé zprávy v této konverzaci nebylo možné odebrat, proto zůstává ve své sekci GTD",
-    "state": {
-      "todo": "K vyřízení",
-      "watch": "Sledovat",
-      "delegated": "Delegováno",
-      "someday": "Někdy",
-      "reference": "Reference"
-    },
-    "undoFailed": "Štítek se nepodařilo vrátit zpět"
-  },
-  "rightSidebar": {
-    "hide": "Skrýt pravý postranní panel",
-    "show": "Zobrazit pravý postranní panel"
-  },
   "shortcuts": {
     "title": "Klávesové zkratky",
     "customizeHint": "Zkratky můžete upravit v Nastavení → Zkratky",
@@ -966,8 +926,7 @@
     "groups": {
       "composeSearch": "Psaní a hledání",
       "navigation": "Navigace",
-      "messageActions": "Akce se zprávami",
-      "gtd": "GTD"
+      "messageActions": "Akce se zprávami"
     },
     "actions": {
       "toggleLeftSidebar": {
@@ -1061,31 +1020,6 @@
       "printMessage": {
         "label": "Vytisknout",
         "description": "Vytisknout aktuální zprávu"
-      },
-      "gtdTodo": {
-        "label": "Označit K vyřízení",
-        "description": "Zařadit vybranou zprávu jako K vyřízení"
-      },
-      "gtdWatch": {
-        "label": "Označit Sledovat",
-        "description": "Zařadit vybranou zprávu jako Sledovat"
-      },
-      "gtdDelegated": {
-        "label": "Označit Delegováno",
-        "description": "Zařadit vybranou zprávu jako Delegováno"
-      },
-      "gtdReference": {
-        "description": "Zařadit vybranou zprávu jako Podklady"
-      },
-      "gtdSomeday": {
-        "description": "Zařadit vybranou zprávu jako Někdy"
-      },
-      "gtdDone": {
-        "description": "Dokončit vybranou zprávu GTD"
-      },
-      "toggleRightSidebar": {
-        "label": "Pravý postranní panel",
-        "description": "Skrýt nebo zobrazit pravý postranní panel"
       }
     }
   },
@@ -1117,90 +1051,9 @@
     "failBody": "Poštovní server přesunutí odmítl.",
     "failHamBody": "Poštovní server přesunutí odmítl.",
     "failBodyBulk": "Nepodařilo se přesunout {{count}} zpráv.",
-    "title": "Antispam",
-    "subtitle": "Filtr spamu s ML pro jednotlivé uživatele. Učí se z vašich ručních označení spam/není spam; nové zprávy se klasifikují automaticky, pokud je filtr pro účet zapnutý.",
-    "saved": "Nastavení uloženo",
-    "resetAllDone": "Trénovací data smazána — odstraněno {{n}} záznamů",
-    "retrainDone": "Přeškolení dokončeno — zpracováno {{n}} uživatelů",
-    "retrainBusy": "Přeučení už probíhá — dokončí se samo",
-    "statusTitle": "Stav modelu",
-    "statusHelp": "Model je určen pro jednoho uživatele a sdílí se mezi jeho účty. Při méně než 50 trénovacích záznamech se používají jen vestavěná pravidla.",
-    "statMaturity": "Vyspělost",
-    "statRecords": "Trénovací záznamy",
-    "statVersion": "Verze modelu",
-    "statLastTrained": "Naposledy trénováno",
-    "statDecay": "Okno útlumu",
-    "never": "nikdy",
-    "days": "dní",
-    "maturity": {
-      "mature": "Vyspělý",
-      "fresh": "Čerstvý",
-      "insufficient": "Nedostatečný"
-    },
-    "masterEnable": "Zapnout antispam",
-    "masterEnableHelp": "Hlavní přepínač automatické klasifikace. Každý účet má navíc vlastní přepínač.",
-    "perAccountHint": "Přepínač pro účet: Účty → vyberte účet → sekce Antispam.",
-    "thresholdsTitle": "Prahové hodnoty",
-    "thresholdsHelp": "Vyšší hodnoty znamenají méně falešných poplachů, ale propustí více spamu.",
-    "spamThreshold": "Práh spamu",
-    "autoMoveThreshold": "Práh automatického přesunu",
-    "save": "Uložit",
-    "decayTitle": "Útlum tréninku",
-    "decayHelp": "Starší trénovací data mají nižší váhu podle tohoto poločasu rozpadu (7–365 dní).",
-    "dangerTitle": "Nebezpečná zóna",
-    "retrainNow": "Přeškolit nyní",
-    "resetConfirmWarn": "Tato akce je nevratná: všechna vaše trénovací data budou smazána.",
-    "resetConfirmYes": "Ano, smazat trénovací data",
-    "resetAll": "Smazat všechna trénovací data",
-    "deletionsTitle": "Nedávná smazání",
-    "deleteScope": {
-      "per_account": "Jeden účet",
-      "all": "Všechny účty"
-    },
-    "records": "záznamů",
-    "howItWorks": "Jak to funguje: vaše ruční volby „Označit jako spam“ / „Není spam“ trénují model. Automaticky klasifikované zprávy ho nikdy nepřeškolují. Pravidla jsou vždy aktivní; ML model se přidá od 50 záznamů.",
-    "badgeLabel": "spam",
-    "badgeTitle": "Automaticky klasifikováno jako spam — kliknutím zobrazíte podrobnosti",
-    "explainTitle": "Proč bylo označeno jako spam?",
-    "explainVerdict": "Verdikt",
-    "explainMethod": "Metoda",
-    "explainConfidence": "Jistota",
-    "verdict": {
-      "spam": "Spam",
-      "ham": "Není spam",
-      "unsure": "Nejisté"
-    },
-    "method": {
-      "rules": "Pravidla",
-      "blended": "Pravidla + ML"
-    },
-    "rulesFiredTitle": "Aktivovaná pravidla",
-    "noRulesFired": "Neaktivovalo se žádné pravidlo",
-    "mlTokensTitle": "Nejvýznamnější tokeny",
-    "noMlTokens": "Žádné ML tokeny",
     "conversationMovedToSpam": "Konverzace přesunuta do spamu",
     "nothingFromAccount": "V této konverzaci není z tohoto účtu nic k označení jako spam",
     "nothingInConversation": "V této konverzaci není nic k označení jako spam"
-  },
-  "todoist": {
-    "title": "Vytvořit úkol v Todoistu",
-    "taskTitle": "Název úkolu",
-    "taskTitlePh": "Co je potřeba udělat?",
-    "description": "Popis",
-    "descriptionPh": "Volitelné poznámky…",
-    "project": "Projekt",
-    "inbox": "Doručené",
-    "labels": "Štítky",
-    "priority": "Priorita",
-    "priorityUrgent": "Naléhavá",
-    "priorityHigh": "Vysoká",
-    "priorityMedium": "Střední",
-    "priorityNormal": "Bez priority",
-    "dueDate": "Termín",
-    "create": "Vytvořit úkol",
-    "creating": "Vytváření…",
-    "taskCreated": "Úkol byl vytvořen v Todoistu",
-    "openTask": "Otevřít v Todoistu"
   },
   "window": {
     "minimize": "Minimalizovat",
@@ -1233,26 +1086,6 @@
     }
   },
   "admin": {
-    "cleanup": {
-      "title": "Úklid schránky",
-      "intro": "Najděte hromadnou poštu zahlcující doručenou poštu a ukliďte ji. Zvolte, zda ji archivovat (zůstane zachovaná a prohledatelná) nebo přesunout do koše (obnovitelná, dokud jej nevysypete).",
-      "account": "Účet",
-      "summary": "{{bulk}} z {{total}} zpráv v Doručené poště tvoří hromadná pošta ({{pct}} %).",
-      "tier1Title": "Nejčastější odesílatelé hromadné pošty",
-      "tier1Desc": "Toto jsou odesílatelé newsletterů a marketingu s největším objemem ve vaší doručené poště. Akce nad jedním zpracuje veškerou poštu tohoto odesílatele v doručené poště zvolenou akcí.",
-      "noneFound": "Nebyli nalezeni žádní odesílatelé hromadné pošty.",
-      "moveToTrash": "Přesunout do koše",
-      "confirm": "Přesunout všechny zprávy ({{count}}) od odesílatele {{sender}} z Doručené pošty do koše? Dokud koš nevyprázdníte, můžete je obnovit.",
-      "tier2Title": "Běžné propagační výrazy",
-      "tier2Desc": "Vyhledejte tyto výrazy, projděte výsledky a zbytek smažte ručně. Výsledky zahrnují více odesílatelů, proto je před smazáním zkontrolujte.",
-      "tier3Title": "Úklid zbývajících zpráv",
-      "tier3Desc": "U ostatních zpráv vyhledávejte podle odesílatele nebo klíčového slova, označte je a smažte. Smazané zprávy se vždy nejprve přesunou do koše, takže je před jeho vyprázdněním můžete zkontrolovat.",
-      "action": "Akce úklidu",
-      "actionArchive": "Archivovat (doporučeno)",
-      "archive": "Archivovat",
-      "confirmArchive": "Archivovat všech {{count}} zpráv od {{sender}} ve schránce doručené pošty? Zůstanou ve složce Archiv a bude možné je vyhledávat.",
-      "noArchiveFolder": "Tento účet nemá složku archivu, takže je k dispozici pouze Přesunout do koše."
-    },
     "title": "Nastavení",
     "close": "Zavřít",
     "behavior": {
@@ -1261,7 +1094,6 @@
       "sync": "Synchronizace"
     },
     "tabs": {
-      "cleanup": "Úklid",
       "accounts": "Účty",
       "rules": "Pravidla",
       "appearance": "Vzhled",
@@ -1271,20 +1103,17 @@
       "shortcuts": "Zkratky",
       "users": "Uživatelé",
       "sso": "SSO",
-      "integrations": "Integrace",
       "theme": "Motiv",
       "fontsAndLanguage": "Jazyk a písmo",
       "about": "O aplikaci",
       "ai": "Asistent AI",
       "aiActions": "Akce AI",
-      "antispam": "Antispam",
       "categories": "Kategorie",
       "groupMail": "Pošta",
       "groupPreferences": "Předvolby",
       "groupAiExtensions": "AI a rozšíření",
       "groupAdmin": "Správa",
       "behavior": "Chování",
-      "plugins": "Pluginy",
       "backup": "Záloha",
       "mailSignIn": "Poskytovatelé e-mailu",
       "groupCalendar": "Kalendář",
@@ -1315,9 +1144,7 @@
       "recategorize": "Znovu zařadit",
       "recategorizing": "Zpracování…",
       "recategorized": "Opětovné zařazení bylo spuštěno.",
-      "selectAccount": "Vyberte účet",
-      "gtdReveal": "GTD",
-      "gtdRevealDesc": "Zobrazí níže nastavení GTD pro jednotlivé účty; každý účet má vlastní přepínač zapnutí a vypnutí."
+      "selectAccount": "Vyberte účet"
     },
     "about": {
       "subtitle": "Open-source e-mailový klient pro vlastní hosting",
@@ -1415,15 +1242,6 @@
       "categorizationSection": "Kategorizace e-mailů",
       "categorizationEnabled": "Zapnout kategorizaci Doručené pošty",
       "categorizationEnabledDesc": "Třídit příchozí e-maily do karet kategorií. Ve výchozím nastavení je vypnuto.",
-      "antispamSection": "Antispam",
-      "antispamEnabled": "Zapnout antispam pro tento účet",
-      "antispamEnabledDesc": "Příchozí zprávy se klasifikují automaticky; spam s vysokou jistotou se přesune do složky Junk.",
-      "trustedAuthservLabel": "Důvěryhodné ID Authentication-Results",
-      "trustedAuthservPlaceholder": "mx.example.com",
-      "trustedAuthservDesc": "Důvěryhodné jsou pouze hlavičky Authentication-Results zapsané tímto ID. Ponechte prázdné pro ignorování všech — nedůvěryhodná hlavička může tvrdit jakýkoli výsledek, včetně pass.",
-      "trustedAuthservDetected": "Viděno ve vašich nedávných zprávách (kliknutím použijete):",
-      "trustedAuthservDetectedNone": "Zatím žádná data — zprávy se kontrolují, jakmile je pro tento účet zapnutý antispam.",
-      "trustedAuthservWarn": "Důvěřujte pouze ID, které znáte jako přijímající server vašeho poskytovatele.",
       "enabledGlobally": "Globálně zapnuto",
       "microsoftImapNoteSignIn": "Microsoft už nepřijímá hesla pro schránky Outlook.com, Hotmail, Live a MSN. Přihlaste se raději přes Microsoft: heslo aplikace není potřeba.",
       "deleteScheduled": "Naplánované dosud neodeslané zprávy, které se smažou s ním: {{n}}.",
@@ -1602,7 +1420,7 @@
     },
     "backup": {
       "title": "Záloha a obnovení",
-      "intro": "Záloha obsahuje data tohoto Plimail: uživatele, e-mailové účty, pravidla, kontakty, nastavení, data pluginů a antispamové učení. Pošta z mezipaměti se po obnovení znovu stáhne z vašich poštovních serverů, pokud ji nezahrnete. Soubor neobsahuje to, co je nastavené v .env: nový server potřebuje stejný ENCRYPTION_KEY a, pokud jste je tam nastavili, stejné klíče VAPID a nastavení klienta OAuth.",
+      "intro": "Záloha obsahuje data tohoto Plimail: uživatele, e-mailové účty, pravidla, kontakty a nastavení. Pošta z mezipaměti se po obnovení znovu stáhne z vašich poštovních serverů, pokud ji nezahrnete. Soubor neobsahuje to, co je nastavené v .env: nový server potřebuje stejný ENCRYPTION_KEY a, pokud jste je tam nastavili, stejné klíče VAPID a nastavení klienta OAuth.",
       "sensitive": "Soubor obsahuje otisky hesel, nevyužité odkazy s pozvánkami a přihlašovací údaje vašich účtů. Přihlašovací údaje jsou zašifrované klíčem ENCRYPTION_KEY tohoto serveru; zbytek je čitelný, stejně jako každá zpráva, pokud je zahrnuta pošta z mezipaměti. Uložte soubor na bezpečné místo. Obnovit jej lze jen na serveru se stejným klíčem.",
       "includeMail": "Zahrnout poštu z mezipaměti",
       "includeMailDesc": "Uloží také místní kopii každé synchronizované zprávy, takže soubor bude mnohem větší. Bez ní obnovení stáhne poštu znovu a nejnovější nepřečtené zprávy v každé doručené poště dorazí jako nová pošta: pravidla doručené pošty se na ně použijí znovu, včetně přeposílání. Volba platí pro každou zálohu, dokud ji nezměníte.",
@@ -1622,15 +1440,6 @@
       "downloadFailed": "Zálohu se nepodařilo spustit.",
       "connectionLost": "Během obnovení se přerušilo spojení, takže výsledek není znám. Tato stránka se znovu načte, jakmile Plimail opět odpoví; pak zkontrolujte, zda jsou data obnovená.",
       "tooLarge": "Soubor je větší, než povoluje proxy před Plimail."
-    },
-    "plugins": {
-      "title": "Pluginy",
-      "description": "Zapněte nebo vypněte volitelné funkce svého účtu. Zapnutím pluginu přidáte jeho vlastní nastavení a rozhraní.",
-      "activated": "Aktivováno",
-      "deactivated": "Neaktivováno",
-      "empty": "V tomto sestavení nejsou dostupné žádné pluginy.",
-      "error": "Plugin se nepodařilo aktualizovat. Zkuste to znovu.",
-      "configureIn": "Možnosti nastavíte v části {{location}}"
     },
     "messageList": {
       "autoOpenReplyDrafts": "Automaticky otevírat uložené odpovědi při výběru zpráv v doručené poště",
@@ -1732,38 +1541,6 @@
       "markReadDelaySeconds_one": "{{count}} sekunda",
       "markReadDelaySeconds_few": "{{count}} sekundy",
       "markReadDelaySeconds_many": "{{count}} sekundy"
-    },
-    "gtd": {
-      "description": "Proměňte Plimail v systém GTD. Zapněte jej pro jednotlivé účty a potom přiřaďte každý stav ke složce IMAP, která obsahuje jeho štítek.",
-      "noAccounts": "Pro nastavení GTD nejprve přidejte e-mailový účet.",
-      "enableDesc": "GTD je zapnuté. Štítky se synchronizují jako složky a stavy se mění automaticky.",
-      "enableHint": "Zapnout štítky GTD a automatické přechody stavů pro tento účet.",
-      "foldersTitle": "Složky štítků",
-      "foldersDesc": "Každý stav GTD odpovídá složce IMAP. Chcete-li použít výchozí název, ponechte pole prázdné.",
-      "savedOk": "Mapování složek bylo uloženo.",
-      "saveFailed": "Mapování složek se nepodařilo uložit.",
-      "createFolders": "Vytvořit chybějící složky",
-      "creating": "Vytváření…",
-      "createResult": "Vytvořeno: {{created}}, již existovalo: {{existing}}.",
-      "createFailed": "Složky se nepodařilo vytvořit.",
-      "duplicateFolder": "Tyto stavy GTD jsou přiřazeny stejné složce: {{states}}. Každému stavu přiřaďte jinou složku.",
-      "rejectedFolders": "Některé názvy složek byly neplatné a byly obnoveny na výchozí hodnoty: {{states}}.",
-      "pet": {
-        "title": "Mazlíček pro prázdnou schránku",
-        "description": "Nahraďte výchozího psa při dosažení prázdné schránky vlastním mazlíčkem.",
-        "clear": "Použít výchozího psa",
-        "current": "Aktuální mazlíček: {{slug}}",
-        "usingDog": "Používá se výchozí pes.",
-        "hoverHint": "Animaci spustíte najetím.",
-        "importTitle": "Importovat vlastního",
-        "importHint": "Nahrajte pet.json a obrázek se sprity (PNG, WebP nebo GIF).",
-        "chooseJson": "Soubor pet.json",
-        "chooseSheet": "Obrázek se sprity",
-        "import": "Importovat",
-        "importing": "Importování…",
-        "imported": "Importován {{name}} — pohyb uvidíte po najetí na náhled.",
-        "importFailed": "Tohoto mazlíčka se nepodařilo importovat."
-      }
     },
     "lock": {
       "title": "Zámek obrazovky",
@@ -2106,7 +1883,6 @@
       "body": "Následujících 10 minut můžete vytvořit token API nebo propojit další účet SSO."
     },
     "integrations": {
-      "title": "Integrace",
       "loading": "Načítání…",
       "microsoft": {
         "setupTitle": "Nastavení registrace aplikace v Azure",
@@ -2147,45 +1923,6 @@
         "redirectUriNote": "Musí se přesně shodovat s autorizovaným URI přesměrování u klienta OAuth. Doporučeno: {{uri}}",
         "save": "Uložit nastavení",
         "remove": "Odebrat"
-      },
-      "todoist": {
-        "title": "Todoist",
-        "description": "Integrace osobního správce úkolů",
-        "connect": "Připojit",
-        "connecting": "Připojování…",
-        "disconnect": "Odpojit",
-        "connected": "Připojeno",
-        "notConnected": "Nepřipojeno",
-        "tokenLabel": "Osobní token API",
-        "tokenPh": "Vložte svůj token API Todoist",
-        "help": "Token najdete v Todoist Nastavení → Integrace → Vývojář"
-      },
-      "carddav": {
-        "title": "Kontakty CardDAV",
-        "description": "Synchronizujte kontakty ze serveru CardDAV, například Nextcloud.",
-        "connected": "Připojeno",
-        "notConnected": "Nepřipojeno",
-        "serverLabel": "URL serveru",
-        "serverPh": "https://cloud.example.com",
-        "userLabel": "Uživatelské jméno",
-        "userPh": "vaše uživatelské jméno Nextcloud",
-        "passLabel": "Heslo pro aplikaci",
-        "passPh": "heslo pro aplikaci (nikoli přihlašovací heslo)",
-        "dupLabel": "Pokud kontakt už existuje",
-        "dupSeparate": "Ponechat oba (samostatný adresář)",
-        "dupMerge": "Sloučit — CardDAV má přednost",
-        "dupSkip": "Přeskočit kontakt CardDAV",
-        "intervalLabel": "Interval synchronizace (minuty)",
-        "connect": "Připojit",
-        "connecting": "Připojování…",
-        "connectFailed": "Připojení se nezdařilo",
-        "disconnect": "Odpojit",
-        "syncNow": "Synchronizovat nyní",
-        "syncing": "Synchronizace…",
-        "lastSync": "Poslední synchronizace: {{when}}",
-        "summary": "{{contacts}} kontaktů v {{books}} adresářích",
-        "syncFailed": "Poslední synchronizace selhala: {{error}}",
-        "help": "Použijte heslo pro aplikaci Nextcloud, nikoli přihlašovací heslo — uživatelé SSO si je musí vytvořit v Nastavení → Zabezpečení. Kontakty se synchronizují jednosměrně a v Plimail jsou jen pro čtení."
       }
     },
     "ai": {

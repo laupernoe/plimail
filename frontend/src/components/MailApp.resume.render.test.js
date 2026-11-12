@@ -30,7 +30,6 @@ const STUBS = {
   '/components/AdminPanel.jsx': 'export default function AdminPanel() { return null; }',
   '/components/ElectronNotificationBridge.jsx': 'export default function ElectronNotificationBridge() { return null; }',
   '/components/InboxReplyDraftObserver.js': 'export default function InboxReplyDraftObserver() { return null; }',
-  '/plugins/PluginSlot.jsx': 'export const usePluginSlot = () => []; export const usePluginCollected = () => []; export function PluginSlot() { return null; } export function PluginRuntime() { return null; }',
   // An open socket, so the fallback list refresh for a socket that is down stays quiet.
   '/hooks/useWebSocket.js': 'export const useWebSocket = () => ({ current: { readyState: 1 } });',
 };
@@ -88,7 +87,7 @@ const { useStore } = await import('../store/index.js');
 const { RESUME_RETRY_MS } = await import('../utils/resumeRefresh.js');
 const MailApp = (await import('./MailApp.jsx')).default;
 
-const original = { ...api, todoist: api.todoist };
+const original = { ...api };
 let root;
 let refreshes;
 let countsFail;
@@ -103,7 +102,6 @@ beforeEach(async (t) => {
       return { total: 0, byAccount: {}, snapshots: {}, complete: true };
     },
     getFolders: async () => [],
-    todoist: { ...original.todoist, status: async () => ({ connected: false }) },
   });
   useStore.setState({ isLocked: false });
   refreshes = 0;

@@ -26,11 +26,8 @@ import { aiReplyAvailable } from '../utils/aiReply.js';
 import MessageBodyView from './MessageBodyView.jsx';
 import { copyToClipboard } from '../utils/clipboard.js';
 import { saveSenderCategory } from '../utils/senderCategory.js';
-import { buildMovePickerSections, movePickerSectionHeading, movePickerFoldersEmpty, runMovePickerAction } from '../utils/folderDisplay.js';
-import { PluginSlot, usePluginCollected } from '../plugins/PluginSlot.jsx';
+import { buildMovePickerSections, movePickerSectionHeading, movePickerFoldersEmpty } from '../utils/folderDisplay.js';
 import FolderPathLabel from './FolderPathLabel.jsx';
-import SpamBadge from './SpamBadge.jsx';
-import SpamExplainModal from './SpamExplainModal.jsx';
 import { downloadEml } from '../utils/downloadEml.js';
 import { buildPrintDocument, openPrintWindow, printInWindow } from '../utils/printMessage.js';
 import AiResultBox from './AiResultBox.jsx';
@@ -38,7 +35,7 @@ import { useAiActions } from '../hooks/useAiActions.js';
 import AttachmentStrip from './AttachmentStrip.jsx';
 import {
   ActionBtn, MessageTools, ReplySplitButton, RemoteImagesNotice, UnsubscribeNotice, TOUCH_MIN,
-  AiReplyIcon, ForwardIcon, ArchiveIcon, MoveIcon, SpamIcon, HamIcon, TodoistIcon, ReadStateIcon, HeadersIcon,
+  AiReplyIcon, ForwardIcon, ArchiveIcon, MoveIcon, SpamIcon, HamIcon, ReadStateIcon, HeadersIcon,
   DownloadIcon, PrintIcon, DarkToggleIcon, StarIcon, TrashIcon, useShortcutTitle,
 } from './MessageActions.jsx';
 const USE_DIV_RENDER = import.meta.env.VITE_EMAIL_DIV_RENDER === 'true';
@@ -63,7 +60,6 @@ if (USE_DIV_RENDER) {
 import { senderColor } from '../themes.js';
 import MessageHeaderModal from './MessageHeaderModal.jsx';
 import FolderIcon from './FolderIcon.jsx';
-import TodoistTaskModal from './TodoistTaskModal.jsx';
 import SenderAvatarImage from './SenderAvatarImage.jsx';
 import ContextMenu from './ContextMenu.jsx';
 import { holdUndoable, releaseUndoable, UNDO_COMMIT_DELAY_MS } from '../utils/undoableAction.js';
@@ -82,7 +78,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
     messages, searchResults, searchQuery, selectedMessageId: globalSelectedId, setSelectedMessage,
     updateMessage, removeMessage, decrementUnread, incrementUnread, openCompose, accounts, addNotification,
     imageWhitelist, addToImageWhitelist, blockRemoteImages, threadMessages,
-    replyDefault, recentFolders, favoriteFolders, todoistConnected,
+    replyDefault, recentFolders, favoriteFolders,
     categorizationEnabled, setCategoryCounts, adjustCategoryCount,
     aiActions, setShowAdmin, setAdminTab, plaintextEmail,
   } = useStore();
@@ -153,7 +149,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
     if (sawMessageRef.current) onWindowClose?.();
   }, [windowMode, message, onWindowClose]);
 
-  // Antispam (v0.1) — toolbar visibility for the spam / ham buttons.
+  // Toolbar visibility for the spam / ham buttons.
   // Mirrors the heuristic in ContextMenu.jsx so the toolbar matches the menu.
   const account = accounts.find(a => a.id === message?.account_id);
   const accountFolders = useStore(s => s.folders[message?.account_id] || []);
@@ -233,13 +229,11 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
   // Bumped to close the toolbar's menus, which are remounted under a new key.
   const [menuEpoch, setMenuEpoch] = useState(0);
   const [contextMenu, setContextMenu] = useState(null);
-  const [spamExplainMessageId, setSpamExplainMessageId] = useState(null);
   const [findDialogOpen, setFindDialogOpen] = useState(false);
   const [findQuery, setFindQuery] = useState('');
   const [findMatchCase, setFindMatchCase] = useState(false);
   const [findMatchIndex, setFindMatchIndex] = useState(-1);
   const findInputRef = useRef(null);
-  const [showTodoistModal, setShowTodoistModal] = useState(false);
   const [aiStatus, setAiStatus] = useState(null);
   // Per-action results for the current message: { [actionKey]: { status, text, label } }.
   // status: 'loading' | 'done' | 'error'. Restored from localStorage on message change.
@@ -596,7 +590,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
   });
 
   // Both drafts are built by the shared util, so replying from the list, from the
-  // reading pane, from a conversation and from GTD triage all produce the same draft.
+  // reading pane and from a conversation all produce the same draft.
   // The body is already loaded here, so it is handed over rather than refetched.
   const loadedBody = async () => body;
 
@@ -719,11 +713,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
         cancelScheduledMarkReadFor(message.id);
         clearReadGuard(message.id);
       },
-      // The GTD rail shows its own copy of the thread, as the u hotkey keeps it in step.
-      update: (id, fields) => {
-        updateMessage(id, fields);
-        useStore.getState().markGtdThreadRead(message.message_id || message.id, fields.is_read);
-      },
+      update: updateMessage,
       incrementUnread, decrementUnread, adjustCategoryCount,
       patch: api.bulkRead,
     }) && (isMobile || (listFirst && !windowMode))) setSelectedMessage(null);
@@ -739,7 +729,6 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
     autoMarkReadTimerRef.current = null;
     cancelScheduledMarkReadFor(message.id);
     applyMarkRead(message);
-    useStore.getState().markGtdThreadRead(message.message_id || message.id, true);
   }, [message]);
 
   const handleToggleRead = useCallback(() => {
@@ -902,19 +891,14 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
     if (!showMovePicker) setMoveSearch('');
   }, [showMovePicker]);
 
-  const movePluginSections = usePluginCollected('move-picker-sections', {
-    account, messages: message ? [message] : [], currentFolder: message?.folder,
-    onClose: () => setShowMovePicker(false), t,
-  });
   const moveSections = message
     ? buildMovePickerSections({
         folders: movePickerFolders, recents: recentFolders, favorites: favoriteFolders,
-        pluginSections: movePluginSections, accountId: message.account_id,
+        accountId: message.account_id,
         currentFolder: message.folder, query: moveSearch,
       })
     : [];
   const moveFoldersEmpty = movePickerFoldersEmpty(moveSections, movePickerFolders);
-  const closeMovePicker = () => setShowMovePicker(false);
 
   if (!message) {
     // A detached window with no message is mid-close (see auto-close effect above) —
@@ -1315,7 +1299,6 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
     aiReplyShown && isMobile && { key: 'aiReply', label: t('compose.toolbar.aiReply'), icon: <AiReplyIcon />, onClick: handleAiReply },
     hasSpamFolder && !inSpamFolder && { key: 'spam', label: t('contextMenu.markAsSpam'), icon: <SpamIcon />, onClick: () => performSingleSpamLabel('spam') },
     inSpamFolder && { key: 'ham', label: t('contextMenu.markAsHam'), icon: <HamIcon />, onClick: () => performSingleSpamLabel('ham') },
-    todoistConnected && { key: 'todoist', label: t('todoist.title'), icon: <TodoistIcon />, onClick: () => setShowTodoistModal(true) },
     { key: 'read', label: message.is_read ? t('contextMenu.markUnread') : t('contextMenu.markRead'), icon: <ReadStateIcon isRead={message.is_read} />, onClick: handleToggleRead },
     { key: 'headers', label: t('contextMenu.viewHeaders'), icon: <HeadersIcon />, onClick: () => setShowHeaderModal(true) },
     // The raw RFC 822 source as an .eml file (#381).
@@ -1493,22 +1476,18 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
                             {heading}
                           </div>
                         )}
-                        {section.rows.map(row => {
-                          const isAction = row.kind === 'action';
-                          const f = row.folder;
-                          return (
-                            <button
-                              key={isAction ? `action-${row.item.key}` : f.path}
-                              onClick={isAction ? () => runMovePickerAction(row.item, closeMovePicker) : () => handleMoveToFolder(f.path)}
-                              style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: 13, cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s' }}
-                              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-                              onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                            >
-                              <span style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>{isAction ? row.item.renderIcon(13) : <FolderIcon specialUse={f.special_use} />}</span>
-                              {isAction ? <FolderPathLabel label={row.item.label} /> : <FolderPathLabel folder={f} label={f.favoriteLabel} />}
-                            </button>
-                          );
-                        })}
+                        {section.folders.map(f => (
+                          <button
+                            key={f.path}
+                            onClick={() => handleMoveToFolder(f.path)}
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: 13, cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s' }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                          >
+                            <span style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}><FolderIcon specialUse={f.special_use} /></span>
+                            <FolderPathLabel folder={f} label={f.favoriteLabel} />
+                          </button>
+                        ))}
                         {(i < moveSections.length - 1 || moveFoldersEmpty) && <div style={{ height: 1, background: 'var(--border-subtle)', margin: '3px 0' }} />}
                       </Fragment>
                     );
@@ -1588,8 +1567,6 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
                     : t('message.noSubject');
                 })()}
               </span>
-              <SpamBadge message={message} onClick={(m) => setSpamExplainMessageId(m.id)} />
-              <PluginSlot name="message-header-meta" ctx={{ message, account }} />
             </div>
           </div>
 
@@ -2064,20 +2041,16 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
                           {heading}
                         </div>
                       )}
-                      {section.rows.map(row => {
-                        const isAction = row.kind === 'action';
-                        const f = row.folder;
-                        return (
-                          <button
-                            key={isAction ? `action-${row.item.key}` : f.path}
-                            onClick={isAction ? () => runMovePickerAction(row.item, closeMovePicker) : () => handleMoveToFolder(f.path)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', minHeight: 48, padding: '0 20px', background: 'none', border: 'none', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: 15, cursor: 'pointer', textAlign: 'left' }}
-                          >
-                            <span style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>{isAction ? row.item.renderIcon(18) : <FolderIcon specialUse={f.special_use} size={18} />}</span>
-                            {isAction ? <FolderPathLabel label={row.item.label} /> : <FolderPathLabel folder={f} label={f.favoriteLabel} />}
-                          </button>
-                        );
-                      })}
+                      {section.folders.map(f => (
+                        <button
+                          key={f.path}
+                          onClick={() => handleMoveToFolder(f.path)}
+                          style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', minHeight: 48, padding: '0 20px', background: 'none', border: 'none', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: 15, cursor: 'pointer', textAlign: 'left' }}
+                        >
+                          <span style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}><FolderIcon specialUse={f.special_use} size={18} /></span>
+                          <FolderPathLabel folder={f} label={f.favoriteLabel} />
+                        </button>
+                      ))}
                       {i < moveSections.length - 1 && <div style={{ height: 6 }} />}
                     </Fragment>
                   );
@@ -2225,19 +2198,6 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
         />
       )}
 
-      {spamExplainMessageId && (
-        <SpamExplainModal
-          messageId={spamExplainMessageId}
-          onClose={() => setSpamExplainMessageId(null)}
-        />
-      )}
-
-      {showTodoistModal && (
-        <TodoistTaskModal
-          message={message}
-          onClose={() => setShowTodoistModal(false)}
-        />
-      )}
     </div>
   );
 }

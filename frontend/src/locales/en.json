@@ -881,8 +881,7 @@
     "groups": {
       "composeSearch": "Compose & Search",
       "navigation": "Navigation",
-      "messageActions": "Message Actions",
-      "gtd": "GTD"
+      "messageActions": "Message Actions"
     },
     "actions": {
       "toggleLeftSidebar": {
@@ -976,31 +975,6 @@
       "printMessage": {
         "label": "Print",
         "description": "Print the current message"
-      },
-      "gtdTodo": {
-        "label": "Mark Todo",
-        "description": "Classify the selected message as Todo"
-      },
-      "gtdWatch": {
-        "label": "Mark Watch",
-        "description": "Classify the selected message as Watch"
-      },
-      "gtdDelegated": {
-        "label": "Mark Delegated",
-        "description": "Classify the selected message as Delegated"
-      },
-      "gtdReference": {
-        "description": "Classify the selected message as Reference"
-      },
-      "gtdSomeday": {
-        "description": "Classify the selected message as Someday"
-      },
-      "gtdDone": {
-        "description": "Mark the selected GTD message done"
-      },
-      "toggleRightSidebar": {
-        "label": "Toggle right sidebar",
-        "description": "Hide or show the right sidebar"
       }
     }
   },
@@ -1036,26 +1010,6 @@
     "errorProcess": "Could not process image."
   },
   "admin": {
-    "cleanup": {
-      "title": "Mailbox Cleanup",
-      "intro": "Find bulk mail cluttering your inbox and clear it out. Choose whether to archive it (kept and searchable) or move it to Trash (recoverable until you empty it).",
-      "account": "Account",
-      "summary": "{{bulk}} of {{total}} inbox messages are bulk mail ({{pct}}%).",
-      "tier1Title": "Top bulk senders",
-      "tier1Desc": "These are the highest-volume newsletter and marketing senders in your inbox. Acting on one processes all of that sender's inbox mail with your chosen action.",
-      "noneFound": "No bulk senders found.",
-      "moveToTrash": "Move to Trash",
-      "confirm": "Move all {{count}} inbox messages from {{sender}} to Trash? They can be recovered from Trash until you empty it.",
-      "tier2Title": "Common promotional terms",
-      "tier2Desc": "Search these terms to review and delete the rest yourself. They span many senders, so skim the results before deleting.",
-      "tier3Title": "Cleaning up the rest",
-      "tier3Desc": "For everything else, search by sender or keyword, select all, and delete. Deletes always move to Trash first, so you can review before emptying it.",
-      "action": "Cleanup action",
-      "actionArchive": "Archive (recommended)",
-      "archive": "Archive",
-      "confirmArchive": "Archive all {{count}} inbox messages from {{sender}}? They stay in your Archive folder and remain searchable.",
-      "noArchiveFolder": "This account has no archive folder, so only Move to Trash is available."
-    },
     "title": "Settings",
     "close": "Close",
     "behavior": {
@@ -1064,7 +1018,6 @@
       "sync": "Sync"
     },
     "tabs": {
-      "cleanup": "Cleanup",
       "accounts": "Accounts",
       "rules": "Rules",
       "appearance": "Appearance",
@@ -1074,20 +1027,17 @@
       "shortcuts": "Shortcuts",
       "users": "Users",
       "sso": "Single Sign-On",
-      "integrations": "Integrations",
       "theme": "Theme",
       "fontsAndLanguage": "Language & Font",
       "about": "About",
       "ai": "AI Assistant",
       "aiActions": "AI Actions",
-      "antispam": "Antispam",
       "categories": "Categories",
       "groupMail": "Mail",
       "groupPreferences": "Preferences",
       "groupAiExtensions": "AI & Extensions",
       "groupAdmin": "Administration",
       "behavior": "Behavior",
-      "plugins": "Plugins",
       "backup": "Backup",
       "mailSignIn": "Email providers",
       "groupCalendar": "Calendar",
@@ -1237,15 +1187,6 @@
       "categorizationSection": "Email Categorization",
       "categorizationEnabled": "Enable inbox categorization",
       "categorizationEnabledDesc": "Sort incoming emails into category tabs. Disabled by default.",
-      "antispamSection": "Antispam",
-      "antispamEnabled": "Enable antispam for this account",
-      "antispamEnabledDesc": "Incoming messages are classified automatically; high-confidence spam is moved to the Junk folder.",
-      "trustedAuthservLabel": "Trusted Authentication-Results ID",
-      "trustedAuthservPlaceholder": "mx.example.com",
-      "trustedAuthservDesc": "Only Authentication-Results headers written by this ID are trusted. Leave empty to ignore them all — an untrusted header can claim any result, including a pass.",
-      "trustedAuthservDetected": "Seen on your recent mail (click to use):",
-      "trustedAuthservDetectedNone": "No data yet — messages are inspected once antispam is enabled for this account.",
-      "trustedAuthservWarn": "Only trust an ID you recognize as your mail provider's receiving server.",
       "enabledGlobally": "Enabled globally",
       "microsoftImapNoteSignIn": "Microsoft no longer accepts passwords for Outlook.com, Hotmail, Live and MSN mailboxes. Sign in with Microsoft instead: no app password is needed.",
       "deleteScheduled": "Scheduled messages not yet sent that are deleted with it: {{n}}.",
@@ -1780,41 +1721,7 @@
       "recategorize": "Re-categorize",
       "recategorizing": "Processing…",
       "recategorized": "Re-categorization started.",
-      "selectAccount": "Select account",
-      "gtdReveal": "GTD",
-      "gtdRevealDesc": "Reveal the per-account GTD settings below; each account keeps its own on/off toggle."
-    },
-    "gtd": {
-      "description": "Turn Plimail into a GTD system. Enable it per account, then map each state to the IMAP folder that holds its label.",
-      "noAccounts": "Add an email account first to configure GTD.",
-      "enableDesc": "GTD is on. Labels sync as folders and states transition automatically.",
-      "enableHint": "Turn on GTD labels and automatic state transitions for this account.",
-      "foldersTitle": "Label folders",
-      "foldersDesc": "Each GTD state maps to an IMAP folder. Leave a field blank to use the default name.",
-      "savedOk": "Folder mapping saved.",
-      "saveFailed": "Couldn't save the folder mapping.",
-      "createFolders": "Create missing folders",
-      "creating": "Creating…",
-      "createResult": "{{created}} created, {{existing}} already existed.",
-      "createFailed": "Couldn't create the folders.",
-      "duplicateFolder": "These GTD states map to the same folder: {{states}}. Give each state a different folder.",
-      "rejectedFolders": "Some folder names were invalid and reset to their defaults: {{states}}.",
-      "pet": {
-        "title": "Inbox Zero pet",
-        "description": "Replace the default dog at inbox zero with a pet of your own.",
-        "clear": "Use the default dog",
-        "current": "Current pet: {{slug}}",
-        "usingDog": "Using the default dog.",
-        "hoverHint": "Hover to animate.",
-        "importTitle": "Import your own",
-        "importHint": "Upload a pet.json and its spritesheet (PNG, WebP, or GIF).",
-        "chooseJson": "pet.json file",
-        "chooseSheet": "Spritesheet image",
-        "import": "Import",
-        "importing": "Importing…",
-        "imported": "Imported {{name}} — hover the preview to see it move.",
-        "importFailed": "Couldn't import that pet."
-      }
+      "selectAccount": "Select account"
     },
     "systemEmail": {
       "tabUsers": "Users & Invites",
@@ -1904,7 +1811,6 @@
       "errorSecretRequired": "Client secret is required."
     },
     "integrations": {
-      "title": "Integrations",
       "loading": "Loading…",
       "microsoft": {
         "setupTitle": "Azure App Registration setup",
@@ -1945,45 +1851,6 @@
         "redirectUriNote": "This must exactly match an authorized redirect URI on the OAuth client. Suggested: {{uri}}",
         "save": "Save configuration",
         "remove": "Remove"
-      },
-      "todoist": {
-        "title": "Todoist",
-        "description": "Personal task manager integration",
-        "connect": "Connect",
-        "connecting": "Connecting...",
-        "disconnect": "Disconnect",
-        "connected": "Connected",
-        "notConnected": "Not connected",
-        "tokenLabel": "Personal API token",
-        "tokenPh": "Paste your Todoist API token",
-        "help": "Find your token in Todoist Settings → Integrations → Developer"
-      },
-      "carddav": {
-        "title": "CardDAV Contacts",
-        "description": "Sync contacts from a CardDAV server such as Nextcloud.",
-        "connected": "Connected",
-        "notConnected": "Not connected",
-        "serverLabel": "Server URL",
-        "serverPh": "https://cloud.example.com",
-        "userLabel": "Username",
-        "userPh": "your Nextcloud username",
-        "passLabel": "App password",
-        "passPh": "app password (not your login password)",
-        "dupLabel": "When a contact already exists",
-        "dupSeparate": "Keep both (separate address book)",
-        "dupMerge": "Merge — CardDAV wins",
-        "dupSkip": "Skip the CardDAV contact",
-        "intervalLabel": "Sync interval (minutes)",
-        "connect": "Connect",
-        "connecting": "Connecting…",
-        "connectFailed": "Failed to connect",
-        "disconnect": "Disconnect",
-        "syncNow": "Sync now",
-        "syncing": "Syncing…",
-        "lastSync": "Last sync: {{when}}",
-        "summary": "{{contacts}} contacts in {{books}} address books",
-        "syncFailed": "Last sync failed: {{error}}",
-        "help": "Use a Nextcloud app password, not your login password — SSO users must create one under Settings → Security. Contacts are synced one-way and are read-only in Plimail."
       }
     },
     "ssoLinked": {
@@ -2035,7 +1902,7 @@
     },
     "backup": {
       "title": "Backup and restore",
-      "intro": "A backup holds this Plimail's data: users, email accounts, rules, contacts, settings, plugin data and antispam training. Cached mail is downloaded again from your mail servers after a restore, unless you include it. The file does not hold what is set in .env: a new server needs the same ENCRYPTION_KEY, and the same VAPID keys and OAuth client settings if you set them there.",
+      "intro": "A backup holds this Plimail's data: users, email accounts, rules, contacts and settings. Cached mail is downloaded again from your mail servers after a restore, unless you include it. The file does not hold what is set in .env: a new server needs the same ENCRYPTION_KEY, and the same VAPID keys and OAuth client settings if you set them there.",
       "sensitive": "The file holds password hashes, pending invite links and your accounts' credentials. The credentials are encrypted with this server's ENCRYPTION_KEY; the rest is readable, and so is every message when cached mail is included. Keep the file somewhere safe. It can only be restored on a server that uses the same key.",
       "includeMail": "Include cached mail",
       "includeMailDesc": "Also saves the local copy of every synced message, which makes the file much larger. Without it, a restore downloads the mail again, and the newest unread messages in each inbox arrive as new mail: inbox rules run on them again, forwarding included. The choice is kept for every backup until you change it.",
@@ -2055,15 +1922,6 @@
       "downloadFailed": "The backup could not be started.",
       "connectionLost": "The connection was lost during the restore, so its outcome is unknown. This page reloads once Plimail answers again; then check that your data is the restored one.",
       "tooLarge": "The file is larger than the proxy in front of Plimail allows."
-    },
-    "plugins": {
-      "title": "Plugins",
-      "description": "Turn optional features on or off for your account. Enabling a plugin adds its own settings and interface.",
-      "activated": "Activated",
-      "deactivated": "Not activated",
-      "empty": "No plugins are available in this build.",
-      "error": "Couldn't update the plugin. Please try again.",
-      "configureIn": "Configure options in {{location}}"
     }
   },
   "blockList": {
@@ -2080,67 +1938,6 @@
     "failBody": "The mail server rejected the move.",
     "failHamBody": "The mail server rejected the move.",
     "failBodyBulk": "{{count}} messages could not be moved.",
-    "title": "Antispam",
-    "subtitle": "Per-user machine-learning spam filter. Trained by your manual spam/ham feedback; new messages are classified automatically when enabled per account.",
-    "saved": "Settings saved",
-    "resetAllDone": "Training data reset — {{n}} records deleted",
-    "retrainDone": "Retrain finished — {{n}} user(s) processed",
-    "retrainBusy": "A retrain is already running — it will finish on its own",
-    "statusTitle": "Model status",
-    "statusHelp": "The model is per-user and shared across your accounts. Below 50 training records only the built-in rules are used.",
-    "statMaturity": "Maturity",
-    "statRecords": "Training records",
-    "statVersion": "Model version",
-    "statLastTrained": "Last trained",
-    "statDecay": "Decay window",
-    "never": "never",
-    "days": "days",
-    "maturity": {
-      "mature": "Mature",
-      "fresh": "Fresh",
-      "insufficient": "Insufficient"
-    },
-    "masterEnable": "Enable antispam",
-    "masterEnableHelp": "Master switch for auto-classification. Each account also needs its own toggle.",
-    "perAccountHint": "Per-account toggle: Accounts → select an account → Antispam section.",
-    "thresholdsTitle": "Thresholds",
-    "thresholdsHelp": "Higher values = fewer false positives but more spam gets through.",
-    "spamThreshold": "Spam threshold",
-    "autoMoveThreshold": "Auto-move threshold",
-    "save": "Save",
-    "decayTitle": "Training decay",
-    "decayHelp": "Older training data is down-weighted with this half-life (7–365 days).",
-    "dangerTitle": "Danger zone",
-    "retrainNow": "Retrain now",
-    "resetConfirmWarn": "This is irreversible: all your training data will be deleted.",
-    "resetConfirmYes": "Yes, delete training data",
-    "resetAll": "Reset all training data",
-    "deletionsTitle": "Recent deletions",
-    "deleteScope": {
-      "per_account": "One account",
-      "all": "All accounts"
-    },
-    "records": "records",
-    "howItWorks": "How it works: your manual Mark as spam / Not spam choices train the model. Auto-classified messages never re-train it. Rules are always on; the ML model joins once you have 50+ training records.",
-    "badgeLabel": "SPAM INDEX",
-    "badgeTitle": "Auto-classified as spam — click for details",
-    "explainTitle": "Why was this marked as spam?",
-    "explainVerdict": "Verdict",
-    "explainMethod": "Method",
-    "explainConfidence": "Confidence",
-    "verdict": {
-      "spam": "Spam",
-      "ham": "Ham",
-      "unsure": "Uncertain"
-    },
-    "method": {
-      "rules": "Rules",
-      "blended": "Rules + ML"
-    },
-    "rulesFiredTitle": "Rules that fired",
-    "noRulesFired": "No rules fired",
-    "mlTokensTitle": "Top contributing tokens",
-    "noMlTokens": "No ML tokens",
     "conversationMovedToSpam": "Conversation moved to Spam",
     "nothingFromAccount": "Nothing from this account to mark as spam in this conversation",
     "nothingInConversation": "Nothing to mark as spam in this conversation"
@@ -2181,66 +1978,6 @@
       "work": "Work",
       "home": "Home",
       "other": "Other"
-    },
-    "carddavBadge": "Synced from CardDAV"
-  },
-  "todoist": {
-    "title": "Create Todoist Task",
-    "taskTitle": "Task title",
-    "taskTitlePh": "What needs to be done?",
-    "description": "Description",
-    "descriptionPh": "Optional notes...",
-    "project": "Project",
-    "inbox": "Inbox",
-    "labels": "Labels",
-    "priority": "Priority",
-    "priorityUrgent": "Urgent",
-    "priorityHigh": "High",
-    "priorityMedium": "Medium",
-    "priorityNormal": "No priority",
-    "dueDate": "Due date",
-    "create": "Create task",
-    "creating": "Creating...",
-    "taskCreated": "Task created in Todoist",
-    "openTask": "Open in Todoist"
-  },
-  "rightSidebar": {
-    "hide": "Hide right sidebar",
-    "show": "Show right sidebar"
-  },
-  "gtd": {
-    "oldestLabeledAge": "{{state}}: oldest labeled message age (days): {{count}}",
-    "title": "GTD",
-    "inbox": "Inbox",
-    "waiting": "Waiting",
-    "inboxZero": "Inbox Zero ✓",
-    "allClear": "All clear",
-    "allClearHint": "Nothing waiting on you.",
-    "showAll": "Show all {{count}}",
-    "showSome": "Show {{available}} of {{total}}",
-    "showLess": "Show less",
-    "toggleSection": "Toggle {{section}}",
-    "tabEmpty": "Nothing here yet",
-    "removeFrom": "Remove from {{state}}",
-    "classified": "Label applied",
-    "classifiedMany": "Tagged {{count}} as {{state}}",
-    "classifiedSome": "Tagged {{count}} of {{total}} as {{state}}",
-    "classifyFailed": "Couldn't apply label",
-    "undoFailed": "Couldn't undo label",
-    "removed": "Label removed",
-    "removeFailed": "Couldn't remove label",
-    "onlyCopy": "This is the only copy of the message, so removing the label would delete it. Archive or move it instead.",
-    "labelChanged": "This label changed on the server and was not removed. Refresh and try again.",
-    "done": "Mark done",
-    "doneFailed": "Couldn't mark done",
-    "doneArchiveFailed": "Marked done, but archiving failed — still in your Inbox",
-    "doneThreadRemains": "Some messages in this conversation couldn't be cleared, so it stays in its GTD section",
-    "state": {
-      "todo": "Todo",
-      "watch": "Watch",
-      "delegated": "Delegated",
-      "someday": "Someday",
-      "reference": "Reference"
     }
   },
   "window": {

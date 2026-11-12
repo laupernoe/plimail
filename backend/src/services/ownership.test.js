@@ -8,7 +8,7 @@ vi.mock('./db.js', () => ({ query: vi.fn() }));
 import { query } from './db.js';
 import {
   findOwnedAccount, findOwnedMessage, findOwnedMessages, findOwnedAlias, findOwnedContact, findOwnedAddressBook,
-  findOwnedScheduledMessage, checkColumns, SIBLING_COUNT, CONTACT_READ_ONLY,
+  findOwnedScheduledMessage, checkColumns,
 } from './ownership.js';
 
 const flat = sql => sql.replace(/\s+/g, ' ').trim();
@@ -55,9 +55,9 @@ describe('ownership lookups', () => {
   });
 
   it('scopes contacts and address books by user', async () => {
-    await findOwnedContact('u1', 'c1', { columns: 'ab.source' });
+    await findOwnedContact('u1', 'c1', { columns: 'c.id' });
     await findOwnedAddressBook('u1', 'b1', { columns: 'id' });
-    expect(flat(query.mock.calls[0][0])).toBe('SELECT ab.source FROM contacts c JOIN address_books ab ON ab.id = c.address_book_id WHERE c.id = $1 AND c.user_id = $2');
+    expect(flat(query.mock.calls[0][0])).toBe('SELECT c.id FROM contacts c JOIN address_books ab ON ab.id = c.address_book_id WHERE c.id = $1 AND c.user_id = $2');
     expect(query.mock.calls[0][1]).toEqual(['c1', 'u1']);
     expect(query.mock.calls[1]).toEqual(['SELECT id FROM address_books WHERE id = $1 AND user_id = $2', ['b1', 'u1']]);
   });
@@ -79,9 +79,9 @@ describe('ownership lookups', () => {
 });
 
 describe('the columns a lookup selects', () => {
-  it('takes plain column lists and the named computed columns', () => {
+  it('takes plain column lists', () => {
     for (const ok of ['*', 'id', 'm.*', 'id, folder_mappings', 'm.*, a.user_id AS owner_id, a.folder_mappings',
-      `m.id,\n       m.uid, a.name AS account_name`, `m.*, a.user_id, ${SIBLING_COUNT}`, `c.id, c.uid, ${CONTACT_READ_ONLY}`]) {
+      `m.id,\n       m.uid, a.name AS account_name`]) {
       expect(checkColumns(ok)).toBe(ok);
     }
   });
@@ -89,7 +89,7 @@ describe('the columns a lookup selects', () => {
   it('refuses anything that is not a column list, before any query', async () => {
     for (const bad of ['', ' ', 'id; DROP TABLE users', 'id FROM users --', '(SELECT password_hash FROM users)',
       'id, (SELECT 1)', '1', "id || 'x'", 'id AS from', 'a.id AS x y', 'id /* */', 'a.b.c', 'CASE WHEN 1 THEN 2 END AS x',
-      `${SIBLING_COUNT} OR 1=1`, 'select', null, ['id']]) {
+      'select', null, ['id']]) {
       expect(() => checkColumns(bad), JSON.stringify(bad)).toThrow(TypeError);
     }
     await expect(findOwnedAccount('u1', 'acc', { columns: 'id FROM users WHERE 1=1 --' })).rejects.toThrow(TypeError);

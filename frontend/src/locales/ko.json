@@ -875,8 +875,7 @@
     "groups": {
       "navigation": "탐색",
       "composeSearch": "작성 및 검색",
-      "messageActions": "메시지 작업",
-      "gtd": "GTD"
+      "messageActions": "메시지 작업"
     },
     "visibleMailbox": {
       "description": "화면에 표시된 {{number}}번 편지함 열기",
@@ -975,31 +974,6 @@
       "printMessage": {
         "label": "인쇄",
         "description": "현재 메시지 인쇄"
-      },
-      "gtdTodo": {
-        "label": "Todo로 표시",
-        "description": "선택한 메시지를 Todo로 분류"
-      },
-      "gtdWatch": {
-        "label": "Watch로 표시",
-        "description": "선택한 메시지를 Watch로 분류"
-      },
-      "gtdDelegated": {
-        "label": "위임됨(Delegated)으로 표시",
-        "description": "선택한 메시지를 위임됨으로 분류"
-      },
-      "toggleRightSidebar": {
-        "description": "오른쪽 사이드바 숨기기 또는 표시",
-        "label": "오른쪽 사이드바 전환"
-      },
-      "gtdReference": {
-        "description": "선택한 메시지를 참조로 분류"
-      },
-      "gtdSomeday": {
-        "description": "선택한 메시지를 언젠가로 분류"
-      },
-      "gtdDone": {
-        "description": "선택한 GTD 메시지를 완료로 표시"
       }
     },
     "browserMailboxFallback": "브라우저 환경: g 입력 후 1–9를 누르면 해당 편지함으로 이동하고, g 입력 후 l을 누르면 라벨 선택기가 열립니다."
@@ -1036,26 +1010,6 @@
     "uploadPhoto": "사진 업로드"
   },
   "admin": {
-    "cleanup": {
-      "account": "계정",
-      "title": "편지함 정리",
-      "intro": "받은 편지함을 어지럽히는 대량 메일을 찾아서 정리하세요. 보관(보관 및 검색 가능)할지 아니면 휴지통으로 이동할지(비울 때까지 복구 가능) 선택하세요.",
-      "moveToTrash": "휴지통으로 이동",
-      "confirm": "받은편지함에 있는 {{sender}}의 메시지 {{count}}개를 모두 휴지통으로 이동하시겠습니까? 휴지통을 비울 때까지 휴지통에서 복구할 수 있습니다.",
-      "summary": "{{total}} 받은 편지함 메시지 중 {{bulk}}은(는) 대량 메일입니다({{pct}}%).",
-      "tier1Desc": "받은 편지함에서 메일을 가장 많이 보낸 뉴스레터 및 마케팅 발신자입니다. 발신자 하나에 작업을 실행하면 그 발신자가 보낸 받은 편지함 메일 전체가 선택한 작업으로 처리됩니다.",
-      "tier2Desc": "이 용어를 검색하여 나머지 항목을 직접 검토하고 삭제하세요. 보낸 사람이 많으므로 삭제하기 전에 결과를 훑어보세요.",
-      "tier3Desc": "그 외의 경우에는 보낸 사람이나 키워드로 검색하여 모두 선택하고 삭제하세요. 삭제된 항목은 항상 먼저 휴지통으로 이동하므로 비우기 전에 검토할 수 있습니다.",
-      "action": "정리 작업",
-      "actionArchive": "보관처리(권장)",
-      "archive": "보관",
-      "confirmArchive": "{{sender}}의 모든 {{count}} 받은편지함 메시지를 보관하시겠습니까? 보관 폴더에 남아 있으며 검색 가능한 상태로 유지됩니다.",
-      "tier3Title": "나머지 청소하기",
-      "tier2Title": "일반적인 프로모션 용어",
-      "noArchiveFolder": "이 계정에는 보관 폴더가 없으므로 휴지통으로 이동만 가능합니다.",
-      "noneFound": "대량 발신자를 찾을 수 없습니다.",
-      "tier1Title": "대량 메일 발신자 상위 목록"
-    },
     "title": "설정",
     "behavior": {
       "reading": "읽기",
@@ -1063,7 +1017,6 @@
       "sync": "동기화"
     },
     "tabs": {
-      "cleanup": "정리",
       "accounts": "계정",
       "rules": "규칙",
       "notifications": "알림",
@@ -1072,20 +1025,17 @@
       "shortcuts": "단축키",
       "privacy": "개인정보 보호",
       "users": "사용자",
-      "integrations": "통합",
       "sso": "SSO",
       "about": "정보",
       "ai": "AI 어시스턴트",
       "theme": "테마",
       "categories": "카테고리",
       "groupPreferences": "환경설정",
-      "antispam": "스팸방지",
       "aiActions": "AI 액션",
       "fontsAndLanguage": "언어 및 글꼴",
       "groupMail": "메일",
       "groupAdmin": "관리",
       "behavior": "동작",
-      "plugins": "플러그인",
       "backup": "백업",
       "groupAiExtensions": "AI 및 확장",
       "mailSignIn": "이메일 제공업체",
@@ -1235,17 +1185,8 @@
       "categorizationSection": "이메일 분류",
       "reindexProgress": "{{synced}} / {{total}} 메시지가 색인화됨",
       "categorizationEnabled": "받은 편지함 분류 활성화",
-      "antispamSection": "스팸방지",
       "unifiedInboxEnabledDesc": "모든 받은편지함, 통합 검색, 카테고리 개수에 이 계정의 메시지를 표시합니다.",
-      "trustedAuthservDetectedNone": "아직 데이터가 없습니다. 이 계정에 스팸 방지가 활성화되면 메시지가 검사됩니다.",
-      "trustedAuthservDesc": "이 ID로 작성된 인증-결과 헤더만 신뢰할 수 있습니다. 모두 무시하려면 비워 두십시오. 신뢰할 수 없는 헤더는 패스를 포함한 모든 결과를 요구할 수 있습니다.",
-      "antispamEnabledDesc": "수신 메시지는 자동으로 분류됩니다. 신뢰도가 높은 스팸은 정크 폴더로 이동됩니다.",
-      "trustedAuthservLabel": "신뢰할 수 있는 인증-결과 ID",
-      "trustedAuthservDetected": "최근 메일에 표시됨(사용하려면 클릭):",
-      "trustedAuthservWarn": "메일 제공업체의 수신 서버로 인식되는 ID만 신뢰하세요.",
-      "antispamEnabled": "이 계정에 스팸 방지 활성화",
       "enabledGlobally": "전체에서 활성화됨",
-      "trustedAuthservPlaceholder": "mx.example.com",
       "errorPasswordRequired": "새 계정에는 비밀번호가 필요합니다",
       "microsoftImapNoteSignIn": "Microsoft는 더 이상 Outlook.com, Hotmail, Live, MSN 사서함의 비밀번호를 받지 않습니다. 대신 Microsoft로 로그인하세요. 앱 비밀번호가 필요 없습니다.",
       "deleteScheduled": "함께 삭제되는, 아직 보내지 않은 예약 메시지: {{n}}개.",
@@ -1778,43 +1719,9 @@
       "deleteConfirm": "이 소스를 삭제하시겠습니까?",
       "recategorize": "재분류",
       "recategorizeDesc": "현재 소스를 사용하여 계정의 기존 받은 편지함 메시지를 모두 다시 분류합니다.",
-      "gtdReveal": "GTD",
       "recategorizeTitle": "메시지 다시 분류",
       "selectAccount": "계정 선택",
-      "recategorized": "재분류가 시작되었습니다.",
-      "gtdRevealDesc": "아래에서 계정별 GTD 설정을 확인하세요. 각 계정은 자체적인 켜기/끄기 토글을 유지합니다."
-    },
-    "gtd": {
-      "noAccounts": "GTD를 구성하려면 먼저 이메일 계정을 추가하세요.",
-      "foldersTitle": "라벨 폴더",
-      "enableDesc": "GTD가 켜져 있습니다. 라벨이 폴더와 동기화되고 상태가 자동으로 전환됩니다.",
-      "enableHint": "이 계정에 대해 GTD 라벨과 자동 상태 전환을 사용 설정하세요.",
-      "description": "Plimail를 GTD 시스템으로 전환하세요. 계정별로 활성화한 다음 각 상태를 해당 라벨이 있는 IMAP 폴더에 매핑합니다.",
-      "creating": "만드는 중…",
-      "savedOk": "폴더 매핑이 저장되었습니다.",
-      "saveFailed": "폴더 매핑을 저장할 수 없습니다.",
-      "createFailed": "폴더를 생성할 수 없습니다.",
-      "foldersDesc": "각 GTD 상태는 IMAP 폴더에 매핑됩니다. 기본 이름을 사용하려면 필드를 비워 두세요.",
-      "rejectedFolders": "일부 폴더 이름이 잘못되어 기본값({{states}})으로 재설정되었습니다.",
-      "createFolders": "누락된 폴더 생성",
-      "pet": {
-        "title": "받은편지함 제로 애완동물",
-        "clear": "기본 개 사용",
-        "hoverHint": "마우스를 움직이면 움직입니다.",
-        "current": "현재 애완동물: {{slug}}",
-        "usingDog": "기본 개를 사용합니다.",
-        "importTitle": "직접 가져오기",
-        "description": "받은편지함 0의 기본 개를 자신만의 애완동물로 교체하세요.",
-        "importing": "가져오는 중…",
-        "import": "가져오기",
-        "imported": "가져온 {{name}} — 미리보기에 마우스를 올려서 움직이는지 확인하세요.",
-        "importHint": "pet.json 및 해당 스프라이트시트(PNG, WebP 또는 GIF)를 업로드하세요.",
-        "importFailed": "해당 애완동물을 가져올 수 없습니다.",
-        "chooseSheet": "스프라이트시트 이미지",
-        "chooseJson": "pet.json 파일"
-      },
-      "createResult": "{{created}}이(가) 생성되었습니다. {{existing}}이(가) 이미 존재합니다.",
-      "duplicateFolder": "이러한 GTD 상태는 동일한 폴더({{states}})에 매핑됩니다. 각 상태에 다른 폴더를 지정하십시오."
+      "recategorized": "재분류가 시작되었습니다."
     },
     "systemEmail": {
       "host": "SMTP 호스트",
@@ -1904,7 +1811,6 @@
       "errorRequired": "이름, 슬러그, 발급자 URL, 클라이언트 ID가 필요합니다."
     },
     "integrations": {
-      "title": "통합",
       "loading": "불러오는 중…",
       "microsoft": {
         "step4": "API 권한 → 권한 추가 → Microsoft Graph → 위임됨 → offline_access, openid, email, profile",
@@ -1945,45 +1851,6 @@
         "redirectUriNote": "이는 OAuth 클라이언트의 승인된 리디렉션 URI와 정확히 일치해야 합니다. 제안: {{uri}}",
         "clientIdPh": "xxxxxxxx.apps.googleusercontent.com",
         "clientSecretPh": "GOCSPX-…"
-      },
-      "todoist": {
-        "title": "Todoist",
-        "connect": "연결",
-        "description": "개인 작업 관리자 통합",
-        "notConnected": "연결되지 않음",
-        "disconnect": "연결 끊기",
-        "connected": "연결됨",
-        "connecting": "연결 중...",
-        "help": "Todoist 설정 → 통합 → 개발자에서 토큰을 찾으세요",
-        "tokenPh": "Todoist API 토큰을 붙여넣으세요",
-        "tokenLabel": "개인 API 토큰"
-      },
-      "carddav": {
-        "connected": "연결됨",
-        "notConnected": "연결되지 않음",
-        "serverLabel": "서버 URL",
-        "userLabel": "사용자 이름",
-        "passLabel": "앱 비밀번호",
-        "description": "Nextcloud와 같은 CardDAV 서버의 연락처를 동기화하세요.",
-        "serverPh": "https://cloud.example.com",
-        "title": "CardDAV 연락처",
-        "userPh": "Nextcloud 사용자 이름",
-        "connect": "연결",
-        "connecting": "연결 중…",
-        "disconnect": "연결 끊기",
-        "passPh": "앱 비밀번호(로그인 비밀번호 아님)",
-        "syncNow": "지금 동기화",
-        "intervalLabel": "동기화 간격(분)",
-        "dupSkip": "CardDAV 연락처 건너뛰기",
-        "dupMerge": "병합 — CardDAV 정보 우선",
-        "dupSeparate": "둘 다 유지(별도의 주소록)",
-        "dupLabel": "연락처가 이미 존재하는 경우",
-        "help": "로그인 비밀번호가 아닌 Nextcloud 앱 비밀번호를 사용하세요. SSO 사용자는 설정 → 보안에서 비밀번호를 만들어야 합니다. 연락처는 단방향으로 동기화되며 Plimail에서는 읽기 전용입니다.",
-        "lastSync": "마지막 동기화: {{when}}",
-        "connectFailed": "연결하지 못했습니다.",
-        "syncing": "동기화 중…",
-        "syncFailed": "마지막 동기화 실패: {{error}}",
-        "summary": "{{books}} 주소록의 {{contacts}} 연락처"
       }
     },
     "ssoLinked": {
@@ -2035,7 +1902,7 @@
     },
     "backup": {
       "title": "백업 및 복원",
-      "intro": "백업에는 이 Plimail의 사용자, 이메일 계정, 규칙, 연락처, 설정, 플러그인 데이터, 스팸방지 학습 데이터가 들어 있습니다. 캐시된 메일은 백업에 포함하지 않으면 복원 후 메일 서버에서 다시 다운로드됩니다. .env에 설정한 값은 파일에 들어 있지 않습니다. 새 서버에는 같은 ENCRYPTION_KEY가 필요하고, VAPID 키와 OAuth 클라이언트 설정을 .env에 지정했다면 이것도 같아야 합니다.",
+      "intro": "백업에는 이 Plimail의 사용자, 이메일 계정, 규칙, 연락처, 설정이 들어 있습니다. 캐시된 메일은 백업에 포함하지 않으면 복원 후 메일 서버에서 다시 다운로드됩니다. .env에 설정한 값은 파일에 들어 있지 않습니다. 새 서버에는 같은 ENCRYPTION_KEY가 필요하고, VAPID 키와 OAuth 클라이언트 설정을 .env에 지정했다면 이것도 같아야 합니다.",
       "sensitive": "이 파일에는 비밀번호 해시, 아직 사용되지 않은 초대 링크, 계정의 자격 증명이 들어 있습니다. 자격 증명은 이 서버의 ENCRYPTION_KEY로 암호화되어 있지만 나머지는 그대로 읽을 수 있고, 캐시된 메일을 포함하면 모든 메시지도 읽을 수 있습니다. 파일을 안전한 곳에 보관하세요. 같은 키를 사용하는 서버에서만 복원할 수 있습니다.",
       "includeMail": "캐시된 메일 포함",
       "includeMailDesc": "동기화된 모든 메시지의 로컬 사본도 저장하므로 파일이 훨씬 커집니다. 포함하지 않으면 복원 후 메일을 다시 다운로드하며, 각 받은 편지함의 가장 최근 읽지 않은 메시지는 새 메일로 도착합니다. 이 메시지에는 전달을 포함한 받은 편지함 규칙이 다시 실행됩니다. 이 선택은 바꿀 때까지 모든 백업에 유지됩니다.",
@@ -2055,15 +1922,6 @@
       "downloadFailed": "백업을 시작할 수 없습니다.",
       "connectionLost": "복원 중에 연결이 끊어져 결과를 알 수 없습니다. Plimail가 다시 응답하면 이 페이지가 새로 고쳐집니다. 그런 다음 데이터가 복원된 내용인지 확인하세요.",
       "tooLarge": "파일이 Plimail 앞에 있는 프록시가 허용하는 크기보다 큽니다."
-    },
-    "plugins": {
-      "title": "플러그인",
-      "activated": "활성화됨",
-      "error": "플러그인을 업데이트할 수 없습니다. 다시 시도해 주세요.",
-      "deactivated": "활성화되지 않음",
-      "empty": "이 빌드에서는 플러그인을 사용할 수 없습니다.",
-      "description": "계정에 대한 선택적 기능을 켜거나 끄십시오. 플러그인을 활성화하면 자체 설정과 인터페이스가 추가됩니다.",
-      "configureIn": "{{location}}에서 옵션 구성"
     }
   },
   "blockList": {
@@ -2076,74 +1934,13 @@
     "movedToInboxBulk": "{{count}} 메시지를 받은편지함으로 이동했습니다.",
     "movedToSpamBulk": "{{count}} 메시지를 스팸함으로 이동했습니다.",
     "failBody": "메일 서버가 이동을 거부했습니다.",
-    "saved": "설정이 저장되었습니다.",
-    "title": "스팸방지",
     "failHamTitle": "스팸이 아닌 것으로 표시할 수 없습니다.",
     "failBodyBulk": "{{count}} 메시지를 이동할 수 없습니다.",
     "failTitle": "스팸으로 표시할 수 없습니다.",
-    "retrainDone": "재학습 완료 — 사용자 {{n}}명 처리됨",
-    "resetAllDone": "학습 데이터 초기화 완료 — {{n}}건의 데이터가 삭제되었습니다.",
-    "retrainBusy": "재학습이 이미 진행 중입니다. 잠시 후 자동으로 완료됩니다.",
-    "statMaturity": "학습 상태",
-    "statRecords": "학습 데이터 수",
-    "subtitle": "사용자별 머신러닝 스팸 필터입니다. 사용자의 스팸/정상 메일 피드백을 학습하며, 계정별로 활성화하면 수신된 새 메시지를 자동으로 분류합니다.",
     "failHamBody": "메일 서버가 이동을 거부했습니다.",
-    "never": "없음",
-    "maturity": {
-      "mature": "안정됨",
-      "fresh": "초기 단계",
-      "insufficient": "불충분"
-    },
-    "days": "일",
-    "masterEnable": "스팸 방지 활성화",
-    "statDecay": "학습 유지 기간",
-    "statVersion": "모델 버전",
-    "statLastTrained": "최근 학습 일시",
-    "statusTitle": "모델 현황",
-    "masterEnableHelp": "자동 분류를 위한 마스터 스위치입니다. 각 계정에는 자체 토글도 필요합니다.",
-    "thresholdsTitle": "임계값",
-    "save": "저장",
-    "statusHelp": "스팸 필터 모델은 사용자 단위로 관리되며 등록된 모든 계정에서 공유됩니다. 학습 데이터가 50건 미만일 때는 기본 내장 규칙만 사용됩니다.",
-    "perAccountHint": "계정별 토글: 계정 → 계정 선택 → 안티스팸 섹션.",
-    "dangerTitle": "위험 구역",
-    "thresholdsHelp": "임계값이 높을수록 오탐률은 낮아지지만 일부 스팸 메일이 통과될 수 있습니다.",
-    "decayTitle": "학습 데이터 감쇠",
-    "spamThreshold": "스팸 판정 임계값",
-    "retrainNow": "지금 다시 학습",
-    "autoMoveThreshold": "스팸함 자동 이동 임계값",
-    "deleteScope": {
-      "all": "모든 계정",
-      "per_account": "하나의 계정"
-    },
-    "records": "건",
-    "decayHelp": "지정한 반감기(7~365일)가 지나면 오래된 학습 데이터의 가중치를 점진적으로 낮춥니다.",
-    "resetConfirmWarn": "이 작업은 되돌릴 수 없습니다. 사용자의 모든 학습 데이터가 영구 삭제됩니다.",
-    "resetAll": "모든 학습 데이터 초기화",
-    "deletionsTitle": "최근 삭제",
-    "badgeLabel": "스팸 인덱스",
-    "explainConfidence": "신뢰도",
-    "explainVerdict": "판정",
-    "explainMethod": "방법",
-    "verdict": {
-      "spam": "스팸",
-      "unsure": "불확실",
-      "ham": "정상 메일"
-    },
-    "howItWorks": "작동 방식: 사용자가 직접 '스팸으로 표시' 또는 '스팸 아님'을 선택하면 모델이 학습됩니다. 자동 분류된 메시지는 다시 학습되지 않습니다. 규칙 기반 차단은 항상 작동하며, 학습 데이터가 50건 이상 쌓이면 머신러닝 모델이 함께 적용됩니다.",
-    "resetConfirmYes": "예, 학습 데이터를 삭제합니다",
-    "method": {
-      "rules": "규칙",
-      "blended": "규칙 + ML"
-    },
-    "mlTokensTitle": "주요 판정 기여 토큰",
-    "rulesFiredTitle": "실행된 규칙",
-    "noRulesFired": "실행된 규칙 없음",
-    "badgeTitle": "스팸으로 자동 분류됨 - 자세한 내용을 보려면 클릭하세요.",
-    "explainTitle": "스팸으로 분류된 이유",
     "conversationMovedToSpam": "대화가 스팸함으로 이동되었습니다.",
     "nothingFromAccount": "이 대화에는 스팸으로 표시할 이 계정의 메일이 없습니다.",
-    "nothingInConversation": "이 대화에는 스팸으로 표시할 메일이 없습니다.",
-    "noMlTokens": "ML 토큰 없음"
+    "nothingInConversation": "이 대화에는 스팸으로 표시할 메일이 없습니다."
   },
   "contacts": {
     "empty": "아직 연락처가 없습니다.",
@@ -2181,67 +1978,7 @@
     },
     "addEmail": "이메일 추가",
     "addPhone": "전화 추가",
-    "selectHint": "세부정보를 보려면 연락처를 선택하세요.",
-    "carddavBadge": "CardDAV에서 동기화됨"
-  },
-  "todoist": {
-    "description": "설명",
-    "project": "프로젝트",
-    "inbox": "받은편지함",
-    "labels": "라벨",
-    "priority": "우선순위",
-    "priorityHigh": "높음",
-    "priorityUrgent": "긴급",
-    "priorityMedium": "보통",
-    "create": "작업 만들기",
-    "taskTitlePh": "무엇을 해야 합니까?",
-    "title": "Todoist 작업 생성",
-    "taskTitle": "작업 제목",
-    "descriptionPh": "선택적 메모...",
-    "dueDate": "마감일",
-    "taskCreated": "Todoist에서 생성된 작업",
-    "creating": "만드는 중...",
-    "openTask": "Todoist에서 열기",
-    "priorityNormal": "우선순위 없음"
-  },
-  "gtd": {
-    "oldestLabeledAge": "{{state}}: 라벨이 있는 가장 오래된 메일의 경과 일수: {{count}}",
-    "title": "GTD",
-    "inbox": "받은편지함",
-    "waiting": "대기 중",
-    "showLess": "간략히 보기",
-    "allClear": "모두 처리됨",
-    "tabEmpty": "아직 아무것도 없습니다",
-    "showSome": "{{total}} 중 {{available}} 표시",
-    "removeFrom": "{{state}}에서 제거",
-    "showAll": "{{count}} 모두 표시",
-    "allClearHint": "처리할 항목이 없습니다.",
-    "classifyFailed": "라벨을 적용할 수 없습니다.",
-    "classified": "라벨이 적용됨",
-    "classifiedMany": "{{count}}개를 {{state}}(으)로 지정함",
-    "classifiedSome": "{{total}}개 중 {{count}}개를 {{state}}(으)로 지정함",
-    "toggleSection": "{{section}} 전환",
-    "inboxZero": "받은 편지함 제로 ✓",
-    "done": "완료로 표시",
-    "state": {
-      "watch": "확인",
-      "delegated": "위임됨",
-      "reference": "참조",
-      "todo": "할 일",
-      "someday": "언젠가"
-    },
-    "doneFailed": "완료로 표시할 수 없습니다.",
-    "undoFailed": "라벨을 실행취소할 수 없습니다.",
-    "removed": "라벨이 삭제됨",
-    "removeFailed": "라벨을 삭제할 수 없습니다.",
-    "onlyCopy": "이 메시지의 유일한 사본이므로 라벨을 삭제하면 메시지도 삭제됩니다. 대신 보관하거나 이동하세요.",
-    "labelChanged": "이 라벨이 서버에서 변경되어 삭제되지 않았습니다. 새로고침한 후 다시 시도하세요.",
-    "doneArchiveFailed": "완료로 표시했지만 보관에 실패했습니다. 여전히 받은편지함에 있습니다.",
-    "doneThreadRemains": "이 대화의 일부 메시지를 정리하지 못해 GTD 섹션에 그대로 남아 있습니다"
-  },
-  "rightSidebar": {
-    "show": "오른쪽 사이드바 표시",
-    "hide": "오른쪽 사이드바 숨기기"
+    "selectHint": "세부정보를 보려면 연락처를 선택하세요."
   },
   "window": {
     "minimize": "최소화",

@@ -29,8 +29,7 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('flat list total under 
         subject text, from_name text, from_email text, to_addresses jsonb, cc_addresses jsonb,
         reply_to jsonb, snippet text, is_read boolean DEFAULT false, is_starred boolean DEFAULT false,
         has_attachments boolean DEFAULT false, category text, list_unsubscribe text,
-        list_unsubscribe_post text, delivery_addresses jsonb, spam_verdict text,
-        spam_user_override text, spam_score_ml real, flags jsonb, unsubscribed_at timestamptz);
+        list_unsubscribe_post text, delivery_addresses jsonb, flags jsonb, unsubscribed_at timestamptz);
       CREATE TEMP TABLE contacts (id uuid, user_id text, primary_email text, photo_data text)`);
     query.mockImplementation((sql, values) => database.query(sql, values));
   });

@@ -10,7 +10,6 @@ import {
   findOwnedAccount, findOwnedMessage, findOwnedMessages, findOwnedAlias, findOwnedContact, findOwnedAddressBook,
   findOwnedScheduledMessage,
 } from './ownership.js';
-import { getOwnedAccount, loadOwnedMessage } from './mailAccess.js';
 
 const OWNER = 'owner';
 const OTHER = 'other';
@@ -36,7 +35,7 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('ownership lookups Post
       CREATE TEMP TABLE messages (id uuid PRIMARY KEY, account_id uuid, subject text,
         is_deleted boolean DEFAULT false);
       CREATE TEMP TABLE account_aliases (id uuid PRIMARY KEY, account_id uuid, email text);
-      CREATE TEMP TABLE address_books (id uuid PRIMARY KEY, user_id text, source text);
+      CREATE TEMP TABLE address_books (id uuid PRIMARY KEY, user_id text);
       CREATE TEMP TABLE contacts (id uuid PRIMARY KEY, user_id text, address_book_id uuid,
         display_name text);
       CREATE TEMP TABLE scheduled_messages (id uuid PRIMARY KEY, user_id text, status text)`);
@@ -51,7 +50,7 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('ownership lookups Post
         ('${DISABLED_MESSAGE}', '${DISABLED_ACCOUNT}', 'Old', false),
         ('${OTHER_MESSAGE}', '${OTHER_ACCOUNT}', 'Theirs', false);
       INSERT INTO account_aliases VALUES ('${ALIAS}', '${ACCOUNT}', 'alias@example.com');
-      INSERT INTO address_books VALUES ('${BOOK}', '${OWNER}', 'local');
+      INSERT INTO address_books VALUES ('${BOOK}', '${OWNER}');
       INSERT INTO contacts VALUES ('${CONTACT}', '${OWNER}', '${BOOK}', 'Ann');
       INSERT INTO scheduled_messages VALUES ('${SCHEDULED}', '${OWNER}', 'scheduled')`);
   });
@@ -125,22 +124,10 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('ownership lookups Post
   });
 
   it('finds contacts and address books for their owner only', async () => {
-    expect(await findOwnedContact(OWNER, CONTACT, { columns: 'c.display_name, ab.source' }))
-      .toEqual({ display_name: 'Ann', source: 'local' });
+    expect(await findOwnedContact(OWNER, CONTACT, { columns: 'c.display_name' }))
+      .toEqual({ display_name: 'Ann' });
     expect(await findOwnedContact(OTHER, CONTACT)).toBeNull();
     expect(await findOwnedAddressBook(OWNER, BOOK, { columns: 'id' })).toEqual({ id: BOOK });
     expect(await findOwnedAddressBook(OTHER, BOOK)).toBeNull();
-  });
-
-  it('backs the plugin API lookups with the same scoping', async () => {
-    expect(await getOwnedAccount(OWNER, ACCOUNT)).toMatchObject({ id: ACCOUNT });
-    expect(await getOwnedAccount(OTHER, ACCOUNT)).toBeNull();
-    expect(await loadOwnedMessage(OWNER, MESSAGE)).toMatchObject({ id: MESSAGE, account_id: ACCOUNT });
-    expect(await loadOwnedMessage(OTHER, MESSAGE)).toBeNull();
-  });
-
-  it('ignores options a plugin passes to the plugin API lookups', async () => {
-    expect(await getOwnedAccount(OWNER, ACCOUNT, { columns: 'id' })).toHaveProperty('email_address');
-    expect(await loadOwnedMessage(OWNER, MESSAGE, { columns: 'm.id' })).toHaveProperty('subject');
   });
 });

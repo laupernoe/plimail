@@ -1,12 +1,9 @@
 import { useCallback, useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/index.js';
-import { getPluginMeta } from '../plugins/registry.js';
-import { PluginSlot } from '../plugins/PluginSlot.jsx';
 import { newAiAction, AI_ACTION_LIMITS } from '../aiActions.js';
 import { useMobile } from '../hooks/useMobile.js';
 import { api } from '../utils/api.js';
-import { spamApi } from '../utils/spamApi.js';
 import { copyToClipboard } from '../utils/clipboard.js';
 import { isValidFromValue } from '../utils/defaultSender.js';
 import { autoRecipientFields } from '../utils/autoRecipients.js';
@@ -47,7 +44,6 @@ import { detectProvider } from '../utils/providerDetect.js';
 import { formatRelativeTime, daysSince } from '../utils/relativeTime.js';
 import { formatDateTime, formatDay, formatTime } from '../utils/formatDate.js';
 import { htmlLang } from '../utils/browserLanguage.js';
-import SpamSettings from './SpamSettings.jsx';
 import BackupSettings from './BackupSettings.jsx';
 import PasswordInput from './PasswordInput.jsx';
 import ApiTokensSection from './ApiTokensSection.jsx';
@@ -118,16 +114,11 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
     imap_host: '', imap_port: 993, imap_skip_tls_verify: false,
     smtp_host: '', smtp_port: 587, smtp_tls: 'STARTTLS',
     smtp_auth_user: '', smtp_auth_pass: '',
-    auth_user: prefill?.email || '', auth_pass: '', categorization_enabled: false, antispam_enabled: false,
-    trusted_authserv_id: '',
+    auth_user: prefill?.email || '', auth_pass: '', categorization_enabled: false,
     ...(prefill?.preset && PRESETS[prefill.preset]?.imap_host ? { ...PRESETS[prefill.preset], label: undefined } : {}),
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  // Detected Authentication-Results authserv-ids for this account (setup helper
-  // for the trusted-authserv-id field). Fetched only for an existing account
-  // with antispam on, since that is when the backend classifies and records them.
-  const [detectedAuthservIds, setDetectedAuthservIds] = useState(null);
   const [showPass, setShowPass] = useState(false);
   const [showSmtpPass, setShowSmtpPass] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(prefill?.preset || null);
@@ -170,21 +161,6 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
       }))
       .catch(() => {});
   }, []);
-
-  // Setup helper: which authserv-ids this account's mail actually carries. The
-  // backend records them when it classifies, so the hint is only meaningful for
-  // an existing account with antispam on (and it fills in as mail arrives).
-  useEffect(() => {
-    if (!isEdit || !form.antispam_enabled) {
-      setDetectedAuthservIds(null);
-      return undefined;
-    }
-    let cancelled = false;
-    spamApi.getAuthservIds(initial.id)
-      .then(d => { if (!cancelled) setDetectedAuthservIds(d); })
-      .catch(() => { if (!cancelled) setDetectedAuthservIds(null); });
-    return () => { cancelled = true; };
-  }, [isEdit, form.antispam_enabled, initial?.id]);
 
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
   // The login follows the address (which is what it usually is) until the user edits the
@@ -629,89 +605,6 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
               </div>
             </div>
           </div>
-
-          <div style={{ height: 1, background: 'var(--border-subtle)', margin: '16px 0' }} />
-          <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-            {t('admin.accounts.antispamSection')}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <button
-              type="button"
-              onClick={() => set('antispam_enabled', !form.antispam_enabled)}
-              style={{
-                width: 36, height: 20, borderRadius: 10, border: 'none',
-                cursor: 'pointer', padding: 0,
-                background: form.antispam_enabled ? 'var(--accent)' : TOGGLE_OFF_BACKGROUND,
-                position: 'relative', transition: 'background 0.2s', flexShrink: 0, marginTop: 1,
-              }}
-            >
-              <span style={{
-                position: 'absolute', top: 2,
-                left: form.antispam_enabled ? 18 : 2,
-                width: 16, height: 16,
-                borderRadius: '50%', background: form.antispam_enabled ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
-              }} />
-            </button>
-            <div>
-              <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('admin.accounts.antispamEnabled')}</div>
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
-                {t('admin.accounts.antispamEnabledDesc')}
-              </div>
-            </div>
-          </div>
-
-          {/* Trusted Authentication-Results authserv-id: only headers written by
-              this id are honored; empty means "trust none" (the auth signal is
-              then ignored rather than trusted blindly). */}
-          {form.antispam_enabled && (
-            <div style={{ marginTop: 14 }}>
-              <Field label={t('admin.accounts.trustedAuthservLabel')}>
-                <input
-                  value={form.trusted_authserv_id || ''}
-                  onChange={e => set('trusted_authserv_id', e.target.value)}
-                  placeholder={t('admin.accounts.trustedAuthservPlaceholder')}
-                  style={inputStyle}
-                />
-              </Field>
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: -8, lineHeight: 1.5 }}>
-                {t('admin.accounts.trustedAuthservDesc')}
-              </div>
-
-              {detectedAuthservIds && detectedAuthservIds.analyzed > 0 && detectedAuthservIds.detected.length > 0 && (
-                <div style={{ marginTop: 10, fontSize: 11, color: 'var(--text-secondary)' }}>
-                  <div>{t('admin.accounts.trustedAuthservDetected')}</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-                    {detectedAuthservIds.detected.map(d => (
-                      <button
-                        key={d.id}
-                        type="button"
-                        onClick={() => set('trusted_authserv_id', d.id)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 6,
-                          padding: '4px 10px', borderRadius: 14, fontSize: 11,
-                          border: '1px solid var(--border)', background: 'var(--bg-secondary)',
-                          color: 'var(--text-secondary)', cursor: 'pointer',
-                        }}
-                      >
-                        <span style={{ fontFamily: 'monospace' }}>{d.id}</span>
-                        <span style={{ color: 'var(--text-tertiary)' }}>
-                          {d.count}/{detectedAuthservIds.analyzed}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                  <div style={{ marginTop: 8, color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
-                    {t('admin.accounts.trustedAuthservWarn')}
-                  </div>
-                </div>
-              )}
-              {detectedAuthservIds && (detectedAuthservIds.analyzed === 0 || detectedAuthservIds.detected.length === 0) && (
-                <div style={{ marginTop: 10, fontSize: 11, color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
-                  {t('admin.accounts.trustedAuthservDetectedNone')}
-                </div>
-              )}
-            </div>
-          )}
         </>
       )}
 
@@ -827,7 +720,7 @@ function AccountsTab() {
   };
 
   const handleEdit = async (form) => {
-    const updates = { name: form.name, sender_name: form.sender_name || null, color: form.color, icon: form.icon || null, imap_host: form.imap_host, imap_port: form.imap_port, imap_skip_tls_verify: !!form.imap_skip_tls_verify, smtp_host: form.smtp_host, smtp_port: form.smtp_port, smtp_tls: form.smtp_tls, signature: form.signature || null, categorization_enabled: !!form.categorization_enabled, antispam_enabled: !!form.antispam_enabled, trusted_authserv_id: (form.trusted_authserv_id || '').trim() || null, include_in_unified_inbox: form.include_in_unified_inbox !== false };
+    const updates = { name: form.name, sender_name: form.sender_name || null, color: form.color, icon: form.icon || null, imap_host: form.imap_host, imap_port: form.imap_port, imap_skip_tls_verify: !!form.imap_skip_tls_verify, smtp_host: form.smtp_host, smtp_port: form.smtp_port, smtp_tls: form.smtp_tls, signature: form.signature || null, categorization_enabled: !!form.categorization_enabled, include_in_unified_inbox: form.include_in_unified_inbox !== false };
     Object.assign(updates, autoRecipientFields(form), { signature_enabled: form.signature_enabled !== false });
     if (form.auth_pass) updates.auth_pass = form.auth_pass;
     if (OAUTH_PROVIDERS.has(editTarget.oauth_provider)) {
@@ -2357,340 +2250,6 @@ function BehaviorTab() {
   );
 }
 
-// ─── Integrations Tab ────────────────────────────────────────────────────────
-// CardDAV contact sync (e.g. Nextcloud). One-way, read-only pull.
-function CardDavCard() {
-  const { t } = useTranslation();
-  const [status, setStatus] = useState(null); // null while loading
-  const [expanded, setExpanded] = useState(false);
-  const [form, setForm] = useState({ serverUrl: '', username: '', password: '', dupMode: 'separate', intervalMin: 60 });
-  const [connecting, setConnecting] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const [disconnecting, setDisconnecting] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => { api.carddav.status().then(setStatus).catch(() => setStatus({ connected: false })); }, []);
-
-  const connected = status?.connected;
-  const loading = status === null;
-
-  const handleConnect = async () => {
-    setConnecting(true); setError('');
-    try {
-      const s = await api.carddav.connect({
-        serverUrl: form.serverUrl.trim(), username: form.username.trim(),
-        password: form.password, dupMode: form.dupMode, intervalMin: Number(form.intervalMin),
-      });
-      setStatus(s); setForm(f => ({ ...f, password: '' }));
-    } catch (e) { setError(e.message || t('admin.integrations.carddav.connectFailed')); }
-    finally { setConnecting(false); }
-  };
-  const handleSync = async () => {
-    setSyncing(true); setError('');
-    try { const r = await api.carddav.sync(); setStatus(r.status); if (!r.ok && r.error) setError(r.error); }
-    catch (e) { setError(e.message); }
-    finally { setSyncing(false); }
-  };
-  const handleDisconnect = async () => {
-    setDisconnecting(true); setError('');
-    try { await api.carddav.disconnect(); setStatus({ connected: false }); }
-    catch (e) { setError(e.message); }
-    finally { setDisconnecting(false); }
-  };
-  const updateSetting = async (patch) => {
-    setStatus(s => ({ ...s, ...patch }));
-    try { await api.carddav.update(patch); } catch (e) { setError(e.message); }
-  };
-
-  const inputStyle = { padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box' };
-  const labelStyle = { fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 5 };
-  const errBox = error && (
-    <div style={{ fontSize: 13, color: 'var(--red, #f87171)', padding: '8px 10px', borderRadius: 6, background: 'rgba(248,113,113,0.08)' }}>{error}</div>
-  );
-
-  return (
-    <div style={{ border: '1px solid var(--border-subtle)', borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
-      <div
-        onClick={() => setExpanded(!expanded)}
-        style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', background: 'var(--bg-tertiary)' }}
-        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2">
-          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
-        </svg>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{t('admin.integrations.carddav.title')}</span>
-            <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 10, background: (!loading && connected) ? 'rgba(34,197,94,0.1)' : 'var(--bg-primary)', color: (!loading && connected) ? '#22c55e' : 'var(--text-tertiary)', border: `1px solid ${(!loading && connected) ? '#22c55e' : 'var(--border)'}` }}>
-              {loading ? '...' : (connected ? t('admin.integrations.carddav.connected') : t('admin.integrations.carddav.notConnected'))}
-            </span>
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>{t('admin.integrations.carddav.description')}</div>
-        </div>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2.5" style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-
-      {expanded && (
-        <div style={{ padding: '16px 18px', borderTop: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {loading ? (
-            <div style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>{t('admin.integrations.loading')}</div>
-          ) : connected ? (
-            <>
-              <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                <div><strong style={{ color: 'var(--text-primary)' }}>{status.username}</strong> @ {status.serverUrl}</div>
-                <div style={{ marginTop: 4 }}>
-                  {t('admin.integrations.carddav.summary', { contacts: status.contactCount ?? 0, books: status.bookCount ?? 0 })}
-                  {' · '}
-                  {t('admin.integrations.carddav.lastSync', { when: status.lastSyncAt ? formatDateTime(status.lastSyncAt) : t('common.never') })}
-                </div>
-                {status.lastError && (
-                  <div style={{ marginTop: 4, color: 'var(--red, #f87171)' }}>{t('admin.integrations.carddav.syncFailed', { error: status.lastError })}</div>
-                )}
-              </div>
-
-              <div>
-                <label style={labelStyle}>{t('admin.integrations.carddav.dupLabel')}</label>
-                <select value={status.dupMode || 'separate'} onChange={e => updateSetting({ dupMode: e.target.value })} style={{ ...inputStyle, cursor: 'pointer' }}>
-                  <option value="separate">{t('admin.integrations.carddav.dupSeparate')}</option>
-                  <option value="merge">{t('admin.integrations.carddav.dupMerge')}</option>
-                  <option value="skip">{t('admin.integrations.carddav.dupSkip')}</option>
-                </select>
-              </div>
-              <div>
-                <label style={labelStyle}>{t('admin.integrations.carddav.intervalLabel')}</label>
-                <input type="number" min="15" max="1440" value={status.intervalMin || 60}
-                  onChange={e => setStatus(s => ({ ...s, intervalMin: e.target.value }))}
-                  onBlur={e => updateSetting({ intervalMin: Number(e.target.value) })} style={inputStyle} />
-              </div>
-              {errBox}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={handleSync} disabled={syncing} style={{ padding: '6px 14px', borderRadius: 7, cursor: syncing ? 'default' : 'pointer', border: 'none', background: 'var(--accent)', color: 'var(--accent-text)', fontSize: 13, fontWeight: 500, opacity: syncing ? 0.7 : 1 }}>
-                  {syncing ? t('admin.integrations.carddav.syncing') : t('admin.integrations.carddav.syncNow')}
-                </button>
-                <button onClick={handleDisconnect} disabled={disconnecting} style={{ padding: '6px 14px', borderRadius: 7, cursor: disconnecting ? 'default' : 'pointer', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: 13, opacity: disconnecting ? 0.6 : 1 }}>
-                  {disconnecting ? t('common.loading') : t('admin.integrations.carddav.disconnect')}
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div><label style={labelStyle}>{t('admin.integrations.carddav.serverLabel')}</label>
-                <input type="text" value={form.serverUrl} onChange={e => setForm(f => ({ ...f, serverUrl: e.target.value }))} placeholder={t('admin.integrations.carddav.serverPh')} style={inputStyle} /></div>
-              <div><label style={labelStyle}>{t('admin.integrations.carddav.userLabel')}</label>
-                <input type="text" value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} placeholder={t('admin.integrations.carddav.userPh')} style={inputStyle} /></div>
-              <div><label style={labelStyle}>{t('admin.integrations.carddav.passLabel')}</label>
-                <input type="password" autoComplete="new-password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder={t('admin.integrations.carddav.passPh')} style={inputStyle} /></div>
-              <div><label style={labelStyle}>{t('admin.integrations.carddav.dupLabel')}</label>
-                <select value={form.dupMode} onChange={e => setForm(f => ({ ...f, dupMode: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer' }}>
-                  <option value="separate">{t('admin.integrations.carddav.dupSeparate')}</option>
-                  <option value="merge">{t('admin.integrations.carddav.dupMerge')}</option>
-                  <option value="skip">{t('admin.integrations.carddav.dupSkip')}</option>
-                </select></div>
-              {errBox}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={handleConnect} disabled={connecting || !form.serverUrl.trim() || !form.username.trim() || !form.password}
-                  style={{ padding: '6px 14px', borderRadius: 7, cursor: (connecting || !form.serverUrl.trim() || !form.username.trim() || !form.password) ? 'default' : 'pointer', border: 'none', background: 'var(--accent)', color: 'var(--accent-text)', fontSize: 13, fontWeight: 500, opacity: (connecting || !form.serverUrl.trim() || !form.username.trim() || !form.password) ? 0.7 : 1 }}>
-                  {connecting ? t('admin.integrations.carddav.connecting') : t('admin.integrations.carddav.connect')}
-                </button>
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.5 }}>{t('admin.integrations.carddav.help')}</div>
-            </>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function IntegrationsTab() {
-  const { t } = useTranslation();
-  const { setTodoistConnected } = useStore();
-
-  // Todoist state
-  const [tdConnected, setTdConnected] = useState(false);
-  const [tdLoading, setTdLoading] = useState(true);
-  const [tdExpanded, setTdExpanded] = useState(false);
-  const [tdToken, setTdToken] = useState('');
-  const [tdConnecting, setTdConnecting] = useState(false);
-  const [tdDisconnecting, setTdDisconnecting] = useState(false);
-  const [tdError, setTdError] = useState('');
-
-  useEffect(() => {
-    api.todoist.status()
-      .then(({ connected }) => {
-        setTdConnected(connected);
-        setTodoistConnected(connected);
-        if (connected) setTdExpanded(true);
-      })
-      .catch(console.error)
-      .finally(() => setTdLoading(false));
-  }, [setTodoistConnected]);
-
-  const handleTdConnect = async () => {
-    const trimmed = tdToken.trim();
-    if (!trimmed) return;
-    setTdConnecting(true);
-    setTdError('');
-    try {
-      await api.todoist.connect(trimmed);
-      setTdConnected(true);
-      setTodoistConnected(true);
-      setTdToken('');
-    } catch (err) {
-      setTdError(err.message);
-    } finally {
-      setTdConnecting(false);
-    }
-  };
-
-  const handleTdDisconnect = async () => {
-    setTdDisconnecting(true);
-    setTdError('');
-    try {
-      await api.todoist.disconnect();
-      setTdConnected(false);
-      setTodoistConnected(false);
-    } catch (err) {
-      setTdError(err.message);
-    } finally {
-      setTdDisconnecting(false);
-    }
-  };
-
-  return (
-    <div>
-      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 20 }}>
-        {t('admin.integrations.title')}
-      </div>
-      <div>
-          {/* Todoist */}
-          <div style={{
-            border: '1px solid var(--border-subtle)', borderRadius: 12,
-            overflow: 'hidden', marginBottom: 12,
-          }}>
-            {/* Header */}
-            <div
-              onClick={() => setTdExpanded(!tdExpanded)}
-              style={{
-                padding: '14px 16px', display: 'flex', alignItems: 'center',
-                gap: 12, cursor: 'pointer', background: 'var(--bg-tertiary)',
-                transition: 'background 0.1s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2">
-                <circle cx="12" cy="12" r="9"/>
-                <polyline points="9 12 11 14 15 10"/>
-              </svg>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-                    {t('admin.integrations.todoist.title')}
-                  </span>
-                  <span style={{
-                    fontSize: 11, padding: '2px 8px', borderRadius: 10,
-                    background: (!tdLoading && tdConnected) ? 'rgba(34,197,94,0.1)' : 'var(--bg-primary)',
-                    color: (!tdLoading && tdConnected) ? '#22c55e' : 'var(--text-tertiary)',
-                    border: `1px solid ${(!tdLoading && tdConnected) ? '#22c55e' : 'var(--border)'}`,
-                  }}>
-                    {tdLoading ? '...' : (tdConnected ? t('admin.integrations.todoist.connected') : t('admin.integrations.todoist.notConnected'))}
-                  </span>
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>
-                  {t('admin.integrations.todoist.description')}
-                </div>
-              </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2.5"
-                style={{ transform: tdExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </div>
-
-            {tdExpanded && (
-              <div style={{ padding: '16px 18px', borderTop: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {tdLoading ? (
-                  <div style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>{t('admin.integrations.loading')}</div>
-                ) : tdConnected ? (
-                  <>
-                    {tdError && (
-                      <div style={{ fontSize: 13, color: 'var(--red, #f87171)', padding: '8px 10px', borderRadius: 6, background: 'rgba(248,113,113,0.08)' }}>
-                        {tdError}
-                      </div>
-                    )}
-                    <div>
-                      <button
-                        onClick={handleTdDisconnect}
-                        disabled={tdDisconnecting}
-                        style={{
-                          padding: '6px 14px', borderRadius: 7, cursor: tdDisconnecting ? 'default' : 'pointer',
-                          border: '1px solid var(--border)', background: 'transparent',
-                          color: 'var(--text-secondary)', fontSize: 13, opacity: tdDisconnecting ? 0.6 : 1,
-                        }}
-                      >
-                        {tdDisconnecting ? t('common.loading') : t('admin.integrations.todoist.disconnect')}
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 5 }}>
-                        {t('admin.integrations.todoist.tokenLabel')}
-                      </label>
-                      <input
-                        type="password"
-                        // Suppress browser/password-manager autofill: without this, a lone
-                        // password field makes Chrome autofill the saved login email into
-                        // the nearest text field — the settings search box — which flips the
-                        // panel to search results and hides this form. Fixes #225.
-                        autoComplete="new-password"
-                        value={tdToken}
-                        onChange={e => setTdToken(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && !tdConnecting && tdToken.trim() && handleTdConnect()}
-                        placeholder={t('admin.integrations.todoist.tokenPh')}
-                        style={{
-                          padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border)',
-                          background: 'var(--bg-primary)', color: 'var(--text-primary)',
-                          fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box',
-                        }}
-                      />
-                    </div>
-                    {tdError && (
-                      <div style={{ fontSize: 13, color: 'var(--red, #f87171)', padding: '8px 10px', borderRadius: 6, background: 'rgba(248,113,113,0.08)' }}>
-                        {tdError}
-                      </div>
-                    )}
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button
-                        onClick={handleTdConnect}
-                        disabled={tdConnecting || !tdToken.trim()}
-                        style={{
-                          padding: '6px 14px', borderRadius: 7,
-                          cursor: (tdConnecting || !tdToken.trim()) ? 'default' : 'pointer',
-                          border: 'none', background: 'var(--accent)', color: 'var(--accent-text)',
-                          fontSize: 13, fontWeight: 500, opacity: (tdConnecting || !tdToken.trim()) ? 0.7 : 1,
-                        }}
-                      >
-                        {tdConnecting ? t('admin.integrations.todoist.connecting') : t('admin.integrations.todoist.connect')}
-                      </button>
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
-                      {t('admin.integrations.todoist.help')}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-
-          <CardDavCard />
-      </div>
-    </div>
-  );
-}
-
 // ─── Email providers (admin) ─────────────────────────────────────────────────
 // How people sign in to Microsoft and Google mailboxes: MailFlow's shared Microsoft app for
 // personal accounts, and the instance's own Microsoft and Google apps. Configuration only;
@@ -4209,7 +3768,7 @@ function AiActionsTab() {
 }
 
 // ─── Categories Section ───────────────────────────────────────────────────────
-function CategoriesSection({ initialSubTab }) {
+function CategoriesSection() {
   const { t } = useTranslation();
   const { accounts, categorizationEnabled, setCategorizationEnabled } = useStore();
   const [sources, setSources] = useState([]);
@@ -4459,106 +4018,6 @@ function CategoriesSection({ initialSubTab }) {
           </div>
         </>
       )}
-
-      {/* Plugins that contribute settings under the Categories tab (currently GTD). Rendered only
-          while the plugin is activated; core knows nothing plugin-specific here. */}
-      <PluginSlot name="settings-categories" ctx={{ initialSubTab }} />
-    </div>
-  );
-}
-
-// ─── Plugins Section ──────────────────────────────────────────────────────────
-// Plugins settings tab — lists the plugins registered in this build and lets the user activate/
-// deactivate each for themselves. Activation is per-user (persisted server-side) and independent of
-// a plugin's own per-account config; deactivating hides that plugin's UI and makes it inert.
-function PluginsSection({ onNavigate }) {
-  const { t } = useTranslation();
-  const enabledPlugins = useStore(s => s.enabledPlugins);
-  const setPluginActivated = useStore(s => s.setPluginActivated);
-  const [manifests, setManifests] = useState(null); // null = loading
-  const [busyId, setBusyId] = useState(null);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    let alive = true;
-    api.plugins.list()
-      .then(list => { if (alive) setManifests(Array.isArray(list) ? list : []); })
-      .catch(() => { if (alive) { setManifests([]); setError(true); } });
-    return () => { alive = false; };
-  }, []);
-
-  const toggle = async (id, next) => {
-    setBusyId(id);
-    setError(false);
-    try { await setPluginActivated(id, next); }
-    catch { setError(true); }
-    finally { setBusyId(null); }
-  };
-
-  return (
-    <div>
-      <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>{t('admin.plugins.title')}</h2>
-      <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: '0 0 20px', lineHeight: 1.5 }}>{t('admin.plugins.description')}</p>
-
-      {error && (
-        <div style={{ fontSize: 12, color: 'var(--danger, #d94a4a)', marginBottom: 12 }}>{t('admin.plugins.error')}</div>
-      )}
-      {manifests === null && (
-        <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>{t('common.loading')}</div>
-      )}
-      {manifests && manifests.length === 0 && !error && (
-        <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>{t('admin.plugins.empty')}</div>
-      )}
-
-      {manifests && manifests.map(p => {
-        const on = enabledPlugins.includes(p.id);
-        const busy = busyId === p.id;
-        return (
-          <div key={p.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 0', borderBottom: '1px solid var(--border-subtle)' }}>
-            <button
-              type="button"
-              onClick={() => toggle(p.id, !on)}
-              disabled={busy}
-              aria-pressed={on}
-              aria-label={p.name}
-              style={{
-                width: 36, height: 20, borderRadius: 10, border: 'none', cursor: busy ? 'default' : 'pointer', padding: 0,
-                background: on ? 'var(--accent)' : TOGGLE_OFF_BACKGROUND,
-                position: 'relative', transition: 'background 0.2s', flexShrink: 0, marginTop: 1, opacity: busy ? 0.6 : 1,
-              }}
-            >
-              <span style={{ position: 'absolute', top: 2, left: on ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: on ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s' }} />
-            </button>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <span style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500 }}>{p.name}</span>
-                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>v{p.version}</span>
-              </div>
-              {(() => {
-                const loc = getPluginMeta(p.id)?.settingsLocation;
-                // Activated + has a settings home → a clickable pointer to it. Activated with no
-                // settings, or not activated → a plain status line.
-                if (on && loc && onNavigate) {
-                  return (
-                    <button
-                      type="button"
-                      onClick={() => onNavigate(loc.tab, loc.subtab)}
-                      style={{ marginTop: 3, padding: 0, border: 'none', background: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--accent)', textAlign: 'left' }}
-                    >
-                      {t('admin.plugins.configureIn', { location: t(loc.labelKey) })} →
-                    </button>
-                  );
-                }
-                return (
-                  <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>
-                    {on ? t('admin.plugins.activated') : t('admin.plugins.deactivated')}
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
-        );
-      })}
     </div>
   );
 }
@@ -6690,250 +6149,11 @@ function RulesAndBlockListTab({ initialSubTab }) {
   );
 }
 
-// Mailbox Cleanup: analyze an INBOX for bulk-mail bloat and move a chosen sender's mail to Trash.
-// All analysis is read-only; the destructive step reuses the existing, proven bulkDelete (move to
-// Trash, recoverable) in <=500-id batches. Scope is enforced server-side (own account, INBOX, exact
-// sender), and the operation is idempotent: re-running a cleared sender finds nothing.
-function MailboxCleanupTab() {
-  const { t } = useTranslation();
-  const { accounts } = useStore();
-  const [accountId, setAccountId] = useState(accounts[0]?.id || '');
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [busySender, setBusySender] = useState('');
-  const [progress, setProgress] = useState(null);
-  // Cleanup action for the whole view (#403): Archive is the default and recommended
-  // choice; Trash stays available as an explicit alternative. One selector governs
-  // every sender row, not a per-row pair of buttons.
-  const [action, setAction] = useState('archive');
-  const archiveAvailable = data ? data.archiveAvailable !== false : true;
-  // If the selected account has no archive folder, Archive isn't a usable action —
-  // fall back to Trash so the row button never runs an action the server can't honor.
-  useEffect(() => { if (data && data.archiveAvailable === false) setAction('trash'); }, [data]);
-
-  // Re-fetch the summary/sender data without touching the error banner or the loading
-  // spinner, so a caller that just wants fresh counts (after a cleanup, including a partial
-  // failure) can refresh without clobbering an error it already set.
-  const fetchUsage = useCallback(async (id) => {
-    setData(await api.mailboxUsage(id));
-  }, []);
-
-  const load = useCallback(async (id) => {
-    if (!id) return;
-    setLoading(true); setError('');
-    try { await fetchUsage(id); }
-    catch (e) { setError(e.message); setData(null); }
-    finally { setLoading(false); }
-  }, [fetchUsage]);
-
-  useEffect(() => { if (accountId) load(accountId); }, [accountId, load]);
-
-  // Senders ticked for a batch run; keyed by fromEmail. Only ever read through
-  // `selectedSenders`, so senders that vanish after a refresh drop out on their own.
-  const [selected, setSelected] = useState(() => new Set());
-  const senders = data?.tier1Senders || [];
-  const selectedSenders = senders.filter(s => selected.has(s.fromEmail));
-  const allSelected = senders.length > 0 && selectedSenders.length === senders.length;
-  // The row-button busy marker for a batch run; not a valid fromEmail, so no row matches it.
-  const BATCH = '*';
-  useEffect(() => { setSelected(new Set()); }, [accountId]);
-
-  const toggleSender = (email) => setSelected(prev => {
-    const next = new Set(prev);
-    if (!next.delete(email)) next.add(email);
-    return next;
-  });
-
-  // One confirm and one progress bar for the whole list; each sender is still resolved server-side
-  // (own account, INBOX, exact sender) and moved in <=500-id batches, in sequence.
-  const cleanupSenders = async (list) => {
-    const isArchive = action === 'archive';
-    const labelOf = (s) => (s.fromName ? `${s.fromName} <${s.fromEmail}>` : s.fromEmail);
-    const shown = list.slice(0, 3).map(labelOf).join(', ');
-    const label = list.length > 3 ? `${shown} +${list.length - 3}` : shown;
-    const grandTotal = list.reduce((n, s) => n + s.count, 0);
-    const confirmKey = isArchive ? 'admin.cleanup.confirmArchive' : 'admin.cleanup.confirm';
-    if (!window.confirm(t(confirmKey, { count: grandTotal, sender: label }))) return;
-    setBusySender(list.length === 1 ? list[0].fromEmail : BATCH); setError(''); setProgress({ done: 0, total: grandTotal });
-    try {
-      const runBatch = isArchive ? api.bulkArchive : api.bulkDelete;
-      let done = 0;
-      for (const s of list) {
-        const { ids } = await api.cleanupPreview(accountId, s.fromEmail);
-        for (let i = 0; i < ids.length; i += 500) {
-          const batch = ids.slice(i, i + 500);
-          await runBatch(batch);
-          done += batch.length;
-          setProgress({ done, total: grandTotal });
-        }
-      }
-    } catch (e) { setError(e.message); }
-    finally {
-      // Always refresh counts so the summary reflects what actually got archived or trashed,
-      // even on a partial failure; preserve any error already set (don't route through load()).
-      try { await fetchUsage(accountId); } catch { /* keep the primary error and last-good data */ }
-      setBusySender(''); setProgress(null);
-    }
-  };
-
-  const bloatPct = data && data.inboxTotal ? Math.round((data.bulkTotal / data.inboxTotal) * 100) : 0;
-  const card = { background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: 10, padding: 14, marginBottom: 16 };
-  const muted = { fontSize: 12, color: 'var(--text-tertiary)' };
-
-  return (
-    <div>
-      <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 6px' }}>{t('admin.cleanup.title')}</h2>
-      <p style={{ ...muted, marginTop: 0, marginBottom: 16, lineHeight: 1.5 }}>{t('admin.cleanup.intro')}</p>
-
-      {accounts.length > 1 && (
-        <Field label={t('admin.cleanup.account')}>
-          <select value={accountId} disabled={!!busySender} onChange={e => setAccountId(e.target.value)} style={{ ...inputStyle, appearance: 'none' }}>
-            {accounts.map(a => <option key={a.id} value={a.id}>{a.email_address}</option>)}
-          </select>
-        </Field>
-      )}
-
-      {loading && <div style={muted}>{t('common.loading')}</div>}
-      {error && <div style={{ color: 'var(--red, #ef4444)', fontSize: 13, marginBottom: 12 }}>{error}</div>}
-
-      {data && !loading && (
-        <>
-          <div style={card}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-              {t('admin.cleanup.summary', { bulk: data.bulkTotal.toLocaleString(), total: data.inboxTotal.toLocaleString(), pct: bloatPct })}
-            </div>
-          </div>
-
-          <Field label={t('admin.cleanup.action')}>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {[
-                { key: 'archive', label: t('admin.cleanup.actionArchive'), disabled: !archiveAvailable },
-                { key: 'trash', label: t('admin.cleanup.moveToTrash'), disabled: false },
-              ].map(opt => {
-                const selected = action === opt.key;
-                return (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    disabled={opt.disabled || !!busySender}
-                    onClick={() => setAction(opt.key)}
-                    style={{
-                      padding: '7px 14px', borderRadius: 7, fontSize: 13, fontWeight: 500,
-                      cursor: (opt.disabled || busySender) ? 'not-allowed' : 'pointer',
-                      border: `1px solid ${selected ? 'var(--accent)' : 'var(--border)'}`,
-                      background: selected ? 'var(--accent)' : 'var(--bg-secondary)',
-                      color: selected ? 'var(--accent-text)' : 'var(--text-secondary)',
-                      opacity: opt.disabled ? 0.5 : 1,
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-            {!archiveAvailable && (
-              <div style={{ ...muted, marginTop: 8 }}>{t('admin.cleanup.noArchiveFolder')}</div>
-            )}
-          </Field>
-
-          <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 4px' }}>{t('admin.cleanup.tier1Title')}</h3>
-          <p style={{ ...muted, marginTop: 0, marginBottom: 12, lineHeight: 1.5 }}>{t('admin.cleanup.tier1Desc')}</p>
-          {data.tier1Senders.length === 0 ? (
-            <div style={muted}>{t('admin.cleanup.noneFound')}</div>
-          ) : (
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 4px', borderBottom: '1px solid var(--border-subtle)' }}>
-                <input
-                  type="checkbox"
-                  id="cleanup-select-all"
-                  checked={allSelected}
-                  disabled={!!busySender}
-                  onChange={() => setSelected(allSelected ? new Set() : new Set(senders.map(s => s.fromEmail)))}
-                />
-                <label htmlFor="cleanup-select-all" style={{ ...muted, flex: 1, cursor: 'pointer' }}>
-                  {t(allSelected ? 'messageList.deselectAll' : 'messageList.selectAll')}
-                </label>
-                <button
-                  type="button"
-                  disabled={!!busySender || selectedSenders.length === 0}
-                  onClick={() => cleanupSenders(selectedSenders)}
-                  style={{
-                    flexShrink: 0, padding: '6px 12px', borderRadius: 7, fontSize: 12, fontWeight: 500,
-                    border: '1px solid var(--border)',
-                    cursor: (busySender || selectedSenders.length === 0) ? 'not-allowed' : 'pointer',
-                    background: action === 'archive' ? 'var(--accent)' : 'var(--amber)',
-                    color: action === 'archive' ? 'var(--accent-text)' : 'var(--status-text)',
-                    opacity: selectedSenders.length === 0 || (busySender && busySender !== BATCH) ? 0.5 : 1,
-                  }}
-                >
-                  {busySender === BATCH && progress
-                    ? `${progress.done.toLocaleString()}/${progress.total.toLocaleString()}`
-                    : `${t(action === 'archive' ? 'admin.cleanup.archive' : 'admin.cleanup.moveToTrash')} (${selectedSenders.length})`}
-                </button>
-              </div>
-              {data.tier1Senders.map(s => (
-                <div key={s.fromEmail} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 4px', borderBottom: '1px solid var(--border-subtle)' }}>
-                  <input
-                    type="checkbox"
-                    checked={selected.has(s.fromEmail)}
-                    disabled={!!busySender}
-                    onChange={() => toggleSender(s.fromEmail)}
-                    aria-label={s.fromName || s.fromEmail}
-                  />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.fromName || s.fromEmail}</div>
-                    {s.fromName && <div style={{ ...muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.fromEmail}</div>}
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', flexShrink: 0 }}>{s.count.toLocaleString()}</div>
-                  <button
-                    type="button"
-                    disabled={!!busySender}
-                    onClick={() => cleanupSenders([s])}
-                    style={{
-                      flexShrink: 0, padding: '6px 12px', borderRadius: 7, fontSize: 12, fontWeight: 500,
-                      border: '1px solid var(--border)', cursor: busySender ? 'not-allowed' : 'pointer',
-                      background: busySender === s.fromEmail
-                        ? 'var(--bg-tertiary)'
-                        : (action === 'archive' ? 'var(--accent)' : 'var(--amber)'),
-                      color: busySender === s.fromEmail
-                        ? 'var(--text-secondary)'
-                        : (action === 'archive' ? 'var(--accent-text)' : 'var(--status-text)'),
-                      opacity: busySender && busySender !== s.fromEmail ? 0.5 : 1,
-                    }}
-                  >
-                    {busySender === s.fromEmail
-                      ? (progress ? `${progress.done.toLocaleString()}/${progress.total.toLocaleString()}` : '...')
-                      : t(action === 'archive' ? 'admin.cleanup.archive' : 'admin.cleanup.moveToTrash')}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 4px' }}>{t('admin.cleanup.tier2Title')}</h3>
-          <p style={{ ...muted, marginTop: 0, marginBottom: 10, lineHeight: 1.5 }}>{t('admin.cleanup.tier2Desc')}</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
-            {data.tier2Keywords.filter(k => k.count > 0).map(k => (
-              <span key={k.keyword} style={{ fontSize: 12, padding: '4px 10px', borderRadius: 20, background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}>
-                {k.keyword} <span style={{ color: 'var(--text-tertiary)' }}>({k.count.toLocaleString()})</span>
-              </span>
-            ))}
-          </div>
-
-          <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 4px' }}>{t('admin.cleanup.tier3Title')}</h3>
-          <p style={{ ...muted, marginTop: 0, lineHeight: 1.5 }}>{t('admin.cleanup.tier3Desc')}</p>
-        </>
-      )}
-    </div>
-  );
-}
-
 const TAB_GROUPS = [
-  { id: 'mail', labelKey: 'admin.tabs.groupMail', tabIds: ['accounts', 'rules', 'categories', 'antispam', 'cleanup'] },
+  { id: 'mail', labelKey: 'admin.tabs.groupMail', tabIds: ['accounts', 'rules', 'categories'] },
   { id: 'calendar', labelKey: 'admin.tabs.groupCalendar', tabIds: ['calendar-accounts', 'calendar-list'] },
   { id: 'preferences', labelKey: 'admin.tabs.groupPreferences', tabIds: ['appearance', 'behavior', 'notifications', 'shortcuts', 'security'] },
-  { id: 'ai-extensions', labelKey: 'admin.tabs.groupAiExtensions', tabIds: ['ai-actions', 'ai', 'integrations', 'plugins'] },
+  { id: 'ai-extensions', labelKey: 'admin.tabs.groupAiExtensions', tabIds: ['ai-actions', 'ai'] },
   { id: 'admin', labelKey: 'admin.tabs.groupAdmin', tabIds: ['users', 'sso', 'mail-signin', 'backup'] },
 ];
 
@@ -6950,14 +6170,6 @@ const TABS = [
   {
     id: 'categories', labelKey: 'admin.tabs.categories',
     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
-  },
-  {
-    id: 'antispam', labelKey: 'admin.tabs.antispam',
-    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/><path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14z"/><path d="M5 15l.6 1.8L7.5 17l-1.9.7L5 19.5l-.6-1.8L2.5 17l1.9-.7L5 15z"/></svg>,
-  },
-  {
-    id: 'cleanup', labelKey: 'admin.tabs.cleanup', beta: true,
-    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M19 3l-6 6"/><path d="M14 4l6 6"/><path d="M11 8l-7 7c-1 1-1 3 0 4s3 1 4 0l7-7"/><path d="M6 20l-3-3"/></svg>,
   },
   // Calendar
   {
@@ -6999,14 +6211,6 @@ const TABS = [
     id: 'ai', labelKey: 'admin.tabs.ai',
     adminOnly: true,
     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4M19 17v4M3 5h4M17 19h4"/></svg>,
-  },
-  {
-    id: 'integrations', labelKey: 'admin.tabs.integrations',
-    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><circle cx="12" cy="12" r="3"/><path d="M6.343 6.343a8 8 0 000 11.314M17.657 6.343a8 8 0 010 11.314M3 12h1m16 0h1M12 3v1m0 16v1"/></svg>,
-  },
-  {
-    id: 'plugins', labelKey: 'admin.tabs.plugins', beta: true,
-    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3v6M18 3v6M6 21v-6M18 21v-6M4 9h16v3a6 6 0 01-6 6h-4a6 6 0 01-6-6V9z"/></svg>,
   },
   // Administration
   {
@@ -8655,11 +7859,8 @@ function makeSearchIndex(t) {
     { label: t('mailSignIn.ms.title'), keywords: ['microsoft', 'outlook', 'hotmail', '365', 'oauth', 'azure', 'entra', 'client id', 'tenant', 'ms365', 'office', 'shared app', 'sign in', 'email providers', 'mailbox', 'mail sign-in'], tab: 'mail-signin', adminOnly: true, breadcrumb: t('admin.tabs.mailSignIn') },
     { label: t('admin.integrations.google.title'), keywords: ['google', 'gmail', 'workspace', 'oauth', 'client id', 'sign in', 'email providers', 'mailbox'], tab: 'mail-signin', adminOnly: true, breadcrumb: t('admin.tabs.mailSignIn') },
     // Integrations
-    { label: t('admin.integrations.todoist.title'), keywords: ['todoist', 'tasks', 'to-do', 'carddav', 'contacts sync'], tab: 'integrations', breadcrumb: tabLabel('integrations') },
     { label: t('admin.ai.title'), keywords: ['ai', 'artificial intelligence', 'chatgpt', 'ollama', 'llm', 'language model', 'summarize', 'draft', 'compose assistant', 'openai', 'local ai', 'inference', 'gpt'], tab: 'ai', adminOnly: true, breadcrumb: tabLabel('ai') },
-    { label: t('admin.plugins.title'), keywords: ['plugin', 'plugins', 'extension', 'extensions', 'add-on', 'addon', 'gtd', 'activate', 'enable feature', 'modules'], tab: 'plugins', breadcrumb: tabLabel('plugins') },
     { label: t('admin.categories.title'), keywords: ['categories', 'categorize', 'newsletter', 'promotion', 'social', 'automated', 'inbox tabs', 'sort emails', 'classify'], tab: 'categories', breadcrumb: tabLabel('categories') },
-    { label: t('admin.categories.gtdReveal'), keywords: ['gtd', 'todo', 'getting things done', 'watch', 'delegated', 'someday', 'reference', 'next action', 'waiting', 'inbox zero', 'pet'], tab: 'categories', subtab: 'gtd', breadcrumb: `${tabLabel('categories')} › ${t('admin.categories.gtdReveal')}` },
     // Security
     { label: t('admin.security.totpTitle'), keywords: ['2fa', 'totp', 'authenticator', 'two factor', 'otp', 'two-factor', 'mfa', 'security code'], tab: 'security', subtab: 'security', breadcrumb: secCrumb },
     { label: t('admin.apiTokens.title'), keywords: ['api', 'token', 'api token', 'access token', 'personal access token', 'bearer', 'mcp', 'script', 'revoke'], tab: 'security', subtab: 'security', breadcrumb: secCrumb },
@@ -8797,12 +7998,9 @@ export default function AdminPanel() {
       {adminTab === 'accounts' && <AccountsTab />}
       {adminTab === 'calendar-accounts' && <CalendarAccountsTab />}
       {adminTab === 'calendar-list' && <CalendarListTab />}
-      {adminTab === 'antispam' && <SpamSettings />}
       {adminTab === 'rules' && <RulesAndBlockListTab initialSubTab={pendingSubTab} />}
-      {adminTab === 'categories' && <CategoriesSection initialSubTab={pendingSubTab} />}
-      {adminTab === 'cleanup' && <MailboxCleanupTab />}
+      {adminTab === 'categories' && <CategoriesSection />}
       {adminTab === 'appearance' && <AppearanceTab initialSubTab={pendingSubTab} />}
-      {adminTab === 'integrations' && <IntegrationsTab />}
       {adminTab === 'mail-signin' && user?.isAdmin && <MailSignInTab />}
       {adminTab === 'users' && <UsersTab />}
       {adminTab === 'sso' && <SSOTab />}
@@ -8813,7 +8011,6 @@ export default function AdminPanel() {
       {adminTab === 'shortcuts' && !isMobile && <ShortcutsTab />}
       {adminTab === 'ai' && <AISection />}
       {adminTab === 'ai-actions' && <AiActionsTab />}
-      {adminTab === 'plugins' && <PluginsSection onNavigate={navigateTo} />}
       {adminTab === 'about' && <AboutTab />}
     </>
   );
@@ -8879,7 +8076,6 @@ export default function AdminPanel() {
               >
                 <span style={{ display: 'flex', opacity: adminTab === tab.id && !searchResults ? 1 : 0.7 }}>{tab.icon}</span>
                 {t(tab.labelKey)}
-                {tab.beta && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', padding: '1px 4px', borderRadius: 3, background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: adminTab === tab.id && !searchResults ? 'var(--accent-text)' : 'var(--accent)' }}>BETA</span>}
               </button>
             ))}
           </div>
@@ -8934,7 +8130,7 @@ export default function AdminPanel() {
           </div>
 
           {/* Scrollable tab list — keeps the Close button pinned even when the tab list is taller
-              than the modal (e.g. once several plugins/beta tabs are present). */}
+              than the modal. */}
           {/* overflowX hidden: overflowY:auto would otherwise promote overflow-x to auto too, so a
               long label in any locale (e.g. German "Tastaturkürzel") would show a horizontal
               scrollbar. Labels wrap instead of overflowing (see the tab buttons below). */}
@@ -8975,7 +8171,6 @@ export default function AdminPanel() {
                         {tab.icon}
                       </span>
                       <span style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>{t(tab.labelKey)}</span>
-                      {tab.beta && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', padding: '1px 4px', borderRadius: 3, background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)', flexShrink: 0 }}>BETA</span>}
                     </button>
                   );
                 })}
@@ -9005,7 +8200,6 @@ export default function AdminPanel() {
                   {tab.icon}
                 </span>
                 <span style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>{t(tab.labelKey)}</span>
-                {tab.beta && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', padding: '1px 4px', borderRadius: 3, background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)', flexShrink: 0 }}>BETA</span>}
               </button>
             );
           })}

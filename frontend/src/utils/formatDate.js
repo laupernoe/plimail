@@ -29,7 +29,7 @@ function yesterday(locale) {
   return word.charAt(0).toLocaleUpperCase(locale ?? appLocale()) + word.slice(1);
 }
 
-// Compact relative date label shared by MessageList and the GTD display surfaces.
+// Compact relative date label for the message list.
 // Guards an invalid date to '' so a malformed value can never throw.
 export function formatDate(dateStr, locale) {
   const d = parse(dateStr);

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as applicability from './shortcutApplicability.js';
 
-const { canRunSelectedAction, canRunGlobalAction, canHandlePaneShortcut } = applicability;
+const { canRunSelectedAction, canHandlePaneShortcut } = applicability;
 
 const selected = { selectedMessageId: 'm1', messages: [{ id: 'm1', account_id: 'a1' }] };
 
@@ -12,12 +12,6 @@ test('selected-row actions leave browser behavior alone without a selection', ()
     assert.equal(canRunSelectedAction(action, selected), true, action);
   }
   assert.equal(canRunSelectedAction('compose', { ...selected, selectedMessageId: null }), true);
-});
-
-test('right sidebar toggle only captures a key when its sidebar is rendered', () => {
-  assert.equal(canRunGlobalAction('toggleRightSidebar', { rightSidebarApplicable: false }), false);
-  assert.equal(canRunGlobalAction('toggleRightSidebar', { rightSidebarApplicable: true }), true);
-  assert.equal(canRunGlobalAction('compose', { rightSidebarApplicable: false }), true);
 });
 
 test('frontmost open message window enables its pane actions without a main selection', () => {
@@ -40,20 +34,9 @@ test('frontmost open message window enables its pane actions without a main sele
   assert.equal(canHandlePaneShortcut(null, popout), false);
 });
 
-test('GTD shortcuts only capture keys for an active plugin and eligible live selected account', () => {
-  const active = { ...selected, enabledPlugins: ['gtd'], accounts: [{ id: 'a1', gtd_enabled: true }] };
-  for (const action of ['gtdTodo', 'gtdWatch', 'gtdDelegated', 'gtdReference', 'gtdSomeday', 'gtdDone']) {
-    assert.equal(canRunSelectedAction(action, active), true, action);
-    assert.equal(canRunSelectedAction(action, { ...active, enabledPlugins: [] }), false, action);
-    assert.equal(canRunSelectedAction(action, { ...active, accounts: [{ id: 'a1', gtd_enabled: false }] }), false, action);
-    assert.equal(canRunSelectedAction(action, { ...active, selectedMessageId: null }), false, action);
-    assert.equal(canRunSelectedAction(action, { ...active, selectedMessageId: 'removed-rail' }), false, action);
-  }
-});
-
 test('mail-message shortcuts do not act on a hidden selection under calendar or contacts', () => {
   for (const page of ['showCalendar', 'showContacts']) {
-    for (const action of ['delete', 'archive', 'toggleRead', 'reply', 'nextMessage', 'gtdTodo']) {
+    for (const action of ['delete', 'archive', 'toggleRead', 'reply', 'nextMessage']) {
       assert.equal(canRunSelectedAction(action, { ...selected, [page]: true }), false, `${page} ${action}`);
     }
     assert.equal(canRunSelectedAction('compose', { ...selected, [page]: true }), true);

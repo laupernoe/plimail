@@ -79,8 +79,8 @@ export function resolveConversationSelection({ selectedMessageId, pool = [], thr
   const conversationMessage = selectedMessage?.thread_id
     ? pool.find(message => message.thread_id === selectedMessage.thread_id) || selectedMessage
     : selectedMessage;
-  // A message opened from a notification, a link or the GTD sidebar is parked under __dl_<id>
-  // without switching account (MailApp, utils/gtd.js), so it is not a row of the list on screen.
+  // A message opened from a notification or a link is parked under __dl_<id> without switching
+  // account (MailApp), so it is not a row of the list on screen.
   const parked = !listed
     && Boolean(threadMessages[`__dl_${selectedMessageId}`]?.some(message => message.id === selectedMessageId));
 
@@ -93,8 +93,8 @@ export function resolveConversationSelection({ selectedMessageId, pool = [], thr
   };
 }
 
-// A pick from the list, of a row or of a message under one, through the store given. A notification,
-// a link or the GTD sidebar parks the message it opens under __dl_<id>, and the entry outlives that
+// A pick from the list, of a row or of a message under one, through the store given. A notification
+// or a link parks the message it opens under __dl_<id>, and the entry outlives that
 // open: left in place, it would count this pick as parked (above) whenever the message is not a row
 // on screen, and the reading pane would act for the message's own account rather than the row's.
 export function selectListedMessage(store, id) {
@@ -107,11 +107,6 @@ export function selectListedMessage(store, id) {
 export const shouldFallbackToSingleMessagePane = ({ loading, error, messages = [] }) =>
   !loading && !error && messages.length <= 1;
 
-export const conversationPaneOwnsAutoRead = selectionSource => selectionSource !== 'gtd';
-
-export const selectedMessageTransition = (id, source = null) => id
-  ? { selectedMessageId: id, lastViewedMessageId: id, selectedMessageSource: source }
-  : { selectedMessageId: null, selectedMessageSource: null };
 
 export function conversationListScopeMessages(messages, { selectedAccountId, selectedFolder = 'INBOX' }) {
   const folder = selectedAccountId ? selectedFolder : 'INBOX';

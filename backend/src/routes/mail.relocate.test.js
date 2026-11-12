@@ -70,10 +70,12 @@ describe('relocate reinsert column lists', () => {
 
   it('reads the messages schema out of the migrations', () => {
     // Baseline CREATE TABLE, single ALTER, multi-clause ALTER, and a column added then dropped.
-    for (const col of ['subject', 'reply_to', 'spam_details', 'forwarded_via']) {
+    for (const col of ['subject', 'reply_to', 'list_unsubscribe', 'forwarded_via']) {
       expect(schemaCols).toContain(col);
     }
     expect(schemaCols).not.toContain('gtd_gist');
+    expect(schemaCols).not.toContain('plugin_annotations');
+    expect(schemaCols).not.toContain('spam_details');
   });
 
   it('carries every messages column the migrations add, apart from the explicit exclusions', () => {
@@ -102,10 +104,9 @@ describe('relocate reinsert column lists', () => {
   });
 });
 
-// A label copy (insertCopiedSibling) makes the same kind of full-row copy, from its own column
-// list, and that list fell behind: it lacked plugin_annotations (the GTD gist cache), so every
-// labelled copy regenerated it. Hold it to the relocate list so neither can drift alone.
-describe('label copy column list', () => {
+// A copy (insertCopiedSibling) makes the same kind of full-row copy, from its own column list.
+// Hold it to the relocate list so neither can drift alone.
+describe('copy column list', () => {
   it('copies exactly the columns a relocate carries', async () => {
     const { query } = await import('../services/db.js');
     const { insertCopiedSibling } = await import('../services/imapManager.js');

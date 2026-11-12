@@ -48,7 +48,7 @@ describe('PUT /api/accounts/:id unified inbox preference', () => {
 
   it('persists and returns an opt-out without reconnecting the account', async () => {
     query
-      .mockResolvedValueOnce({ rows: [{ id: '44444444-4444-4444-4444-444444444444', gtd_folders: {} }] })
+      .mockResolvedValueOnce({ rows: [{ id: '44444444-4444-4444-4444-444444444444' }] })
       .mockResolvedValueOnce({
         rows: [{
           id: '44444444-4444-4444-4444-444444444444',

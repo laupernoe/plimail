@@ -22,7 +22,6 @@ import { prefetchBody } from '../utils/bodyCache.js';
 import { applyReadGuard } from '../utils/pendingReads.js';
 import { applyDeleteGuard } from '../utils/pendingDeletes.js';
 import { ActionBtn, ArchiveIcon, MoveIcon, SnoozeIcon, SpamIcon, PrintIcon, TrashIcon, useShortcutTitle } from './MessageActions.jsx';
-import { PluginSlot } from '../plugins/PluginSlot.jsx';
 
 // What the reader is told when an action finds nothing to take (runAction below). In the unified
 // inbox, which has no "this account" to speak of, only Spam and Snooze can: keepDraftsApart and
@@ -61,11 +60,6 @@ export default function ConversationPane({ threadId, folder, unified = false, ac
   const withShortcut = useShortcutTitle();
   const addNotification = useStore(s => s.addNotification);
   const accounts = useStore(s => s.accounts);
-  const selectedRow = useStore(s => {
-    const pool = s.searchQuery?.trim() ? s.searchResults : s.messages;
-    return pool.find(message => message.id === selectedMessageId)
-      ?? Object.values(s.threadMessages).flat().find(message => message.id === selectedMessageId);
-  });
   const setSelectedMessage = useStore(s => s.setSelectedMessage);
   const updateMessage = useStore(s => s.updateMessage);
   const plaintextEmail = useStore(s => s.plaintextEmail);
@@ -262,7 +256,7 @@ export default function ConversationPane({ threadId, folder, unified = false, ac
 
   // Both pickers open on the newest of accountId's copies (of any account's in the unified inbox):
   // the move picker lists that copy's account's folders, and the snooze picker's Back row leads
-  // to the full menu, whose plugin items (GTD classify) act on that copy. With no copy of
+  // to the full menu, which acts on that copy. With no copy of
   // accountId on screen there is nothing to open either on. With the other account's draft picked
   // under the row Move takes nothing (moveThread), and the reader is told before picking a folder.
   const openPicker = (event, view) => {
@@ -284,10 +278,6 @@ export default function ConversationPane({ threadId, folder, unified = false, ac
   // status bar — a standalone PWA draws its content behind it — and the conversation
   // could not be left at all, since a standalone PWA has no swipe-back either. Same bar
   // the message pane shows, safe-area padding included.
-  // The GTD states of the open message: in the back bar when there is one, else in the toolbar.
-  const headerMessage = selectedRow || messages.find(message => message.id === selectedMessageId)
-    || newestConversationMessage(inAccount(messages, accountId));
-  const headerContext = { message: headerMessage, account: accounts.find(account => account.id === headerMessage?.account_id) };
   const hasBackBar = isMobile || listFirst;
   const mobileBackBar = hasBackBar && (
     <div style={{
@@ -315,7 +305,6 @@ export default function ConversationPane({ threadId, folder, unified = false, ac
       }}>
         {newestConversationMessage(messages)?.subject || ''}
       </div>
-      {headerMessage && <PluginSlot name="message-header-meta" ctx={headerContext} />}
     </div>
   );
 
@@ -359,7 +348,6 @@ export default function ConversationPane({ threadId, folder, unified = false, ac
         <ActionBtn onClick={e => openPicker(e, 'snooze')} label={t('contextMenu.snooze.label')} touch={isMobile} popup expanded={picker?.view === 'snooze'}>
           <SnoozeIcon />
         </ActionBtn>
-        {!hasBackBar && headerMessage && <PluginSlot name="message-header-meta" ctx={headerContext} />}
         <div style={{ flex: 1 }} />
         <ActionBtn onClick={() => runAction('spam', spamThread)} label={t('contextMenu.markAsSpam')} touch={isMobile}>
           <SpamIcon />

@@ -17,6 +17,8 @@ fork) include:
     commercial licence, contributor licence agreement, funding and code-owner files,
     and pointed the update check, package metadata and CI image names at the fork.
   - Added a Source code link (AGPL-3.0 section 13) to Settings, About.
+  - Removed the plugin platform and the GTD plugin, the Todoist and CardDAV
+    contact-sync integrations, the built-in antispam filter and the mailbox cleanup tool.
 
 Internal identifiers that installed copies depend on (MAILFLOW_* environment variables,
 database and role names, cookie and storage keys, data-mailflow-* attributes, Docker

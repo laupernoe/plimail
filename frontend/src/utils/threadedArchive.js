@@ -19,13 +19,11 @@ export function archiveViewKey({
   activeCategory,
   currentPage,
   searchAllFolders,
-  activeGtdTab,
   pageSize,
   scrollMode,
   categorizationEnabled,
   accountCategorizationEnabled,
   unifiedInboxAccountKey,
-  showGtdTab,
 }) {
   return JSON.stringify([
     selectedAccountId ?? null,
@@ -36,13 +34,11 @@ export function archiveViewKey({
     activeCategory ?? null,
     Number(currentPage) || 1,
     Boolean(searchAllFolders),
-    activeGtdTab ?? null,
     Number(pageSize) || null,
     scrollMode ?? null,
     Boolean(categorizationEnabled),
     Boolean(accountCategorizationEnabled),
     unifiedInboxAccountKey ?? null,
-    Boolean(showGtdTab),
   ]);
 }
 

@@ -97,14 +97,14 @@ const manifest = (over = {}) => ({
 const gz = entries => gzipSync(entries.map(e => (typeof e === 'string' ? e : JSON.stringify(e))).join('\n') + '\n');
 const file = entries => Readable.from([gz(entries)]);
 
-const PRESENT = ['users', 'email_accounts', 'auth_events', 'messages', 'folders', 'plugin_data', 'schema_migrations', 'email_otp_tokens'];
+const PRESENT = ['users', 'email_accounts', 'auth_events', 'messages', 'folders', 'invites', 'schema_migrations', 'email_otp_tokens'];
 const COLUMNS = {
   users: ['id', 'username', { name: 'preferences', type: 'jsonb' }, 'created_at'],
   email_accounts: ['id', 'user_id', 'name', { name: 'folder_mappings', type: 'jsonb' }],
   auth_events: [{ name: 'id', type: 'int8', sequence: 'public.auth_events_id_seq' }, 'event_type', 'blob'],
   messages: ['id', 'account_id', 'subject'],
   folders: ['id', 'account_id', 'path'],
-  plugin_data: ['plugin_id', 'key', 'value'],
+  invites: ['code', 'key', 'value'],
 };
 const fk = (child, parent) => ({ child, parent });
 const FKS = [fk('email_accounts', 'users'), fk('messages', 'email_accounts'), fk('folders', 'email_accounts')];
@@ -176,13 +176,13 @@ describe('writeBackup', () => {
     expect(result).toEqual({ tables: 4, rows: 4 });
     const [head, ...rest] = lines;
     expect(head).toMatchObject({ mailflow: 'backup', format: BACKUP_FORMAT, app: '3.6.0', scope: 'setup', schemaVersion: VERSION, keyCheck: KEY_CHECK });
-    expect(head.tables).toEqual(['auth_events', 'plugin_data', 'users', 'email_accounts']);
+    expect(head.tables).toEqual(['auth_events', 'invites', 'users', 'email_accounts']);
     expect(head.sequences).toEqual({ folder_status_revision: '80123', restarted_seq: '42' });
     expect(client.statements().filter(s => s.startsWith('SELECT last_value'))).toEqual([
       'SELECT last_value::text AS value FROM "folder_status_revision"',
       'SELECT last_value::text AS value FROM "restarted_seq"',
     ]);
-    expect(rest.at(-1)).toEqual({ end: true, rowCounts: { auth_events: 1, plugin_data: 0, users: 1, email_accounts: 2 } });
+    expect(rest.at(-1)).toEqual({ end: true, rowCounts: { auth_events: 1, invites: 0, users: 1, email_accounts: 2 } });
     expect(rest.slice(0, -1)).toEqual([
       { table: 'auth_events', rows: data.auth_events },
       { table: 'users', rows: data.users },
@@ -194,7 +194,7 @@ describe('writeBackup', () => {
     expect(sql.find(s => s.includes('information_schema.columns'))).toContain("is_generated = 'NEVER'");
     expect(sql.filter(s => s.startsWith('DECLARE'))).toEqual([
       'DECLARE backup_rows NO SCROLL CURSOR FOR SELECT "id", "event_type", "blob" FROM "auth_events"',
-      'DECLARE backup_rows NO SCROLL CURSOR FOR SELECT "plugin_id", "key", "value" FROM "plugin_data"',
+      'DECLARE backup_rows NO SCROLL CURSOR FOR SELECT "code", "key", "value" FROM "invites"',
       'DECLARE backup_rows NO SCROLL CURSOR FOR SELECT "id", "username", "preferences", "created_at" FROM "users"',
       'DECLARE backup_rows NO SCROLL CURSOR FOR SELECT "id", "user_id", "name", "folder_mappings" FROM "email_accounts"',
     ]);
@@ -236,30 +236,30 @@ describe('writeBackup', () => {
   it('adds the mail cache to a full backup, after the tables it references', async () => {
     const { lines } = await backupLines(restoreClient({ data }), 'full');
     expect(lines[0].scope).toBe('full');
-    expect(lines[0].tables).toEqual(['auth_events', 'plugin_data', 'users', 'email_accounts', 'folders', 'messages']);
-    expect(lines.at(-1).rowCounts).toEqual({ auth_events: 1, plugin_data: 0, users: 1, email_accounts: 2, folders: 0, messages: 1 });
+    expect(lines[0].tables).toEqual(['auth_events', 'invites', 'users', 'email_accounts', 'folders', 'messages']);
+    expect(lines.at(-1).rowCounts).toEqual({ auth_events: 1, invites: 0, users: 1, email_accounts: 2, folders: 0, messages: 1 });
   });
 
   it('reads a large table in several fetches and splits its rows over several lines', async () => {
     const big = 'x'.repeat(900 * 1024);
     const many = { ...data, users: Array.from({ length: 1200 }, (_, i) => ({ id: `u${i}`, username: `user${i}`, preferences: '{}', created_at: null })),
-      plugin_data: [0, 1, 2].map(i => ({ plugin_id: 'gtd', key: `k${i}`, value: big })) };
+      invites: [0, 1, 2].map(i => ({ code: 'c', key: `k${i}`, value: big })) };
     const client = restoreClient({ data: many });
     const { lines } = await backupLines(client);
     expect(client.statements().filter(s => s.startsWith('FETCH'))).toHaveLength(4 + 2 + 2 + 2);
     expect(lines.filter(l => l.table === 'users').map(l => l.rows.length)).toEqual([1200]);
     // A line closes before the row that would take it past 2 MiB, so a large row stands alone.
-    expect(lines.filter(l => l.table === 'plugin_data').map(l => l.rows.length)).toEqual([2, 1]);
-    const huge = { ...many, plugin_data: [0, 1, 2].map(i => ({ plugin_id: 'gtd', key: `k${i}`, value: 'y'.repeat(1500 * 1024) })) };
+    expect(lines.filter(l => l.table === 'invites').map(l => l.rows.length)).toEqual([2, 1]);
+    const huge = { ...many, invites: [0, 1, 2].map(i => ({ code: 'c', key: `k${i}`, value: 'y'.repeat(1500 * 1024) })) };
     const split = await backupLines(restoreClient({ data: huge }));
-    expect(split.lines.filter(l => l.table === 'plugin_data').map(l => l.rows.length)).toEqual([1, 1, 1]);
+    expect(split.lines.filter(l => l.table === 'invites').map(l => l.rows.length)).toEqual([1, 1, 1]);
     for (const line of gunzipSync(split.gz).toString('utf8').split('\n')) expect(line.length).toBeLessThan(1600 * 1024);
 
     // And the restore takes it all back in, line by line.
     const target = restoreClient();
     const result = await restoreBackup(target, Readable.from([split.gz]));
     expect(result.rows).toBe(1200 + 3 + 1 + 2);
-    expect(inserts(target).filter(l => l.text.startsWith('INSERT INTO "plugin_data"'))).toHaveLength(3);
+    expect(inserts(target).filter(l => l.text.startsWith('INSERT INTO "invites"'))).toHaveLength(3);
   });
 
   it('refuses to run when a table the migrations created has no classification', async () => {
@@ -306,7 +306,7 @@ describe('restoreBackup', () => {
       'BEGIN',
       'SET LOCAL statement_timeout = 0',
       "SET LOCAL lock_timeout = '30s'",
-      'TRUNCATE "auth_events", "email_accounts", "plugin_data", "users", "folders", "messages" RESTART IDENTITY CASCADE',
+      'TRUNCATE "auth_events", "email_accounts", "invites", "users", "folders", "messages" RESTART IDENTITY CASCADE',
       // A jsonb value is the text inside its JSON string, so a JSON null ('null') and SQL NULL
       // (null) each go back as what they were.
       'INSERT INTO "users" ("id", "username", "preferences") OVERRIDING SYSTEM VALUE SELECT "id", "username", ("preferences" #>> \'{}\')::jsonb FROM json_populate_recordset(NULL::"users", $1::json)',

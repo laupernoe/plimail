@@ -7,12 +7,12 @@ const markMessageUnread = hotkeys.markMessageUnread ?? (() => false);
 
 describe('selected message hotkeys', () => {
   const inbox = { id: 'inbox', account_id: 'acct', is_read: true, category: 'primary' };
-  const rail = { id: 'rail', account_id: 'acct', is_read: true };
+  const found = { id: 'found', account_id: 'acct', is_read: true };
 
-  it('resolves normal, search, thread, and GTD rail selections; no selection is a no-op', () => {
+  it('resolves normal, search, and thread selections; no selection is a no-op', () => {
     assert.equal(selectedMessage({ selectedMessageId: 'inbox', messages: [inbox], searchResults: [], searchQuery: '', threadMessages: {} }), inbox);
-    assert.equal(selectedMessage({ selectedMessageId: 'rail', messages: [inbox], searchResults: [], searchQuery: '', threadMessages: {}, gtdSections: { todo: { threads: [rail] } } }), rail);
-    assert.equal(selectedMessage({ selectedMessageId: 'rail', messages: [], searchResults: [rail], searchQuery: 'q', threadMessages: {} }), rail);
+    assert.equal(selectedMessage({ selectedMessageId: 'found', messages: [inbox], searchResults: [], searchQuery: '', threadMessages: { t1: [found] } }), found);
+    assert.equal(selectedMessage({ selectedMessageId: 'found', messages: [], searchResults: [found], searchQuery: 'q', threadMessages: {} }), found);
     assert.equal(selectedMessage({ selectedMessageId: null, messages: [inbox] }), null);
   });
 

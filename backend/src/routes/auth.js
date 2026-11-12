@@ -15,8 +15,6 @@ import { logAuthEvent } from '../services/authEvents.js';
 import { sendSystemEmail } from '../services/mailer.js';
 import { buildEndSessionUrl } from './oidc.js';
 import { invalidateGlobalCategorizationCache } from '../services/categorizer.js';
-import { sanitizeGtdPrefs } from '../utils/gtdPrefs.js';
-import { sanitizeRightSidebarPrefs } from '../utils/rightSidebarPrefs.js';
 import { redisClient } from '../services/redis.js';
 import { destroyUserSessions } from '../services/userSessions.js';
 import { touchLastSeen } from '../services/lastSeen.js';
@@ -802,12 +800,6 @@ export async function patchPreferences(req, res) {
   if (darkEmailBodies !== undefined && typeof darkEmailBodies !== 'boolean') {
     return res.status(400).json({ error: 'darkEmailBodies must be a boolean' });
   }
-  // GTD content and generic right-sidebar layout preferences are independent flat
-  // top-level keys with separate allow-lists. gtdEnabled is intentionally NOT a user
-  // preference — it lives per-account in email_accounts.gtd_enabled.
-  const { gtdCollapsedSections, gtdPetSlug } = sanitizeGtdPrefs(req.body);
-  const { rightSidebarWidth, rightSidebarHidden } = sanitizeRightSidebarPrefs(req.body);
-  const gtdCollapsedSectionsJson = gtdCollapsedSections != null ? JSON.stringify(gtdCollapsedSections) : null;
   // JSONB fields must be serialised to strings for the ::jsonb cast
   const imageWhitelistJson    = imageWhitelist    != null ? JSON.stringify(imageWhitelist)    : null;
   const shortcutsJson         = shortcuts         != null ? JSON.stringify(shortcuts)         : null;
@@ -906,24 +898,20 @@ export async function patchPreferences(req, res) {
       || CASE WHEN $28::text IS NOT NULL THEN jsonb_build_object('markReadBehavior', $28::text) ELSE '{}'::jsonb END
       || CASE WHEN $29::text IS NOT NULL THEN jsonb_build_object('markReadDelay', $29::text) ELSE '{}'::jsonb END
       || CASE WHEN $30::jsonb IS NOT NULL THEN jsonb_build_object('aiActions', $30::jsonb) ELSE '{}'::jsonb END
-      || CASE WHEN $31::int IS NOT NULL THEN jsonb_build_object('rightSidebarWidth', $31::int) ELSE '{}'::jsonb END
-      || CASE WHEN $32::boolean IS NOT NULL THEN jsonb_build_object('rightSidebarHidden', $32::boolean) ELSE '{}'::jsonb END
-      || CASE WHEN $33::jsonb IS NOT NULL THEN jsonb_build_object('gtdCollapsedSections', $33::jsonb) ELSE '{}'::jsonb END
-      || CASE WHEN $34::text IS NOT NULL THEN jsonb_build_object('gtdPetSlug', $34::text) ELSE '{}'::jsonb END
-      || CASE WHEN $35::text IS NOT NULL THEN jsonb_build_object('autoLockMinutes', $35::text) ELSE '{}'::jsonb END
-      || CASE WHEN $36::boolean IS NOT NULL THEN jsonb_build_object('showMobileAvatars', $36::boolean) ELSE '{}'::jsonb END
-      || CASE WHEN $37::boolean IS NOT NULL THEN jsonb_build_object('gravatarAvatars', $37::boolean) ELSE '{}'::jsonb END
-      || CASE WHEN $38::text IS NOT NULL THEN jsonb_build_object('folderSyncInterval', $38::text) ELSE '{}'::jsonb END
-      || CASE WHEN $39::jsonb IS NOT NULL THEN jsonb_build_object('folderOrder', $39::jsonb) ELSE '{}'::jsonb END
-      || CASE WHEN $40::boolean IS NOT NULL THEN jsonb_build_object('senderFavicons', $40::boolean) ELSE '{}'::jsonb END
-      || CASE WHEN $41::boolean IS NOT NULL THEN jsonb_build_object('showMessagePreviews', $41::boolean) ELSE '{}'::jsonb END
-      || CASE WHEN $42::text IS NOT NULL THEN jsonb_build_object('defaultSender', $42::text) ELSE '{}'::jsonb END
-      || CASE WHEN $43::text IS NOT NULL THEN jsonb_build_object('conversationMode', $43::text) ELSE '{}'::jsonb END
-      || CASE WHEN $44::jsonb IS NOT NULL THEN jsonb_build_object('hoverActionSet', $44::jsonb) ELSE '{}'::jsonb END
-      || CASE WHEN $45::boolean IS NOT NULL THEN jsonb_build_object('autoOpenReplyDrafts', $45::boolean) ELSE '{}'::jsonb END
-      || CASE WHEN $46::text IS NOT NULL THEN jsonb_build_object('afterRemove', $46::text) ELSE '{}'::jsonb END
-      || CASE WHEN $47::boolean IS NOT NULL THEN jsonb_build_object('darkEmailBodies', $47::boolean) ELSE '{}'::jsonb END
-      || CASE WHEN $48::jsonb IS NOT NULL THEN jsonb_build_object('listSort', $48::jsonb) ELSE '{}'::jsonb END
+      || CASE WHEN $31::text IS NOT NULL THEN jsonb_build_object('autoLockMinutes', $31::text) ELSE '{}'::jsonb END
+      || CASE WHEN $32::boolean IS NOT NULL THEN jsonb_build_object('showMobileAvatars', $32::boolean) ELSE '{}'::jsonb END
+      || CASE WHEN $33::boolean IS NOT NULL THEN jsonb_build_object('gravatarAvatars', $33::boolean) ELSE '{}'::jsonb END
+      || CASE WHEN $34::text IS NOT NULL THEN jsonb_build_object('folderSyncInterval', $34::text) ELSE '{}'::jsonb END
+      || CASE WHEN $35::jsonb IS NOT NULL THEN jsonb_build_object('folderOrder', $35::jsonb) ELSE '{}'::jsonb END
+      || CASE WHEN $36::boolean IS NOT NULL THEN jsonb_build_object('senderFavicons', $36::boolean) ELSE '{}'::jsonb END
+      || CASE WHEN $37::boolean IS NOT NULL THEN jsonb_build_object('showMessagePreviews', $37::boolean) ELSE '{}'::jsonb END
+      || CASE WHEN $38::text IS NOT NULL THEN jsonb_build_object('defaultSender', $38::text) ELSE '{}'::jsonb END
+      || CASE WHEN $39::text IS NOT NULL THEN jsonb_build_object('conversationMode', $39::text) ELSE '{}'::jsonb END
+      || CASE WHEN $40::jsonb IS NOT NULL THEN jsonb_build_object('hoverActionSet', $40::jsonb) ELSE '{}'::jsonb END
+      || CASE WHEN $41::boolean IS NOT NULL THEN jsonb_build_object('autoOpenReplyDrafts', $41::boolean) ELSE '{}'::jsonb END
+      || CASE WHEN $42::text IS NOT NULL THEN jsonb_build_object('afterRemove', $42::text) ELSE '{}'::jsonb END
+      || CASE WHEN $43::boolean IS NOT NULL THEN jsonb_build_object('darkEmailBodies', $43::boolean) ELSE '{}'::jsonb END
+      || CASE WHEN $44::jsonb IS NOT NULL THEN jsonb_build_object('listSort', $44::jsonb) ELSE '{}'::jsonb END
     WHERE id = $1
   `, [req.session.userId, themeVal, font ?? null, layout ?? null, notificationSound ?? null,
       pageSize ?? null, scrollMode ?? null, syncInterval ?? null,
@@ -932,7 +920,7 @@ export async function patchPreferences(req, res) {
       swipeActionsJson, expandedAccountsJson, collapsedFoldersJson, favoriteFoldersJson, recentFoldersJson, fontSizeVal,
       showAppBadge ?? null, showFaviconBadge ?? null, replyDefaultVal, sidebarWidthVal,
       categorizationEnabled ?? null, markReadBehaviorVal, markReadDelayVal, aiActionsJson,
-      rightSidebarWidth, rightSidebarHidden, gtdCollapsedSectionsJson, gtdPetSlug, autoLockMinutesVal,
+      autoLockMinutesVal,
       showMobileAvatars ?? null, gravatarAvatars ?? null, folderSyncIntervalVal, folderOrderJson, senderFaviconsVal,
       showMessagePreviews ?? null, defaultSenderVal, conversationModeVal, hoverActionSetJson, autoOpenReplyDrafts ?? null,
       afterRemoveVal, darkEmailBodies ?? null, listSortJson]);

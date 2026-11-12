@@ -122,7 +122,6 @@ const SAME_VALUE_ALLOWED = {
   'admin.about.kofi':                       'any', // Ko-fi — brand name, same everywhere
   'admin.about.githubSponsors':             'any', // GitHub Sponsors — product name, same everywhere
   'admin.ai.subscriptionProviderChatgpt':    'any', // ChatGPT Plus/Pro (Codex Subscription) — product name, same everywhere
-  'admin.categories.gtdReveal':             'any', // "GTD" — brand-like acronym, same everywhere
   'admin.accounts.imapHostPh':              'any', // imap.gmail.com
   'admin.accounts.presetGmail':             'any', // Gmail
   'admin.accounts.presetIcloud':            'any', // iCloud
@@ -159,16 +158,11 @@ const SAME_VALUE_ALLOWED = {
   // "por {{actor}}" (who made an admin change) — the same preposition in es and pt-BR
   'admin.security.byActor': [['es', 'ptBR']],
   // "Account" — identical in en/it; "Konto" — identical in de/pl
-  'admin.cleanup.account': [['en', 'it'], ['de', 'pl']],
   // "{{n}} min" — the "min" abbreviation is shared in en, es, fr, it
   'admin.lock.autoLockMin': [['cs', 'en', 'es', 'fr', 'it', 'pl', 'ptBR']],
 
   // "Website" — international term, same in de and en
   'admin.about.website': [['de', 'en']],
-
-  // "Plugins" — loanword, same spelling in de and en (it uses singular "Plugin")
-  'admin.tabs.plugins':  [['de', 'en', 'ptBR']],
-  'admin.plugins.title': [['de', 'en', 'ptBR']],
 
   // "Alias" — Latin origin, same spelling in es, fr, it
   'admin.accounts.aliases': [['es', 'fr', 'it'], ['cs', 'pl']],
@@ -183,24 +177,6 @@ const SAME_VALUE_ALLOWED = {
   'admin.aliases.emailPh':     [['de', 'en', 'ko', 'ru', 'zhCN']],
   'admin.privacy.addDomainPh': [['cs', 'de', 'en', 'ko', 'pl', 'ru', 'zhCN']],
 
-  // ── Antispam v0.2 ──────────────────────────────────────────────────────────
-  // "Antispam" — international loanword, same spelling in en, it, de, es, fr, cs
-  'admin.tabs.antispam':          [['cs', 'de', 'en', 'es', 'fr', 'it', 'ptBR']],
-  'admin.accounts.antispamSection': [['cs', 'de', 'en', 'es', 'fr', 'it', 'ptBR']],
-  'spam.title':                   [['cs', 'de', 'en', 'es', 'fr', 'it', 'ptBR']],
-  // "spam" — lowercase loanword shared in en, es, fr, it, cs, pl (de capitalizes: "Spam")
-  'spam.badgeLabel':              [['en', 'es', 'fr', 'it', 'cs', 'pl']],
-  // "Verdict" / "Mature" — same spelling in en and fr
-  'spam.explainVerdict':          [['en', 'fr']],
-  // "Metoda" — same spelling in cs and pl
-  'spam.explainMethod':           [['cs', 'pl'], ['es', 'ptBR']],
-  'spam.maturity.mature':         [['en', 'fr'], ['es', 'ptBR']],
-  // "Fresco" — same spelling in es and it
-  'spam.maturity.fresh':          [['es', 'it']],
-  // "Spam" — capitalized loanword shared in en, it, de, es, fr, cs, pl
-  'spam.verdict.spam':            [['cs', 'de', 'en', 'es', 'fr', 'it', 'pl', 'ptBR']],
-  // authserv-id example — a literal hostname, identical in every locale
-  'admin.accounts.trustedAuthservPlaceholder': 'any',
   'admin.privacy.addSenderPh': [['en', 'ko', 'ru', 'zhCN']],
   'admin.blockList.emailPlaceholder': [['en', 'ko']],
   'admin.aliases.replyToLabel': [['en', 'pl']],
@@ -304,7 +280,6 @@ const SAME_VALUE_ALLOWED = {
 
   // "Telefon" / "Projekt" — established Polish/German technical loanwords
   'contacts.fields.phone': [['cs', 'de', 'pl']],
-  'todoist.project':       [['cs', 'de', 'pl']],
 
   // "Password" — international term, same in en and it
   'admin.systemEmail.password':      [['en', 'it']],
@@ -374,41 +349,18 @@ const SAME_VALUE_ALLOWED = {
   // "Social" — international term used as-is in en, es, and it
   'messageList.categories.social': [['en', 'es', 'it', 'ptBR']],
 
-  // ── GTD ────────────────────────────────────────────────────────────────────
-  // "GTD" — acronym (Getting Things Done), same in every locale
-  'gtd.title': 'any',
-
   // ── Keyboard shortcuts ─────────────────────────────────────────────────────
-  // "GTD" — acronym group heading, same in every locale (like admin.categories.gtdReveal)
-  'shortcuts.groups.gtd': 'any',
   // "Navigation" — spelled identically in de, en, fr (es "Navegación", it "Navigazione")
   'shortcuts.groups.navigation': [['de', 'en', 'fr']],
-
-  // ── Todoist integration ────────────────────────────────────────────────────
-  // "Todoist" — brand name, same in all locales
-  'admin.integrations.todoist.title': 'any',
-  // "Description" — same spelling in en and fr
-  'todoist.description': [['en', 'fr']],
-  // "Labels" — international loanword, same in de and en
-  'todoist.labels': [['de', 'en'], ['es', 'ptBR']],
-  // "Urgent" — same in en and fr; "Urgente" same in es and it (Romance languages)
-  'todoist.priorityUrgent': [['en', 'fr'], ['es', 'it', 'ptBR']],
-  // "Alta" — "High" translates identically in es and it (Romance languages)
-  'todoist.priorityHigh': [['es', 'it', 'ptBR']],
-  // "Media" — "Medium" translates identically in es and it (Romance languages)
-  'todoist.priorityMedium': [['es', 'it']],
 
   // ── Czech ────────────────────────────────────────────────────────────────
   'admin.about.license': [['cs', 'fr']],
   'admin.ai.chatgptModel': [['cs', 'pl']],
   'admin.ai.model': [['cs', 'en'], ['es', 'ptBR']],
   'admin.appearance.typography': [['cs', 'de'], ['it', 'ptBR']],
-  'admin.integrations.carddav.serverPh': 'any',
-  'admin.integrations.carddav.title': [['cs', 'pl']],
   'admin.messageList.markReadDelaySeconds': [['cs', 'pl'], ['es', 'ptBR']],
   'admin.messageList.markReadDelaySeconds_other': [['cs', 'pl'], ['es', 'ptBR']],
   'admin.tabs.categories': [['cs', 'pl']],
-  'gtd.state.reference': [['cs', 'en']],
 
   // ── Brazilian Portuguese (ptBR) ────────────────────────────────────────────
   // Portuguese shares a large vocabulary with Spanish (and some with Italian),
@@ -432,18 +384,7 @@ const SAME_VALUE_ALLOWED = {
   'admin.blockList.addButton':                       [['es', 'ptBR']], // "Bloquear"
   'admin.categories.recategorize':                   [['es', 'ptBR']], // "Recategorizar"
   'admin.folderMappings.sent':                       [['es', 'ptBR']], // "Enviados"
-  'admin.gtd.pet.import':                            [['es', 'ptBR']], // "Importar"
-  'admin.gtd.pet.importing':                         [['es', 'ptBR']], // "Importando…"
-  'admin.integrations.carddav.connect':              [['es', 'ptBR']], // "Conectar"
-  'admin.integrations.carddav.connected':            [['es', 'ptBR']], // "Conectado"
-  'admin.integrations.carddav.connecting':           [['es', 'ptBR']], // "Conectando…"
-  'admin.integrations.carddav.disconnect':           [['es', 'ptBR']], // "Desconectar"
-  'admin.integrations.carddav.syncing':              [['es', 'ptBR']], // "Sincronizando…"
   'admin.integrations.google.configured':            [['es', 'ptBR']], // "Configurado"
-  'admin.integrations.todoist.connect':              [['es', 'ptBR']], // "Conectar"
-  'admin.integrations.todoist.connected':            [['es', 'ptBR']], // "Conectado"
-  'admin.integrations.todoist.connecting':           [['es', 'ptBR']], // "Conectando..."
-  'admin.integrations.todoist.disconnect':           [['es', 'ptBR']], // "Desconectar"
   'admin.lock.confirmPin':                           [['es', 'ptBR']], // "Confirmar PIN"
   'admin.messageList.defaultReply':                  [['es', 'ptBR']], // "Responder"
   'admin.messageList.defaultReplyAll':               [['es', 'ptBR']], // "Responder a todos"
@@ -506,11 +447,6 @@ const SAME_VALUE_ALLOWED = {
   'contextMenu.replyAll':                            [['es', 'ptBR']], // "Responder a todos"
   'contextMenu.snooze.custom':                       [['es', 'ptBR']], // "Personalizado..."
   'diagnostics.section':                             [['es', 'ptBR']], // "Diagnóstico"
-  'gtd.classified':                                  [['es', 'ptBR']], // "Etiqueta aplicada"
-  'gtd.inboxZero':                                   [['en', 'ptBR']], // "Inbox Zero ✓"
-  'gtd.showLess':                                    [['es', 'ptBR']], // "Mostrar menos"
-  'gtd.showSome':                                    [['es', 'ptBR']], // "Mostrar {{available}} de {{total}}"
-  'gtd.toggleSection':                               [['es', 'ptBR']], // "Alternar {{section}}"
   'lockScreen.unlockButton':                         [['es', 'ptBR']], // "Desbloquear"
   'lockScreen.unlocking':                            [['es', 'ptBR']], // "Desbloqueando…"
   'login.emailOtp.codePh':                           [['es', 'ptBR']], // "Código de 6 dígitos"
@@ -544,10 +480,6 @@ const SAME_VALUE_ALLOWED = {
   'signatureEditor.sourceMode':                      [['es', 'ptBR']], // "Editar código HTML"
   'signatureEditor.strikethrough':                   [['es', 'ptBR']], // "Tachado"
   'signatureEditor.visualMode':                      [['es', 'ptBR']], // "Editor visual"
-  'spam.maturity.insufficient':                      [['es', 'ptBR']], // "Insuficiente"
-  'spam.never':                                      [['es', 'ptBR']], // "nunca"
-  'spam.records':                                    [['es', 'ptBR']], // "registros"
-  'spam.verdict.unsure':                             [['it', 'ptBR']], // "Incerto"
   'window.minimize':                                 [['es', 'ptBR']], // "Minimizar"
 
   // ── Special-use folder labels (sidebar / pickers) ───────────────────────────
@@ -685,7 +617,6 @@ const DYNAMIC_KEYS = new Set([
   'admin.tabs.accounts',
   'admin.tabs.rules',
   'admin.tabs.appearance',
-  'admin.tabs.integrations',
   'admin.tabs.users',
   'admin.tabs.sso',
   'admin.tabs.backup',
@@ -694,7 +625,6 @@ const DYNAMIC_KEYS = new Set([
   'admin.tabs.shortcuts',
   'admin.tabs.about',
   'admin.tabs.categories',
-  'admin.tabs.antispam',
   // t(group.labelKey) — labelKey is a string property set in the TAB_GROUPS array
   'admin.tabs.groupAccountMail',
   'admin.tabs.groupDisplay',
@@ -706,22 +636,6 @@ const DYNAMIC_KEYS = new Set([
   'messageList.categories.promotion',
   'messageList.categories.automated',
   'messageList.categories.social',
-  // t(`gtd.state.${state}`) — GTD state labels referenced via template literal for
-  // the merged-Waiting kind chip and the classify submenu (watch/delegated never
-  // appear as literals; the other three do via the tab pills).
-  'gtd.state.watch',
-  'gtd.state.delegated',
-  // Antispam v0.2 — template-literal keys (SpamSettings/SpamBadge/SpamExplainModal)
-  'spam.maturity.mature',
-  'spam.maturity.fresh',
-  'spam.maturity.insufficient',
-  'spam.deleteScope.per_account',
-  'spam.deleteScope.all',
-  'spam.verdict.spam',
-  'spam.verdict.ham',
-  'spam.verdict.unsure',
-  'spam.method.rules',
-  'spam.method.blended',
   // Attachment risk badges (MessagePane): t(`message.attachmentRisk.${risk.level}`),
   // where the level comes from classifyAttachmentRisk.
   'message.attachmentRisk.block', 'message.attachmentRisk.warn', 'message.attachmentRisk.notice',

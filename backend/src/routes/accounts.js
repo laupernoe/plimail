@@ -7,8 +7,6 @@ import { encrypt } from '../services/encryption.js';
 import { sanitizeSignature } from '../services/emailSanitizer.js';
 import { validateHost } from '../services/hostValidation.js';
 import { getConnectionPolicy } from '../services/connectionPolicy.js';
-import { normalizeAuthservId } from '../services/spamParser.js';
-import { pluginRegistry } from '../plugins/registry.js';
 import { createKeyedSerializer } from '../utils/keyedSerializer.js';
 import { isUuid, uuidParam } from '../utils/uuid.js';
 import { normalizeAddressList } from '../utils/addressList.js';
@@ -16,10 +14,10 @@ import { reportConnect } from '../services/connectReport.js';
 import { findOwnedAccount, findOwnedAlias } from '../services/ownership.js';
 import { NEXT_ACCOUNT_SORT_ORDER, setAccountOrder } from '../services/accountOrder.js';
 
-// Serialize an account's reconnect triggers so a rapid settings change (e.g. a
-// gtd_enabled double-toggle) can't fire two overlapping disconnect→connect chains —
-// connectAccount's in-progress guard would drop the second and leave the GTD sync
-// tick armed inconsistently with the final DB value. Queued per account id.
+// Serialize an account's reconnect triggers so a rapid settings change (e.g. an
+// enabled double-toggle) can't fire two overlapping disconnect→connect chains —
+// connectAccount's in-progress guard would drop the second and leave the connection
+// state inconsistent with the final DB value. Queued per account id.
 const reconnectQueue = createKeyedSerializer();
 
 const ALLOWED_IMAP_PORTS = new Set([143, 993]);
@@ -78,15 +76,15 @@ export const SAFE_FIELDS = [
   'auth_user', 'smtp_auth_user', 'oauth_provider', 'oauth_public_client', 'enabled',
   'include_in_unified_inbox',
   'last_sync', 'sync_error', 'sync_error_code', 'sort_order', 'folder_mappings',
-  'signature', 'signature_enabled', 'created_at', 'categorization_enabled', 'antispam_enabled',
-  'trusted_authserv_id', 'auto_cc_addresses', 'auto_bcc_addresses',
+  'signature', 'signature_enabled', 'created_at', 'categorization_enabled',
+  'auto_cc_addresses', 'auto_bcc_addresses',
 ];
 // Columns PUT /:id may write. The settings form sends back what GET returned, so every
 // non-secret one must be in SAFE_FIELDS or saving an unrelated edit would write it as empty.
-export const ACCOUNT_UPDATE_FIELDS = ['name', 'sender_name', 'color', 'icon', 'enabled', 'include_in_unified_inbox', 'auth_user', 'auth_pass', 'sort_order', 'imap_host', 'imap_port', 'imap_tls', 'imap_skip_tls_verify', 'smtp_host', 'smtp_port', 'smtp_tls', 'smtp_auth_user', 'smtp_auth_pass', 'folder_mappings', 'signature', 'signature_enabled', 'categorization_enabled', 'antispam_enabled', 'trusted_authserv_id', 'auto_cc_addresses', 'auto_bcc_addresses'];
+export const ACCOUNT_UPDATE_FIELDS = ['name', 'sender_name', 'color', 'icon', 'enabled', 'include_in_unified_inbox', 'auth_user', 'auth_pass', 'sort_order', 'imap_host', 'imap_port', 'imap_tls', 'imap_skip_tls_verify', 'smtp_host', 'smtp_port', 'smtp_tls', 'smtp_auth_user', 'smtp_auth_pass', 'folder_mappings', 'signature', 'signature_enabled', 'categorization_enabled', 'auto_cc_addresses', 'auto_bcc_addresses'];
 // What an API token sees of an account (#617): enough to name it, pick a From and draft as the
 // composer does (signature on or off, the automatic Cc and Bcc), and nothing of its settings:
-// no hosts, ports, TLS or login names, signatures, folder mappings or plugin configuration.
+// no hosts, ports, TLS or login names, signatures or folder mappings.
 function tokenAccount(row, aliases) {
   return {
     id: row.id,
@@ -137,19 +135,13 @@ router.get('/', async (req, res) => {
 
   if (req.apiToken) return res.json(result.rows.map(a => tokenAccount(a, aliasMap[a.id] || [])));
 
-  // Let plugins re-attach their own account-scoped fields (GTD: gtd_enabled/gtd_folders, no longer
-  // columns) so the client sees them as before. Each enrichAccount handler returns a field patch.
-  const enriched = await Promise.all(result.rows.map(async (a) => {
-    const patches = await pluginRegistry.collectHook('enrichAccount', { account: a });
-    return {
-      ...a,
-      ...Object.assign({}, ...patches),
-      signature: a.signature ? sanitizeSignature(a.signature) : a.signature,
-      aliases: (aliasMap[a.id] || []).map(alias => ({
-        ...alias,
-        signature: alias.signature ? sanitizeSignature(alias.signature) : alias.signature,
-      })),
-    };
+  const enriched = result.rows.map((a) => ({
+    ...a,
+    signature: a.signature ? sanitizeSignature(a.signature) : a.signature,
+    aliases: (aliasMap[a.id] || []).map(alias => ({
+      ...alias,
+      signature: alias.signature ? sanitizeSignature(alias.signature) : alias.signature,
+    })),
   }));
   res.json(enriched);
 });
@@ -299,24 +291,6 @@ router.put('/:id', async (req, res) => {
 
   if ('imap_port' in updates) updates.imap_tls = Number(updates.imap_port) % 1000 === 993;
 
-  // Trusted Authentication-Results authserv-id: store the normalized token, or
-  // NULL to trust nothing (the default). Reject junk before it reaches the DB —
-  // the value is only ever compared against a header token, so a strict shape is
-  // enough (letters/digits plus the hostname punctuation seen in the wild).
-  if ('trusted_authserv_id' in updates) {
-    const rawId = updates.trusted_authserv_id;
-    if (rawId === null || rawId === undefined || String(rawId).trim() === '') {
-      updates.trusted_authserv_id = null;
-    } else if (typeof rawId !== 'string' || rawId.trim().length > 255
-      || !/^[A-Za-z0-9._:/-]+$/.test(rawId.trim())) {
-      return res.status(400).json({
-        error: 'trusted_authserv_id must be a single hostname-like token (letters, digits, ".", "-", "_", "/", ":")',
-      });
-    } else {
-      updates.trusted_authserv_id = normalizeAuthservId(rawId);
-    }
-  }
-
   try {
     if ('auto_cc_addresses' in updates) updates.auto_cc_addresses = normalizeAddressList(updates.auto_cc_addresses, 'Automatic Cc');
     if ('auto_bcc_addresses' in updates) updates.auto_bcc_addresses = normalizeAddressList(updates.auto_bcc_addresses, 'Automatic Bcc');
@@ -328,23 +302,6 @@ router.put('/:id', async (req, res) => {
     const bcc = new Set(updates.auto_bcc_addresses.map(a => a.toLowerCase()));
     const shared = updates.auto_cc_addresses.find(a => bcc.has(a.toLowerCase()));
     if (shared) return res.status(400).json({ error: `${JSON.stringify(shared)} cannot be in both Automatic Cc and Automatic Bcc` });
-  }
-
-  // Let plugins validate the settings fields they own (GTD owns gtd_enabled/gtd_folders) before we
-  // touch anything. A plugin may hard-reject the change (return an error response), report per-field
-  // sub-values it reset to defaults, and flag whether its change requires a reconnect. The actual
-  // write of a plugin's fields happens in persistAccountSettings below (into the plugin's own store,
-  // not a column). This is the generic account-scoped settings surface; core knows nothing
-  // GTD-specific here.
-  const settingsResults = await pluginRegistry.collectHook('validateAccountSettings', {
-    updates, accountId: id,
-  });
-  const rejectedByField = {};
-  let pluginRequiresReconnect = false;
-  for (const r of settingsResults) {
-    if (r.error) return res.status(r.error.status).json(r.error.body);
-    if (r.rejected) Object.assign(rejectedByField, r.rejected);
-    if (r.requiresReconnect) pluginRequiresReconnect = true;
   }
 
   const sets = [];
@@ -362,46 +319,19 @@ router.put('/:id', async (req, res) => {
     }
   }
 
-  // Write the core columns (if any changed), then let plugins persist their own owned fields into
-  // their stores (GTD: gtd_enabled/gtd_folders → plugin_account_config). A request may touch ONLY
-  // plugin fields (e.g. the GTD enable toggle), in which case there are no core columns to write —
-  // re-read the row for the response base instead of running an empty UPDATE.
-  let updated;
-  if (sets.length) {
-    values.push(id);
-    const result = await query(
-      `UPDATE email_accounts SET ${sets.join(', ')} WHERE id = $${i} RETURNING *`,
-      values
-    );
-    updated = result.rows[0];
-  } else {
-    const reread = await query('SELECT * FROM email_accounts WHERE id = $1', [id]);
-    updated = reread.rows[0];
-  }
+  if (!sets.length) return res.status(400).json({ error: 'No valid fields to update' });
 
-  // Persist plugin-owned fields into their own stores; each returns { patch } (the saved values) to
-  // echo back on the response so the client sees them as if they were columns.
-  const persistResults = await pluginRegistry.collectHook('persistAccountSettings', {
-    accountId: id, updates,
-  });
-  const pluginPatch = {};
-  let pluginPersisted = false;
-  for (const r of persistResults) {
-    if (r?.patch) { Object.assign(pluginPatch, r.patch); pluginPersisted = true; }
-  }
+  values.push(id);
+  const result = await query(
+    `UPDATE email_accounts SET ${sets.join(', ')} WHERE id = $${i} RETURNING *`,
+    values
+  );
+  const updated = result.rows[0];
 
-  if (!sets.length && !pluginPersisted) return res.status(400).json({ error: 'No valid fields to update' });
+  res.json(safeAccount(updated));
 
-  const payload = { ...safeAccount(updated), ...pluginPatch };
-  // Surface any plugin-rejected field sub-values (e.g. GTD folder paths reset to defaults) so the
-  // settings form can flag them. Keyed by field name as the client expects.
-  if (rejectedByField.gtd_folders) payload.gtd_folders_rejected = rejectedByField.gtd_folders;
-  res.json(payload);
-
-  // Sync live IMAP state after DB update (fire-and-forget, non-fatal). Core reconnect triggers
-  // are the connection/credential/host fields; a plugin can also require a reconnect for its own
-  // field change (GTD: a gtd_enabled toggle re-arms the tick, a folder remap backfills the newly
-  // designated folder) via validateAccountSettings' requiresReconnect.
+  // Sync live IMAP state after DB update (fire-and-forget, non-fatal). The reconnect triggers
+  // are the connection/credential/host fields.
   const isDisabling = 'enabled' in updates && !updates.enabled;
   const needsReconnect = !isDisabling && (
     'enabled' in updates ||
@@ -410,12 +340,11 @@ router.put('/:id', async (req, res) => {
     'imap_host' in updates ||
     'imap_port' in updates ||
     'imap_tls' in updates ||
-    'imap_skip_tls_verify' in updates ||
-    pluginRequiresReconnect
+    'imap_skip_tls_verify' in updates
   );
 
   // Both branches queue through the per-account serializer so overlapping settings
-  // changes (e.g. a rapid gtd_enabled double-toggle) apply their connection-state
+  // changes (e.g. a rapid enabled double-toggle) apply their connection-state
   // effects in order, never as two overlapping chains.
   if (isDisabling) {
     reconnectQueue(id, () => imapManager.disconnectAccount(id))
@@ -503,7 +432,6 @@ router.post('/:id/aliases', async (req, res) => {
     'INSERT INTO account_aliases (account_id, name, email, reply_to, signature) VALUES ($1, $2, $3, $4, $5) RETURNING *',
     [id, name, email, reply_to || null, sanitizeSignature(signature) || null]
   );
-  pluginRegistry.runHook('onAccountIdentityChanged', { accountId: id }).catch(err => console.warn('onAccountIdentityChanged hook failed:', err.message));
   res.json(result.rows[0]);
 });
 
@@ -522,7 +450,6 @@ router.put('/:id/aliases/:aliasId', async (req, res) => {
     'UPDATE account_aliases SET name = $1, email = $2, reply_to = $3, signature = $4 WHERE id = $5 RETURNING *',
     [name, email, reply_to || null, sanitizeSignature(signature) || null, aliasId]
   );
-  pluginRegistry.runHook('onAccountIdentityChanged', { accountId: alias.account_id }).catch(err => console.warn('onAccountIdentityChanged hook failed:', err.message));
   res.json(result.rows[0]);
 });
 
@@ -533,7 +460,6 @@ router.delete('/:id/aliases/:aliasId', async (req, res) => {
   if (!alias) return res.status(404).json({ error: 'Alias not found' });
 
   await query('DELETE FROM account_aliases WHERE id = $1', [aliasId]);
-  pluginRegistry.runHook('onAccountIdentityChanged', { accountId: alias.account_id }).catch(err => console.warn('onAccountIdentityChanged hook failed:', err.message));
   res.json({ ok: true });
 });
 

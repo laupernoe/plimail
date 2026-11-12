@@ -1,5 +1,3 @@
-import { canDispatchHoveredGtdShortcut } from './gtdHoveredRow.js';
-import { resolveGtdHotkeyTarget } from './gtdHotkeys.js';
 import { selectedPickerMessage } from './labelPicker.js';
 import { topOpenMessageWindow } from './messageHotkeys.js';
 
@@ -18,21 +16,12 @@ const WINDOW_ACTIONS = new Set([
 // contacts pages, so these would otherwise act on a message the user cannot see.
 const MAIL_VIEW_ACTIONS = new Set([
   ...SELECTED_ACTIONS, 'archive', 'delete', 'nextMessage', 'prevMessage', 'openMessage',
-  'gtdTodo', 'gtdWatch', 'gtdDelegated', 'gtdReference', 'gtdSomeday', 'gtdDone',
 ]);
-
-export function canRunGlobalAction(action, { rightSidebarApplicable }) {
-  return action !== 'toggleRightSidebar' || Boolean(rightSidebarApplicable);
-}
 
 export function canRunSelectedAction(action, state) {
   if ((state?.showCalendar || state?.showContacts) && MAIL_VIEW_ACTIONS.has(action)) {
     // A pop-out message window is still visible over those pages.
     if (!(WINDOW_ACTIONS.has(action) && topOpenMessageWindow(state))) return false;
-  }
-  if (canDispatchHoveredGtdShortcut(action, state)) return true;
-  if (['gtdTodo', 'gtdWatch', 'gtdDelegated', 'gtdReference', 'gtdSomeday', 'gtdDone'].includes(action)) {
-    return Boolean(resolveGtdHotkeyTarget(state));
   }
   if (!SELECTED_ACTIONS.has(action)) return true;
   if (!state?.selectedMessageId && !WINDOW_ACTIONS.has(action)) return false;

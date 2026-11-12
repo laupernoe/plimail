@@ -51,7 +51,7 @@ const message = () => ({
   id: MESSAGE_ID, account_id: ACCOUNT_ID, uid: 7, folder: 'INBOX', message_id: '<m1@example.com>',
   subject: 'Hello', from_email: 'a@example.com', is_read: false, is_starred: false, is_deleted: false,
   attachments: [], bcc_addresses: ['b@example.com'], list_unsubscribe: null, list_unsubscribe_post: null,
-  body_html: `<p><img src="${IMAGE_URL}"></p>`, user_id: OWNER, folder_mappings: {}, sibling_count: 1,
+  body_html: `<p><img src="${IMAGE_URL}"></p>`, user_id: OWNER, folder_mappings: {},
 });
 
 const flat = sql => sql.replace(/\s+/g, ' ').trim();
@@ -138,8 +138,6 @@ const cases = [
   ['POST /folders/delete', { method: 'POST', path: '/folders/delete', body: { accountId: ACCOUNT_ID, path: 'Old' } }, accountNotFound, { status: 200 }],
   ['POST /folders/rename', { method: 'POST', path: '/folders/rename', body: { accountId: ACCOUNT_ID, oldPath: 'Old', newName: 'New' } }, accountNotFound, { status: 200, json: { ok: true, newPath: 'New' } }],
   ['POST /folders/empty', { method: 'POST', path: '/folders/empty', body: { accountId: ACCOUNT_ID, path: 'Old' } }, accountNotFound, { status: 202 }],
-  ['GET /mailbox-usage', { path: `/mailbox-usage?accountId=${ACCOUNT_ID}` }, accountNotFound, { status: 200 }],
-  ['GET /cleanup-preview', { path: `/cleanup-preview?accountId=${ACCOUNT_ID}&fromEmail=a@example.com` }, accountNotFound, { status: 200, json: { accountId: ACCOUNT_ID, fromEmail: 'a@example.com', count: 0, ids: [] } }],
   ['GET /messages/:id', { path: `/messages/${MESSAGE_ID}` }, messageNotFound, { status: 200 }],
   ['GET /messages/:id/headers', { path: `/messages/${MESSAGE_ID}/headers` }, messageNotFound, { status: 200 }],
   ['GET /messages/:id/bcc', { path: `/messages/${MESSAGE_ID}/bcc` }, messageNotFound, { status: 200, json: { bcc: ['b@example.com'] } }],
@@ -169,9 +167,7 @@ const cases = [
 const MESSAGE_VIEW = `m.id, m.uid, m.folder, m.message_id, m.subject, m.from_name, m.from_email, m.to_addresses, m.cc_addresses,
   m.reply_to, m.in_reply_to, m.thread_references, m.date, m.snippet, m.is_read, m.is_starred,
   m.has_attachments, m.account_id, m.category, m.list_unsubscribe, m.list_unsubscribe_post, m.unsubscribed_at, m.delivery_addresses,
-  m.spam_verdict, m.spam_user_override, m.spam_score_ml, a.name AS account_name, a.email_address AS account_email, a.color AS account_color`;
-const WITH_SIBLINGS = `m.*, a.user_id, CASE WHEN m.message_id IS NULL THEN 1 ELSE (SELECT COUNT(*) FROM messages s
-  WHERE s.account_id = m.account_id AND s.message_id = m.message_id) END AS sibling_count`;
+  a.name AS account_name, a.email_address AS account_email, a.color AS account_color`;
 const account_ = (opts) => ['findOwnedAccount', ACCOUNT_ID, opts];
 const message_ = (opts) => ['findOwnedMessage', MESSAGE_ID, opts];
 const messages_ = (columns) => ['findOwnedMessages', [MESSAGE_ID], { columns }];
@@ -184,8 +180,6 @@ const LOOKUPS = {
   'POST /folders/delete': account_(),
   'POST /folders/rename': account_(),
   'POST /folders/empty': account_(),
-  'GET /mailbox-usage': account_({ columns: 'id, folder_mappings' }),
-  'GET /cleanup-preview': account_({ columns: 'id' }),
   'GET /messages/:id': message_({ columns: MESSAGE_VIEW, live: true }),
   'GET /messages/:id/headers': message_({ columns: 'm.*, a.user_id' }),
   'GET /messages/:id/bcc': message_({ columns: 'm.account_id, m.uid, m.folder, m.message_id, m.bcc_addresses' }),
@@ -193,8 +187,8 @@ const LOOKUPS = {
   'GET /messages/:id/attachments/:part': message_({ columns: 'm.*, a.user_id' }),
   'GET /messages/:id/image': message_({ columns: 'm.body_html' }),
   'GET /messages/:id/raw.eml': message_({ columns: 'm.id, m.uid, m.folder, m.subject, m.account_id, a.user_id' }),
-  'PATCH /messages/:id/read': message_({ columns: WITH_SIBLINGS }),
-  'PATCH /messages/:id/star': message_({ columns: WITH_SIBLINGS }),
+  'PATCH /messages/:id/read': message_({ columns: 'm.*, a.user_id' }),
+  'PATCH /messages/:id/star': message_({ columns: 'm.*, a.user_id' }),
   'POST /messages/bulk-read': messages_('m.id, m.uid, m.folder, m.is_read, m.account_id, m.message_id'),
   'POST /messages/bulk-star': messages_('m.id, m.uid, m.folder, m.is_starred, m.account_id, m.message_id'),
   'POST /messages/bulk-delete': messages_('m.*, a.user_id, a.folder_mappings'),

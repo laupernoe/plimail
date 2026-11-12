@@ -18,10 +18,10 @@ export function isDefaultListOrder(order) {
   return !order || (order.sort === 'date' && order.dir === 'desc' && !order.starredFirst);
 }
 
-// Whether the list showing can be sorted. Search keeps newest first, and the Snoozed view,
-// Scheduled and the GTD tabs keep their own order.
-export function isSortableList({ accountId, folder, searchQuery, gtdTab }) {
-  if (String(searchQuery || '').trim() || gtdTab) return false;
+// Whether the list showing can be sorted. Search keeps newest first, and the Snoozed view and
+// Scheduled keep their own order.
+export function isSortableList({ accountId, folder, searchQuery }) {
+  if (String(searchQuery || '').trim()) return false;
   if (folder === SNOOZED_FOLDER || folder === SCHEDULED_VIEW) return false;
   return Boolean(accountId) || folder === 'INBOX';
 }

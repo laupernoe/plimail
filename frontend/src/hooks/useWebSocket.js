@@ -5,7 +5,6 @@ import { api } from '../utils/api.js';
 import { installCapacitorNativeBridge } from '../utils/capacitorNativeBridge.js';
 import { playNotificationSound } from '../utils/notificationSounds.js';
 import { accountAffectsUnifiedInbox } from '../utils/unifiedInbox.js';
-import { dispatchPluginWsMessage, dispatchPluginReconnect } from '../plugins/events.js';
 import { recordDiagEvent } from '../utils/diagEvents.js';
 import { scheduledFeed } from '../utils/scheduledFeed.js';
 import { SOCKET_CAUGHT_UP_EVENT } from '../utils/resumeRefresh.js';
@@ -103,10 +102,6 @@ export function useWebSocket() {
           // catch-up would cancel the retry and leave the list stale.
           window.dispatchEvent(new CustomEvent(SOCKET_CAUGHT_UP_EVENT));
         }).catch(() => {});
-        // A plugin's rail/derived data can drift during the outage — events fired while the socket
-        // was down are lost, not buffered. Let each activated plugin resync (GTD refetches its
-        // sections). Core stays plugin-agnostic.
-        dispatchPluginReconnect();
         // Scheduled messages that changed during the outage (#543): their list, once it is loaded.
         if (useStore.getState().scheduledList) scheduledFeed.changed();
       }
@@ -383,11 +378,6 @@ export function useWebSocket() {
         }
         break;
       }
-
-      default:
-        // A message type core doesn't handle — hand it to any activated plugin that registered for
-        // it (e.g. GTD's 'gtd_sections_updated'). No-op when nothing is registered.
-        dispatchPluginWsMessage(data);
     }
   }, [addNotification, updateAccount, setFolders, setBackfillProgress, t]);
 

@@ -15,7 +15,7 @@ import { buildSessionOptions } from '../utils/sessionConfig.js';
 import { requireAuth } from './auth.js';
 import { mountBodyParsers } from './bodyParsers.js';
 
-const LARGE_BODY_PATHS = ['/api/mail/send', '/api/mail/draft', '/api/gtd/pet/import'];
+const LARGE_BODY_PATHS = ['/api/mail/send', '/api/mail/draft'];
 const TWO_MB = 2 * 1024 * 1024;
 // Over the global 1 MB limit, so only the larger limits can accept it.
 const OVER_1MB = JSON.stringify({ text: 'x'.repeat(TWO_MB) });

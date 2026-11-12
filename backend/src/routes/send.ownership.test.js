@@ -14,7 +14,6 @@ vi.mock('../index.js', () => ({
     syncFolderOnDemand: vi.fn(async () => {}),
     fetchRawMessage: vi.fn(async () => Buffer.from('Subject: Original\r\n\r\nBody\r\n')),
     fetchAttachment: vi.fn(async () => Buffer.from('file')),
-    pluginFacade: {},
   },
 }));
 vi.mock('../services/smtpTransport.js', () => ({ createAccountSmtpTransport: vi.fn() }));

@@ -11,8 +11,6 @@ vi.mock('../services/hostValidation.js', () => ({ validateHost: vi.fn(), resolve
 vi.mock('../services/smtpTransport.js', () => ({ createSmtpTransport: vi.fn() }));
 vi.mock('../services/connectionPolicy.js', () => ({ getConnectionPolicy: vi.fn(), invalidateConnectionPolicyCache: vi.fn() }));
 vi.mock('../services/authLimiter.js', () => ({ reloadAuthSettings: vi.fn() }));
-vi.mock('../services/carddavSync.js', () => ({ stopCardavUser: vi.fn() }));
-vi.mock('../plugins/registry.js', () => ({ pluginRegistry: { runHook: vi.fn() } }));
 vi.mock('../services/userSessions.js', () => ({ destroyUserSessions: vi.fn() }));
 vi.mock('../services/redis.js', () => ({ redisClient: {} }));
 

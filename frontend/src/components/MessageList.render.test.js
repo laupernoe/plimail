@@ -168,18 +168,6 @@ describe('MessageList — the Snoozed view with conversations on', () => {
 });
 
 describe('MessageList — selected-row shortcuts', () => {
-  test('mark unread updates a selected GTD rail copy and its section row', async () => {
-    await mount({ rows: [MESSAGE], threadedView: false });
-    const rail = { ...MESSAGE, id: 'rail-copy', message_id: '<rail@example.com>', is_read: true };
-    await React.act(async () => {
-      useStore.setState({ gtdSections: { reference: { threads: [rail] } } });
-      useStore.getState().setSelectedMessage(rail.id);
-    });
-    await React.act(async () => { shortcutBus.emit('markUnread'); });
-    assert.equal(useStore.getState().gtdSections.reference.threads[0].is_read, false);
-    await React.act(async () => { useStore.setState({ gtdSections: null, selectedMessageId: null }); });
-  });
-
   test('forward and Reply All act on the selected row; no selection does nothing', async () => {
     await mount({ rows: [MESSAGE], threadedView: false });
     const drafts = [];
@@ -517,31 +505,6 @@ describe('MessageList reply draft indicators', () => {
     useStore.setState({ replyDrafts: { [MESSAGE.id]: { exists: true } } });
     await mount({ rows: [{ ...MESSAGE, folder: 'Archive' }], threadedView: false, folder: 'Archive' });
     assert.equal(container.querySelector('[aria-label="Open reply draft"]'), null);
-  });
-});
-
-describe('plugin row metadata', () => {
-  test('shows GTD chips on flat and threaded inbox rows only for activated accounts', async () => {
-    await import('../plugins/gtd/index.jsx');
-    const { patchGtdMetadata, clearGtdMetadata } = await import('../plugins/gtd/metadataStore.js');
-    try {
-      for (const [row, threadedView] of [[MESSAGE, false], [THREAD, true]]) {
-        await mount({ rows: [row], threadedView });
-        await React.act(async () => {
-          useStore.setState({ accounts: [{ ...ACCOUNT, gtd_enabled: true }], enabledPlugins: ['gtd'], activeGtdTab: null });
-          patchGtdMetadata(row, 'todo', row.date);
-        });
-        assert.ok(container.querySelector(`[data-msgid="${row.id}"] [aria-label="gtd.state.todo"]`));
-        await React.act(async () => { useStore.setState({ enabledPlugins: [] }); });
-        assert.equal(container.querySelector('[aria-label="gtd.state.todo"]'), null);
-        await React.act(async () => {
-          useStore.setState({ enabledPlugins: ['gtd'], accounts: [ACCOUNT] });
-        });
-        assert.equal(container.querySelector('[aria-label="gtd.state.todo"]'), null);
-      }
-    } finally {
-      await React.act(async () => { clearGtdMetadata(); useStore.setState({ enabledPlugins: [], accounts: [ACCOUNT] }); });
-    }
   });
 });
 
@@ -1323,7 +1286,7 @@ describe('MessageList — category totals (#597)', () => {
     .find(b => b.textContent.startsWith(`messageList.categories.${cat}`));
   const mountCategories = async ({ rows = [MESSAGE], category = 'primary', counts }) => {
     ROUTES = { [COUNTS]: [200, counts] };
-    useStore.setState({ categorizationEnabled: true, activeGtdTab: null });
+    useStore.setState({ categorizationEnabled: true });
     await mount({ rows, threadedView: false });
     await React.act(async () => { await new Promise(r => setTimeout(r, 0)); });
     // The selected category is the list's own state: pick it as a reader does.
@@ -1361,7 +1324,7 @@ describe('MessageList — category totals (#597)', () => {
 
   test('the header count is the filtered count when only this account categorizes', async () => {
     ROUTES = { [COUNTS]: [200, { counts: {}, totals: { primary: 1 } }] };
-    useStore.setState({ categorizationEnabled: false, activeGtdTab: null });
+    useStore.setState({ categorizationEnabled: false });
     await mount({ rows: [MESSAGE], threadedView: false, accounts: [{ ...ACCOUNT, categorization_enabled: true }] });
     await React.act(async () => { await new Promise(r => setTimeout(r, 0)); });
     assert.ok([...container.querySelectorAll('span[title="Cached results matching this filter"]')].length > 0);

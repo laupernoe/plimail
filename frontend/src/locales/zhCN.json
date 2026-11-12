@@ -881,8 +881,7 @@
     "groups": {
       "composeSearch": "撰写与搜索",
       "navigation": "导航",
-      "messageActions": "邮件操作",
-      "gtd": "GTD"
+      "messageActions": "邮件操作"
     },
     "actions": {
       "toggleLeftSidebar": {
@@ -976,31 +975,6 @@
       "printMessage": {
         "label": "打印",
         "description": "打印当前邮件"
-      },
-      "gtdTodo": {
-        "label": "标记为待办",
-        "description": "将所选邮件归类为待办"
-      },
-      "gtdWatch": {
-        "label": "标记为关注",
-        "description": "将所选邮件归类为关注"
-      },
-      "gtdDelegated": {
-        "label": "标记为已委派",
-        "description": "将所选邮件归类为已委派"
-      },
-      "gtdReference": {
-        "description": "将所选邮件归类为参考资料"
-      },
-      "gtdSomeday": {
-        "description": "将所选邮件归类为将来再办"
-      },
-      "gtdDone": {
-        "description": "将所选 GTD 邮件标记为完成"
-      },
-      "toggleRightSidebar": {
-        "label": "切换右侧边栏",
-        "description": "隐藏或显示右侧边栏"
       }
     }
   },
@@ -1036,26 +1010,6 @@
     "errorProcess": "无法处理该图片。"
   },
   "admin": {
-    "cleanup": {
-      "title": "邮箱清理",
-      "intro": "找出堆满收件箱的批量邮件并清理干净。选择将其归档（保留且可搜索）或移到回收站（清空前可恢复）。",
-      "account": "账户",
-      "summary": "收件箱 {{total}} 封邮件中有 {{bulk}} 封是批量邮件（{{pct}}%）。",
-      "tier1Title": "主要批量发件人",
-      "tier1Desc": "这些是你收件箱中数量最多的新闻邮件和营销发件人。对其中一个执行操作，会用你选择的操作处理该发件人在收件箱中的全部邮件。",
-      "noneFound": "未发现批量发件人。",
-      "moveToTrash": "移到回收站",
-      "confirm": "将来自 {{sender}} 的全部 {{count}} 封收件箱邮件移到回收站吗？在清空回收站之前都可以恢复。",
-      "tier2Title": "常见促销词",
-      "tier2Desc": "搜索这些词以自行查看并删除其余邮件。它们涉及多个发件人，删除前请先浏览结果。",
-      "tier3Title": "清理其余邮件",
-      "tier3Desc": "其余邮件可按发件人或关键词搜索，全选后删除。删除总是先移到回收站，因此可在清空前检查。",
-      "action": "清理操作",
-      "actionArchive": "归档（推荐）",
-      "archive": "归档",
-      "confirmArchive": "将来自 {{sender}} 的全部 {{count}} 封收件箱邮件归档吗？它们会保留在归档文件夹中，仍可搜索。",
-      "noArchiveFolder": "此账户没有归档文件夹，因此仅可使用「移到回收站」。"
-    },
     "title": "设置",
     "close": "关闭",
     "behavior": {
@@ -1064,7 +1018,6 @@
       "sync": "同步"
     },
     "tabs": {
-      "cleanup": "清理",
       "accounts": "账户",
       "rules": "规则",
       "appearance": "外观",
@@ -1074,20 +1027,17 @@
       "shortcuts": "快捷键",
       "users": "用户",
       "sso": "单点登录",
-      "integrations": "集成",
       "theme": "主题",
       "fontsAndLanguage": "语言与字体",
       "about": "关于",
       "ai": "AI 助手",
       "aiActions": "AI 操作",
-      "antispam": "反垃圾邮件",
       "categories": "分类",
       "groupMail": "邮件",
       "groupPreferences": "偏好设置",
       "groupAiExtensions": "AI 与扩展",
       "groupAdmin": "管理",
       "behavior": "行为",
-      "plugins": "插件",
       "backup": "备份",
       "mailSignIn": "邮件服务商",
       "groupCalendar": "日历",
@@ -1237,15 +1187,6 @@
       "categorizationSection": "邮件分类",
       "categorizationEnabled": "启用收件箱分类",
       "categorizationEnabledDesc": "将收到的邮件按类别选项卡分类。默认禁用。",
-      "antispamSection": "反垃圾邮件",
-      "antispamEnabled": "为此账户启用反垃圾邮件",
-      "antispamEnabledDesc": "自动分类新邮件；高置信度的垃圾邮件将移至 Junk 文件夹。",
-      "trustedAuthservLabel": "受信任的 Authentication-Results ID",
-      "trustedAuthservPlaceholder": "mx.example.com",
-      "trustedAuthservDesc": "仅信任由该 ID 写入的 Authentication-Results 头。留空表示全部忽略——不可信的头可以声称任何结果，包括 pass。",
-      "trustedAuthservDetected": "在您最近的邮件中出现过（点击使用）：",
-      "trustedAuthservDetectedNone": "暂无数据——为该账户启用反垃圾邮件后才会分析邮件。",
-      "trustedAuthservWarn": "只信任您确认为邮件服务商接收服务器的 ID。",
       "enabledGlobally": "已全局启用",
       "microsoftImapNoteSignIn": "Microsoft 不再接受 Outlook.com、Hotmail、Live 和 MSN 邮箱的密码。请改用 Microsoft 登录：无需应用密码。",
       "deleteScheduled": "将随之删除的尚未发送的定时邮件：{{n}} 封。",
@@ -1780,41 +1721,7 @@
       "recategorize": "重新分类",
       "recategorizing": "处理中…",
       "recategorized": "重新分类已启动。",
-      "selectAccount": "选择账户",
-      "gtdReveal": "GTD",
-      "gtdRevealDesc": "在下方显示每个账户的 GTD 设置；每个账户仍由各自的开关控制。"
-    },
-    "gtd": {
-      "description": "把 Plimail 变成一个 GTD 系统。按账户启用，然后将每个状态映射到存放其标签的 IMAP 文件夹。",
-      "noAccounts": "请先添加一个邮箱账户以配置 GTD。",
-      "enableDesc": "GTD 已启用。标签会作为文件夹同步，状态会自动流转。",
-      "enableHint": "为此账户启用 GTD 标签和自动状态流转。",
-      "foldersTitle": "标签文件夹",
-      "foldersDesc": "每个 GTD 状态对应一个 IMAP 文件夹。留空则使用默认名称。",
-      "savedOk": "文件夹映射已保存。",
-      "saveFailed": "无法保存文件夹映射。",
-      "createFolders": "创建缺失的文件夹",
-      "creating": "正在创建…",
-      "createResult": "已创建 {{created}} 个，{{existing}} 个已存在。",
-      "createFailed": "无法创建文件夹。",
-      "duplicateFolder": "这些 GTD 状态映射到同一个文件夹：{{states}}。请为每个状态指定不同的文件夹。",
-      "rejectedFolders": "部分文件夹名称无效，已重置为默认值：{{states}}。",
-      "pet": {
-        "title": "收件箱清零宠物",
-        "description": "在收件箱清零时用你自己的宠物替换默认的小狗。",
-        "clear": "使用默认小狗",
-        "current": "当前宠物：{{slug}}",
-        "usingDog": "正在使用默认小狗。",
-        "hoverHint": "悬停即可播放动画。",
-        "importTitle": "导入你自己的",
-        "importHint": "上传 pet.json 及其精灵表（PNG、WebP 或 GIF）。",
-        "chooseJson": "pet.json 文件",
-        "chooseSheet": "精灵表图片",
-        "import": "导入",
-        "importing": "导入中…",
-        "imported": "已导入 {{name}}，将鼠标悬停在预览上即可看到动画。",
-        "importFailed": "无法导入该宠物。"
-      }
+      "selectAccount": "选择账户"
     },
     "systemEmail": {
       "tabUsers": "用户与邀请",
@@ -1904,7 +1811,6 @@
       "passwordLoginEnabled": "密码登录已启用"
     },
     "integrations": {
-      "title": "集成",
       "loading": "加载中…",
       "microsoft": {
         "setupTitle": "Azure 应用注册设置",
@@ -1945,45 +1851,6 @@
         "redirectUriNote": "必须与 OAuth 客户端中已授权的重定向 URI 完全一致。建议：{{uri}}",
         "save": "保存配置",
         "remove": "移除"
-      },
-      "todoist": {
-        "title": "Todoist",
-        "description": "个人任务管理器集成",
-        "connect": "连接",
-        "connecting": "连接中...",
-        "disconnect": "断开",
-        "connected": "已连接",
-        "notConnected": "未连接",
-        "tokenLabel": "个人 API 令牌",
-        "tokenPh": "粘贴您的 Todoist API 令牌",
-        "help": "在 Todoist 设置 → 集成 → 开发者中找到您的令牌"
-      },
-      "carddav": {
-        "title": "CardDAV 联系人",
-        "description": "从 Nextcloud 等 CardDAV 服务器同步联系人。",
-        "connected": "已连接",
-        "notConnected": "未连接",
-        "serverLabel": "服务器地址",
-        "serverPh": "https://nextcloud.example.com",
-        "userLabel": "用户名",
-        "userPh": "你的 Nextcloud 用户名",
-        "passLabel": "应用专用密码",
-        "passPh": "应用专用密码（非登录密码）",
-        "dupLabel": "当联系人已存在时",
-        "dupSeparate": "保留两者（单独的通讯簿）",
-        "dupMerge": "合并 — 以 CardDAV 为准",
-        "dupSkip": "跳过该 CardDAV 联系人",
-        "intervalLabel": "同步间隔（分钟）",
-        "connect": "连接",
-        "connecting": "正在连接…",
-        "connectFailed": "连接失败",
-        "disconnect": "断开连接",
-        "syncNow": "立即同步",
-        "syncing": "正在同步…",
-        "lastSync": "上次同步：{{when}}",
-        "summary": "{{books}} 个通讯簿中的 {{contacts}} 个联系人",
-        "syncFailed": "上次同步失败：{{error}}",
-        "help": "请使用 Nextcloud 应用专用密码，而非登录密码——SSO 用户需在“设置 → 安全”中创建。联系人为单向同步，在 Plimail 中为只读。"
       }
     },
     "ssoLinked": {
@@ -2035,7 +1902,7 @@
     },
     "backup": {
       "title": "备份与恢复",
-      "intro": "备份文件包含此 Plimail 的数据：用户、邮件账户、规则、联系人、设置、插件数据和反垃圾邮件训练数据。除非选择包含，缓存的邮件会在恢复后从你的邮件服务器重新下载。文件不包含 .env 中的设置：新服务器需要相同的 ENCRYPTION_KEY；如果你在 .env 中设置了 VAPID 密钥和 OAuth 客户端设置，也需要相同的值。",
+      "intro": "备份文件包含此 Plimail 的数据：用户、邮件账户、规则、联系人和设置。除非选择包含，缓存的邮件会在恢复后从你的邮件服务器重新下载。文件不包含 .env 中的设置：新服务器需要相同的 ENCRYPTION_KEY；如果你在 .env 中设置了 VAPID 密钥和 OAuth 客户端设置，也需要相同的值。",
       "sensitive": "该文件包含密码哈希、尚未使用的邀请链接以及各账户的登录凭据。其中登录凭据已使用本服务器的 ENCRYPTION_KEY 加密，其余内容均可直接读取；如果包含缓存邮件，所有邮件内容同样可读。请妥善保管该文件。它只能在使用相同密钥的服务器上恢复。",
       "includeMail": "包含缓存的邮件",
       "includeMailDesc": "同时保存每封已同步邮件的本地副本，文件会因此大很多。如果不包含，恢复后会重新下载邮件，且每个收件箱中最新的未读邮件会作为新邮件再次到达：收件箱规则会再次作用于它们，包括转发。此选择将用于之后的每次备份，直到你更改为止。",
@@ -2055,15 +1922,6 @@
       "downloadFailed": "无法开始备份。",
       "connectionLost": "恢复过程中连接中断，因此结果未知。Plimail 恢复响应后本页面会重新加载；届时请确认数据是否已恢复。",
       "tooLarge": "文件大小超过了 Plimail 前面的反向代理所允许的上限。"
-    },
-    "plugins": {
-      "title": "插件",
-      "description": "为你的账户开启或关闭可选功能。启用插件后会添加其自身的设置和界面。",
-      "activated": "已启用",
-      "deactivated": "未启用",
-      "empty": "此版本中没有可用的插件。",
-      "error": "无法更新插件，请重试。",
-      "configureIn": "在「{{location}}」中配置选项"
     }
   },
   "blockList": {
@@ -2080,67 +1938,6 @@
     "failBody": "邮件服务器拒绝了移动操作。",
     "failHamBody": "邮件服务器拒绝了移动操作。",
     "failBodyBulk": "{{count}} 封邮件无法移动。",
-    "title": "反垃圾邮件",
-    "subtitle": "每用户机器学习垃圾邮件过滤器。由您的手动垃圾/非垃圾反馈训练；在账户启用后自动分类新邮件。",
-    "saved": "设置已保存",
-    "resetAllDone": "训练数据已重置 — 删除 {{n}} 条记录",
-    "retrainDone": "重训练完成 — 处理 {{n}} 个用户",
-    "retrainBusy": "重新训练已在进行中——它会自行完成",
-    "statusTitle": "模型状态",
-    "statusHelp": "模型按用户划分，在所有账户间共享。训练记录少于 50 条时仅使用内置规则。",
-    "statMaturity": "成熟度",
-    "statRecords": "训练记录",
-    "statVersion": "模型版本",
-    "statLastTrained": "最近训练",
-    "statDecay": "衰减窗口",
-    "never": "从未",
-    "days": "天",
-    "maturity": {
-      "mature": "成熟",
-      "fresh": "新近",
-      "insufficient": "不足"
-    },
-    "masterEnable": "启用反垃圾邮件",
-    "masterEnableHelp": "自动分类的总开关。每个账户另有自己的开关。",
-    "perAccountHint": "按账户开关：账户 → 选择一个账户 → 反垃圾邮件部分。",
-    "thresholdsTitle": "阈值",
-    "thresholdsHelp": "值越高 = 误报越少，但更多垃圾邮件会被放过。",
-    "spamThreshold": "垃圾邮件阈值",
-    "autoMoveThreshold": "自动移动阈值",
-    "save": "保存",
-    "decayTitle": "训练衰减",
-    "decayHelp": "较旧的数据按此半衰期降低权重（7–365 天）。",
-    "dangerTitle": "危险区域",
-    "retrainNow": "立即重训练",
-    "resetConfirmWarn": "此操作不可逆：所有训练数据将被删除。",
-    "resetConfirmYes": "是，删除训练数据",
-    "resetAll": "重置所有训练数据",
-    "deletionsTitle": "最近的删除",
-    "deleteScope": {
-      "per_account": "一个账户",
-      "all": "所有账户"
-    },
-    "records": "条记录",
-    "howItWorks": "工作原理：您手动的标记为垃圾/非垃圾选择训练模型。自动分类的邮件永远不会重新训练它。规则始终启用；拥有 50 条以上记录后 ML 模型加入。",
-    "badgeLabel": "垃圾指数",
-    "badgeTitle": "自动分类为垃圾邮件 — 点击查看详情",
-    "explainTitle": "为什么标记为垃圾邮件？",
-    "explainVerdict": "判定",
-    "explainMethod": "方法",
-    "explainConfidence": "置信度",
-    "verdict": {
-      "spam": "垃圾邮件",
-      "ham": "非垃圾",
-      "unsure": "不确定"
-    },
-    "method": {
-      "rules": "规则",
-      "blended": "规则 + ML"
-    },
-    "rulesFiredTitle": "触发的规则",
-    "noRulesFired": "没有规则触发",
-    "mlTokensTitle": "主要贡献词",
-    "noMlTokens": "无 ML 词汇",
     "conversationMovedToSpam": "会话已移至垃圾邮件",
     "nothingFromAccount": "此会话中没有此账户的邮件可标记为垃圾邮件",
     "nothingInConversation": "此会话中没有邮件可标记为垃圾邮件"
@@ -2181,66 +1978,6 @@
       "work": "工作",
       "home": "家庭",
       "other": "其他"
-    },
-    "carddavBadge": "从 CardDAV 同步"
-  },
-  "todoist": {
-    "title": "创建 Todoist 任务",
-    "taskTitle": "任务标题",
-    "taskTitlePh": "需要做什么？",
-    "description": "描述",
-    "descriptionPh": "可选备注...",
-    "project": "项目",
-    "inbox": "收件箱",
-    "labels": "标签",
-    "priority": "优先级",
-    "priorityUrgent": "紧急",
-    "priorityHigh": "高",
-    "priorityMedium": "中",
-    "priorityNormal": "无优先级",
-    "dueDate": "截止日期",
-    "create": "创建任务",
-    "creating": "创建中...",
-    "taskCreated": "任务已在 Todoist 中创建",
-    "openTask": "在 Todoist 中打开"
-  },
-  "rightSidebar": {
-    "hide": "隐藏右侧边栏",
-    "show": "显示右侧边栏"
-  },
-  "gtd": {
-    "oldestLabeledAge": "{{state}}：带此标签的最早邮件距今的天数：{{count}}",
-    "title": "GTD",
-    "inbox": "收件箱",
-    "waiting": "等待中",
-    "inboxZero": "收件箱清零 ✓",
-    "allClear": "全部清空",
-    "allClearHint": "没有待办事项。",
-    "showAll": "显示全部 {{count}} 封",
-    "showSome": "显示 {{available}}/{{total}} 封",
-    "showLess": "收起",
-    "toggleSection": "切换{{section}}",
-    "tabEmpty": "这里还没有内容",
-    "removeFrom": "从{{state}}中移除",
-    "classified": "已添加标签",
-    "classifiedMany": "已将 {{count}} 封标记为{{state}}",
-    "classifiedSome": "已将 {{count}}/{{total}} 封标记为{{state}}",
-    "classifyFailed": "无法添加标签",
-    "undoFailed": "无法撤销标签",
-    "removed": "已移除标签",
-    "removeFailed": "无法移除标签",
-    "onlyCopy": "这是该邮件的唯一副本，移除标签会将其删除。请改为归档或移动。",
-    "labelChanged": "此标签已在服务器上更改，未被移除。请刷新后重试。",
-    "done": "标记为完成",
-    "doneFailed": "无法标记为完成",
-    "doneArchiveFailed": "已标记为完成，但归档失败——邮件仍在收件箱中",
-    "doneThreadRemains": "此会话中的部分邮件无法清除，因此它仍留在原 GTD 分区中",
-    "state": {
-      "todo": "待办",
-      "watch": "关注",
-      "delegated": "已委派",
-      "someday": "将来",
-      "reference": "参考"
     }
   },
   "window": {

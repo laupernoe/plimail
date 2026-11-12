@@ -50,7 +50,7 @@ describe('GET /api/accounts columns', () => {
     query.mockReset();
   });
 
-  // The settings form is filled from GET and sends fields like trusted_authserv_id back on every
+  // The settings form is filled from GET and sends fields like auto_cc_addresses back on every
   // save. A column PUT can write but GET does not return goes back as empty, clearing it.
   it('selects every non-secret column that PUT can write', async () => {
     query.mockResolvedValueOnce({ rows: [] });

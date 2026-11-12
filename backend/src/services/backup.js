@@ -36,20 +36,14 @@ export const SETUP_TABLES = [
   'integration_config',
   'invites',
   'oidc_providers',
-  'plugin_account_config',
-  'plugin_data',
   'push_subscriptions',
   // User content that exists nowhere else, so even a setup-only backup carries it.
   'scheduled_message_attachments',
   'scheduled_messages',
   'snoozed_messages',
-  'spam_models',
-  'spam_training_deletions',
-  'spam_training_log',
   'system_settings',
   'trusted_devices',
   'user_identities',
-  'user_integrations',
   'users',
 ];
 // The local copy of the mail on the IMAP servers. Synced again after a restore that leaves it out.

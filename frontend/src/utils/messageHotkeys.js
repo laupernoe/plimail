@@ -1,12 +1,10 @@
-// Resolve the selected row across the ordinary list, search, deep-link stash,
-// and GTD rail. GTD copies may not exist in the current mailbox's messages.
+// Resolve the selected row across the ordinary list, search and deep-link stash.
 export function selectedMessage(state) {
   const id = state?.selectedMessageId ?? topOpenMessageWindow(state)?.messageId;
   if (id == null) return null;
   const pool = state.searchQuery?.trim() ? state.searchResults : state.messages;
   return pool?.find(message => message.id === id)
     ?? Object.values(state.threadMessages || {}).flat().find(message => message.id === id)
-    ?? Object.values(state.gtdSections || {}).flatMap(section => section?.threads || []).find(message => message.id === id)
     ?? null;
 }
 

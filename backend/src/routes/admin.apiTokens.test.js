@@ -12,8 +12,6 @@ vi.mock('../services/connectionPolicy.js', () => ({ getConnectionPolicy: vi.fn(a
 vi.mock('../services/apiTokens.js', async (importOriginal) => ({ ...(await importOriginal()), invalidateApiTokenSettingsCache: vi.fn() }));
 vi.mock('../services/authLimiter.js', () => ({ reloadAuthSettings: vi.fn() }));
 vi.mock('../index.js', () => ({ imapManager: {} }));
-vi.mock('../services/carddavSync.js', () => ({ stopCardavUser: vi.fn() }));
-vi.mock('../plugins/registry.js', () => ({ pluginRegistry: {} }));
 vi.mock('../services/userSessions.js', () => ({ destroyUserSessions: vi.fn() }));
 
 import express from 'express';
