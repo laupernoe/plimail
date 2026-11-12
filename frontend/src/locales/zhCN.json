@@ -2146,7 +2146,25 @@
     "signedInGoogle": "已以 {{email}} 使用 Google 登录",
     "signedInNote": "服务器信息来自此次登录。如果帐户无法连接，请重新登录。",
     "mailboxLabel": "要打开的邮箱",
-    "mailboxHelp": "如需打开共享或委托的邮箱，请输入其地址。打开自己的邮箱时保持不变即可。"
+    "mailboxHelp": "如需打开共享或委托的邮箱，请输入其地址。打开自己的邮箱时保持不变即可。",
+    "autodiscover": {
+      "button": "查找设置",
+      "looking": "正在查找此地址的服务器设置…",
+      "failed": "未找到此地址的设置，请在下方手动填写。",
+      "check": "添加账户前请检查这些设置。",
+      "source": {
+        "ispdb": "已在 Thunderbird 数据库中找到 {{domain}} 的设置。",
+        "autoconfig": "由 {{domain}} 发布的设置。",
+        "wellknown": "{{domain}} 网站上发布的设置。",
+        "srv": "在 {{domain}} 的 DNS 记录中找到的设置。",
+        "mx": "{{domain}} 的邮件由已知服务商处理，已填入其设置。",
+        "mxIspdb": "接收 {{domain}} 邮件的服务商的设置，来自 Thunderbird 数据库。",
+        "guess": "{{domain}} 未发布任何设置：这些是推测的常用服务器名称。"
+      },
+      "addCalendars": "同时使用相同密码添加此账户的日历",
+      "calendarsAt": "已找到日历服务器：{{url}}",
+      "calendarsMailHost": "将在邮件服务器上查找日历服务器。"
+    }
   },
   "googleSignIn": {
     "title": "使用 Google 登录",

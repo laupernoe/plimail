@@ -100,6 +100,26 @@ function isMicrosoftImapHost(host) {
   return h.includes('.outlook.com') || h.includes('office365.com') || h.includes('.hotmail.com') || h.includes('.live.com');
 }
 
+// Where autodiscovery found the settings, as the note under the address names it.
+const DISCOVERY_SOURCE_KEYS = {
+  ispdb: 'accountForm.autodiscover.source.ispdb',
+  autoconfig: 'accountForm.autodiscover.source.autoconfig',
+  wellknown: 'accountForm.autodiscover.source.wellknown',
+  srv: 'accountForm.autodiscover.source.srv',
+  mx: 'accountForm.autodiscover.source.mx',
+  'mx-ispdb': 'accountForm.autodiscover.source.mxIspdb',
+  guess: 'accountForm.autodiscover.source.guess',
+};
+
+// The form fields a discovered configuration fills in (POST /api/accounts/autodiscover).
+export function discoveredFields(found) {
+  if (!found?.imap?.host) return null;
+  const fields = { imap_host: found.imap.host, imap_port: found.imap.port, auth_user: found.username || undefined };
+  if (found.smtp?.host) Object.assign(fields, { smtp_host: found.smtp.host, smtp_port: found.smtp.port, smtp_tls: found.smtp.tls });
+  if (found.smtpUsername) fields.smtp_auth_user = found.smtpUsername;
+  return Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
+}
+
 // prefill (add only): { email, preset } from the Add account chooser.
 // onMicrosoftSignIn (add only): switch to "Sign in with Microsoft" when an Outlook.com host is typed.
 // onSignInAgain (edit only): "Sign in again" for an account connected through a sign-in.
@@ -122,6 +142,11 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
   const [showPass, setShowPass] = useState(false);
   const [showSmtpPass, setShowSmtpPass] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(prefill?.preset || null);
+  // Add only: the settings looked up for the address (#725), and whether to add its calendars too.
+  const [discovery, setDiscovery] = useState({ status: 'idle' }); // idle | looking | found | failed
+  const [addCalendars, setAddCalendars] = useState(false);
+  const discoveryRun = useRef(0);
+  const serversEdited = useRef(false);
   const [mailPolicy, setMailPolicy] = useState({ allowPrivateHosts: false, allowInsecureTls: false, allowNonstandardPorts: false });
   // Whether an Outlook.com address can be connected right away through Integrations, with the
   // instance's own app or MailFlow's built-in one (#674). Asked only once one is typed, and
@@ -177,6 +202,32 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
     setSelectedPreset(key);
   };
 
+  // Only the address is sent. A lookup started by itself fills in only servers the user has not
+  // typed meanwhile; one asked for with the button replaces them.
+  const discover = async (email, { asked = false } = {}) => {
+    const run = ++discoveryRun.current;
+    setDiscovery({ status: 'looking' });
+    let found = null;
+    try { found = await api.autodiscoverAccount(email.trim()); } catch { /* the form stays as it is */ }
+    if (run !== discoveryRun.current) return;
+    const fields = discoveredFields(found);
+    if (!fields) { setDiscovery({ status: 'failed' }); return; }
+    if (asked || !serversEdited.current) {
+      setForm(f => ({ ...f, ...fields, auth_user: authUserEdited ? f.auth_user : (fields.auth_user || f.auth_user) }));
+      serversEdited.current = false;
+      setSelectedPreset(null);
+    }
+    setDiscovery({ status: 'found', source: Object.hasOwn(DISCOVERY_SOURCE_KEYS, found.source) ? found.source : 'guess', domain: found.domain, caldavUrl: found.caldavUrl || null, oauth: found.oauth || null });
+    setAddCalendars(!found.oauth && !!found.caldavUrl);
+  };
+  useEffect(() => {
+    if (!isEdit && !prefill?.preset && prefill?.email && detectProvider(prefill.email) === 'other') discover(prefill.email);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- once, for the address the chooser passed
+  const setServer = (key, val) => { serversEdited.current = true; set(key, val); };
+  const canDiscover = !isEdit && !!detectProvider(form.email_address);
+  // A password account's calendars: not for a host whose provider signs in instead.
+  const calendarsOffered = !isEdit && !gmailHost && !microsoftHost && discovery.status === 'found' && !discovery.oauth;
+
   const handleSubmit = async () => {
     // The login and server of a signed-in account are hidden and not editable: not required.
     if (!form.email_address || (!signedInWith && (!form.auth_user || !form.imap_host))) {
@@ -190,7 +241,7 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
     setSaving(true);
     setError('');
     try {
-      await onSave(form);
+      await onSave(form, calendarsOffered ? { calendars: addCalendars, caldavUrl: discovery.caldavUrl } : undefined);
     } catch (err) {
       setError(err.message);
       setSaving(false);
@@ -281,10 +332,30 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
 
       {!isEdit && (
         <Field label={t('admin.accounts.email')} required>
-          <input value={form.email_address || ''} onChange={e => setEmail(e.target.value)}
-            placeholder={t('admin.accounts.emailPh')} style={inputStyle}
-            onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-            onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <input value={form.email_address || ''} onChange={e => setEmail(e.target.value)}
+              placeholder={t('admin.accounts.emailPh')} style={{ ...inputStyle, flex: '1 1 220px', width: 'auto', minWidth: 0 }}
+              onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+              onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+            <button type="button" data-autodiscover disabled={!canDiscover || discovery.status === 'looking'}
+              onClick={() => discover(form.email_address, { asked: true })} style={{
+                padding: '8px 14px', background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 8,
+                color: 'var(--text-primary)', fontSize: 13, whiteSpace: 'nowrap',
+                cursor: !canDiscover || discovery.status === 'looking' ? 'not-allowed' : 'pointer',
+                opacity: !canDiscover ? 0.5 : 1,
+              }}>{t('accountForm.autodiscover.button')}</button>
+          </div>
+          {discovery.status !== 'idle' && (
+            <div role="status" data-discovery={discovery.status} style={{
+              fontSize: 12, marginTop: 6, lineHeight: 1.5,
+              color: discovery.status === 'found' && discovery.source !== 'guess' ? 'var(--text-secondary)' : 'var(--text-tertiary)',
+            }}>
+              {discovery.status === 'looking' && t('accountForm.autodiscover.looking')}
+              {discovery.status === 'failed' && t('accountForm.autodiscover.failed')}
+              {discovery.status === 'found' && t(DISCOVERY_SOURCE_KEYS[discovery.source], { domain: discovery.domain })}
+              {discovery.status === 'found' && ` ${t('accountForm.autodiscover.check')}`}
+            </div>
+          )}
         </Field>
       )}
 
@@ -329,7 +400,7 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: 10 }}>
         <Field label={t('admin.accounts.imapHost')} required>
-          <input value={form.imap_host || ''} onChange={e => set('imap_host', e.target.value)}
+          <input value={form.imap_host || ''} onChange={e => setServer('imap_host', e.target.value)}
             placeholder={t('admin.accounts.imapHostPh')} style={inputStyle}
             onFocus={e => e.target.style.borderColor = 'var(--accent)'}
             onBlur={e => e.target.style.borderColor = 'var(--border)'} />
@@ -338,7 +409,7 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
           <input
             type={mailPolicy.allowNonstandardPorts ? 'text' : 'number'}
             value={form.imap_port || 993}
-            onChange={e => set('imap_port', mailPolicy.allowNonstandardPorts ? e.target.value : parseInt(e.target.value))}
+            onChange={e => setServer('imap_port', mailPolicy.allowNonstandardPorts ? e.target.value : parseInt(e.target.value))}
             style={inputStyle}
             onFocus={e => e.target.style.borderColor = 'var(--accent)'}
             onBlur={e => e.target.style.borderColor = 'var(--border)'} />
@@ -456,7 +527,7 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: 10 }}>
         <Field label={t('admin.accounts.smtpHost')}>
-          <input value={form.smtp_host || ''} onChange={e => set('smtp_host', e.target.value)}
+          <input value={form.smtp_host || ''} onChange={e => setServer('smtp_host', e.target.value)}
             placeholder={t('admin.accounts.smtpHostPh')} style={inputStyle}
             onFocus={e => e.target.style.borderColor = 'var(--accent)'}
             onBlur={e => e.target.style.borderColor = 'var(--border)'} />
@@ -465,7 +536,12 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
           <input
             type={mailPolicy.allowNonstandardPorts ? 'text' : 'number'}
             value={form.smtp_port || 587}
-            onChange={e => set('smtp_port', mailPolicy.allowNonstandardPorts ? e.target.value : parseInt(e.target.value))}
+            onChange={e => {
+              const port = mailPolicy.allowNonstandardPorts ? e.target.value : parseInt(e.target.value);
+              setServer('smtp_port', port);
+              // A port typed over a discovered one takes its usual security, not the discovered one's.
+              if (!isEdit) set('smtp_tls', Number(port) === 465 ? 'SSL' : 'STARTTLS');
+            }}
             style={inputStyle}
             onFocus={e => e.target.style.borderColor = 'var(--accent)'}
             onBlur={e => e.target.style.borderColor = 'var(--border)'} />
@@ -503,6 +579,18 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
           </button>
         </div>
       </Field>
+      {calendarsOffered && (
+        <label data-add-calendars style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 14, fontSize: 13, color: 'var(--text-secondary)', cursor: 'pointer' }}>
+          <input type="checkbox" checked={addCalendars} onChange={e => setAddCalendars(e.target.checked)}
+            style={{ accentColor: 'var(--accent)', marginTop: 2 }} />
+          <span>
+            {t('accountForm.autodiscover.addCalendars')}
+            <span style={{ display: 'block', fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2, lineHeight: 1.5, overflowWrap: 'anywhere' }}>
+              {discovery.caldavUrl ? t('accountForm.autodiscover.calendarsAt', { url: discovery.caldavUrl }) : t('accountForm.autodiscover.calendarsMailHost')}
+            </span>
+          </span>
+        </label>
+      )}
       </>)}
 
       <div style={{ height: 1, background: 'var(--border-subtle)', margin: '16px 0' }} />
@@ -712,10 +800,12 @@ function AccountsTab() {
   const [aliasFormError, setAliasFormError] = useState('');
   const [aliasFormSaving, setAliasFormSaving] = useState(false);
 
-  const handleAdd = async (form) => {
+  // calendars (from the form, when it asked): add the account's calendars now, or not at all.
+  // Without the question, the offer is shown after the account is added.
+  const handleAdd = async (form, { calendars, caldavUrl } = {}) => {
     const account = await api.addAccount(form);
     setAccounts([...accounts, account]);
-    setCalendarOffer(account);
+    setCalendarOffer(calendars === false ? null : { account, auto: !!calendars, serverUrl: caldavUrl || null });
     setSubview('list');
   };
 
@@ -1240,7 +1330,8 @@ function AccountsTab() {
         </button>
       </div>
 
-      {calendarOffer && <CalendarOffer key={calendarOffer.id} account={calendarOffer} onDismiss={() => setCalendarOffer(null)} />}
+      {calendarOffer && <CalendarOffer key={calendarOffer.account.id} account={calendarOffer.account} auto={calendarOffer.auto}
+        serverUrl={calendarOffer.serverUrl} onDismiss={() => setCalendarOffer(null)} />}
 
       {accounts.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-tertiary)', fontSize: 14 }}>

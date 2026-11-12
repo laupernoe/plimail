@@ -364,6 +364,8 @@ export const api = {
   // Accounts
   getAccounts: () => request('GET', '/accounts'),
   addAccount: (data) => request('POST', '/accounts', data),
+  // Only the address: the servers to suggest for it (#725).
+  autodiscoverAccount: (email) => request('POST', '/accounts/autodiscover', { email }),
   updateAccount: (id, data) => request('PUT', `/accounts/${id}`, data),
   reorderAccounts: (ids) => request('PATCH', '/accounts/order', { ids }),
   deleteAccount: (id) => request('DELETE', `/accounts/${id}`),
@@ -508,7 +510,7 @@ export const api = {
     accounts:      ()           => request('GET',    '/calendar/accounts'),
     addAccount:    (data)       => request('POST',   '/calendar/accounts', data),
     mailAccounts:  ()           => request('GET',    '/calendar/mail-accounts'),
-    addFromMail:   (accountId)  => request('POST',   '/calendar/accounts/from-mail', { accountId }),
+    addFromMail:   (accountId, serverUrl) => request('POST', '/calendar/accounts/from-mail', serverUrl ? { accountId, serverUrl } : { accountId }),
     updateAccount: (id, data)   => request('PATCH',  `/calendar/accounts/${encodeURIComponent(id)}`, data),
     syncAccount:   (id)         => request('POST',   `/calendar/accounts/${encodeURIComponent(id)}/sync`),
     removeAccount: (id)         => request('DELETE', `/calendar/accounts/${encodeURIComponent(id)}`),

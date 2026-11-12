@@ -2146,7 +2146,25 @@
     "signedInGoogle": "Sesión iniciada con Google como {{email}}",
     "signedInNote": "El servidor viene de esta conexión. Si la cuenta deja de conectarse, vuelve a iniciar sesión.",
     "mailboxLabel": "Buzón que abrir",
-    "mailboxHelp": "Para un buzón compartido o delegado, escribe su dirección. Déjalo como está para tu propio buzón."
+    "mailboxHelp": "Para un buzón compartido o delegado, escribe su dirección. Déjalo como está para tu propio buzón.",
+    "autodiscover": {
+      "button": "Buscar configuración",
+      "looking": "Buscando la configuración del servidor para esta dirección…",
+      "failed": "No se encontró configuración para esta dirección. Introdúcela abajo.",
+      "check": "Revísala antes de añadir la cuenta.",
+      "source": {
+        "ispdb": "Configuración de {{domain}} encontrada en la base de datos de Thunderbird.",
+        "autoconfig": "Configuración publicada por {{domain}}.",
+        "wellknown": "Configuración publicada en el sitio web de {{domain}}.",
+        "srv": "Configuración encontrada en los registros DNS de {{domain}}.",
+        "mx": "El correo de {{domain}} lo gestiona un proveedor conocido, cuya configuración se ha rellenado.",
+        "mxIspdb": "Configuración del proveedor que recibe el correo de {{domain}}, según la base de datos de Thunderbird.",
+        "guess": "{{domain}} no publica configuración: estos son los nombres de servidor habituales, deducidos."
+      },
+      "addCalendars": "Añadir también los calendarios de esta cuenta, con la misma contraseña",
+      "calendarsAt": "Servidor de calendario encontrado: {{url}}",
+      "calendarsMailHost": "El servidor de calendario se buscará en los servidores de correo."
+    }
   },
   "googleSignIn": {
     "title": "Iniciar sesión con Google",

@@ -2146,7 +2146,25 @@
     "signedInGoogle": "Connecté avec Google en tant que {{email}}",
     "signedInNote": "Le serveur provient de cette connexion. Si le compte ne se connecte plus, reconnectez-vous.",
     "mailboxLabel": "Boîte aux lettres à ouvrir",
-    "mailboxHelp": "Pour une boîte partagée ou déléguée, saisissez son adresse. Laissez tel quel pour votre propre boîte."
+    "mailboxHelp": "Pour une boîte partagée ou déléguée, saisissez son adresse. Laissez tel quel pour votre propre boîte.",
+    "autodiscover": {
+      "button": "Trouver les réglages",
+      "looking": "Recherche des réglages de serveur pour cette adresse…",
+      "failed": "Aucun réglage trouvé pour cette adresse. Saisissez-les ci-dessous.",
+      "check": "Vérifiez-les avant d'ajouter le compte.",
+      "source": {
+        "ispdb": "Réglages de {{domain}} trouvés dans la base de données de Thunderbird.",
+        "autoconfig": "Réglages publiés par {{domain}}.",
+        "wellknown": "Réglages publiés sur le site web de {{domain}}.",
+        "srv": "Réglages trouvés dans les enregistrements DNS de {{domain}}.",
+        "mx": "Le courrier de {{domain}} est géré par un fournisseur connu, dont les réglages ont été remplis.",
+        "mxIspdb": "Réglages du fournisseur qui reçoit le courrier de {{domain}}, d'après la base de données de Thunderbird.",
+        "guess": "{{domain}} ne publie aucun réglage : voici les noms de serveur habituels, devinés."
+      },
+      "addCalendars": "Ajouter aussi les calendriers de ce compte, avec le même mot de passe",
+      "calendarsAt": "Serveur de calendrier trouvé : {{url}}",
+      "calendarsMailHost": "Le serveur de calendrier sera cherché sur les serveurs de courrier."
+    }
   },
   "googleSignIn": {
     "title": "Se connecter avec Google",
