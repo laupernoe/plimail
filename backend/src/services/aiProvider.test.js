@@ -652,8 +652,8 @@ describe('OpenRouter provider', () => {
     expect(url).toBe('https://openrouter.ai/api/v1/chat/completions');
     expect(init.headers).toEqual({
       'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://mailflow.sh',
-      'X-Title': 'MailFlow',
+      'HTTP-Referer': 'https://github.com/laupernoe/plimail',
+      'X-Title': 'Plimail',
       Authorization: 'Bearer sk-or-secret',
     });
     expect(JSON.parse(init.body)).toMatchObject({ model: 'mistralai/mistral-nemo', stream: false });
@@ -666,7 +666,7 @@ describe('OpenRouter provider', () => {
     const fetchFn = vi.fn().mockResolvedValue(jsonResponse({ choices: [{ message: { content: 'x' } }] }));
     const { provider } = factory({ initial: OPENROUTER, fetchFn });
     await provider.completeText([{ role: 'user', content: 'hi' }]);
-    expect(fetchFn.mock.calls[0][1].headers).toMatchObject({ 'HTTP-Referer': 'https://mailflow.sh', 'X-Title': 'MailFlow' });
+    expect(fetchFn.mock.calls[0][1].headers).toMatchObject({ 'HTTP-Referer': 'https://github.com/laupernoe/plimail', 'X-Title': 'Plimail' });
     vi.unstubAllEnvs();
   });
 

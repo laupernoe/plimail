@@ -92,7 +92,7 @@ function publicConfig(config) {
 // OpenRouter asks apps to say who they are (HTTP-Referer, X-Title). Fixed values on purpose:
 // the instance's own address or name would identify the deployment, so only the app goes out.
 export function openRouterAttributionHeaders() {
-  return { 'HTTP-Referer': 'https://mailflow.sh', 'X-Title': 'MailFlow' };
+  return { 'HTTP-Referer': 'https://github.com/laupernoe/plimail', 'X-Title': 'Plimail' };
 }
 
 function redactSecrets(value, secrets = []) {
