@@ -128,7 +128,7 @@ describe('PATCH /auth/preferences defaultSender (#417)', () => {
   });
 
   it('leaves the stored value untouched when the key is absent', async () => {
-    await run({ theme: 'dark' });
+    await run({ theme: 'selfhostr' });
     expect(query.mock.calls[0][1][41]).toBe(null);
   });
 
@@ -163,7 +163,7 @@ describe('PATCH /auth/preferences hoverActionSet (#440)', () => {
   });
 
   it('leaves the stored value untouched when the key is absent or malformed', async () => {
-    await call({ theme: 'dark' });
+    await call({ theme: 'selfhostr' });
     expect(query.mock.calls[0][1][43]).toBeNull();
     query.mockClear();
     await call({ hoverActionSet: 'markRead' }); // not an array — ignored, not stored
@@ -256,4 +256,22 @@ describe('PATCH /auth/preferences listSort', () => {
       expect(query).not.toHaveBeenCalled();
     });
   }
+});
+
+describe('PATCH /auth/preferences theme', () => {
+  const store = async (theme) => {
+    query.mockClear();
+    const req = { session: { userId: 'user-1' }, body: { theme } };
+    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+    await patchPreferences(req, res);
+    return query.mock.calls[0][1][1];
+  };
+
+  it('stores the themes that exist', async () => {
+    for (const t of ['system', 'selfhostr', 'selfhostr-light']) expect(await store(t)).toBe(t);
+  });
+
+  it('stores system for a theme an older client still sends', async () => {
+    for (const t of ['dark', 'light', 'nord', 'winxp', 'win9x', '', 42]) expect(await store(t)).toBe('system');
+  });
 });
