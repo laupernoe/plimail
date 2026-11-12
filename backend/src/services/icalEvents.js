@@ -932,6 +932,33 @@ export function eventTimes(ics) {
   return root.getAllSubcomponents('vevent').map(v => timing(v, zones)).sort().join('\n');
 }
 
+// What a CANCEL for one occurrence carries (RFC 5546 3.2.5): that occurrence alone, named by its
+// RECURRENCE-ID, so attendees drop it rather than the series.
+export function occurrenceOnly(ics, recurrenceId) {
+  const root = parseRoot(ics);
+  const zones = zonesOf(root);
+  const { master, overrides } = masterAndOverrides(root);
+  const b = master ? bounds(master, zones) : null;
+  const key = ridKey(recurrenceId, b, zones);
+  let target = findOverride(overrides, key, zones);
+  if (!target) {
+    assertOccurs(master, b, key, zones);
+    target = new ICAL.Component(JSON.parse(JSON.stringify(master.toJSON())));
+    for (const name of ['rrule', 'rdate', 'exdate', 'recurrence-id']) target.removeAllProperties(name);
+    const rid = ridValue(recurrenceId, b, 'recurrence-id');
+    target.addProperty(rid);
+    const startMs = typeof key === 'number' ? key : dateToMs(key);
+    const endMs = startMs + (b.endMs - b.startMs);
+    setBounds(target, b.allDay
+      ? { allDay: true, start: msToDate(startMs), end: msToDate(endMs) }
+      : { allDay: false, start: new Date(startMs).toISOString(), end: new Date(endMs).toISOString() },
+    b.allDay || isUtc(b.start) ? null : b.tzid, zones);
+  }
+  for (const v of root.getAllSubcomponents('vevent')) root.removeSubcomponent(v);
+  root.addSubcomponent(target);
+  return root.toString();
+}
+
 // One occurrence off a series. Returns null when nothing is left of the resource.
 export function removeOccurrence(ics, recurrenceId) {
   const root = parseRoot(ics);

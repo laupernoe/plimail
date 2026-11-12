@@ -151,6 +151,19 @@ describe('invitations', () => {
     expect(state.mails.map(m => [m.method, m.to])).toEqual([['CANCEL', ['ana@example.com', 'bob@example.com']]]);
   });
 
+  it('cancels just the occurrence deleted from a series', async () => {
+    state.event = stored(MINE.replace('SUMMARY:Point', 'SUMMARY:Point\r\nRRULE:FREQ=WEEKLY;COUNT=4\r\nSEQUENCE:1'));
+    const r = await call('DELETE', `/c/events/${EVENT_ID}?scope=this&recurrenceId=2027-03-17T09:00:00Z`);
+    expect(r.status).toBe(200);
+    expect(state.puts[0]).toMatch(/EXDATE:20270317T090000Z/);
+    expect(state.mails.map(m => [m.method, m.kind, m.to])).toEqual([['CANCEL', 'cancel', ['ana@example.com', 'bob@example.com']]]);
+    const ics = state.mails[0].ics;
+    expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(1);
+    expect(ics).toMatch(/RECURRENCE-ID:20270317T090000Z/);
+    expect(ics).toMatch(/DTSTART:20270317T090000Z/);
+    expect(ics).not.toMatch(/RRULE/);
+  });
+
   it('answers the organizer of an invitation', async () => {
     state.event = stored(THEIRS);
     const r = await call('POST', `/c/events/${EVENT_ID}/reply`, { status: 'ACCEPTED' });

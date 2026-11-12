@@ -140,7 +140,8 @@ export async function mailItip({ userId, from, to, method, ics, kind, labels, la
   const smtp = await createAccountSmtpTransport(sender.account);
   if (smtp.error) throw new Error(smtp.error);
   const content = itipMessage(ics, method, { only });
-  const occ = firstOccurrence(content);
+  // Read before a CANCEL marks it cancelled, which leaves an exception with no occurrence to show.
+  const occ = firstOccurrence(ics);
   const title = occ?.summary || '';
   const subject = labels[kind].replace('{title}', title);
   const lines = [subject, ''];

@@ -11,7 +11,7 @@ import { validateHost } from '../services/hostValidation.js';
 import { getConnectionPolicy } from '../services/connectionPolicy.js';
 import { discoverCalendars, findCalDavServer, getEvent, putEvent, deleteEvent } from '../services/caldavClient.js';
 import { syncAccount, credentialsFor, isSyncing } from '../services/caldavSync.js';
-import { applyEdit, buildEvent, eventTimes, expandResource, inviteContent, inviteInfo, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
+import { applyEdit, buildEvent, eventTimes, expandResource, inviteContent, inviteInfo, occurrenceOnly, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
 import { forgetScheduling, knownAddresses, mailItip, mailLabels, planInvites } from '../services/calendarInvites.js';
 
 const router = Router();
@@ -548,6 +548,7 @@ router.delete('/events/:eventId', async (req, res) => {
       creds = await credentialsFor(event);
     }
     const remaining = scope === 'this' ? removeOccurrence(event.ical, recurrenceId) : null;
+    const cancelled = remaining && plan ? occurrenceOnly(event.ical, recurrenceId) : event.ical;
     if (remaining) {
       await putEvent(event.href, remaining, creds, { etag: event.etag });
       await storeFromServer(event.calendar_id, event.user_id, event.href, remaining, creds);
@@ -555,9 +556,9 @@ router.delete('/events/:eventId', async (req, res) => {
       await deleteEvent(event.href, creds, { etag: event.etag });
       await query('DELETE FROM calendar_events WHERE id = $1', [event.id]);
     }
-    const mailed = await mailAfterWrite(req.session.userId, plan, [remaining
-      ? { to: before.attendees, method: 'REQUEST', ics: remaining, kind: 'update' }
-      : { to: before.attendees, method: 'CANCEL', ics: event.ical, kind: 'cancel' }], mailOptions(req));
+    const mailed = await mailAfterWrite(req.session.userId, plan, [
+      { to: inviteInfo(cancelled).attendees, method: 'CANCEL', ics: cancelled, kind: 'cancel' },
+    ], mailOptions(req));
     res.json({ ok: true, ...mailed });
   } catch (err) {
     await sendWriteError(res, err, event.account_id);
