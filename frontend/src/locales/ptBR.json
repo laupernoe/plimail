@@ -1873,7 +1873,6 @@
       "sourceCode": "Código-fonte",
       "upstream": "Baseado no MailFlow"
     },
-    "businessNotice": {},
     "search": {
       "placeholder": "Pesquisar configurações…",
       "noResults": "Nenhuma configuração corresponde a “{{query}}”",

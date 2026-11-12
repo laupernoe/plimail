@@ -1892,7 +1892,6 @@
       "sourceCode": "Kod źródłowy",
       "upstream": "Oparty na MailFlow"
     },
-    "businessNotice": {},
     "search": {
       "placeholder": "Wyszukaj ustawienie…",
       "noResults": "Brak ustawień pasujących do „{{query}}”",

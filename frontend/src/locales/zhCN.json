@@ -1873,7 +1873,6 @@
       "sourceCode": "源代码",
       "upstream": "基于 MailFlow"
     },
-    "businessNotice": {},
     "search": {
       "placeholder": "搜索设置…",
       "noResults": "未找到与“{{query}}”匹配的设置",
