@@ -8,6 +8,12 @@ const e = await import('./calendarEvents.js');
 
 const timed = () => e.emptyForm({ calendarId: 'c1', start: '2026-11-05T08:00:00.000Z', end: '2026-11-05T09:00:00.000Z' });
 
+describe('mailMeta', () => {
+  it('tells the server which zone to write times in', () => {
+    assert.equal(e.mailMeta(k => k, 'fr').timezone, 'Europe/Paris');
+  });
+});
+
 describe('describeError', () => {
   it('tells a conflict, a refusal and an unreachable server apart', () => {
     assert.deepEqual(e.describeError({ status: 409, code: 'conflict' }), { key: 'calendar.errors.conflict', refetch: true });

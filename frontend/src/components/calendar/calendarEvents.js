@@ -107,11 +107,13 @@ export function addGuests(list, people) {
   return out;
 }
 
-// What invitation mails need from the browser: the language and the words, already translated.
+// What invitation mails need from the browser: the language, the zone to write times in, and the
+// words, already translated. A cancellation or an answer has no form to carry the zone otherwise.
 export function mailMeta(t, lang) {
   const title = '{title}';
   return {
     lang: lang || 'en',
+    timezone: browserZone(),
     mailLabels: {
       invite: t('calendar.mail.invite', { title }), update: t('calendar.mail.update', { title }),
       cancel: t('calendar.mail.cancel', { title }), accepted: t('calendar.mail.accepted', { title }),
