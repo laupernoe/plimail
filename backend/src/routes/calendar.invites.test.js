@@ -12,9 +12,9 @@ vi.mock('../services/db.js', () => ({
   }),
 }));
 vi.mock('../middleware/auth.js', () => ({ requireAuth: (req, _r, n) => { req.session = { userId: 'u1' }; n(); } }));
-vi.mock('../services/caldavSync.js', () => ({ syncAccount: vi.fn(), credentialsFor: vi.fn(async () => ({})), isSyncing: vi.fn() }));
+vi.mock('../services/caldavSync.js', () => ({ syncAccount: vi.fn(), credentialsFor: vi.fn(async () => ({})), isSyncing: vi.fn(), noteRemoved: vi.fn(), forgetDiscovery: vi.fn() }));
 vi.mock('../services/caldavClient.js', () => ({
-  discoverCalendars: vi.fn(), findCalDavServer: vi.fn(), deleteEvent: vi.fn(),
+  discoverCalendars: vi.fn(), findCalDavServer: vi.fn(), deleteEvent: vi.fn(), moveEvent: vi.fn(),
   putEvent: vi.fn(async (href, ical) => { state.puts.push(ical); state.stored = ical; return { url: href }; }),
   getEvent: vi.fn(async () => ({ etag: '"2"', ical: state.stored })),
 }));

@@ -72,4 +72,18 @@ describe('safeFetch — scheme policy', () => {
       safeFetch('http://example.com/x', {}, { allowPrivate: false })
     ).rejects.toThrow(/HTTP/i);
   });
+
+  // 192.0.2.1 is TEST-NET-1: public to the classifier, never routed, and refused before any connect.
+  it('refuses plaintext to a public address under plaintextPrivateOnly, even with private hosts allowed', async () => {
+    let code = null;
+    try {
+      await safeFetch('http://192.0.2.1/x', { signal: AbortSignal.timeout(3000) }, { allowPrivate: true, plaintextPrivateOnly: true });
+    } catch (e) { code = e.cause?.code ?? e.code; }
+    expect(code).toBe('ERR_INSECURE_TRANSPORT');
+  });
+
+  it('still allows plaintext to a private address under plaintextPrivateOnly', async () => {
+    const r = await safeFetch(`http://127.0.0.1:${port}/ok`, {}, { allowPrivate: true, plaintextPrivateOnly: true });
+    expect(r.status).toBe(200);
+  });
 });
