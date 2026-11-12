@@ -11,7 +11,7 @@ import { validateHost } from '../services/hostValidation.js';
 import { getConnectionPolicy } from '../services/connectionPolicy.js';
 import { discoverCalendars, findCalDavServer, getEvent, putEvent, deleteEvent } from '../services/caldavClient.js';
 import { syncAccount, credentialsFor, isSyncing } from '../services/caldavSync.js';
-import { applyEdit, buildEvent, expandResource, inviteInfo, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
+import { applyEdit, buildEvent, eventLoopYielder, expandResourceAsync, inviteInfo, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
 import { forgetScheduling, knownAddresses, mailItip, mailLabels, planInvites } from '../services/calendarInvites.js';
 
 const router = Router();
@@ -242,11 +242,12 @@ router.get('/events', async (req, res) => {
   );
   const mine = new Set(await knownAddresses(req.session.userId));
   const events = [];
-  for (const [i, row] of r.rows.entries()) {
-    // This process also runs the mail engine: a large calendar must not hold it up.
-    if (i % 25 === 24) await new Promise(setImmediate);
+  // This process also runs the mail engine: a large calendar or a long series must not hold it up.
+  const pause = eventLoopYielder();
+  for (const row of r.rows) {
+    await pause();
     try {
-      for (const occ of expandResource(row.ical, fromMs, toMs, { floatingTz })) {
+      for (const occ of await expandResourceAsync(row.ical, fromMs, toMs, { floatingTz }, pause)) {
         events.push({
           ...occ, id: `${row.id}:${occ.recurrenceId || ''}`, eventId: row.id,
           calendarId: row.calendar_id, readOnly: row.read_only, ...roleOf(occ, mine),

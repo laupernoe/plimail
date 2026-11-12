@@ -5,8 +5,64 @@
 import crypto from 'node:crypto';
 import ICAL from 'ical.js';
 
+// Expansion walks a series from its first occurrence, so this has to cover a daily series of
+// decades. The walk gives the event loop back as it goes (expandResourceAsync) and the work behind
+// it is bounded in steps below, so the cap is about correctness, not about a hostile calendar.
 const MAX_ITERATIONS = 20000;
+// resourceInfo only needs where a series ends, which it walks for at most this many occurrences.
+const RANGE_SCAN_LIMIT = 1000;
 const DAY_MS = 86400000;
+
+// ical.js finds each next occurrence by testing candidates in a loop that, for DAILY and finer
+// rules, has no bound: FREQ=DAILY;BYMONTH=2;BYMONTHDAY=30 never returns, and a VTIMEZONE rule of
+// FREQ=SECONDLY walks every second since 1601. Every candidate goes through check_contracting_rules,
+// so counting those calls bounds the work whatever the rule: per occurrence, which is the longest
+// stretch that cannot give the event loop back; per rule; and per resource while one is read here,
+// timezone definitions included. A step costs tens of microseconds. Over a budget, the resource
+// throws like a malformed one.
+const MAX_STEPS_PER_OCCURRENCE = 2000;
+const MAX_STEPS_PER_RULE = 60000;
+const EXPANSION_STEPS = 60000;
+const RESOURCE_INFO_STEPS = 5000;
+const ZONE_STEPS = 5000;
+let budget = null;
+const costly = () => Object.assign(new Error('A recurrence rule is too costly to expand'), { costly: true });
+const recurProto = ICAL.RecurIterator.prototype;
+const { next: recurNext, check_contracting_rules: recurCheck } = recurProto;
+recurProto.next = function next(...args) {
+  this.mailflowSteps = 0;
+  return recurNext.apply(this, args);
+};
+recurProto.check_contracting_rules = function checkContractingRules() {
+  this.mailflowSteps = (this.mailflowSteps || 0) + 1;
+  this.mailflowTotal = (this.mailflowTotal || 0) + 1;
+  if (this.mailflowSteps > MAX_STEPS_PER_OCCURRENCE || this.mailflowTotal > MAX_STEPS_PER_RULE) throw costly();
+  if (budget && --budget.left < 0) throw costly();
+  return recurCheck.call(this);
+};
+
+// Runs fn, which is synchronous, against a resource's step budget.
+function withBudget(steps, fn) {
+  const outer = budget;
+  budget = steps;
+  try {
+    return fn();
+  } finally {
+    budget = outer;
+  }
+}
+
+// This process also runs the mail engine, so long CPU work gives the event loop back: the function
+// returned waits a turn (setImmediate) once sliceMs of work has passed since it last did.
+export function eventLoopYielder(sliceMs = 10) {
+  let since = performance.now();
+  return async () => {
+    if (performance.now() - since < sliceMs) return;
+    await new Promise(resolve => setImmediate(resolve));
+    since = performance.now();
+  };
+}
+
 const PRODID = '-//MailFlow//CalDAV//EN';
 const WEEKDAYS = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
 
@@ -74,12 +130,22 @@ function toUtcMs(time, tzid, zones) {
 const sharedZones = new Map();
 function sharedZone(vtz, tzid) {
   const key = JSON.stringify(vtz.toJSON());
-  let zone = sharedZones.get(key);
-  if (!zone) {
+  if (!sharedZones.has(key)) {
     if (sharedZones.size >= 200) sharedZones.clear();
-    zone = new ICAL.Timezone({ component: vtz, tzid });
+    let zone = new ICAL.Timezone({ component: vtz, tzid });
+    // ical.js expands a definition in one go, from its start to a few years ahead, on first use.
+    // Doing that here against a budget of its own refuses a definition whose rules would take long
+    // (FREQ=SECONDLY since 1601) before reading an event in it can hold the process. Any other
+    // failure is left to surface where the zone is used, as before.
+    try {
+      withBudget({ left: ZONE_STEPS }, () => zone.utcOffset(ICAL.Time.now()));
+    } catch (err) {
+      if (err.costly) zone = null;
+    }
     sharedZones.set(key, zone);
   }
+  const zone = sharedZones.get(key);
+  if (!zone) throw costly();
   return zone;
 }
 
@@ -156,8 +222,40 @@ function isSeries(master) {
   return master.hasProperty('rrule') || master.hasProperty('rdate');
 }
 
+// The end of a series' last occurrence: read from UNTIL where every rule has one, walked for only a
+// short COUNT. Null for a series that never ends or would take too long to walk, which only makes
+// its row match more date ranges.
+function seriesEnd(master, b, zones) {
+  const rules = master.getAllProperties('rrule').map(p => p.getFirstValue());
+  if (rules.some(r => !r.until && !r.count)) return null;
+  const duration = b.endMs - b.startMs;
+  if (rules.length && rules.every(r => r.until) && !master.hasProperty('rdate')) {
+    return Math.max(...rules.map(r => (r.until.isDate ? dateToMs(isoDate(r.until)) + DAY_MS : toUtcMs(r.until, b.tzid, zones)))) + duration;
+  }
+  if (rules.some(r => r.count > RANGE_SCAN_LIMIT)) return null;
+  let end = -Infinity;
+  try {
+    const it = new ICAL.Event(master).iterator();
+    let next;
+    let n = 0;
+    while ((next = it.next())) {
+      if (++n > RANGE_SCAN_LIMIT) return null;
+      const ms = next.isDate ? dateToMs(isoDate(next)) : toUtcMs(next, b.tzid, zones);
+      end = Math.max(end, ms + duration);
+    }
+  } catch (err) {
+    if (err.costly) return null;
+    throw err;
+  }
+  return end;
+}
+
 // What sync stores to find a resource by date without parsing it. rangeEnd null: the series never ends.
 export function resourceInfo(ics) {
+  return withBudget({ left: RESOURCE_INFO_STEPS }, () => readResourceInfo(ics));
+}
+
+function readResourceInfo(ics) {
   const root = parseRoot(ics);
   const zones = zonesOf(root);
   const events = root.getAllSubcomponents('vevent');
@@ -175,20 +273,8 @@ export function resourceInfo(ics) {
   if (master && isSeries(master)) {
     const b = bounds(master, zones);
     if (b) {
-      const duration = b.endMs - b.startMs;
-      const rules = master.getAllProperties('rrule').map(p => p.getFirstValue());
-      if (rules.some(r => !r.until && !r.count)) {
-        rangeEnd = null;
-      } else {
-        const it = new ICAL.Event(master).iterator();
-        let next;
-        let n = 0;
-        while ((next = it.next())) {
-          if (++n > MAX_ITERATIONS) { rangeEnd = null; break; }
-          const ms = next.isDate ? dateToMs(isoDate(next)) : toUtcMs(next, b.tzid, zones);
-          rangeEnd = Math.max(rangeEnd, ms + duration);
-        }
-      }
+      const end = seriesEnd(master, b, zones);
+      rangeEnd = end === null ? null : Math.max(rangeEnd, end);
     }
   }
   return {
@@ -265,8 +351,30 @@ function describe(vevent, b, startMs, extra) {
 }
 
 // The occurrences of one resource that overlap [fromMs, toMs). Times come back as UTC ISO instants,
-// all-day dates as plain dates with an exclusive end.
-export function expandResource(ics, fromMs, toMs, { floatingTz } = {}) {
+// all-day dates as plain dates with an exclusive end. `limit` stops once that many are found.
+export function expandResource(ics, fromMs, toMs, opts) {
+  const steps = expansion(ics, fromMs, toMs, opts);
+  const left = { left: EXPANSION_STEPS };
+  for (;;) {
+    const { done, value } = withBudget(left, () => steps.next());
+    if (done) return value;
+  }
+}
+
+// expandResource for code running beside the mail engine: a long series gives the event loop back
+// whenever `pause` (eventLoopYielder) says so. One pause shared across resources slices them all.
+export async function expandResourceAsync(ics, fromMs, toMs, opts, pause = eventLoopYielder()) {
+  const steps = expansion(ics, fromMs, toMs, opts);
+  const left = { left: EXPANSION_STEPS };
+  for (;;) {
+    const { done, value } = withBudget(left, () => steps.next());
+    if (done) return value;
+    await pause();
+  }
+}
+
+// Yields once per occurrence walked, returns the occurrences.
+function* expansion(ics, fromMs, toMs, { floatingTz, limit = Infinity } = {}) {
   const root = parseRoot(ics);
   const zones = zonesOf(root, floatingTz);
   const { master, overrides } = masterAndOverrides(root);
@@ -292,7 +400,7 @@ export function expandResource(ics, fromMs, toMs, { floatingTz } = {}) {
     out.push(describe(override, b, b.startMs, { recurrenceId, isRecurring: true, recurrence: null, recurrenceCustom: false }));
   }
 
-  if (!master || !masterBounds) return out;
+  if (!master || !masterBounds || out.length >= limit) return out;
   const b = masterBounds;
   const duration = b.endMs - b.startMs;
   if (!isSeries(master)) {
@@ -315,12 +423,14 @@ export function expandResource(ics, fromMs, toMs, { floatingTz } = {}) {
       console.warn(`Calendar: series ${text(master, 'uid')} stopped expanding after ${MAX_ITERATIONS} occurrences`);
       break;
     }
+    yield;
     const startMs = next.isDate ? dateToMs(isoDate(next)) : toUtcMs(next, b.tzid, zones);
     if (startMs >= toMs + DAY_MS) break;
     const key = next.isDate ? isoDate(next) : startMs;
     if (excluded.has(key) || overridden.has(key)) continue;
     if (!overlaps(startMs, startMs + duration, b.allDay)) continue;
     out.push(describe(master, b, startMs, { recurrenceId: next.toString(), isRecurring: true, recurrence, recurrenceCustom: custom }));
+    if (out.length >= limit) break;
   }
   return out;
 }

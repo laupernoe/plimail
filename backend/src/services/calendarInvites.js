@@ -92,9 +92,14 @@ export function mailLabels(raw) {
 }
 
 function firstOccurrence(ics) {
-  const occ = expandResource(ics, Date.now() - 86400000, Date.now() + 5 * 365 * 86400000)[0]
-    || expandResource(ics, 0, 8.64e15)[0];
-  return occ || null;
+  try {
+    const occ = expandResource(ics, Date.now() - 86400000, Date.now() + 5 * 365 * 86400000, { limit: 1 })[0]
+      || expandResource(ics, 0, 8.64e15, { limit: 1 })[0];
+    return occ || null;
+  } catch (err) {
+    if (err.costly) return null;
+    throw err;
+  }
 }
 
 function whenText(occ, { lang, timeZone }) {
