@@ -161,9 +161,9 @@ router.patch('/accounts/:id', async (req, res) => {
 });
 
 router.post('/accounts/:id/sync', async (req, res) => {
-  forgetScheduling(req.params.id);
   const account = await loadAccount(req.session.userId, req.params.id);
   if (!account) return res.status(404).json({ error: 'Not found' });
+  forgetScheduling(account.id);
   if (isSyncing(account.id)) return res.status(409).json({ error: 'A sync is already in progress' });
   const result = await syncAccount(account.id);
   res.json({ ok: result.ok, error: result.error, account: publicAccount(await loadAccount(req.session.userId, account.id)) });
@@ -421,19 +421,24 @@ function mailOptions(req) {
 }
 
 // Mails what a server that does not schedule leaves to the client. The event is saved by now, so a
-// failure here is reported beside the success rather than as one.
+// failure here is reported beside the success rather than as one, and does not keep the other
+// messages (the update after a cancellation) from going out.
 async function mailAfterWrite(userId, plan, messages, opts) {
   if (plan?.mode !== 'mail' || !plan.organizer) return {};
   let sent = 0;
-  try {
-    for (const m of messages) {
-      if (!m.to.length) continue;
+  let failure = null;
+  for (const m of messages) {
+    if (!m.to.length) continue;
+    try {
       sent += (await mailItip({ userId, from: m.from || plan.organizer.email, ...m, ...opts })).sent;
+    } catch (err) {
+      failure ||= err;
     }
-    return sent ? { invitesSent: sent } : {};
-  } catch (err) {
-    return { inviteError: err.message, ...(err.code ? { inviteErrorCode: err.code } : {}) };
   }
+  return {
+    ...(sent ? { invitesSent: sent } : {}),
+    ...(failure ? { inviteError: failure.message, ...(failure.code ? { inviteErrorCode: failure.code } : {}) } : {}),
+  };
 }
 
 async function planFor(userId, row) {

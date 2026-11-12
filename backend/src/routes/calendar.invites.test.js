@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const state = vi.hoisted(() => ({ event: null, stored: null, plan: null, mails: [], puts: [] }));
+const state = vi.hoisted(() => ({ event: null, stored: null, plan: null, mails: [], puts: [], failing: null }));
 vi.mock('../services/db.js', () => ({
   query: vi.fn(async (sql) => {
     if (/FROM calendars c JOIN caldav_accounts/.test(sql)) {
@@ -23,7 +23,11 @@ vi.mock('../services/calendarInvites.js', () => ({
   knownAddresses: vi.fn(async () => ['noe@example.com']),
   mailLabels: () => ({}),
   planInvites: vi.fn(async () => state.plan),
-  mailItip: vi.fn(async (m) => { state.mails.push(m); return { sent: m.to.length, rejected: [] }; }),
+  mailItip: vi.fn(async (m) => {
+    if (m.method === state.failing) throw new Error('SMTP said no');
+    state.mails.push(m);
+    return { sent: m.to.length, rejected: [] };
+  }),
 }));
 
 const express = (await import('express')).default;
@@ -56,7 +60,7 @@ beforeAll(async () => {
   base = `http://127.0.0.1:${server.address().port}`;
 });
 afterAll(() => new Promise(r => server.close(r)));
-beforeEach(() => Object.assign(state, { event: null, stored: null, plan: MAIL_PLAN, mails: [], puts: [] }));
+beforeEach(() => Object.assign(state, { event: null, stored: null, plan: MAIL_PLAN, mails: [], puts: [], failing: null }));
 
 describe('invitations', () => {
   it('mails an invitation to each attendee when the server does not schedule', async () => {
@@ -107,6 +111,14 @@ describe('invitations', () => {
     expect(state.mails.map(m => [m.method, m.to])).toEqual([['CANCEL', ['bob@example.com']], ['REQUEST', ['ana@example.com']]]);
     expect(state.mails[0].only).toEqual(['bob@example.com']);
     expect(state.puts[0]).not.toMatch(/bob@/);
+  });
+
+  it('still updates the others when the cancellation fails to send', async () => {
+    state.event = stored(MINE);
+    state.failing = 'CANCEL';
+    const r = await call('PATCH', `/c/events/${EVENT_ID}`, { attendees: [{ email: 'ana@example.com' }] });
+    expect(r.body).toMatchObject({ ok: true, invitesSent: 1, inviteError: 'SMTP said no' });
+    expect(state.mails.map(m => [m.method, m.to])).toEqual([['REQUEST', ['ana@example.com']]]);
   });
 
   // What the form sends: every field, whether it changed or not.
