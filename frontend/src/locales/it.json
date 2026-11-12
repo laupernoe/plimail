@@ -149,6 +149,7 @@
       "someRejected": "Il server di posta ha rifiutato la consegna a {{addresses}}.",
       "action": "Visualizza"
     },
+    "undoSend": {
       "sending": "Invio di \"{{subject}}\"…",
       "undone": "Invio annullato",
       "reopenLater": "Si riaprirà quando chiuderai il messaggio che stai scrivendo",
@@ -1257,6 +1258,8 @@
     },
     "messageList": {
       "autoOpenReplyDrafts": "Apri automaticamente le risposte salvate quando selezioni i messaggi in arrivo",
+      "undoSend": "Annulla invio",
+      "undoSendDesc": "Trattiene la posta in uscita per 10 secondi in modo da poterla annullare. Disattiva per inviare subito.",
       "title": "Elenco messaggi",
       "senderFavicons": "Favicon dei mittenti",
       "senderFaviconsDesc": "Mostra le icone dei siti web per i mittenti senza foto del contatto. A Twenty Icons viene inviato solo il dominio del mittente, mai l'indirizzo email completo.",

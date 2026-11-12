@@ -149,6 +149,7 @@
       "someRejected": "邮件服务器拒绝投递到 {{addresses}}。",
       "action": "查看"
     },
+    "undoSend": {
       "sending": "正在发送“{{subject}}”…",
       "undone": "已撤销发送",
       "reopenLater": "关闭正在编写的邮件后，它会重新打开",
@@ -1257,6 +1258,8 @@
     },
     "messageList": {
       "autoOpenReplyDrafts": "选择收件箱邮件时自动打开已保存的回复",
+      "undoSend": "撤销发送",
+      "undoSendDesc": "将发出的邮件保留 10 秒，以便仍可撤销。关闭后将立即发送。",
       "title": "邮件列表",
       "senderFavicons": "发件人网站图标",
       "senderFaviconsDesc": "为没有联系人照片的发件人显示网站图标。只会将发件人的域名发送到 Twenty Icons，绝不会发送完整的电子邮件地址。",

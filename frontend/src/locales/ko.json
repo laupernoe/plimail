@@ -199,6 +199,7 @@
     },
     "draftHasAttachments": "첨부 파일은 초안과 함께 저장되지 않습니다. 이 초안을 다시 열면 다시 첨부해야 합니다.",
     "dropToAttach": "파일을 놓으면 첨부됩니다",
+    "undoSend": {
       "sending": "\"{{subject}}\" 보내는 중…",
       "undone": "전송이 취소되었습니다",
       "reopenLater": "작성 중인 메시지를 닫으면 다시 열립니다",
@@ -1257,6 +1258,8 @@
     },
     "messageList": {
       "autoOpenReplyDrafts": "받은편지함 메시지를 선택할 때 저장된 답장 자동으로 열기",
+      "undoSend": "보내기 취소",
+      "undoSendDesc": "보내는 메일을 10초 동안 보류하여 취소할 수 있게 합니다. 끄면 즉시 전송합니다.",
       "senderFaviconsDesc": "연락처 사진이 없는 발신자의 웹사이트 아이콘을 표시합니다. 전체 이메일 주소가 아닌 발신자의 도메인만 Twenty Icons로 전송됩니다.",
       "title": "메시지 목록",
       "senderFavicons": "발신자 파비콘",

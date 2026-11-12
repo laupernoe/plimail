@@ -30,7 +30,7 @@ import { initialComposeFocus, isComposeSendShortcut, isSendLaterShortcut } from 
 import { unproxyImages } from '../utils/imageProxy.js';
 import { autoListsOf, openAutoRecipients, replyTypeFields, swapAccountFields } from '../utils/autoRecipients.js';
 import { resolveSignatureEnabled } from '../utils/composeSignature.js';
-import { UNDO_SEND_SECONDS, undoWindowMs, trackHeldSend, reopenCompose, sendErrorText } from '../utils/heldSend.js';
+import { undoSendSeconds, undoWindowMs, trackHeldSend, reopenCompose, sendErrorText } from '../utils/heldSend.js';
 import { openSentMessage } from '../utils/openSentMessage.js';
 import { aiReplyAvailable, loadReplyConversation, buildReplyPrompt, MAX_INSTRUCTION_CHARS } from '../utils/aiReply.js';
 import { frameGeometry } from '../utils/frameGeometry.js';
@@ -1243,7 +1243,7 @@ export default function ComposeModal() {
         ...payload,
         // The server holds the message this long so it can still be undone, and deletes the
         // draft only once the message is delivered.
-        undoSeconds: UNDO_SEND_SECONDS,
+        undoSeconds: undoSendSeconds(useStore.getState().undoSend),
         ...(hasDraft ? { draft: { uid: savedDraft.uid, folder: savedDraft.folder, accountId: savedDraft.accountId } } : {}),
       }, { 'X-Idempotency-Key': idempotencyKeyRef.current });
       // Send confirmed — clear the key so a subsequent send from a reused modal gets a fresh one.

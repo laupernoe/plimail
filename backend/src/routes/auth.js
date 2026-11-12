@@ -794,9 +794,12 @@ export async function patchPreferences(req, res) {
           autoLockMinutes, showMobileAvatars, gravatarAvatars, folderSyncInterval,
           folderOrder, senderFavicons, showMessagePreviews, defaultSender,
           conversationMode, hoverActionSet, autoOpenReplyDrafts, afterRemove, darkEmailBodies, listSort,
-          timeFormat } = req.body;
+          timeFormat, undoSend } = req.body;
   if (autoOpenReplyDrafts !== undefined && typeof autoOpenReplyDrafts !== 'boolean') {
     return res.status(400).json({ error: 'autoOpenReplyDrafts must be a boolean' });
+  }
+  if (undoSend !== undefined && typeof undoSend !== 'boolean') {
+    return res.status(400).json({ error: 'undoSend must be a boolean' });
   }
   if (darkEmailBodies !== undefined && typeof darkEmailBodies !== 'boolean') {
     return res.status(400).json({ error: 'darkEmailBodies must be a boolean' });
@@ -916,6 +919,7 @@ export async function patchPreferences(req, res) {
       || CASE WHEN $43::boolean IS NOT NULL THEN jsonb_build_object('darkEmailBodies', $43::boolean) ELSE '{}'::jsonb END
       || CASE WHEN $44::jsonb IS NOT NULL THEN jsonb_build_object('listSort', $44::jsonb) ELSE '{}'::jsonb END
       || CASE WHEN $45::text IS NOT NULL THEN jsonb_build_object('timeFormat', $45::text) ELSE '{}'::jsonb END
+      || CASE WHEN $46::boolean IS NOT NULL THEN jsonb_build_object('undoSend', $46::boolean) ELSE '{}'::jsonb END
     WHERE id = $1
   `, [req.session.userId, themeVal, font ?? null, layout ?? null, notificationSound ?? null,
       pageSize ?? null, scrollMode ?? null, syncInterval ?? null,
@@ -927,7 +931,7 @@ export async function patchPreferences(req, res) {
       autoLockMinutesVal,
       showMobileAvatars ?? null, gravatarAvatars ?? null, folderSyncIntervalVal, folderOrderJson, senderFaviconsVal,
       showMessagePreviews ?? null, defaultSenderVal, conversationModeVal, hoverActionSetJson, autoOpenReplyDrafts ?? null,
-      afterRemoveVal, darkEmailBodies ?? null, listSortJson, timeFormatVal]);
+      afterRemoveVal, darkEmailBodies ?? null, listSortJson, timeFormatVal, undoSend ?? null]);
 
   if (syncInterval != null) {
     const ms = parseInt(syncInterval) * 1000;

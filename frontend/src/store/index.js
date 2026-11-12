@@ -148,7 +148,7 @@ export const useStore = create((set, get) => ({
         autoLockMinutes: 0, blockRemoteImages: true,
         imageWhitelist: { addresses: [], domains: [] }, shortcuts: {}, aiActions: null,
         hiddenFolders: {}, categorizationEnabled: false,
-        autoOpenReplyDrafts: false, afterRemove: 'next', darkEmailBodies: true,
+        autoOpenReplyDrafts: false, afterRemove: 'next', darkEmailBodies: true, undoSend: true,
         // Folder shortcuts name the previous user's accounts and folders. Left in place, the
         // next user's first favorite saved them into that user's own preferences.
         favoriteFolders: [], recentFolders: [], defaultSender: '', listSort: {},
@@ -548,6 +548,13 @@ export const useStore = create((set, get) => ({
     localStorage.setItem('mailflow_auto_open_reply_drafts', String(Boolean(value)));
     set({ autoOpenReplyDrafts: Boolean(value) });
     schedulePrefSave({ autoOpenReplyDrafts: Boolean(value) });
+  },
+  // Undo send (#769): on holds an outgoing message for the undo window, off sends it at once.
+  undoSend: localStorage.getItem('mailflow_undo_send') !== 'false',
+  setUndoSend: value => {
+    localStorage.setItem('mailflow_undo_send', String(Boolean(value)));
+    set({ undoSend: Boolean(value) });
+    schedulePrefSave({ undoSend: Boolean(value) });
   },
   composing: false,
   composeData: null,
@@ -1176,6 +1183,10 @@ export const useStore = create((set, get) => ({
       if (typeof prefs.autoOpenReplyDrafts === 'boolean') {
         localStorage.setItem('mailflow_auto_open_reply_drafts', String(prefs.autoOpenReplyDrafts));
         set({ autoOpenReplyDrafts: prefs.autoOpenReplyDrafts });
+      }
+      if (typeof prefs.undoSend === 'boolean') {
+        localStorage.setItem('mailflow_undo_send', String(prefs.undoSend));
+        set({ undoSend: prefs.undoSend });
       }
       if (prefs.notificationSound) {
         localStorage.setItem('mailflow_notification_sound', prefs.notificationSound);

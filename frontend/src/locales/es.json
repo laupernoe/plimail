@@ -149,6 +149,7 @@
       "someRejected": "El servidor de correo rechazó la entrega a {{addresses}}.",
       "action": "Ver"
     },
+    "undoSend": {
       "sending": "Enviando «{{subject}}»…",
       "undone": "Envío deshecho",
       "reopenLater": "Se volverá a abrir cuando cierres el mensaje que estás escribiendo",
@@ -1257,6 +1258,8 @@
     },
     "messageList": {
       "autoOpenReplyDrafts": "Abrir automáticamente las respuestas guardadas al seleccionar mensajes de la bandeja de entrada",
+      "undoSend": "Deshacer envío",
+      "undoSendDesc": "Retiene el correo saliente 10 segundos para poder deshacerlo. Desactívalo para enviar de inmediato.",
       "title": "Lista de mensajes",
       "senderFavicons": "Favicons de remitentes",
       "senderFaviconsDesc": "Mostrar iconos de sitios web para los remitentes sin foto de contacto. Solo se envía a Twenty Icons el dominio del remitente, nunca su dirección de correo completa.",

@@ -298,3 +298,18 @@ describe('PATCH /auth/preferences timeFormat (#758)', () => {
     expect(query.mock.calls[0][1][44]).toBeNull();
   });
 });
+
+describe('PATCH /auth/preferences undoSend (#769)', () => {
+  const res = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn() });
+  for (const value of [true, false]) it(`persists explicit ${value}`, async () => {
+    await patchPreferences({ session: { userId: 'user-1' }, body: { undoSend: value } }, res());
+    expect(query.mock.calls[0][0]).toContain("jsonb_build_object('undoSend', $46::boolean)");
+    expect(query.mock.calls[0][1][45]).toBe(value);
+  });
+  it('rejects a nonboolean without a write', async () => {
+    const r = res();
+    await patchPreferences({ session: { userId: 'user-1' }, body: { undoSend: 'false' } }, r);
+    expect(r.status).toHaveBeenCalledWith(400);
+    expect(query).not.toHaveBeenCalled();
+  });
+});

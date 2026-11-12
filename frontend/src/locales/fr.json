@@ -149,6 +149,7 @@
       "someRejected": "Le serveur de messagerie a refusé la remise à {{addresses}}.",
       "action": "Voir"
     },
+    "undoSend": {
       "sending": "Envoi de « {{subject}} »…",
       "undone": "Envoi annulé",
       "reopenLater": "Il se rouvrira quand vous fermerez le message en cours de rédaction",
@@ -1257,6 +1258,8 @@
     },
     "messageList": {
       "autoOpenReplyDrafts": "Ouvrir automatiquement les réponses enregistrées à la sélection d’un message reçu",
+      "undoSend": "Annuler l’envoi",
+      "undoSendDesc": "Retient le courrier sortant pendant 10 secondes pour pouvoir l’annuler. Désactivez pour envoyer immédiatement.",
       "title": "Liste des messages",
       "senderFavicons": "Favicons des expéditeurs",
       "senderFaviconsDesc": "Afficher les icônes de site web pour les expéditeurs sans photo de contact. Seul le domaine de l'expéditeur, jamais son adresse e-mail complète, est envoyé à Twenty Icons.",

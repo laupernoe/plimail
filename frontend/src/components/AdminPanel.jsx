@@ -2035,7 +2035,7 @@ function LayoutsTab() {
 function BehaviorTab() {
   const { t } = useTranslation();
   const isMobile = useMobile();
-  const { swipeActions, setSwipeAction, syncInterval, setSyncInterval, folderSyncInterval, setFolderSyncInterval, autoOpenReplyDrafts, setAutoOpenReplyDrafts, plaintextEmail, setPlaintextEmail, replyDefault, setReplyDefault, afterRemove, setAfterRemove, markReadBehavior, setMarkReadBehavior, markReadDelay, setMarkReadDelay, accounts, defaultSender, setDefaultSender } = useStore();
+  const { swipeActions, setSwipeAction, syncInterval, setSyncInterval, folderSyncInterval, setFolderSyncInterval, autoOpenReplyDrafts, setAutoOpenReplyDrafts, undoSend, setUndoSend, plaintextEmail, setPlaintextEmail, replyDefault, setReplyDefault, afterRemove, setAfterRemove, markReadBehavior, setMarkReadBehavior, markReadDelay, setMarkReadDelay, accounts, defaultSender, setDefaultSender } = useStore();
 
   // "Set MailFlow as your default email app": registerProtocolHandler is the
   // cross-browser path (works in Firefox and non-installed Chromium) and must be
@@ -2189,6 +2189,13 @@ function BehaviorTab() {
           label={t('admin.messageList.autoOpenReplyDrafts', 'Automatically open saved replies when selecting inbox messages')}
           checked={autoOpenReplyDrafts}
           onChange={setAutoOpenReplyDrafts}
+        />
+
+        <ToggleRow
+          label={t('admin.messageList.undoSend')}
+          desc={t('admin.messageList.undoSendDesc')}
+          checked={undoSend}
+          onChange={setUndoSend}
         />
       </SettingGroup>
 
@@ -7864,6 +7871,7 @@ function makeSearchIndex(t) {
     { label: t('admin.messageList.threadingMode'), keywords: ['thread', 'conversation', 'grouping', 'threading', 'group'], tab: 'appearance', subtab: 'layout', breadcrumb: layoutCrumb },
     // Behavior
     { label: t('admin.messageList.swipeActions'), keywords: ['swipe', 'gesture', 'mobile', 'swipe left', 'swipe right', 'touch'], tab: 'behavior', breadcrumb: behaviorCrumb },
+    { label: t('admin.messageList.undoSend'), keywords: ['undo send', 'undo', 'delay', 'send delay', 'send immediately', 'cancel send'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.syncFrequency'), keywords: ['sync', 'interval', 'frequency', 'refresh', 'poll', 'check mail', '15s', '30s', '60s'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.folderSyncFrequency'), keywords: ['folder', 'sync', 'structure', 'list', 'refresh', 'mailbox', '15 min', '30 min', '1 hour', 'never'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.composeFormat'), keywords: ['compose', 'format', 'rich text', 'plain text', 'html', 'editor'], tab: 'behavior', breadcrumb: behaviorCrumb },

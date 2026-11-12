@@ -4,7 +4,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   UNDO_SEND_SECONDS, POLL_INTERVAL_MS, GIVE_UP_AFTER_MS,
-  undoWindowMs, reopenCompose, trackHeldSend, sendErrorText,
+  undoWindowMs, undoSendSeconds, reopenCompose, trackHeldSend, sendErrorText,
 } from './heldSend.js';
 
 describe('undoWindowMs', () => {
@@ -265,5 +265,15 @@ describe('sendErrorText', () => {
     assert.equal(sendErrorText(Object.assign(new Error('Authentication failed. Check your email account credentials.'), { status: 500 }), t),
       'Authentication failed. Check your email account credentials.');
     assert.equal(sendErrorText({ status: 'failed', error: 'Message was rejected by the mail server.' }, t), 'Message was rejected by the mail server.');
+  });
+});
+
+describe('undoSendSeconds (#769)', () => {
+  test('holds for the undo window by default and when on', () => {
+    assert.equal(undoSendSeconds(true), UNDO_SEND_SECONDS);
+    assert.equal(undoSendSeconds(undefined), UNDO_SEND_SECONDS);
+  });
+  test('sends at once when undo send is off', () => {
+    assert.equal(undoSendSeconds(false), 0);
   });
 });

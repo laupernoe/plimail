@@ -149,6 +149,7 @@
       "someRejected": "O servidor de e-mail recusou a entrega para {{addresses}}.",
       "action": "Ver"
     },
+    "undoSend": {
       "sending": "Enviando \"{{subject}}\"…",
       "undone": "Envio desfeito",
       "reopenLater": "Ela reabre quando você fechar a mensagem que está escrevendo",
@@ -1257,6 +1258,8 @@
     },
     "messageList": {
       "autoOpenReplyDrafts": "Abrir automaticamente as respostas salvas ao selecionar mensagens na caixa de entrada",
+      "undoSend": "Desfazer envio",
+      "undoSendDesc": "Segura os e-mails enviados por 10 segundos para que ainda possam ser desfeitos. Desative para enviar imediatamente.",
       "title": "Lista de mensagens",
       "senderFavicons": "Favicons dos remetentes",
       "senderFaviconsDesc": "Mostrar ícones de sites para remetentes sem foto de contato. Apenas o domínio do remetente, nunca o endereço de e-mail completo, é enviado ao Twenty Icons.",
