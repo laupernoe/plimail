@@ -2585,7 +2585,9 @@
       "showInViews": "Mostrar nas visualizações",
       "listHint": "Renomeie uma agenda para vê-la com o seu próprio nome, escolha a cor dela ou decida se ela aparece nas suas visualizações. Uma agenda oculta deixa de ser sincronizada e não é exibida em lugar nenhum.",
       "noCalendars": "Nenhuma agenda ainda. Conecte primeiro uma conta de agenda.",
-      "goToAccounts": "Ir para as contas"
+      "goToAccounts": "Ir para as contas",
+      "useMailPassword": "Usar a senha de uma conta de e-mail",
+      "typePassword": "Digitar uma senha"
     },
     "reply": {
       "question": "Vai participar?",
@@ -2604,5 +2606,12 @@
       "where": "Onde"
     },
     "syncAll": "Sincronizar agendas"
+  },
+  "calendarOffer": {
+    "prompt": "Adicionar também os calendários desta conta",
+    "add": "Adicionar calendários",
+    "adding": "Adicionando…",
+    "added": "Calendários adicionados. Eles aparecem em Calendário após a sincronização.",
+    "none": "Nenhum servidor de calendário encontrado em {{host}}."
   }
 }

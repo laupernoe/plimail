@@ -50,6 +50,7 @@ import BackupSettings from './BackupSettings.jsx';
 import PasswordInput from './PasswordInput.jsx';
 import ApiTokensSection from './ApiTokensSection.jsx';
 import { CalendarAccountsTab, CalendarListTab } from './calendar/AccountsModal.jsx';
+import CalendarOffer from './calendar/CalendarOffer.jsx';
 
 // ─── Shared field component ───────────────────────────────────────────────────
 function Field({ label, required, children }) {
@@ -802,6 +803,7 @@ function AccountsTab() {
     return () => clearTimeout(timer);
   }, [focusedId]);
   const [editTarget, setEditTarget] = useState(null);
+  const [calendarOffer, setCalendarOffer] = useState(null); // the account just added, whose calendars may be added too
   const [folderMappings, setFolderMappings] = useState({});
   const [availableFolders, setAvailableFolders] = useState([]);
   const [foldersLoading, setFoldersLoading] = useState(false);
@@ -818,6 +820,7 @@ function AccountsTab() {
   const handleAdd = async (form) => {
     const account = await api.addAccount(form);
     setAccounts([...accounts, account]);
+    setCalendarOffer(account);
     setSubview('list');
   };
 
@@ -1341,6 +1344,8 @@ function AccountsTab() {
           {t('admin.accounts.addButton')}
         </button>
       </div>
+
+      {calendarOffer && <CalendarOffer key={calendarOffer.id} account={calendarOffer} onDismiss={() => setCalendarOffer(null)} />}
 
       {accounts.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-tertiary)', fontSize: 14 }}>

@@ -2585,7 +2585,9 @@
       "showInViews": "In Ansichten anzeigen",
       "listHint": "Benennen Sie einen Kalender um, damit er unter Ihrem eigenen Namen erscheint, wählen Sie seine Farbe oder legen Sie fest, ob er in Ihren Ansichten auftaucht. Ein ausgeblendeter Kalender wird nicht mehr synchronisiert und nirgends angezeigt.",
       "noCalendars": "Noch kein Kalender vorhanden. Verbinden Sie zuerst ein Kalenderkonto.",
-      "goToAccounts": "Zu den Konten"
+      "goToAccounts": "Zu den Konten",
+      "useMailPassword": "Passwort eines Mailkontos verwenden",
+      "typePassword": "Passwort eingeben"
     },
     "reply": {
       "question": "Nehmen Sie teil?",
@@ -2604,5 +2606,12 @@
       "where": "Wo"
     },
     "syncAll": "Kalender synchronisieren"
+  },
+  "calendarOffer": {
+    "prompt": "Auch die Kalender dieses Kontos hinzufügen",
+    "add": "Kalender hinzufügen",
+    "adding": "Wird hinzugefügt …",
+    "added": "Kalender hinzugefügt. Sie erscheinen nach der Synchronisierung im Kalender.",
+    "none": "Auf {{host}} wurde kein Kalenderserver gefunden."
   }
 }

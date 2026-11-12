@@ -2585,7 +2585,9 @@
       "showInViews": "Mostrar en las vistas",
       "listHint": "Cambia el nombre de un calendario para verlo con el tuyo, elige su color o decide si aparece en tus vistas. Un calendario oculto deja de sincronizarse y no se muestra en ningún sitio.",
       "noCalendars": "Aún no hay ningún calendario. Conecta primero una cuenta de calendario.",
-      "goToAccounts": "Ir a las cuentas"
+      "goToAccounts": "Ir a las cuentas",
+      "useMailPassword": "Usar la contraseña de una cuenta de correo",
+      "typePassword": "Escribir una contraseña"
     },
     "reply": {
       "question": "¿Asistirás?",
@@ -2604,5 +2606,12 @@
       "where": "Dónde"
     },
     "syncAll": "Sincronizar calendarios"
+  },
+  "calendarOffer": {
+    "prompt": "Añadir también los calendarios de esta cuenta",
+    "add": "Añadir calendarios",
+    "adding": "Añadiendo…",
+    "added": "Calendarios añadidos. Aparecerán en Calendario tras sincronizarse.",
+    "none": "No se encontró ningún servidor de calendario en {{host}}."
   }
 }

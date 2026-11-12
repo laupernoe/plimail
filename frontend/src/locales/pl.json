@@ -2604,7 +2604,9 @@
       "showInViews": "Pokaż w widokach",
       "listHint": "Zmień nazwę kalendarza, aby widzieć go pod własną nazwą, wybierz jego kolor lub zdecyduj, czy ma się pojawiać w widokach. Ukryty kalendarz nie jest już synchronizowany i nigdzie się nie wyświetla.",
       "noCalendars": "Nie ma jeszcze kalendarza. Najpierw połącz konto kalendarza.",
-      "goToAccounts": "Przejdź do kont"
+      "goToAccounts": "Przejdź do kont",
+      "useMailPassword": "Użyj hasła konta pocztowego",
+      "typePassword": "Wpisz hasło"
     },
     "reply": {
       "question": "Weźmiesz udział?",
@@ -2623,5 +2625,12 @@
       "where": "Gdzie"
     },
     "syncAll": "Synchronizuj kalendarze"
+  },
+  "calendarOffer": {
+    "prompt": "Dodaj też kalendarze tego konta",
+    "add": "Dodaj kalendarze",
+    "adding": "Dodawanie…",
+    "added": "Kalendarze dodane. Pojawią się w Kalendarzu po synchronizacji.",
+    "none": "Nie znaleziono serwera kalendarza na {{host}}."
   }
 }

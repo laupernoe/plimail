@@ -2585,7 +2585,9 @@
       "showInViews": "Afficher dans les vues",
       "listHint": "Renommez un agenda pour le voir sous votre propre nom, choisissez sa couleur ou indiquez s'il apparaît dans vos vues. Un agenda masqué n'est plus synchronisé et n'est affiché nulle part.",
       "noCalendars": "Aucun agenda pour le moment. Connectez d'abord un compte d'agenda.",
-      "goToAccounts": "Aller aux comptes"
+      "goToAccounts": "Aller aux comptes",
+      "useMailPassword": "Utiliser le mot de passe d'un compte mail",
+      "typePassword": "Saisir un mot de passe"
     },
     "reply": {
       "question": "Vous participez ?",
@@ -2604,5 +2606,12 @@
       "where": "Où"
     },
     "syncAll": "Synchroniser les agendas"
+  },
+  "calendarOffer": {
+    "prompt": "Ajouter aussi les agendas de ce compte",
+    "add": "Ajouter les agendas",
+    "adding": "Ajout…",
+    "added": "Agendas ajoutés. Ils apparaissent dans Agenda après la synchronisation.",
+    "none": "Aucun serveur d'agenda trouvé sur {{host}}."
   }
 }

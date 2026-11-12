@@ -2585,7 +2585,9 @@
       "showInViews": "Show in views",
       "listHint": "Rename a calendar to see it under your own name, pick its color, or choose whether it appears in your views. A hidden calendar is no longer synced and is not shown anywhere.",
       "noCalendars": "No calendar yet. Connect a calendar account first.",
-      "goToAccounts": "Go to accounts"
+      "goToAccounts": "Go to accounts",
+      "useMailPassword": "Use the password of a mail account",
+      "typePassword": "Type a password"
     },
     "reply": {
       "question": "Going?",
@@ -2604,5 +2606,12 @@
       "where": "Where"
     },
     "syncAll": "Sync calendars"
+  },
+  "calendarOffer": {
+    "prompt": "Also add the calendars of this account",
+    "add": "Add calendars",
+    "adding": "Adding…",
+    "added": "Calendars added. They appear in Calendar once synced.",
+    "none": "No calendar server found on {{host}}."
   }
 }

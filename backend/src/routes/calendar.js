@@ -93,8 +93,26 @@ router.get('/accounts', async (req, res) => {
   res.json(r.rows.map(publicAccount));
 });
 
+// The mail account's stored password stands in for a typed one, so it is read here and never leaves
+// the server. It goes only to the server URL the user gave, as a typed password would.
+async function mailPassword(userId, mailAccountId) {
+  if (typeof mailAccountId !== 'string' || !UUID_RE.test(mailAccountId)) return { status: 404, error: 'Not found' };
+  const mail = await findOwnedAccount(userId, mailAccountId, { columns: 'auth_user, auth_pass, oauth_provider' });
+  if (!mail) return { status: 404, error: 'Not found' };
+  if (mail.oauth_provider || !mail.auth_pass) return { status: 400, error: 'This mail account has no password to connect with' };
+  return { username: mail.auth_user, password: decrypt(mail.auth_pass) };
+}
+
 router.post('/accounts', async (req, res) => {
-  const { name, serverUrl, username, password, intervalMin } = req.body || {};
+  const { name, serverUrl, intervalMin, mailAccountId } = req.body || {};
+  let { username, password } = req.body || {};
+  if (mailAccountId != null) {
+    if (password != null) return badRequest(res, 'Send either a password or a mail account, not both');
+    const mail = await mailPassword(req.session.userId, mailAccountId);
+    if (mail.error) return res.status(mail.status).json({ error: mail.error });
+    password = mail.password;
+    if (username == null || username === '') username = mail.username;
+  }
   if (![serverUrl, username, password].every(v => typeof v === 'string' && v)) {
     return badRequest(res, 'Server URL, username, and password are required');
   }
@@ -114,7 +132,7 @@ router.post('/accounts', async (req, res) => {
 // Mail accounts whose password may also open a calendar on the same server.
 router.get('/mail-accounts', async (req, res) => {
   const r = await query(
-    `SELECT m.id, m.email_address, m.imap_host,
+    `SELECT m.id, m.email_address, m.imap_host, m.auth_user,
        EXISTS (SELECT 1 FROM caldav_accounts c
                WHERE c.user_id = m.user_id AND c.username = m.auth_user AND c.server_url IN ('https://' || m.imap_host || '/', 'https://' || m.smtp_host || '/')) AS connected
      FROM email_accounts m
@@ -122,7 +140,7 @@ router.get('/mail-accounts', async (req, res) => {
      ORDER BY m.sort_order, m.email_address`,
     [req.session.userId],
   );
-  res.json(r.rows.map(m => ({ id: m.id, email: m.email_address, host: m.imap_host, connected: m.connected })));
+  res.json(r.rows.map(m => ({ id: m.id, email: m.email_address, host: m.imap_host, username: m.auth_user, connected: m.connected })));
 });
 
 router.post('/accounts/from-mail', async (req, res) => {

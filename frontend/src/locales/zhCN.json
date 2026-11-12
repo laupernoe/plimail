@@ -2585,7 +2585,9 @@
       "showInViews": "在视图中显示",
       "listHint": "重命名日历即可用自己的名称查看它，也可以选择颜色，或决定是否在视图中显示。隐藏的日历不再同步，也不会在任何地方显示。",
       "noCalendars": "还没有日历。请先连接日历账户。",
-      "goToAccounts": "前往账户"
+      "goToAccounts": "前往账户",
+      "useMailPassword": "使用邮件账户的密码",
+      "typePassword": "输入密码"
     },
     "reply": {
       "question": "是否参加？",
@@ -2604,5 +2606,12 @@
       "where": "地点"
     },
     "syncAll": "同步日历"
+  },
+  "calendarOffer": {
+    "prompt": "同时添加此账户的日历",
+    "add": "添加日历",
+    "adding": "正在添加…",
+    "added": "日历已添加。同步后将显示在日历中。",
+    "none": "在 {{host}} 上未找到日历服务器。"
   }
 }

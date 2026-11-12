@@ -2604,7 +2604,9 @@
       "showInViews": "Zobrazit v zobrazeních",
       "listHint": "Přejmenujte kalendář, aby se zobrazoval pod vaším názvem, vyberte jeho barvu nebo určete, zda se objeví ve vašich zobrazeních. Skrytý kalendář se už nesynchronizuje a nikde se nezobrazuje.",
       "noCalendars": "Zatím žádný kalendář. Nejprve připojte kalendářový účet.",
-      "goToAccounts": "Přejít na účty"
+      "goToAccounts": "Přejít na účty",
+      "useMailPassword": "Použít heslo poštovního účtu",
+      "typePassword": "Zadat heslo"
     },
     "reply": {
       "question": "Zúčastníte se?",
@@ -2623,5 +2625,12 @@
       "where": "Kde"
     },
     "syncAll": "Synchronizovat kalendáře"
+  },
+  "calendarOffer": {
+    "prompt": "Přidat také kalendáře tohoto účtu",
+    "add": "Přidat kalendáře",
+    "adding": "Přidávání…",
+    "added": "Kalendáře přidány. Po synchronizaci se objeví v Kalendáři.",
+    "none": "Na {{host}} nebyl nalezen žádný kalendářový server."
   }
 }
