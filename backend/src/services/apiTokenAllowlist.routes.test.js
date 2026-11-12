@@ -16,7 +16,6 @@ import apiTokenRoutes from '../routes/apiTokens.js';
 import aiRoutes from '../routes/ai.js';
 import categoriesRoutes from '../routes/categories.js';
 import oidcApiRouter from '../routes/oidc.js';
-import { loadBundledPlugins } from '../plugins/loadPlugins.js';
 import { API_TOKEN_ROUTES, matchApiTokenRoute } from './apiTokenAllowlist.js';
 
 // The routers index.js mounts where an allowlisted request can reach them, by the names it mounts
@@ -37,8 +36,6 @@ const shape = path => path.replace(/:\w+/g, ':param');
 // one of the forms below, or this cannot tell what it reaches.
 const INDEX = readFileSync(new URL('../index.js', import.meta.url), 'utf8');
 const ROUTING = (() => {
-  const plugins = [];
-  loadBundledPlugins({ register: plugin => plugins.push(plugin) });
   const routing = [];
   const STATEMENT = /app\.use\((.*)|^app\.(get|post|put|patch|delete|all)\('([^']+)',/gm;
   for (const [, use, method, path] of INDEX.matchAll(STATEMENT)) {
@@ -48,11 +45,7 @@ const ROUTING = (() => {
     }
     const mount = /^'([^']+)', (\w+)\);$/.exec(use.trim());
     if (mount) routing.push({ owner: mount[2], prefix: mount[1], router: ROUTERS[mount[2]] });
-    else if (use.startsWith('plugin.router.base, plugin.router.handler)')) {
-      for (const plugin of plugins.filter(p => p.router)) {
-        routing.push({ owner: `plugin ${plugin.id}`, prefix: plugin.router.base, router: plugin.router.handler });
-      }
-    } else if (!use.startsWith('(') && !use.startsWith('corsExceptDav(')) {
+    else if (!use.startsWith('(') && !use.startsWith('corsExceptDav(')) {
       // Middleware is an inline function or the CORS wrapper; anything else may be a router.
       throw new Error(`index.js has an app.use this test cannot read: app.use(${use.slice(0, 60)}`);
     }

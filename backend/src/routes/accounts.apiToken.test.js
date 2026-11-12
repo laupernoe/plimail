@@ -12,7 +12,6 @@ vi.mock('../index.js', () => ({ imapManager: {} }));
 
 import express from 'express';
 import { query } from '../services/db.js';
-import { pluginRegistry } from '../plugins/registry.js';
 import accountRoutes, { SAFE_FIELDS } from './accounts.js';
 
 const ACCOUNT = {
@@ -40,10 +39,8 @@ afterAll(async () => {
   await new Promise(resolve => server.close(resolve));
 });
 
-let enrich;
 beforeEach(() => {
   query.mockReset().mockImplementation(async sql => ({ rows: sql.includes('FROM account_aliases') ? [ALIAS] : [ACCOUNT] }));
-  enrich = vi.spyOn(pluginRegistry, 'collectHook').mockResolvedValue([{ gtd_enabled: false, gtd_folders: {} }]);
 });
 
 describe('GET /api/accounts', () => {
@@ -56,14 +53,12 @@ describe('GET /api/accounts', () => {
       signature_enabled: true, auto_cc_addresses: [], auto_bcc_addresses: ['archive@example.com'],
       aliases: [{ id: ALIAS.id, name: 'Sales', email: 'sales@example.com', reply_to: null }],
     }]);
-    // Plugin settings are not asked for either.
-    expect(enrich).not.toHaveBeenCalled();
   });
 
   it('still gives the browser the whole account', async () => {
     const [account] = await (await fetch(`${base}/api/accounts`)).json();
     for (const field of SAFE_FIELDS) expect(account, field).toHaveProperty(field);
-    expect(account).toMatchObject({ imap_host: 'imap.example.com', auth_user: 'maria', folder_mappings: { archive: 'Archive' }, gtd_enabled: false });
+    expect(account).toMatchObject({ imap_host: 'imap.example.com', auth_user: 'maria', folder_mappings: { archive: 'Archive' } });
     expect(account.aliases[0]).toMatchObject({ account_id: ACCOUNT.id, signature: expect.stringContaining('Sales') });
   });
 });

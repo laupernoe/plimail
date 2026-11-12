@@ -11,7 +11,7 @@ MailFlow is a vision-led project. I hold the direction, because a single coheren
 - **Unsolicited large pull requests will usually be declined, regardless of quality.** Not because the work isn't good, but because large changes have to fit a direction I'm holding, and reviewing a big PR I didn't plan for is costly whether or not it lands. Please check first so your effort isn't wasted.
 - A "no" is about scope and direction, not about you or your code. I appreciate every bit of interest in the project.
 
-If you want to build something bigger, MailFlow's plugin system and its AGPL license give you room to do that in a plugin or your own fork, without needing it merged here.
+If you want to build something bigger, MailFlow's AGPL license gives you room to do that in your own fork, without needing it merged here.
 
 ## One open pull request per author
 

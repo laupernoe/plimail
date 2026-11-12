@@ -23,7 +23,6 @@ vi.mock('../services/connectionPolicy.js', () => ({
 vi.mock('../services/authLimiter.js', () => ({ reloadAuthSettings: vi.fn() }));
 vi.mock('../index.js', () => ({ imapManager: {} }));
 vi.mock('../services/carddavSync.js', () => ({ stopCardavUser: vi.fn() }));
-vi.mock('../plugins/registry.js', () => ({ pluginRegistry: {} }));
 
 import express from 'express';
 import adminRoutes from './admin.js';

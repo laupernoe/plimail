@@ -64,29 +64,6 @@ If you contribute code, please read the [Contributor License Agreement](CLA.md).
 - **Todoist integration** — create tasks directly from emails; tasks include a deep link back to the original message
 - **Calendars (CalDAV)** — connect any number of CalDAV servers (Nextcloud, iCloud, Fastmail, Radicale, ...) with month, week, day and agenda views; events, recurring series and single occurrences are created, edited and deleted in two-way sync
 - **CardDAV** — expose your MailFlow contacts as a CardDAV address book for sync with phone and desktop contact apps; contact photos sync and appear as sender avatars in the message list
-- **GTD workflow** — optional Getting-Things-Done rail: label threads Todo / Watch / Delegated / Someday / Reference (each backed by a real IMAP folder) with the t / w / d keys; opt in per account, see below
-
----
-
-## GTD (Getting Things Done)
-
-An optional Getting-Things-Done workflow, off by default and enabled per account
-under Settings → Categories → GTD. When on, a rail beside the message list
-groups threads into five states, each backed by a real IMAP folder — so the labels
-are just server-side folders that sync to every mail client and survive MailFlow
-itself:
-
-- **Todo** / **Someday** — things you need to act on; the label clears itself once your latest non-draft reply is sent.
-- **Watch** / **Delegated** — things you're waiting on; kept until you remove the label or mark the thread done.
-- **Reference** — kept until you remove the label or mark the thread done.
-
-Label the selected thread from the keyboard — **t** for Todo, **w** for Watch,
-**d** for Delegated, **v** for Reference, **b** for Someday, and **Shift+E** for Done
-(all remappable in the keyboard-shortcut settings) — or from the context menu. Each state's folder name is
-configurable per account. Applying a GTD state preserves every member in the target before removing the
-thread's old GTD copies. Inbox and ordinary labels remain intact. A state switch
-ends pending Undo windows; an initial classification still offers Undo when supported. Accounts
-with GTD off behave exactly as before.
 
 ---
 
@@ -572,7 +549,7 @@ git pull && \
 
 ## Backup and Restore
 
-Settings → Backup (admin only) downloads a backup of the installation's data: users, email accounts, rules, contacts, settings, plugin data and antispam training. Cached mail is downloaded again from the mail servers after a restore, unless **Include cached mail** is on, which adds the local copy of every synced message to the file. Without it, the newest unread messages in each inbox arrive as new mail after a restore, so inbox rules, forwarding included, run on them again.
+Settings → Backup (admin only) downloads a backup of the installation's data: users, email accounts, rules, contacts, settings and antispam training. Cached mail is downloaded again from the mail servers after a restore, unless **Include cached mail** is on, which adds the local copy of every synced message to the file. Without it, the newest unread messages in each inbox arrive as new mail after a restore, so inbox rules, forwarding included, run on them again.
 
 The file does not hold what is set in `.env`. A new server needs the same `ENCRYPTION_KEY`, and the same VAPID keys and OAuth client settings if they are set there; with new VAPID keys, push notifications stop until each browser subscribes again.
 
@@ -694,10 +671,6 @@ MailFlow is free and open source, and built and maintained by one person. Sponso
 ## Upgrading
 
 From v3 on, each release's notes on [GitHub Releases](https://github.com/maathimself/mailflow/releases) list its upgrade steps. The notes below cover older versions.
-
-### GTD
-
-GTD is opt-in per account (**Settings → Categories → GTD**). Migrations for the new schema are additive and apply automatically on first startup. No operator action needed.
 
 ### v2.5.0 – v2.7.0
 

@@ -1,8 +1,7 @@
 # Code owners — GitHub auto-requests these reviewers on PRs touching the matching paths.
-# See backend/src/plugins/README.md for the plugin boundary these owners work within.
 #
 # NOTE: this only *requests* review. To *require* it, enable branch protection on `main`
-# → "Require review from Code Owners" (and keep the plugin-boundary CI check required).
+# → "Require review from Code Owners".
 #
 # There is deliberately NO catch-all rule. Most PRs need only the single approving review
 # branch protection asks for, which any maintainer with write access can give. The entries

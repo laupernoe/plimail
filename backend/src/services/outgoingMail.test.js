@@ -8,7 +8,6 @@ vi.mock('../index.js', () => ({
     syncFolderOnDemand: vi.fn(async () => {}),
     fetchAttachment: vi.fn(),
     fetchRawMessage: vi.fn(),
-    pluginFacade: {},
   },
 }));
 vi.mock('./smtpTransport.js', () => ({ createAccountSmtpTransport: vi.fn() }));

@@ -10,7 +10,6 @@ import {
   findOwnedAccount, findOwnedMessage, findOwnedMessages, findOwnedAlias, findOwnedContact, findOwnedAddressBook,
   findOwnedScheduledMessage,
 } from './ownership.js';
-import { getOwnedAccount, loadOwnedMessage } from './mailAccess.js';
 
 const OWNER = 'owner';
 const OTHER = 'other';
@@ -130,17 +129,5 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('ownership lookups Post
     expect(await findOwnedContact(OTHER, CONTACT)).toBeNull();
     expect(await findOwnedAddressBook(OWNER, BOOK, { columns: 'id' })).toEqual({ id: BOOK });
     expect(await findOwnedAddressBook(OTHER, BOOK)).toBeNull();
-  });
-
-  it('backs the plugin API lookups with the same scoping', async () => {
-    expect(await getOwnedAccount(OWNER, ACCOUNT)).toMatchObject({ id: ACCOUNT });
-    expect(await getOwnedAccount(OTHER, ACCOUNT)).toBeNull();
-    expect(await loadOwnedMessage(OWNER, MESSAGE)).toMatchObject({ id: MESSAGE, account_id: ACCOUNT });
-    expect(await loadOwnedMessage(OTHER, MESSAGE)).toBeNull();
-  });
-
-  it('ignores options a plugin passes to the plugin API lookups', async () => {
-    expect(await getOwnedAccount(OWNER, ACCOUNT, { columns: 'id' })).toHaveProperty('email_address');
-    expect(await loadOwnedMessage(OWNER, MESSAGE, { columns: 'm.id' })).toHaveProperty('subject');
   });
 });

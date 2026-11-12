@@ -93,15 +93,9 @@ function sqlStrings(source) {
 }
 
 function routeFiles() {
-  const routes = readdirSync(join(SRC, 'routes'))
+  return readdirSync(join(SRC, 'routes'))
     .filter(f => f.endsWith('.js') && !f.endsWith('.test.js'))
     .map(f => join(SRC, 'routes', f));
-  const plugins = readdirSync(join(SRC, 'plugins'), { withFileTypes: true })
-    .filter(d => d.isDirectory())
-    .flatMap(d => readdirSync(join(SRC, 'plugins', d.name))
-      .filter(f => f === 'routes.js')
-      .map(f => join(SRC, 'plugins', d.name, f)));
-  return [...routes, ...plugins];
 }
 
 describe('route ownership lookups', () => {

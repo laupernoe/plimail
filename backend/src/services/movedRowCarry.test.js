@@ -55,9 +55,9 @@ describe('movedRowCarry', () => {
   });
 
   it('builds the UPDATE that puts the columns back', () => {
-    const u = carryUpdate('row-1', { spam_user_override: 'ham', spam_details: { a: 1 }, plugin_annotations: null, bcc_addresses: [{ email: 'b@x' }] });
-    expect(u.text).toBe('UPDATE messages SET spam_details = $2::jsonb, spam_user_override = $3, plugin_annotations = COALESCE($4::jsonb, plugin_annotations), bcc_addresses = $5::jsonb WHERE id = $1');
-    expect(u.params).toEqual(['row-1', '{"a":1}', 'ham', null, '[{"email":"b@x"}]']);
+    const u = carryUpdate('row-1', { spam_user_override: 'ham', spam_details: { a: 1 }, bcc_addresses: [{ email: 'b@x' }] });
+    expect(u.text).toBe('UPDATE messages SET spam_details = $2::jsonb, spam_user_override = $3, bcc_addresses = $4::jsonb WHERE id = $1');
+    expect(u.params).toEqual(['row-1', '{"a":1}', 'ham', '[{"email":"b@x"}]']);
     expect(carryUpdate('row-1', {})).toBeNull();
     expect(carryUpdate('row-1', { subject: 'x' })).toBeNull();
   });

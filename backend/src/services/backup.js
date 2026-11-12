@@ -36,8 +36,6 @@ export const SETUP_TABLES = [
   'integration_config',
   'invites',
   'oidc_providers',
-  'plugin_account_config',
-  'plugin_data',
   'push_subscriptions',
   // User content that exists nowhere else, so even a setup-only backup carries it.
   'scheduled_message_attachments',

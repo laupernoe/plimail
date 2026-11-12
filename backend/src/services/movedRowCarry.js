@@ -2,7 +2,7 @@
 // the #407 case) loses its row: the source uid can belong to another message in the destination
 // (#665), so the row is dropped and the destination's next sync files the message again. That
 // sync used to take it for new mail. What MailFlow alone knows about it was lost (a "Not spam"
-// decision, the category, an unsubscribe, plugin annotations), and it went through the inbox
+// decision, the category, an unsubscribe), and it went through the inbox
 // rules, the alerts and the spam check again, so a message the user had just called not spam
 // could be moved straight back to Spam.
 //
@@ -16,7 +16,7 @@
 // body) the sync reads from the server.
 export const CARRIED_COLUMNS = [
   'spam_score_sa', 'spam_score_ml', 'spam_verdict', 'spam_analyzed_at', 'spam_details',
-  'spam_user_override', 'category', 'unsubscribed_at', 'plugin_annotations', 'bcc_addresses',
+  'spam_user_override', 'category', 'unsubscribed_at', 'bcc_addresses',
 ];
 
 export const CARRY_MS = 15 * 60 * 1000;
@@ -77,10 +77,9 @@ export function takeCarry(accountId, folder, messageId, date, now = Date.now()) 
   return carry ? carry.columns : null;
 }
 
-const JSON_COLUMNS = new Set(['spam_details', 'plugin_annotations', 'bcc_addresses']);
+const JSON_COLUMNS = new Set(['spam_details', 'bcc_addresses']);
 
 // The UPDATE that puts kept columns back on the re-filed row `id`, or null when there are none.
-// plugin_annotations is NOT NULL, so a null there keeps the row's own value.
 export function carryUpdate(id, columns) {
   const params = [id];
   const sets = [];
@@ -89,7 +88,7 @@ export function carryUpdate(id, columns) {
     const value = columns[column];
     params.push(JSON_COLUMNS.has(column) && value != null && typeof value !== 'string' ? JSON.stringify(value) : value);
     const param = `$${params.length}${JSON_COLUMNS.has(column) ? '::jsonb' : ''}`;
-    sets.push(column === 'plugin_annotations' ? `${column} = COALESCE(${param}, ${column})` : `${column} = ${param}`);
+    sets.push(`${column} = ${param}`);
   }
   if (!sets.length) return null;
   return { text: `UPDATE messages SET ${sets.join(', ')} WHERE id = $1`, params };

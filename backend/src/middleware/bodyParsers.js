@@ -18,9 +18,6 @@ export function mountBodyParsers(app, sessionMiddleware) {
   app.use('/api/mail/draft', signedIn, largeUnlessToken(express.json({ limit: '35mb' })), reloadSession);
   // A scheduled message carries what a send does (#543); this covers /api/mail/scheduled/:id too.
   app.use('/api/mail/scheduled', signedIn, express.json({ limit: '35mb' }), reloadSession);
-  // A pet-import body carries a base64 spritesheet (~33% larger than the 5 MB sheet cap
-  // enforced after decode in gtdPet.importPet), so it needs more than the global 1 MB.
-  app.use('/api/gtd/pet/import', signedIn, express.json({ limit: '8mb' }), reloadSession);
   app.use(express.json({ limit: '1mb' }));
   // Return a clean JSON error when the body parser rejects an oversized payload.
   app.use((err, req, res, next) => {

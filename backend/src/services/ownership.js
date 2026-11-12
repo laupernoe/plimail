@@ -8,9 +8,6 @@
 // exported below by name. Anything else throws, so a request value that found its way in could
 // not add a subquery or a clause. `client` is a withTransaction client when the lookup belongs
 // inside a transaction; without one the lookup runs on the pool.
-//
-// The plugin API's getOwnedAccount and loadOwnedMessage (mailAccess.js) delegate here with fixed
-// arguments, so plugins share this scoping without being able to pass columns.
 import { query } from './db.js';
 
 const pool = { query: (text, params) => query(text, params) };

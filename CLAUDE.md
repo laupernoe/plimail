@@ -34,19 +34,6 @@ rather than trusting a copy.
 What does not change with it: polish and stability come first. Bug fixes and reliability
 work take precedence over new features.
 
-## Core or plugin?
-
-A feature belongs in a **plugin** if it can do its job through the capability surface in
-`backend/src/plugins/api.js`. It belongs in **core** only if it genuinely cannot.
-
-This matters because the boundary is what makes review tractable: a plugin cannot reach
-core, the database, the network, or another user's data, and `eslint.plugins-boundary.js`
-enforces that in CI. So a plugin PR can be reviewed for whether the feature works, rather
-than for whether it could compromise the application.
-
-GTD is the reference plugin. See `backend/src/plugins/README.md` for the surface, the rules
-and the directory layout. When it is ambiguous, ask rather than guess.
-
 ## Layout
 
 | | Path |
@@ -56,14 +43,12 @@ and the directory layout. When it is ambiguous, ask rather than guess.
 | Message parsing and sanitizing | `backend/src/services/messageParser.js`, `emailSanitizer.js` |
 | Migrations | `backend/migrations/` |
 | Frontend (React) | `frontend/src/` |
-| Plugins | `backend/src/plugins/<name>/`, `frontend/src/plugins/<name>/` |
 | Desktop and mobile shells | `frontend/packages/` |
 
 ## How it fits together
 
 - **One process owns every IMAP connection.** `index.js` creates a single `ImapManager`,
-  gives it to routes as `app.get('imapManager')` and to the plugin platform through
-  `setMailEngine`; plugin hooks only ever see `mailEngineFacade.js`. Each account holds a
+  gives it to routes as `app.get('imapManager')`. Each account holds a
   persistent IDLE connection plus a small pool (`acquirePooledClient`, `withFreshClient`) for
   commands. Accounts beyond `IMAP_MAX_PERSISTENT_PER_HOST` run poll-only instead: open, sync,
   close on each tick.
@@ -104,7 +89,6 @@ Node 22 (`.nvmrc`).
 cd backend
 npm test              # vitest
 npm run lint          # eslint, zero warnings allowed
-npm run lint:plugins  # plugin import boundary, must be 0 violations
 npx vitest run src/services/folderStatus.test.js   # one file
 npx vitest run -t "part of a test name"            # one test by name
 

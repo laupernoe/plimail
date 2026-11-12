@@ -14,7 +14,6 @@ import {
 import { reloadAuthSettings } from '../services/authLimiter.js';
 import { imapManager } from '../index.js';
 import { stopCardavUser } from '../services/carddavSync.js';
-import { pluginRegistry } from '../plugins/registry.js';
 import { uuidParam } from '../utils/uuid.js';
 import { destroyUserSessions } from '../services/userSessions.js';
 import { listUserIdentities, removeIdentitiesForPasswordReset, unlinkUserIdentity } from '../services/userIdentities.js';
@@ -265,11 +264,6 @@ export async function deleteUser(req, res) {
   await imapManager.disconnectUser(id).catch(err => console.warn('disconnectUser on delete:', err.message));
   stopCardavUser(id);
   await query('DELETE FROM users WHERE id = $1', [id]);
-  // Let plugins clean up any user-scoped data the FK cascade can't reach (GTD removes the
-  // imported pet, stored under a slug derived from the user id rather than an FK). Best-effort
-  // and after the delete: the user row is already gone, so a hook failure must not misreport a
-  // completed delete as a 500. The hook swallows per-plugin errors.
-  await pluginRegistry.runHook('onUserDelete', { userId: id });
   console.log(`[admin] ${req.session.username} deleted user ${target.rows[0].username} (${id})`);
   // Logged once the delete has happened, and by name only: the event's user_id references
   // users, and the row it would point at is gone.

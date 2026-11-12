@@ -7,7 +7,6 @@ vi.mock('../index.js', () => ({
     appendToSent: vi.fn(async () => ({ uid: 5 })),
     upsertSentMessageRecord: vi.fn(async () => {}),
     syncFolderOnDemand: vi.fn(async () => {}),
-    pluginFacade: {},
   },
 }));
 vi.mock('../services/smtpTransport.js', () => ({ createAccountSmtpTransport: vi.fn() }));
