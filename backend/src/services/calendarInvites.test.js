@@ -60,6 +60,11 @@ describe('mailItip', () => {
     expect(db.sent[0].text).toMatch(/When: Wednesday, March 10, 2027 at 10:00 AM – 11:00 AM GMT\+1/);
   });
 
+  it('puts the title in the subject as written', async () => {
+    await send(SERIES.replace('SUMMARY:Point', () => "SUMMARY:Budget $& $' $1"));
+    expect(db.sent[0].subject).toBe("Invitation: Budget $& $' $1");
+  });
+
   it('names the occurrence a cancellation is for, and when it was', async () => {
     await send(occurrenceOnly(SERIES, '2027-03-17T09:00:00Z'), { method: 'CANCEL', kind: 'cancel' });
     expect(db.sent[0].subject).toBe('Cancelled: Point');
