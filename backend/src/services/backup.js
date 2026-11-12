@@ -47,7 +47,6 @@ export const SETUP_TABLES = [
   'system_settings',
   'trusted_devices',
   'user_identities',
-  'user_integrations',
   'users',
 ];
 // The local copy of the mail on the IMAP servers. Synced again after a restore that leaves it out.

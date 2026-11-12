@@ -4,26 +4,13 @@
 // answer a miss differently (404, 403, a skipped draft), so the response stays at the call site.
 //
 // `columns` goes into the SELECT list, so it is checked before use: a comma-separated list of
-// plain columns (`id`, `m.subject`, `a.*`, `a.user_id AS owner_id`), plus the computed columns
-// exported below by name. Anything else throws, so a request value that found its way in could
+// plain columns (`id`, `m.subject`, `a.*`, `a.user_id AS owner_id`). Anything else throws, so a request value that found its way in could
 // not add a subquery or a clause. `client` is a withTransaction client when the lookup belongs
 // inside a transaction; without one the lookup runs on the pool.
 import { query } from './db.js';
 
 const pool = { query: (text, params) => query(text, params) };
 
-// How many rows share the message's Message-ID in its account, for the read and star toggles'
-// sibling fan-out.
-// Computed columns are allowed only as these exact named constants. checkColumns splits a list
-// on commas, so a constant must never contain one.
-export const SIBLING_COUNT = `CASE WHEN m.message_id IS NULL THEN 1
-                ELSE (SELECT COUNT(*) FROM messages s
-                       WHERE s.account_id = m.account_id AND s.message_id = m.message_id)
-           END AS sibling_count`;
-// Whether a contact comes from a synced CardDAV book, which makes it read-only here.
-export const CONTACT_READ_ONLY = "(ab.source = 'carddav') AS read_only";
-
-const COMPUTED = new Set([SIBLING_COUNT, CONTACT_READ_ONLY]);
 const KEYWORDS = new Set(['select', 'from', 'where', 'union', 'join', 'on', 'and', 'or', 'not', 'into',
   'insert', 'update', 'delete', 'drop', 'alter', 'create', 'grant', 'with', 'as', 'limit', 'offset',
   'order', 'group', 'having', 'returning', 'case', 'when', 'then', 'else', 'end', 'null', 'true', 'false',
@@ -36,7 +23,6 @@ const PLAIN = new RegExp(`^(?:\\*|(${NAME})\\.\\*|(?:(${NAME})\\.)?(${NAME})(?:\
 export function checkColumns(columns) {
   if (typeof columns !== 'string' || !columns.trim()) throw new TypeError('columns must be a non-empty string');
   for (const item of columns.split(',').map(c => c.trim())) {
-    if (COMPUTED.has(item)) continue;
     const m = PLAIN.exec(item);
     if (!m || m.slice(1).some(name => name && KEYWORDS.has(name.toLowerCase()))) {
       throw new TypeError(`Not a column list: ${JSON.stringify(columns)}`);

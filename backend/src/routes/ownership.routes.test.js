@@ -58,7 +58,7 @@ const ACCOUNTS = {
   [SECOND_ACCOUNT_ID]: { id: SECOND_ACCOUNT_ID, user_id: OWNER, name: 'Me too', email_address: 'me2@example.com', protocol: 'imap', enabled: true, folder_mappings: { drafts: 'Drafts' }, oauth_provider: null },
 };
 const message = () => ({ id: MESSAGE_ID, account_id: ACCOUNT_ID, uid: 7, folder: 'INBOX', message_id: '<m1@example.com>', subject: 'Weekly', from_email: 'news@example.com', snippet: 'Hi', spam_details: null, owner_id: OWNER, folder_mappings: {} });
-const contact = () => ({ id: CONTACT_ID, uid: 'u-1', user_id: OWNER, address_book_id: BOOK_ID, display_name: 'Ann', first_name: null, last_name: null, primary_email: 'ann@example.com', emails: [{ value: 'ann@example.com' }], phones: [], organization: null, notes: null, source: 'local', book_source: 'local', read_only: false });
+const contact = () => ({ id: CONTACT_ID, uid: 'u-1', user_id: OWNER, address_book_id: BOOK_ID, display_name: 'Ann', first_name: null, last_name: null, primary_email: 'ann@example.com', emails: [{ value: 'ann@example.com' }], phones: [], organization: null, notes: null, });
 
 const flat = sql => sql.replace(/\s+/g, ' ').trim();
 let writes;
@@ -216,8 +216,7 @@ describe('replacing a draft saved in another account', () => {
 // The lookup each route makes for the owner: which helper, with which arguments, exactly.
 // Columns are compared with whitespace collapsed.
 const CONTACT_VIEW = `c.id, c.uid, c.display_name, c.first_name, c.last_name, c.primary_email, c.emails, c.phones, c.organization,
-  c.notes, c.photo_data, c.is_auto, c.send_count, c.last_sent, c.etag, c.vcard, c.created_at, c.updated_at,
-  (ab.source = 'carddav') AS read_only`;
+  c.notes, c.photo_data, c.is_auto, c.send_count, c.last_sent, c.etag, c.vcard, c.created_at, c.updated_at`;
 const LOOKUPS = {
   'PUT /accounts/:id': ['findOwnedAccount', ACCOUNT_ID, { columns: 'id, oauth_provider' }],
   'DELETE /accounts/:id': ['findOwnedAccount', ACCOUNT_ID, { columns: 'id' }],
@@ -239,8 +238,8 @@ const LOOKUPS = {
   'DELETE /mail/draft/:uid': ['findOwnedAccount', ACCOUNT_ID],
   'POST /categories/ai-classify/:messageId': ['findOwnedMessage', MESSAGE_ID, { columns: 'm.subject, m.from_email, m.snippet', live: true }],
   'GET /contacts/:id': ['findOwnedContact', CONTACT_ID, { columns: CONTACT_VIEW }],
-  'PATCH /contacts/:id': ['findOwnedContact', CONTACT_ID, { columns: 'c.*, ab.source AS book_source' }],
-  'DELETE /contacts/:id': ['findOwnedContact', CONTACT_ID, { columns: 'ab.source' }],
+  'PATCH /contacts/:id': ['findOwnedContact', CONTACT_ID],
+  'DELETE /contacts/:id': ['findOwnedContact', CONTACT_ID, { columns: 'c.id' }],
 };
 const normalize = arg => (arg?.columns ? { ...arg, columns: flat(arg.columns) } : arg);
 const lookupsMade = () => ['findOwnedAccount', 'findOwnedMessage', 'findOwnedAlias', 'findOwnedContact']

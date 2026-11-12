@@ -61,7 +61,6 @@ If you contribute code, please read the [Contributor License Agreement](CLA.md).
 - **Two-factor authentication** — TOTP (any authenticator app), email OTP fallback, persistent device trust; admin-configurable enforcement policy
 - **SSO / OIDC** — single sign-on via any OpenID Connect provider; group claims from the IdP can be mapped to the MailFlow admin role, with optional RP-initiated (end-session) logout to sign out of the provider too
 - **Microsoft 365 / OAuth2** — work accounts via Azure App Registration; personal Outlook.com via device code flow
-- **Todoist integration** — create tasks directly from emails; tasks include a deep link back to the original message
 - **Calendars (CalDAV)** — connect any number of CalDAV servers (Nextcloud, iCloud, Fastmail, Radicale, ...) with month, week, day and agenda views; events, recurring series and single occurrences are created, edited and deleted in two-way sync
 - **CardDAV** — expose your MailFlow contacts as a CardDAV address book for sync with phone and desktop contact apps; contact photos sync and appear as sender avatars in the message list
 

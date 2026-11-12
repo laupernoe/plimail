@@ -27,7 +27,6 @@ import oidcApiRouter, { oidcBrowserRouter } from './routes/oidc.js';
 import rulesRoutes from './routes/rules.js';
 import blockListRoutes from './routes/blockList.js';
 import contactsRoutes from './routes/contacts.js';
-import todoistRoutes from './routes/todoist.js';
 import aiRoutes from './routes/ai.js';
 import categoriesRoutes from './routes/categories.js';
 import senderFaviconsRoutes from './routes/senderFavicons.js';
@@ -36,8 +35,6 @@ import backupRoutes from './routes/backup.js';
 import apiTokenRoutes from './routes/apiTokens.js';
 import spamRoutes, { accountSpamRouter } from './routes/spam.js';
 import carddavRouter from './routes/carddav.js';
-import carddavAccountRouter from './routes/carddavAccount.js';
-import { startCardavScheduler } from './services/carddavSync.js';
 import calendarRoutes from './routes/calendar.js';
 import { startCaldavScheduler } from './services/caldavSync.js';
 import { start as startSpamScheduler } from './services/spamScheduler.js';
@@ -165,8 +162,6 @@ app.use('/api/api-tokens', apiTokenRoutes);
 app.use('/api/rules', rulesRoutes);
 app.use('/api/block-list', blockListRoutes);
 app.use('/api/contacts', contactsRoutes);
-app.use('/api/todoist', todoistRoutes);
-app.use('/api/carddav', carddavAccountRouter);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api', aiRoutes);
 app.use('/api', categoriesRoutes);
@@ -239,7 +234,6 @@ imapManager.startSnoozeWatcher();
 startScheduledSender();
 
 // Schedule periodic CardDAV contact sync for any connected accounts.
-startCardavScheduler();
 
 // Sync CalDAV calendars as they fall due.
 startCaldavScheduler();

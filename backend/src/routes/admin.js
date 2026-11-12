@@ -13,7 +13,6 @@ import {
 } from '../services/apiTokens.js';
 import { reloadAuthSettings } from '../services/authLimiter.js';
 import { imapManager } from '../index.js';
-import { stopCardavUser } from '../services/carddavSync.js';
 import { uuidParam } from '../utils/uuid.js';
 import { destroyUserSessions } from '../services/userSessions.js';
 import { listUserIdentities, removeIdentitiesForPasswordReset, unlinkUserIdentity } from '../services/userIdentities.js';
@@ -262,7 +261,6 @@ export async function deleteUser(req, res) {
   // Stop live per-user workers BEFORE the delete — disconnectUser looks up the
   // user's accounts, which the cascade delete would remove.
   await imapManager.disconnectUser(id).catch(err => console.warn('disconnectUser on delete:', err.message));
-  stopCardavUser(id);
   await query('DELETE FROM users WHERE id = $1', [id]);
   console.log(`[admin] ${req.session.username} deleted user ${target.rows[0].username} (${id})`);
   // Logged once the delete has happened, and by name only: the event's user_id references
