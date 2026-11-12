@@ -1798,7 +1798,6 @@
       "sourceCode": "Quellcode",
       "upstream": "Basiert auf MailFlow"
     },
-    "businessNotice": {},
     "rules": {
       "conditionLogicOr": "eine Bedingung (ODER)",
       "accountAll": "Alle Konten",

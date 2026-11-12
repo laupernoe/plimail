@@ -1873,7 +1873,6 @@
       "sourceCode": "Исходный код",
       "upstream": "Основан на MailFlow"
     },
-    "businessNotice": {},
     "search": {
       "placeholder": "Поиск настроек…",
       "noResults": "Нет результатов для «{{query}}»",

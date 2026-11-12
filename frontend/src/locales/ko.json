@@ -1870,7 +1870,6 @@
       "frontendBuild": "프런트엔드 빌드",
       "upstream": "MailFlow 기반"
     },
-    "businessNotice": {},
     "ssoError": {
       "title": "SSO 오류"
     },

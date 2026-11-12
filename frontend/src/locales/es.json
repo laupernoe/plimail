@@ -1873,7 +1873,6 @@
       "sourceCode": "Código fuente",
       "upstream": "Basado en MailFlow"
     },
-    "businessNotice": {},
     "search": {
       "placeholder": "Buscar ajustes…",
       "noResults": "Sin resultados para «{{query}}»",

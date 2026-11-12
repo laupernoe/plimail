@@ -24,7 +24,7 @@ import { query } from '../services/db.js';
 
 const ACCOUNT_ID = '11111111-1111-4111-8111-111111111111';
 const ACCOUNT_ROW = {
-  id: ACCOUNT_ID, email_address: 'matthias@mailflow.sh', name: 'Matt',
+  id: ACCOUNT_ID, email_address: 'matthias@example.com', name: 'Matt',
   sender_name: null, signature: null, folder_mappings: {},
 };
 
@@ -78,7 +78,7 @@ describe('POST /api/mail/draft — local row persistence', () => {
     expect(uid).toBe(5);
     expect(meta.to).toEqual([{ name: 'Mike Scanlan', email: 'mike@scanlan.ai' }]);
     expect(meta.subject).toBe('Re: Plimail hero');
-    expect(meta.fromEmail).toBe('matthias@mailflow.sh');
+    expect(meta.fromEmail).toBe('matthias@example.com');
     expect(meta.bodyHtml).toContain('hello mike');
     expect(meta.bodyText).toContain('hello mike');
     expect(meta.messageId).toMatch(/^<[0-9a-f]+@mailflow\.sh>$/);
@@ -342,7 +342,7 @@ describe('POST /api/mail/draft — replacing the previous copy', () => {
     base = `http://127.0.0.1:${server.address().port}`;
   });
   afterAll(async () => { await new Promise(r => server.close(r)); });
-  const OLD_MESSAGE_ID = '<old-draft@mailflow.sh>';
+  const OLD_MESSAGE_ID = '<old-draft@example.com>';
   // Once the queued answers run out: the old copy's local row, whose Message-ID the delete
   // checks the server copy against.
   const oldCopyRow = async (sql) => ({
@@ -404,7 +404,7 @@ describe('POST /api/mail/draft — replacing the previous copy', () => {
   // used to be expunged from the saving account, taking whatever message sat there.
   describe('when the previous copy is in another of the user\'s accounts', () => {
     const OTHER_ID = '22222222-2222-4222-8222-222222222222';
-    const OTHER_ROW = { ...ACCOUNT_ROW, id: OTHER_ID, email_address: 'other@mailflow.sh' };
+    const OTHER_ROW = { ...ACCOUNT_ROW, id: OTHER_ID, email_address: 'other@example.com' };
 
     it('deletes it through the account that holds it', async () => {
       query.mockResolvedValueOnce({ rows: [OTHER_ROW] });           // the old copy's account, owned by this user
@@ -497,7 +497,7 @@ describe('DELETE /api/mail/draft/:uid — Drafts folders only', () => {
   });
 
   const del = (qs) => fetch(`${base}/api/mail/draft/9?accountId=${ACCOUNT_ID}&${qs}`, { method: 'DELETE' });
-  const ROW = { message_id: '<draft@mailflow.sh>', date: '2026-10-21T09:00:00.000Z', from_email: 'matthias@mailflow.sh', subject: 'Hello' };
+  const ROW = { message_id: '<draft@example.com>', date: '2026-10-21T09:00:00.000Z', from_email: 'matthias@example.com', subject: 'Hello' };
 
   it('deletes a draft from the Drafts folder', async () => {
     query.mockResolvedValueOnce({ rows: [ACCOUNT_ROW] });          // owner check
@@ -601,7 +601,7 @@ describe('DELETE /api/mail/draft/:uid — Drafts folders only', () => {
 });
 
 describe('deleteSentDraft — the draft of a message that has been delivered', () => {
-  const MESSAGE_ID = '<sent-draft@mailflow.sh>';
+  const MESSAGE_ID = '<sent-draft@example.com>';
   const OTHER_ID = '22222222-2222-4222-8222-222222222222';
   beforeEach(() => {
     query.mockReset();
