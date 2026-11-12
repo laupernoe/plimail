@@ -25,6 +25,7 @@ import ListSortMenu from './ListSortMenu.jsx';
 import { useListFirst } from '../hooks/useListFirst.js';
 import { useUiScale, descale } from '../hooks/useUiScale.js';
 import { isSelectedRow } from '../utils/messageIdentity.js';
+import { descaleCss } from '../utils/uiScaleCss.js';
 import { formatDate, formatDateTime, formatSnoozeUntil } from '../utils/formatDate.js';
 import { SNOOZED_FOLDER, unsnooze, changeSnooze, refreshCounts } from '../utils/snoozeActions.js';
 import { advanceSelectionAfterRemoval, registerRowOpener } from '../utils/listSelection.js';
@@ -3869,7 +3870,7 @@ function MailboxList() {
                         }}
                       />
                     </div>
-                    <div style={{ borderTop: '1px solid var(--border-subtle)', overflowY: 'auto', maxHeight: '60vh' }}>
+                    <div style={{ borderTop: '1px solid var(--border-subtle)', overflowY: 'auto', maxHeight: descaleCss('60vh') }}>
                       {pickerLoading ? (
                         <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>
                           {t('common.loading')}
