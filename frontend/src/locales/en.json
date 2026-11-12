@@ -1975,7 +1975,7 @@
     },
     "backup": {
       "title": "Backup and restore",
-      "intro": "A backup holds this MailFlow's data: users, email accounts, rules, contacts, settings, plugin data and antispam training. Cached mail is downloaded again from your mail servers after a restore, unless you include it. The file does not hold what is set in .env: a new server needs the same ENCRYPTION_KEY, and the same VAPID keys and OAuth client settings if you set them there.",
+      "intro": "A backup holds this MailFlow's data: users, email accounts, rules, contacts, settings and antispam training. Cached mail is downloaded again from your mail servers after a restore, unless you include it. The file does not hold what is set in .env: a new server needs the same ENCRYPTION_KEY, and the same VAPID keys and OAuth client settings if you set them there.",
       "sensitive": "The file holds password hashes, pending invite links and your accounts' credentials. The credentials are encrypted with this server's ENCRYPTION_KEY; the rest is readable, and so is every message when cached mail is included. Keep the file somewhere safe. It can only be restored on a server that uses the same key.",
       "includeMail": "Include cached mail",
       "includeMailDesc": "Also saves the local copy of every synced message, which makes the file much larger. Without it, a restore downloads the mail again, and the newest unread messages in each inbox arrive as new mail: inbox rules run on them again, forwarding included. The choice is kept for every backup until you change it.",

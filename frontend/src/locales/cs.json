@@ -1551,7 +1551,7 @@
     },
     "backup": {
       "title": "Záloha a obnovení",
-      "intro": "Záloha obsahuje data tohoto MailFlow: uživatele, e-mailové účty, pravidla, kontakty, nastavení, data pluginů a antispamové učení. Pošta z mezipaměti se po obnovení znovu stáhne z vašich poštovních serverů, pokud ji nezahrnete. Soubor neobsahuje to, co je nastavené v .env: nový server potřebuje stejný ENCRYPTION_KEY a, pokud jste je tam nastavili, stejné klíče VAPID a nastavení klienta OAuth.",
+      "intro": "Záloha obsahuje data tohoto MailFlow: uživatele, e-mailové účty, pravidla, kontakty, nastavení a antispamové učení. Pošta z mezipaměti se po obnovení znovu stáhne z vašich poštovních serverů, pokud ji nezahrnete. Soubor neobsahuje to, co je nastavené v .env: nový server potřebuje stejný ENCRYPTION_KEY a, pokud jste je tam nastavili, stejné klíče VAPID a nastavení klienta OAuth.",
       "sensitive": "Soubor obsahuje otisky hesel, nevyužité odkazy s pozvánkami a přihlašovací údaje vašich účtů. Přihlašovací údaje jsou zašifrované klíčem ENCRYPTION_KEY tohoto serveru; zbytek je čitelný, stejně jako každá zpráva, pokud je zahrnuta pošta z mezipaměti. Uložte soubor na bezpečné místo. Obnovit jej lze jen na serveru se stejným klíčem.",
       "includeMail": "Zahrnout poštu z mezipaměti",
       "includeMailDesc": "Uloží také místní kopii každé synchronizované zprávy, takže soubor bude mnohem větší. Bez ní obnovení stáhne poštu znovu a nejnovější nepřečtené zprávy v každé doručené poště dorazí jako nová pošta: pravidla doručené pošty se na ně použijí znovu, včetně přeposílání. Volba platí pro každou zálohu, dokud ji nezměníte.",

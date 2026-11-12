@@ -15,7 +15,6 @@ import { logAuthEvent } from '../services/authEvents.js';
 import { sendSystemEmail } from '../services/mailer.js';
 import { buildEndSessionUrl } from './oidc.js';
 import { invalidateGlobalCategorizationCache } from '../services/categorizer.js';
-import { sanitizeRightSidebarPrefs } from '../utils/rightSidebarPrefs.js';
 import { redisClient } from '../services/redis.js';
 import { destroyUserSessions } from '../services/userSessions.js';
 import { touchLastSeen } from '../services/lastSeen.js';
@@ -797,7 +796,6 @@ export async function patchPreferences(req, res) {
   if (darkEmailBodies !== undefined && typeof darkEmailBodies !== 'boolean') {
     return res.status(400).json({ error: 'darkEmailBodies must be a boolean' });
   }
-  const { rightSidebarWidth, rightSidebarHidden } = sanitizeRightSidebarPrefs(req.body);
   // JSONB fields must be serialised to strings for the ::jsonb cast
   const imageWhitelistJson    = imageWhitelist    != null ? JSON.stringify(imageWhitelist)    : null;
   const shortcutsJson         = shortcuts         != null ? JSON.stringify(shortcuts)         : null;
@@ -895,22 +893,20 @@ export async function patchPreferences(req, res) {
       || CASE WHEN $28::text IS NOT NULL THEN jsonb_build_object('markReadBehavior', $28::text) ELSE '{}'::jsonb END
       || CASE WHEN $29::text IS NOT NULL THEN jsonb_build_object('markReadDelay', $29::text) ELSE '{}'::jsonb END
       || CASE WHEN $30::jsonb IS NOT NULL THEN jsonb_build_object('aiActions', $30::jsonb) ELSE '{}'::jsonb END
-      || CASE WHEN $31::int IS NOT NULL THEN jsonb_build_object('rightSidebarWidth', $31::int) ELSE '{}'::jsonb END
-      || CASE WHEN $32::boolean IS NOT NULL THEN jsonb_build_object('rightSidebarHidden', $32::boolean) ELSE '{}'::jsonb END
-      || CASE WHEN $33::text IS NOT NULL THEN jsonb_build_object('autoLockMinutes', $33::text) ELSE '{}'::jsonb END
-      || CASE WHEN $34::boolean IS NOT NULL THEN jsonb_build_object('showMobileAvatars', $34::boolean) ELSE '{}'::jsonb END
-      || CASE WHEN $35::boolean IS NOT NULL THEN jsonb_build_object('gravatarAvatars', $35::boolean) ELSE '{}'::jsonb END
-      || CASE WHEN $36::text IS NOT NULL THEN jsonb_build_object('folderSyncInterval', $36::text) ELSE '{}'::jsonb END
-      || CASE WHEN $37::jsonb IS NOT NULL THEN jsonb_build_object('folderOrder', $37::jsonb) ELSE '{}'::jsonb END
-      || CASE WHEN $38::boolean IS NOT NULL THEN jsonb_build_object('senderFavicons', $38::boolean) ELSE '{}'::jsonb END
-      || CASE WHEN $39::boolean IS NOT NULL THEN jsonb_build_object('showMessagePreviews', $39::boolean) ELSE '{}'::jsonb END
-      || CASE WHEN $40::text IS NOT NULL THEN jsonb_build_object('defaultSender', $40::text) ELSE '{}'::jsonb END
-      || CASE WHEN $41::text IS NOT NULL THEN jsonb_build_object('conversationMode', $41::text) ELSE '{}'::jsonb END
-      || CASE WHEN $42::jsonb IS NOT NULL THEN jsonb_build_object('hoverActionSet', $42::jsonb) ELSE '{}'::jsonb END
-      || CASE WHEN $43::boolean IS NOT NULL THEN jsonb_build_object('autoOpenReplyDrafts', $43::boolean) ELSE '{}'::jsonb END
-      || CASE WHEN $44::text IS NOT NULL THEN jsonb_build_object('afterRemove', $44::text) ELSE '{}'::jsonb END
-      || CASE WHEN $45::boolean IS NOT NULL THEN jsonb_build_object('darkEmailBodies', $45::boolean) ELSE '{}'::jsonb END
-      || CASE WHEN $46::jsonb IS NOT NULL THEN jsonb_build_object('listSort', $46::jsonb) ELSE '{}'::jsonb END
+      || CASE WHEN $31::text IS NOT NULL THEN jsonb_build_object('autoLockMinutes', $31::text) ELSE '{}'::jsonb END
+      || CASE WHEN $32::boolean IS NOT NULL THEN jsonb_build_object('showMobileAvatars', $32::boolean) ELSE '{}'::jsonb END
+      || CASE WHEN $33::boolean IS NOT NULL THEN jsonb_build_object('gravatarAvatars', $33::boolean) ELSE '{}'::jsonb END
+      || CASE WHEN $34::text IS NOT NULL THEN jsonb_build_object('folderSyncInterval', $34::text) ELSE '{}'::jsonb END
+      || CASE WHEN $35::jsonb IS NOT NULL THEN jsonb_build_object('folderOrder', $35::jsonb) ELSE '{}'::jsonb END
+      || CASE WHEN $36::boolean IS NOT NULL THEN jsonb_build_object('senderFavicons', $36::boolean) ELSE '{}'::jsonb END
+      || CASE WHEN $37::boolean IS NOT NULL THEN jsonb_build_object('showMessagePreviews', $37::boolean) ELSE '{}'::jsonb END
+      || CASE WHEN $38::text IS NOT NULL THEN jsonb_build_object('defaultSender', $38::text) ELSE '{}'::jsonb END
+      || CASE WHEN $39::text IS NOT NULL THEN jsonb_build_object('conversationMode', $39::text) ELSE '{}'::jsonb END
+      || CASE WHEN $40::jsonb IS NOT NULL THEN jsonb_build_object('hoverActionSet', $40::jsonb) ELSE '{}'::jsonb END
+      || CASE WHEN $41::boolean IS NOT NULL THEN jsonb_build_object('autoOpenReplyDrafts', $41::boolean) ELSE '{}'::jsonb END
+      || CASE WHEN $42::text IS NOT NULL THEN jsonb_build_object('afterRemove', $42::text) ELSE '{}'::jsonb END
+      || CASE WHEN $43::boolean IS NOT NULL THEN jsonb_build_object('darkEmailBodies', $43::boolean) ELSE '{}'::jsonb END
+      || CASE WHEN $44::jsonb IS NOT NULL THEN jsonb_build_object('listSort', $44::jsonb) ELSE '{}'::jsonb END
     WHERE id = $1
   `, [req.session.userId, theme ?? null, font ?? null, layout ?? null, notificationSound ?? null,
       pageSize ?? null, scrollMode ?? null, syncInterval ?? null,
@@ -919,7 +915,7 @@ export async function patchPreferences(req, res) {
       swipeActionsJson, expandedAccountsJson, collapsedFoldersJson, favoriteFoldersJson, recentFoldersJson, fontSizeVal,
       showAppBadge ?? null, showFaviconBadge ?? null, replyDefaultVal, sidebarWidthVal,
       categorizationEnabled ?? null, markReadBehaviorVal, markReadDelayVal, aiActionsJson,
-      rightSidebarWidth, rightSidebarHidden, autoLockMinutesVal,
+      autoLockMinutesVal,
       showMobileAvatars ?? null, gravatarAvatars ?? null, folderSyncIntervalVal, folderOrderJson, senderFaviconsVal,
       showMessagePreviews ?? null, defaultSenderVal, conversationModeVal, hoverActionSetJson, autoOpenReplyDrafts ?? null,
       afterRemoveVal, darkEmailBodies ?? null, listSortJson]);
