@@ -562,14 +562,12 @@ export default function ContactsPage() {
 function ContactDetail({ contact: c, confirmDelete, saving, error, onEdit, onDeleteRequest, onDeleteConfirm, onDeleteCancel, t }) {
   return (
     <div style={{ width: '100%', maxWidth: 560, position: 'relative', animation: 'pane-fade-in var(--motion-normal) var(--ease-emphasized) both' }}>
-      {/* Edit/Delete for editable contacts — out of flow, top-right (fixed width). */}
-      {!c.read_only && (
-        <div style={{ position: 'absolute', top: 0, right: 0, display: 'flex', gap: 8 }}>
-          <ActionBtn onClick={onEdit}>{t('common.edit')}</ActionBtn>
-          <ActionBtn onClick={onDeleteRequest} danger>{t('common.delete')}</ActionBtn>
-        </div>
-      )}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 28, paddingRight: c.read_only ? 0 : 128 }}>
+      {/* Edit/Delete — out of flow, top-right (fixed width). */}
+      <div style={{ position: 'absolute', top: 0, right: 0, display: 'flex', gap: 8 }}>
+        <ActionBtn onClick={onEdit}>{t('common.edit')}</ActionBtn>
+        <ActionBtn onClick={onDeleteRequest} danger>{t('common.delete')}</ActionBtn>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 28, paddingRight: 128 }}>
         <Avatar
           name={c.display_name}
           email={c.primary_email}
@@ -582,13 +580,6 @@ function ContactDetail({ contact: c, confirmDelete, saving, error, onEdit, onDel
           </h2>
           {c.organization && (
             <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 2 }}>{c.organization}</div>
-          )}
-          {/* CardDAV badge sits in flow below the name so it can never overlap it, whatever
-              the badge's translated width. */}
-          {c.read_only && (
-            <span style={{ display: 'inline-block', marginTop: 6, fontSize: 11, padding: '4px 10px', borderRadius: 100, background: 'var(--bg-tertiary)', color: 'var(--text-tertiary)', border: '1px solid var(--border)', whiteSpace: 'nowrap' }}>
-              {t('contacts.carddavBadge')}
-            </span>
           )}
           {c.is_auto && (
             <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>{t('contacts.autoHint')}</div>

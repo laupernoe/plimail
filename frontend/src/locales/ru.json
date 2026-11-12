@@ -1047,7 +1047,6 @@
       "shortcuts": "Горячие клавиши",
       "users": "Пользователи",
       "sso": "SSO",
-      "integrations": "Интеграции",
       "theme": "Тема",
       "fontsAndLanguage": "Язык и шрифт",
       "about": "О приложении",
@@ -1832,7 +1831,6 @@
       "passwordLoginEnabled": "Вход с паролем включён"
     },
     "integrations": {
-      "title": "Интеграции",
       "loading": "Загрузка…",
       "microsoft": {
         "setupTitle": "Настройка регистрации приложения Azure",
@@ -1873,45 +1871,6 @@
         "redirectUriNote": "Должен в точности совпадать с авторизованным URI перенаправления в клиенте OAuth. Рекомендуется: {{uri}}",
         "save": "Сохранить настройки",
         "remove": "Удалить"
-      },
-      "todoist": {
-        "title": "Todoist",
-        "description": "Интеграция с персональным менеджером задач",
-        "connect": "Подключить",
-        "connecting": "Подключение...",
-        "disconnect": "Отключить",
-        "connected": "Подключено",
-        "notConnected": "Не подключено",
-        "tokenLabel": "Личный токен API",
-        "tokenPh": "Вставьте токен API Todoist",
-        "help": "Найдите токен в Todoist Настройки → Интеграции → Разработчик"
-      },
-      "carddav": {
-        "title": "Контакты CardDAV",
-        "description": "Синхронизация контактов с сервера CardDAV, например Nextcloud.",
-        "connected": "Подключено",
-        "notConnected": "Не подключено",
-        "serverLabel": "URL сервера",
-        "serverPh": "https://cloud.example.ru",
-        "userLabel": "Имя пользователя",
-        "userPh": "ваше имя пользователя Nextcloud",
-        "passLabel": "Пароль приложения",
-        "passPh": "пароль приложения (не пароль для входа)",
-        "dupLabel": "Когда контакт уже существует",
-        "dupSeparate": "Оставить оба (отдельная книга)",
-        "dupMerge": "Объединить — приоритет CardDAV",
-        "dupSkip": "Пропустить контакт CardDAV",
-        "intervalLabel": "Интервал синхронизации (минуты)",
-        "connect": "Подключить",
-        "connecting": "Подключение…",
-        "connectFailed": "Не удалось подключиться",
-        "disconnect": "Отключить",
-        "syncNow": "Синхронизировать сейчас",
-        "syncing": "Синхронизация…",
-        "lastSync": "Последняя синхронизация: {{when}}",
-        "summary": "{{contacts}} контактов в {{books}} книгах",
-        "syncFailed": "Последняя синхронизация не удалась: {{error}}",
-        "help": "Используйте пароль приложения Nextcloud, а не пароль для входа — пользователям SSO нужно создать его в Настройки → Безопасность. Контакты синхронизируются в одну сторону и доступны только для чтения в MailFlow."
       }
     },
     "ssoLinked": {
@@ -2112,28 +2071,7 @@
       "work": "Работа",
       "home": "Дом",
       "other": "Другой"
-    },
-    "carddavBadge": "Синхронизировано из CardDAV"
-  },
-  "todoist": {
-    "title": "Создать задачу Todoist",
-    "taskTitle": "Название задачи",
-    "taskTitlePh": "Что нужно сделать?",
-    "description": "Описание",
-    "descriptionPh": "Необязательные заметки...",
-    "project": "Проект",
-    "inbox": "Входящие",
-    "labels": "Метки",
-    "priority": "Приоритет",
-    "priorityUrgent": "Срочно",
-    "priorityHigh": "Высокий",
-    "priorityMedium": "Средний",
-    "priorityNormal": "Без приоритета",
-    "dueDate": "Срок выполнения",
-    "create": "Создать задачу",
-    "creating": "Создание...",
-    "taskCreated": "Задача создана в Todoist",
-    "openTask": "Открыть в Todoist"
+    }
   },
   "window": {
     "minimize": "Свернуть",

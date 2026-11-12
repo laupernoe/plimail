@@ -177,14 +177,6 @@ export const useStore = create((set, get) => ({
     });
   },
 
-  // Todoist integration status (persisted across page loads via localStorage)
-  todoistConnected: localStorage.getItem('mailflow_todoist_connected') === '1',
-  setTodoistConnected: (connected) => {
-    if (connected) localStorage.setItem('mailflow_todoist_connected', '1');
-    else localStorage.removeItem('mailflow_todoist_connected');
-    set({ todoistConnected: connected });
-  },
-
   // Lock screen
   isLocked: localStorage.getItem('mailflow_locked') === '1',
   setLocked: (locked) => {
@@ -683,7 +675,7 @@ export const useStore = create((set, get) => ({
 
   // Admin panel
   showAdmin: false,
-  adminTab: 'accounts', // 'accounts' | 'appearance' | 'integrations' | 'users'
+  adminTab: 'accounts', // 'accounts' | 'appearance' | 'users' | …
   setShowAdmin: (v) => set({ showAdmin: v }),
   setAdminTab: (t) => set({ adminTab: t }),
   // Settings > Accounts opened for one account from elsewhere (the sidebar's error label or

@@ -20,10 +20,9 @@ import { formatDateTime } from '../utils/formatDate.js';
 import { bodyCache } from '../utils/bodyCache.js';
 import { useMobile } from '../hooks/useMobile.js';
 import MessageHeaderModal from './MessageHeaderModal.jsx';
-import TodoistTaskModal from './TodoistTaskModal.jsx';
 import {
   ActionBtn, MessageTools, ReplySplitButton, RemoteImagesNotice, UnsubscribeNotice,
-  AiReplyIcon, ForwardIcon, TodoistIcon, ReadStateIcon, HeadersIcon, DownloadIcon, PrintIcon, DarkToggleIcon, StarIcon,
+  AiReplyIcon, ForwardIcon, ReadStateIcon, HeadersIcon, DownloadIcon, PrintIcon, DarkToggleIcon, StarIcon,
 } from './MessageActions.jsx';
 
 // One message inside a conversation.
@@ -46,11 +45,9 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
   const decrementUnread = useStore(s => s.decrementUnread);
   const adjustCategoryCount = useStore(s => s.adjustCategoryCount);
   const replyDefault = useStore(s => s.replyDefault);
-  const todoistConnected = useStore(s => s.todoistConnected);
   const addToImageWhitelist = useStore(s => s.addToImageWhitelist);
   const isMobile = useMobile();
   const [showHeaderModal, setShowHeaderModal] = useState(false);
-  const [showTodoistModal, setShowTodoistModal] = useState(false);
   const [savingAllow, setSavingAllow] = useState(false);
   // null | 'loading' | 'done' | 'error', as the reading pane's unsubscribe notice.
   const [unsubscribeStatus, setUnsubscribeStatus] = useState(null);
@@ -290,7 +287,6 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
   const aiReply = () => openReplyFromMessage(message, { accounts, folders: useStore.getState().folders, openCompose, getMessageBody: loadedBody, replyAll: replyDefault === 'replyAll', aiReply: true });
   const toolItems = [
     aiReplyEnabled && isMobile && { key: 'aiReply', label: t('compose.toolbar.aiReply'), icon: <AiReplyIcon />, onClick: aiReply },
-    todoistConnected && { key: 'todoist', label: t('todoist.title'), icon: <TodoistIcon />, onClick: () => setShowTodoistModal(true) },
     { key: 'read', label: message.is_read ? t('contextMenu.markUnread') : t('contextMenu.markRead'), icon: <ReadStateIcon isRead={message.is_read} />, onClick: handleToggleRead },
     { key: 'headers', label: t('contextMenu.viewHeaders'), icon: <HeadersIcon />, onClick: () => setShowHeaderModal(true) },
     { key: 'eml', label: t('message.downloadEml'), icon: <DownloadIcon />, onClick: () => downloadEml(message.id) },
@@ -460,9 +456,6 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
           onClose={() => setShowHeaderModal(false)}
           onSubjectResolved={subject => onUpdate?.(message.id, { subject })}
         />
-      )}
-      {showTodoistModal && (
-        <TodoistTaskModal message={message} onClose={() => setShowTodoistModal(false)} />
       )}
     </div>
   );

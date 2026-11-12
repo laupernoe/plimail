@@ -1047,7 +1047,6 @@
       "shortcuts": "快捷键",
       "users": "用户",
       "sso": "单点登录",
-      "integrations": "集成",
       "theme": "主题",
       "fontsAndLanguage": "语言与字体",
       "about": "关于",
@@ -1832,7 +1831,6 @@
       "passwordLoginEnabled": "密码登录已启用"
     },
     "integrations": {
-      "title": "集成",
       "loading": "加载中…",
       "microsoft": {
         "setupTitle": "Azure 应用注册设置",
@@ -1873,45 +1871,6 @@
         "redirectUriNote": "必须与 OAuth 客户端中已授权的重定向 URI 完全一致。建议：{{uri}}",
         "save": "保存配置",
         "remove": "移除"
-      },
-      "todoist": {
-        "title": "Todoist",
-        "description": "个人任务管理器集成",
-        "connect": "连接",
-        "connecting": "连接中...",
-        "disconnect": "断开",
-        "connected": "已连接",
-        "notConnected": "未连接",
-        "tokenLabel": "个人 API 令牌",
-        "tokenPh": "粘贴您的 Todoist API 令牌",
-        "help": "在 Todoist 设置 → 集成 → 开发者中找到您的令牌"
-      },
-      "carddav": {
-        "title": "CardDAV 联系人",
-        "description": "从 Nextcloud 等 CardDAV 服务器同步联系人。",
-        "connected": "已连接",
-        "notConnected": "未连接",
-        "serverLabel": "服务器地址",
-        "serverPh": "https://nextcloud.example.com",
-        "userLabel": "用户名",
-        "userPh": "你的 Nextcloud 用户名",
-        "passLabel": "应用专用密码",
-        "passPh": "应用专用密码（非登录密码）",
-        "dupLabel": "当联系人已存在时",
-        "dupSeparate": "保留两者（单独的通讯簿）",
-        "dupMerge": "合并 — 以 CardDAV 为准",
-        "dupSkip": "跳过该 CardDAV 联系人",
-        "intervalLabel": "同步间隔（分钟）",
-        "connect": "连接",
-        "connecting": "正在连接…",
-        "connectFailed": "连接失败",
-        "disconnect": "断开连接",
-        "syncNow": "立即同步",
-        "syncing": "正在同步…",
-        "lastSync": "上次同步：{{when}}",
-        "summary": "{{books}} 个通讯簿中的 {{contacts}} 个联系人",
-        "syncFailed": "上次同步失败：{{error}}",
-        "help": "请使用 Nextcloud 应用专用密码，而非登录密码——SSO 用户需在“设置 → 安全”中创建。联系人为单向同步，在 MailFlow 中为只读。"
       }
     },
     "ssoLinked": {
@@ -2112,28 +2071,7 @@
       "work": "工作",
       "home": "家庭",
       "other": "其他"
-    },
-    "carddavBadge": "从 CardDAV 同步"
-  },
-  "todoist": {
-    "title": "创建 Todoist 任务",
-    "taskTitle": "任务标题",
-    "taskTitlePh": "需要做什么？",
-    "description": "描述",
-    "descriptionPh": "可选备注...",
-    "project": "项目",
-    "inbox": "收件箱",
-    "labels": "标签",
-    "priority": "优先级",
-    "priorityUrgent": "紧急",
-    "priorityHigh": "高",
-    "priorityMedium": "中",
-    "priorityNormal": "无优先级",
-    "dueDate": "截止日期",
-    "create": "创建任务",
-    "creating": "创建中...",
-    "taskCreated": "任务已在 Todoist 中创建",
-    "openTask": "在 Todoist 中打开"
+    }
   },
   "window": {
     "minimize": "最小化",

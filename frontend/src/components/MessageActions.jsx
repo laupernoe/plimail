@@ -36,11 +36,6 @@ export const HamIcon = () => (
     <polyline points="9 12 11 14 15 10"/>
   </svg>
 );
-export const TodoistIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M21 0H3C1.35 0 0 1.35 0 3v3.858s3.854 2.24 4.098 2.38c.31.18.694.177 1.004 0 .26-.147 8.02-4.608 8.136-4.675.279-.161.58-.107.748-.01.164.097.606.348.84.48.232.134.221.502.013.622l-9.712 5.59c-.346.2-.69.204-1.048.002C3.478 10.907.998 9.463 0 8.882v2.02l4.098 2.38c.31.18.694.177 1.004 0 .26-.147 8.02-4.609 8.136-4.676.279-.16.58-.106.748-.008.164.096.606.347.84.48.232.133.221.5.013.62-.208.121-9.288 5.346-9.712 5.59-.346.2-.69.205-1.048.002C3.478 14.951.998 13.506 0 12.926v2.02l4.098 2.38c.31.18.694.177 1.004 0 .26-.147 8.02-4.609 8.136-4.676.279-.16.58-.106.748-.009.164.097.606.348.84.48.232.133.221.502.013.622l-9.712 5.59c-.346.199-.69.204-1.048.001C3.478 18.994.998 17.55 0 16.97V21c0 1.65 1.35 3 3 3h18c1.65 0 3-1.35 3-3V3c0-1.65-1.35-3-3-3z"/>
-  </svg>
-);
 export const HeadersIcon = () => (
   <svg {...svg}>
     <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
@@ -364,7 +359,7 @@ function AiMenuButton({ ai, touch }) {
 
 // The phone More menu's order, the reading pane's since before the views shared these buttons: the
 // read toggle first, as the action reached for most. Reply with AI is a toolbar button on a desktop.
-export const MORE_MENU_ORDER = ['read', 'aiReply', 'spam', 'ham', 'todoist', 'headers', 'print', 'dark', 'eml'];
+export const MORE_MENU_ORDER = ['read', 'aiReply', 'spam', 'ham', 'headers', 'print', 'dark', 'eml'];
 
 // The message's tools: buttons on a desktop, a More menu on a phone, where the toolbar has no room.
 //

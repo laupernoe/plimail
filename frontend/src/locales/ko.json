@@ -1045,7 +1045,6 @@
       "shortcuts": "단축키",
       "privacy": "개인정보 보호",
       "users": "사용자",
-      "integrations": "통합",
       "sso": "SSO",
       "about": "정보",
       "ai": "AI 어시스턴트",
@@ -1832,7 +1831,6 @@
       "errorRequired": "이름, 슬러그, 발급자 URL, 클라이언트 ID가 필요합니다."
     },
     "integrations": {
-      "title": "통합",
       "loading": "불러오는 중…",
       "microsoft": {
         "step4": "API 권한 → 권한 추가 → Microsoft Graph → 위임됨 → offline_access, openid, email, profile",
@@ -1873,45 +1871,6 @@
         "redirectUriNote": "이는 OAuth 클라이언트의 승인된 리디렉션 URI와 정확히 일치해야 합니다. 제안: {{uri}}",
         "clientIdPh": "xxxxxxxx.apps.googleusercontent.com",
         "clientSecretPh": "GOCSPX-…"
-      },
-      "todoist": {
-        "title": "Todoist",
-        "connect": "연결",
-        "description": "개인 작업 관리자 통합",
-        "notConnected": "연결되지 않음",
-        "disconnect": "연결 끊기",
-        "connected": "연결됨",
-        "connecting": "연결 중...",
-        "help": "Todoist 설정 → 통합 → 개발자에서 토큰을 찾으세요",
-        "tokenPh": "Todoist API 토큰을 붙여넣으세요",
-        "tokenLabel": "개인 API 토큰"
-      },
-      "carddav": {
-        "connected": "연결됨",
-        "notConnected": "연결되지 않음",
-        "serverLabel": "서버 URL",
-        "userLabel": "사용자 이름",
-        "passLabel": "앱 비밀번호",
-        "description": "Nextcloud와 같은 CardDAV 서버의 연락처를 동기화하세요.",
-        "serverPh": "https://cloud.example.com",
-        "title": "CardDAV 연락처",
-        "userPh": "Nextcloud 사용자 이름",
-        "connect": "연결",
-        "connecting": "연결 중…",
-        "disconnect": "연결 끊기",
-        "passPh": "앱 비밀번호(로그인 비밀번호 아님)",
-        "syncNow": "지금 동기화",
-        "intervalLabel": "동기화 간격(분)",
-        "dupSkip": "CardDAV 연락처 건너뛰기",
-        "dupMerge": "병합 — CardDAV 정보 우선",
-        "dupSeparate": "둘 다 유지(별도의 주소록)",
-        "dupLabel": "연락처가 이미 존재하는 경우",
-        "help": "로그인 비밀번호가 아닌 Nextcloud 앱 비밀번호를 사용하세요. SSO 사용자는 설정 → 보안에서 비밀번호를 만들어야 합니다. 연락처는 단방향으로 동기화되며 MailFlow에서는 읽기 전용입니다.",
-        "lastSync": "마지막 동기화: {{when}}",
-        "connectFailed": "연결하지 못했습니다.",
-        "syncing": "동기화 중…",
-        "syncFailed": "마지막 동기화 실패: {{error}}",
-        "summary": "{{books}} 주소록의 {{contacts}} 연락처"
       }
     },
     "ssoLinked": {
@@ -2112,28 +2071,7 @@
     },
     "addEmail": "이메일 추가",
     "addPhone": "전화 추가",
-    "selectHint": "세부정보를 보려면 연락처를 선택하세요.",
-    "carddavBadge": "CardDAV에서 동기화됨"
-  },
-  "todoist": {
-    "description": "설명",
-    "project": "프로젝트",
-    "inbox": "받은편지함",
-    "labels": "라벨",
-    "priority": "우선순위",
-    "priorityHigh": "높음",
-    "priorityUrgent": "긴급",
-    "priorityMedium": "보통",
-    "create": "작업 만들기",
-    "taskTitlePh": "무엇을 해야 합니까?",
-    "title": "Todoist 작업 생성",
-    "taskTitle": "작업 제목",
-    "descriptionPh": "선택적 메모...",
-    "dueDate": "마감일",
-    "taskCreated": "Todoist에서 생성된 작업",
-    "creating": "만드는 중...",
-    "openTask": "Todoist에서 열기",
-    "priorityNormal": "우선순위 없음"
+    "selectHint": "세부정보를 보려면 연락처를 선택하세요."
   },
   "window": {
     "minimize": "최소화",

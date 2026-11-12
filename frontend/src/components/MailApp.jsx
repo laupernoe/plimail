@@ -62,7 +62,7 @@ export default function MailApp() {
     mobileSidebarOpen, setMobileSidebarOpen, addNotification,
     fontSize, showAppBadge, showFaviconBadge,
     sidebarWidth, setSidebarWidth, setIsSidebarResizing,
-    showContacts, showCalendar, setTodoistConnected,
+    showContacts, showCalendar,
   } = useStore();
   const syncInterval = useStore(s => s.syncInterval);
   const autoLockMinutes = useStore(s => s.autoLockMinutes);
@@ -414,9 +414,6 @@ export default function MailApp() {
     };
     loadAccounts();
 
-    // Sync Todoist connection state — localStorage alone isn't enough across devices/sessions
-    api.todoist.status().then(({ connected }) => setTodoistConnected(connected)).catch(() => {});
-
     // Preload ComposeModal chunk so first open is instant
     import('./ComposeModal.jsx');
 
@@ -466,7 +463,7 @@ export default function MailApp() {
       stopResume();
       window.removeEventListener('mailflow:counts_refresh', refreshCounts);
     };
-  }, [setAccounts, setUnreadCounts, setTodoistConnected]);
+  }, [setAccounts, setUnreadCounts]);
 
   // WebSocket-independent periodic refresh of the open message list, at the user's chosen sync
   // interval. Only fires when the tab is visible AND the socket is not OPEN — a true fallback so

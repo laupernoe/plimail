@@ -87,7 +87,7 @@ const { useStore } = await import('../store/index.js');
 const { RESUME_RETRY_MS } = await import('../utils/resumeRefresh.js');
 const MailApp = (await import('./MailApp.jsx')).default;
 
-const original = { ...api, todoist: api.todoist };
+const original = { ...api };
 let root;
 let refreshes;
 let countsFail;
@@ -102,7 +102,6 @@ beforeEach(async (t) => {
       return { total: 0, byAccount: {}, snapshots: {}, complete: true };
     },
     getFolders: async () => [],
-    todoist: { ...original.todoist, status: async () => ({ connected: false }) },
   });
   useStore.setState({ isLocked: false });
   refreshes = 0;

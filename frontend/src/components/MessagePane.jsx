@@ -37,7 +37,7 @@ import { useAiActions } from '../hooks/useAiActions.js';
 import AttachmentStrip from './AttachmentStrip.jsx';
 import {
   ActionBtn, MessageTools, ReplySplitButton, RemoteImagesNotice, UnsubscribeNotice, TOUCH_MIN,
-  AiReplyIcon, ForwardIcon, ArchiveIcon, MoveIcon, SpamIcon, HamIcon, TodoistIcon, ReadStateIcon, HeadersIcon,
+  AiReplyIcon, ForwardIcon, ArchiveIcon, MoveIcon, SpamIcon, HamIcon, ReadStateIcon, HeadersIcon,
   DownloadIcon, PrintIcon, DarkToggleIcon, StarIcon, TrashIcon, useShortcutTitle,
 } from './MessageActions.jsx';
 const USE_DIV_RENDER = import.meta.env.VITE_EMAIL_DIV_RENDER === 'true';
@@ -62,7 +62,6 @@ if (USE_DIV_RENDER) {
 import { senderColor } from '../themes.js';
 import MessageHeaderModal from './MessageHeaderModal.jsx';
 import FolderIcon from './FolderIcon.jsx';
-import TodoistTaskModal from './TodoistTaskModal.jsx';
 import SenderAvatarImage from './SenderAvatarImage.jsx';
 import ContextMenu from './ContextMenu.jsx';
 import { holdUndoable, releaseUndoable, UNDO_COMMIT_DELAY_MS } from '../utils/undoableAction.js';
@@ -81,7 +80,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
     messages, searchResults, searchQuery, selectedMessageId: globalSelectedId, setSelectedMessage,
     updateMessage, removeMessage, decrementUnread, incrementUnread, openCompose, accounts, addNotification,
     imageWhitelist, addToImageWhitelist, blockRemoteImages, threadMessages,
-    replyDefault, recentFolders, favoriteFolders, todoistConnected,
+    replyDefault, recentFolders, favoriteFolders,
     categorizationEnabled, setCategoryCounts, adjustCategoryCount,
     aiActions, setShowAdmin, setAdminTab, plaintextEmail,
   } = useStore();
@@ -238,7 +237,6 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
   const [findMatchCase, setFindMatchCase] = useState(false);
   const [findMatchIndex, setFindMatchIndex] = useState(-1);
   const findInputRef = useRef(null);
-  const [showTodoistModal, setShowTodoistModal] = useState(false);
   const [aiStatus, setAiStatus] = useState(null);
   // Per-action results for the current message: { [actionKey]: { status, text, label } }.
   // status: 'loading' | 'done' | 'error'. Restored from localStorage on message change.
@@ -1304,7 +1302,6 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
     aiReplyShown && isMobile && { key: 'aiReply', label: t('compose.toolbar.aiReply'), icon: <AiReplyIcon />, onClick: handleAiReply },
     hasSpamFolder && !inSpamFolder && { key: 'spam', label: t('contextMenu.markAsSpam'), icon: <SpamIcon />, onClick: () => performSingleSpamLabel('spam') },
     inSpamFolder && { key: 'ham', label: t('contextMenu.markAsHam'), icon: <HamIcon />, onClick: () => performSingleSpamLabel('ham') },
-    todoistConnected && { key: 'todoist', label: t('todoist.title'), icon: <TodoistIcon />, onClick: () => setShowTodoistModal(true) },
     { key: 'read', label: message.is_read ? t('contextMenu.markUnread') : t('contextMenu.markRead'), icon: <ReadStateIcon isRead={message.is_read} />, onClick: handleToggleRead },
     { key: 'headers', label: t('contextMenu.viewHeaders'), icon: <HeadersIcon />, onClick: () => setShowHeaderModal(true) },
     // The raw RFC 822 source as an .eml file (#381).
@@ -2212,12 +2209,6 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
         />
       )}
 
-      {showTodoistModal && (
-        <TodoistTaskModal
-          message={message}
-          onClose={() => setShowTodoistModal(false)}
-        />
-      )}
     </div>
   );
 }

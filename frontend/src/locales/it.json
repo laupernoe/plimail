@@ -1047,7 +1047,6 @@
       "shortcuts": "Scorciatoie",
       "users": "Utenti",
       "sso": "SSO",
-      "integrations": "Integrazioni",
       "theme": "Tema",
       "fontsAndLanguage": "Lingua e font",
       "about": "Informazioni",
@@ -1832,7 +1831,6 @@
       "passwordLoginEnabled": "L'accesso con password è abilitato"
     },
     "integrations": {
-      "title": "Integrazioni",
       "loading": "Caricamento…",
       "microsoft": {
         "setupTitle": "Configurazione registrazione app Azure",
@@ -1873,45 +1871,6 @@
         "redirectUriNote": "Deve corrispondere esattamente a un URI di reindirizzamento autorizzato sul client OAuth. Suggerito: {{uri}}",
         "save": "Salva configurazione",
         "remove": "Rimuovi"
-      },
-      "todoist": {
-        "title": "Todoist",
-        "description": "Integrazione con gestore di attività personale",
-        "connect": "Connetti",
-        "connecting": "Connessione...",
-        "disconnect": "Disconnetti",
-        "connected": "Connesso",
-        "notConnected": "Non connesso",
-        "tokenLabel": "Token API personale",
-        "tokenPh": "Incolla il tuo token API Todoist",
-        "help": "Trova il token in Todoist Impostazioni → Integrazioni → Sviluppatore"
-      },
-      "carddav": {
-        "title": "Contatti CardDAV",
-        "description": "Sincronizza i contatti da un server CardDAV come Nextcloud.",
-        "connected": "Connesso",
-        "notConnected": "Non connesso",
-        "serverLabel": "URL del server",
-        "serverPh": "https://cloud.esempio.com",
-        "userLabel": "Nome utente",
-        "userPh": "il tuo nome utente Nextcloud",
-        "passLabel": "Password dell'app",
-        "passPh": "password app (non quella di accesso)",
-        "dupLabel": "Quando un contatto esiste già",
-        "dupSeparate": "Mantieni entrambi (rubrica separata)",
-        "dupMerge": "Unisci — vince CardDAV",
-        "dupSkip": "Salta il contatto CardDAV",
-        "intervalLabel": "Intervallo di sincronizzazione (minuti)",
-        "connect": "Connetti",
-        "connecting": "Connessione…",
-        "connectFailed": "Connessione non riuscita",
-        "disconnect": "Disconnetti",
-        "syncNow": "Sincronizza ora",
-        "syncing": "Sincronizzazione…",
-        "lastSync": "Ultima sincronizzazione: {{when}}",
-        "summary": "{{contacts}} contatti in {{books}} rubriche",
-        "syncFailed": "Ultima sincronizzazione non riuscita: {{error}}",
-        "help": "Usa una password app di Nextcloud, non quella di accesso: gli utenti SSO devono crearne una in Impostazioni → Sicurezza. I contatti sono sincronizzati a senso unico e di sola lettura in MailFlow."
       }
     },
     "ssoLinked": {
@@ -2112,28 +2071,7 @@
       "work": "Lavoro",
       "home": "Casa",
       "other": "Altro"
-    },
-    "carddavBadge": "Sincronizzato da CardDAV"
-  },
-  "todoist": {
-    "title": "Crea attività Todoist",
-    "taskTitle": "Titolo dell'attività",
-    "taskTitlePh": "Cosa c'è da fare?",
-    "description": "Descrizione",
-    "descriptionPh": "Note opzionali...",
-    "project": "Progetto",
-    "inbox": "Posta in arrivo",
-    "labels": "Etichette",
-    "priority": "Priorità",
-    "priorityUrgent": "Urgente",
-    "priorityHigh": "Alta",
-    "priorityMedium": "Media",
-    "priorityNormal": "Nessuna priorità",
-    "dueDate": "Data di scadenza",
-    "create": "Crea attività",
-    "creating": "Creazione...",
-    "taskCreated": "Attività creata in Todoist",
-    "openTask": "Apri in Todoist"
+    }
   },
   "window": {
     "minimize": "Riduci a icona",

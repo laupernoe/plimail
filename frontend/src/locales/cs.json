@@ -857,8 +857,7 @@
       "work": "Pracovní",
       "home": "Domů",
       "other": "Jiný"
-    },
-    "carddavBadge": "Synchronizováno z CardDAV"
+    }
   },
   "contextMenu": {
     "find": "Najít",
@@ -1116,26 +1115,6 @@
     "nothingFromAccount": "V této konverzaci není z tohoto účtu nic k označení jako spam",
     "nothingInConversation": "V této konverzaci není nic k označení jako spam"
   },
-  "todoist": {
-    "title": "Vytvořit úkol v Todoistu",
-    "taskTitle": "Název úkolu",
-    "taskTitlePh": "Co je potřeba udělat?",
-    "description": "Popis",
-    "descriptionPh": "Volitelné poznámky…",
-    "project": "Projekt",
-    "inbox": "Doručené",
-    "labels": "Štítky",
-    "priority": "Priorita",
-    "priorityUrgent": "Naléhavá",
-    "priorityHigh": "Vysoká",
-    "priorityMedium": "Střední",
-    "priorityNormal": "Bez priority",
-    "dueDate": "Termín",
-    "create": "Vytvořit úkol",
-    "creating": "Vytváření…",
-    "taskCreated": "Úkol byl vytvořen v Todoistu",
-    "openTask": "Otevřít v Todoistu"
-  },
   "window": {
     "minimize": "Minimalizovat",
     "close": "Zavřít"
@@ -1205,7 +1184,6 @@
       "shortcuts": "Zkratky",
       "users": "Uživatelé",
       "sso": "SSO",
-      "integrations": "Integrace",
       "theme": "Motiv",
       "fontsAndLanguage": "Jazyk a písmo",
       "about": "O aplikaci",
@@ -2014,7 +1992,6 @@
       "body": "Následujících 10 minut můžete vytvořit token API nebo propojit další účet SSO."
     },
     "integrations": {
-      "title": "Integrace",
       "loading": "Načítání…",
       "microsoft": {
         "setupTitle": "Nastavení registrace aplikace v Azure",
@@ -2055,45 +2032,6 @@
         "redirectUriNote": "Musí se přesně shodovat s autorizovaným URI přesměrování u klienta OAuth. Doporučeno: {{uri}}",
         "save": "Uložit nastavení",
         "remove": "Odebrat"
-      },
-      "todoist": {
-        "title": "Todoist",
-        "description": "Integrace osobního správce úkolů",
-        "connect": "Připojit",
-        "connecting": "Připojování…",
-        "disconnect": "Odpojit",
-        "connected": "Připojeno",
-        "notConnected": "Nepřipojeno",
-        "tokenLabel": "Osobní token API",
-        "tokenPh": "Vložte svůj token API Todoist",
-        "help": "Token najdete v Todoist Nastavení → Integrace → Vývojář"
-      },
-      "carddav": {
-        "title": "Kontakty CardDAV",
-        "description": "Synchronizujte kontakty ze serveru CardDAV, například Nextcloud.",
-        "connected": "Připojeno",
-        "notConnected": "Nepřipojeno",
-        "serverLabel": "URL serveru",
-        "serverPh": "https://cloud.example.com",
-        "userLabel": "Uživatelské jméno",
-        "userPh": "vaše uživatelské jméno Nextcloud",
-        "passLabel": "Heslo pro aplikaci",
-        "passPh": "heslo pro aplikaci (nikoli přihlašovací heslo)",
-        "dupLabel": "Pokud kontakt už existuje",
-        "dupSeparate": "Ponechat oba (samostatný adresář)",
-        "dupMerge": "Sloučit — CardDAV má přednost",
-        "dupSkip": "Přeskočit kontakt CardDAV",
-        "intervalLabel": "Interval synchronizace (minuty)",
-        "connect": "Připojit",
-        "connecting": "Připojování…",
-        "connectFailed": "Připojení se nezdařilo",
-        "disconnect": "Odpojit",
-        "syncNow": "Synchronizovat nyní",
-        "syncing": "Synchronizace…",
-        "lastSync": "Poslední synchronizace: {{when}}",
-        "summary": "{{contacts}} kontaktů v {{books}} adresářích",
-        "syncFailed": "Poslední synchronizace selhala: {{error}}",
-        "help": "Použijte heslo pro aplikaci Nextcloud, nikoli přihlašovací heslo — uživatelé SSO si je musí vytvořit v Nastavení → Zabezpečení. Kontakty se synchronizují jednosměrně a v MailFlow jsou jen pro čtení."
       }
     },
     "ai": {

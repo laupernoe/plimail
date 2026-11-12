@@ -296,7 +296,6 @@ const SAME_VALUE_ALLOWED = {
 
   // "Telefon" / "Projekt" — established Polish/German technical loanwords
   'contacts.fields.phone': [['cs', 'de', 'pl']],
-  'todoist.project':       [['cs', 'de', 'pl']],
 
   // "Password" — international term, same in en and it
   'admin.systemEmail.password':      [['en', 'it']],
@@ -370,27 +369,11 @@ const SAME_VALUE_ALLOWED = {
   // "Navigation" — spelled identically in de, en, fr (es "Navegación", it "Navigazione")
   'shortcuts.groups.navigation': [['de', 'en', 'fr']],
 
-  // ── Todoist integration ────────────────────────────────────────────────────
-  // "Todoist" — brand name, same in all locales
-  'admin.integrations.todoist.title': 'any',
-  // "Description" — same spelling in en and fr
-  'todoist.description': [['en', 'fr']],
-  // "Labels" — international loanword, same in de and en
-  'todoist.labels': [['de', 'en'], ['es', 'ptBR']],
-  // "Urgent" — same in en and fr; "Urgente" same in es and it (Romance languages)
-  'todoist.priorityUrgent': [['en', 'fr'], ['es', 'it', 'ptBR']],
-  // "Alta" — "High" translates identically in es and it (Romance languages)
-  'todoist.priorityHigh': [['es', 'it', 'ptBR']],
-  // "Media" — "Medium" translates identically in es and it (Romance languages)
-  'todoist.priorityMedium': [['es', 'it']],
-
   // ── Czech ────────────────────────────────────────────────────────────────
   'admin.about.license': [['cs', 'fr']],
   'admin.ai.chatgptModel': [['cs', 'pl']],
   'admin.ai.model': [['cs', 'en'], ['es', 'ptBR']],
   'admin.appearance.typography': [['cs', 'de'], ['it', 'ptBR']],
-  'admin.integrations.carddav.serverPh': 'any',
-  'admin.integrations.carddav.title': [['cs', 'pl']],
   'admin.messageList.markReadDelaySeconds': [['cs', 'pl'], ['es', 'ptBR']],
   'admin.messageList.markReadDelaySeconds_other': [['cs', 'pl'], ['es', 'ptBR']],
   'admin.tabs.categories': [['cs', 'pl']],
@@ -417,16 +400,7 @@ const SAME_VALUE_ALLOWED = {
   'admin.blockList.addButton':                       [['es', 'ptBR']], // "Bloquear"
   'admin.categories.recategorize':                   [['es', 'ptBR']], // "Recategorizar"
   'admin.folderMappings.sent':                       [['es', 'ptBR']], // "Enviados"
-  'admin.integrations.carddav.connect':              [['es', 'ptBR']], // "Conectar"
-  'admin.integrations.carddav.connected':            [['es', 'ptBR']], // "Conectado"
-  'admin.integrations.carddav.connecting':           [['es', 'ptBR']], // "Conectando…"
-  'admin.integrations.carddav.disconnect':           [['es', 'ptBR']], // "Desconectar"
-  'admin.integrations.carddav.syncing':              [['es', 'ptBR']], // "Sincronizando…"
   'admin.integrations.google.configured':            [['es', 'ptBR']], // "Configurado"
-  'admin.integrations.todoist.connect':              [['es', 'ptBR']], // "Conectar"
-  'admin.integrations.todoist.connected':            [['es', 'ptBR']], // "Conectado"
-  'admin.integrations.todoist.connecting':           [['es', 'ptBR']], // "Conectando..."
-  'admin.integrations.todoist.disconnect':           [['es', 'ptBR']], // "Desconectar"
   'admin.lock.confirmPin':                           [['es', 'ptBR']], // "Confirmar PIN"
   'admin.messageList.defaultReply':                  [['es', 'ptBR']], // "Responder"
   'admin.messageList.defaultReplyAll':               [['es', 'ptBR']], // "Responder a todos"
@@ -663,7 +637,6 @@ const DYNAMIC_KEYS = new Set([
   'admin.tabs.accounts',
   'admin.tabs.rules',
   'admin.tabs.appearance',
-  'admin.tabs.integrations',
   'admin.tabs.users',
   'admin.tabs.sso',
   'admin.tabs.backup',

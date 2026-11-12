@@ -666,14 +666,4 @@ export const api = {
     recategorize: (accountId) => request('POST', `/categories/recategorize/${accountId}`),
     aiClassify: (messageId) => request('POST', `/categories/ai-classify/${messageId}`),
   },
-
-  // Todoist integration
-  todoist: {
-    status:       ()       => request('GET',    '/todoist/status'),
-    connect:      (token)  => request('POST',   '/todoist/connect', { token }),
-    disconnect:   ()       => request('DELETE', '/todoist/disconnect'),
-    getProjects:  ()       => request('GET',    '/todoist/projects'),
-    getLabels:    ()       => request('GET',    '/todoist/labels'),
-    createTask:   (data)   => request('POST',   '/todoist/tasks', data),
-  },
 };
