@@ -9,6 +9,7 @@ import { useStore } from '../store/index.js';
 import { api } from '../utils/api.js';
 import { useMobile } from '../hooks/useMobile.js';
 import { useUiScale, descale } from '../hooks/useUiScale.js';
+import { descaleCss } from '../utils/uiScaleCss.js';
 import { useEditor, EditorContent, useEditorState, NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
 import { Extension } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
@@ -29,7 +30,7 @@ import { initialComposeFocus, isComposeSendShortcut, isSendLaterShortcut } from 
 import { unproxyImages } from '../utils/imageProxy.js';
 import { autoListsOf, openAutoRecipients, replyTypeFields, swapAccountFields } from '../utils/autoRecipients.js';
 import { resolveSignatureEnabled } from '../utils/composeSignature.js';
-import { UNDO_SEND_SECONDS, undoWindowMs, trackHeldSend, reopenCompose, sendErrorText } from '../utils/heldSend.js';
+import { undoSendSeconds, undoWindowMs, trackHeldSend, reopenCompose, sendErrorText } from '../utils/heldSend.js';
 import { openSentMessage } from '../utils/openSentMessage.js';
 import { aiReplyAvailable, loadReplyConversation, buildReplyPrompt, MAX_INSTRUCTION_CHARS } from '../utils/aiReply.js';
 import { frameGeometry } from '../utils/frameGeometry.js';
@@ -1242,7 +1243,7 @@ export default function ComposeModal() {
         ...payload,
         // The server holds the message this long so it can still be undone, and deletes the
         // draft only once the message is delivered.
-        undoSeconds: UNDO_SEND_SECONDS,
+        undoSeconds: undoSendSeconds(useStore.getState().undoSend),
         ...(hasDraft ? { draft: { uid: savedDraft.uid, folder: savedDraft.folder, accountId: savedDraft.accountId } } : {}),
       }, { 'X-Idempotency-Key': idempotencyKeyRef.current });
       // Send confirmed — clear the key so a subsequent send from a reused modal gets a fresh one.
@@ -2984,7 +2985,7 @@ export default function ComposeModal() {
       } : pos ? {
         position: 'fixed', top: pos.y, left: pos.x,
         width: customSize?.width || 540,
-        ...(customSize?.height ? { height: customSize.height } : { maxHeight: '75vh' }),
+        ...(customSize?.height ? { height: customSize.height } : { maxHeight: descaleCss('75vh') }),
         maxWidth: 'calc(100vw - 16px)',
         background: 'var(--bg-secondary)', border: '1px solid var(--border)',
         borderRadius: 10, boxShadow: 'var(--shadow-modal)',
@@ -2992,7 +2993,7 @@ export default function ComposeModal() {
       } : {
         position: 'fixed', bottom: 0, right: 24,
         width: customSize?.width || 540, maxWidth: 'calc(100vw - 48px)',
-        ...(customSize?.height ? { height: customSize.height } : { maxHeight: '75vh' }),
+        ...(customSize?.height ? { height: customSize.height } : { maxHeight: descaleCss('75vh') }),
         background: 'var(--bg-secondary)', border: '1px solid var(--border)',
         borderRadius: 10,
         boxShadow: 'var(--shadow-modal)',

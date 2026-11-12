@@ -575,6 +575,33 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
             </div>
           </div>
 
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <button
+              type="button"
+              aria-pressed={form.notifications_muted !== true}
+              onClick={() => set('notifications_muted', form.notifications_muted !== true)}
+              style={{
+                width: 36, height: 20, borderRadius: 10, border: 'none',
+                cursor: 'pointer', padding: 0,
+                background: form.notifications_muted !== true ? 'var(--accent)' : TOGGLE_OFF_BACKGROUND,
+                position: 'relative', transition: 'background 0.2s', flexShrink: 0, marginTop: 1,
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: 2,
+                left: form.notifications_muted !== true ? 18 : 2,
+                width: 16, height: 16,
+                borderRadius: '50%', background: form.notifications_muted !== true ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
+              }} />
+            </button>
+            <div>
+              <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('admin.accounts.notificationsEnabled')}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                {t('admin.accounts.notificationsEnabledDesc')}
+              </div>
+            </div>
+          </div>
+
           <div style={{ height: 1, background: 'var(--border-subtle)', margin: '16px 0' }} />
           <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
             {t('admin.accounts.categorizationSection')}
@@ -720,7 +747,7 @@ function AccountsTab() {
   };
 
   const handleEdit = async (form) => {
-    const updates = { name: form.name, sender_name: form.sender_name || null, color: form.color, icon: form.icon || null, imap_host: form.imap_host, imap_port: form.imap_port, imap_skip_tls_verify: !!form.imap_skip_tls_verify, smtp_host: form.smtp_host, smtp_port: form.smtp_port, smtp_tls: form.smtp_tls, signature: form.signature || null, categorization_enabled: !!form.categorization_enabled, include_in_unified_inbox: form.include_in_unified_inbox !== false };
+    const updates = { name: form.name, sender_name: form.sender_name || null, color: form.color, icon: form.icon || null, imap_host: form.imap_host, imap_port: form.imap_port, imap_skip_tls_verify: !!form.imap_skip_tls_verify, smtp_host: form.smtp_host, smtp_port: form.smtp_port, smtp_tls: form.smtp_tls, signature: form.signature || null, categorization_enabled: !!form.categorization_enabled, include_in_unified_inbox: form.include_in_unified_inbox !== false, notifications_muted: form.notifications_muted === true };
     Object.assign(updates, autoRecipientFields(form), { signature_enabled: form.signature_enabled !== false });
     if (form.auth_pass) updates.auth_pass = form.auth_pass;
     if (OAUTH_PROVIDERS.has(editTarget.oauth_provider)) {
@@ -2035,7 +2062,7 @@ function LayoutsTab() {
 function BehaviorTab() {
   const { t } = useTranslation();
   const isMobile = useMobile();
-  const { swipeActions, setSwipeAction, syncInterval, setSyncInterval, folderSyncInterval, setFolderSyncInterval, autoOpenReplyDrafts, setAutoOpenReplyDrafts, plaintextEmail, setPlaintextEmail, replyDefault, setReplyDefault, afterRemove, setAfterRemove, markReadBehavior, setMarkReadBehavior, markReadDelay, setMarkReadDelay, accounts, defaultSender, setDefaultSender } = useStore();
+  const { swipeActions, setSwipeAction, syncInterval, setSyncInterval, folderSyncInterval, setFolderSyncInterval, autoOpenReplyDrafts, setAutoOpenReplyDrafts, undoSend, setUndoSend, plaintextEmail, setPlaintextEmail, replyDefault, setReplyDefault, afterRemove, setAfterRemove, markReadBehavior, setMarkReadBehavior, markReadDelay, setMarkReadDelay, accounts, defaultSender, setDefaultSender } = useStore();
 
   // "Set MailFlow as your default email app": registerProtocolHandler is the
   // cross-browser path (works in Firefox and non-installed Chromium) and must be
@@ -2189,6 +2216,13 @@ function BehaviorTab() {
           label={t('admin.messageList.autoOpenReplyDrafts', 'Automatically open saved replies when selecting inbox messages')}
           checked={autoOpenReplyDrafts}
           onChange={setAutoOpenReplyDrafts}
+        />
+
+        <ToggleRow
+          label={t('admin.messageList.undoSend')}
+          desc={t('admin.messageList.undoSendDesc')}
+          checked={undoSend}
+          onChange={setUndoSend}
         />
       </SettingGroup>
 
@@ -5155,7 +5189,7 @@ const LANGUAGES = [
 
 function LanguageTab() {
   const { t } = useTranslation();
-  const { language, setLanguage } = useStore();
+  const { language, setLanguage, timeFormat, setTimeFormat } = useStore();
 
   return (
     <div>
@@ -5197,6 +5231,26 @@ function LanguageTab() {
             </button>
           );
         })}
+      </div>
+
+      {/* Time format (#758): independent of the language above. Automatic keeps the
+          clock the language implies; 12- / 24-hour force it either way. */}
+      <div style={{ marginTop: 28 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
+          {t('admin.appearance.timeFormat')}
+        </div>
+        <div style={{ fontSize: 13, color: 'var(--text-tertiary)', marginBottom: 20 }}>
+          {t('admin.appearance.timeFormatDesc')}
+        </div>
+        <ChoiceChips
+          isActive={v => timeFormat === v}
+          onSelect={setTimeFormat}
+          options={[
+            { value: 'auto', label: t('admin.appearance.timeFormatAuto') },
+            { value: '12',   label: t('admin.appearance.timeFormat12') },
+            { value: '24',   label: t('admin.appearance.timeFormat24') },
+          ]}
+        />
       </div>
     </div>
   );
@@ -7844,6 +7898,7 @@ function makeSearchIndex(t) {
     { label: t('admin.messageList.threadingMode'), keywords: ['thread', 'conversation', 'grouping', 'threading', 'group'], tab: 'appearance', subtab: 'layout', breadcrumb: layoutCrumb },
     // Behavior
     { label: t('admin.messageList.swipeActions'), keywords: ['swipe', 'gesture', 'mobile', 'swipe left', 'swipe right', 'touch'], tab: 'behavior', breadcrumb: behaviorCrumb },
+    { label: t('admin.messageList.undoSend'), keywords: ['undo send', 'undo', 'delay', 'send delay', 'send immediately', 'cancel send'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.syncFrequency'), keywords: ['sync', 'interval', 'frequency', 'refresh', 'poll', 'check mail', '15s', '30s', '60s'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.folderSyncFrequency'), keywords: ['folder', 'sync', 'structure', 'list', 'refresh', 'mailbox', '15 min', '30 min', '1 hour', 'never'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.composeFormat'), keywords: ['compose', 'format', 'rich text', 'plain text', 'html', 'editor'], tab: 'behavior', breadcrumb: behaviorCrumb },
@@ -7854,6 +7909,7 @@ function makeSearchIndex(t) {
     { label: t('admin.messageList.defaultMailApp'), keywords: ['mailto', 'default app', 'default email', 'protocol handler', 'links'], tab: 'behavior', breadcrumb: behaviorCrumb },
     // Appearance > Fonts & Language
     { label: t('admin.appearance.language'), keywords: ['language', 'locale', 'french', 'english', 'spanish', 'german', 'deutsch', 'russian', 'chinese', 'italian', 'czech', 'čeština', 'portuguese', 'português', 'brasil', 'korean', '한국어', 'français', 'español'], tab: 'appearance', subtab: 'fonts', breadcrumb: fontsCrumb },
+    { label: t('admin.appearance.timeFormat'), keywords: ['time format', 'clock', '12-hour', '24-hour', '12 hour', '24 hour', 'am pm', 'time'], tab: 'appearance', subtab: 'fonts', breadcrumb: fontsCrumb },
     { label: t('admin.appearance.fontSize'), keywords: ['font size', 'text size', 'zoom', 'scale', 'accessibility', 'larger text'], tab: 'appearance', subtab: 'fonts', breadcrumb: fontsCrumb },
     // Email providers (admin)
     { label: t('mailSignIn.ms.title'), keywords: ['microsoft', 'outlook', 'hotmail', '365', 'oauth', 'azure', 'entra', 'client id', 'tenant', 'ms365', 'office', 'shared app', 'sign in', 'email providers', 'mailbox', 'mail sign-in'], tab: 'mail-signin', adminOnly: true, breadcrumb: t('admin.tabs.mailSignIn') },

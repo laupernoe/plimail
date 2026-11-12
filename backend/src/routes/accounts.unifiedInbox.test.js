@@ -70,6 +70,24 @@ describe('PUT /api/accounts/:id unified inbox preference', () => {
     expect(query.mock.calls[1][1]).toEqual([false, '44444444-4444-4444-4444-444444444444']);
   });
 
+  it('persists the per-account notification mute (#762)', async () => {
+    const id = '44444444-4444-4444-4444-444444444444';
+    query
+      .mockResolvedValueOnce({ rows: [{ id }] })
+      .mockResolvedValueOnce({ rows: [{ id, notifications_muted: true, enabled: true, protocol: 'imap' }] });
+
+    const response = await fetch(`${base}/api/accounts/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notifications_muted: true }),
+    });
+
+    expect(response.status).toBe(200);
+    expect((await response.json()).notifications_muted).toBe(true);
+    expect(query.mock.calls[1][0]).toContain('notifications_muted = $1');
+    expect(query.mock.calls[1][1]).toEqual([true, id]);
+  });
+
   it('rejects a malformed account id with 400 before touching the DB (not a 500)', async () => {
     const response = await fetch(`${base}/api/accounts/not-a-uuid`, {
       method: 'PUT',

@@ -99,7 +99,7 @@ test('nor the settings held only in memory', () => {
     blockRemoteImages: false, imageWhitelist: { addresses: ['sender@example.invalid'], domains: [] },
     hiddenFolders: { 'acct-a': ['HR'] }, shortcuts: { archive: 'z' }, autoLockMinutes: 5,
     categorizationEnabled: true,
-    autoOpenReplyDrafts: true, afterRemove: 'list', darkEmailBodies: false,
+    autoOpenReplyDrafts: true, afterRemove: 'list', darkEmailBodies: false, undoSend: false,
     favoriteFolders: [{ accountId: 'acct-a', path: 'HR' }], recentFolders: [{ accountId: 'acct-a', path: 'HR' }],
     defaultSender: 'account:acct-a', collapsedFolders: ['acct-a:HR'], expandedAccounts: { 'acct-a': true },
   };

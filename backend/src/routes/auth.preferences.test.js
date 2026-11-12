@@ -275,3 +275,41 @@ describe('PATCH /auth/preferences theme', () => {
     for (const t of ['dark', 'light', 'nord', 'winxp', 'win9x', '', 42]) expect(await store(t)).toBe('system');
   });
 });
+
+describe('PATCH /auth/preferences timeFormat (#758)', () => {
+  const res = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn() });
+
+  for (const value of ['auto', '12', '24']) {
+    it(`stores ${value}`, async () => {
+      await patchPreferences({ session: { userId: 'user-1' }, body: { timeFormat: value } }, res());
+      const [sql, params] = query.mock.calls[0];
+      expect(sql).toContain("jsonb_build_object('timeFormat', $45::text)");
+      expect(params[44]).toBe(value);
+    });
+  }
+
+  it('ignores an unknown value rather than persisting it', async () => {
+    await patchPreferences({ session: { userId: 'user-1' }, body: { timeFormat: '13' } }, res());
+    expect(query.mock.calls[0][1][44]).toBeNull();
+  });
+
+  it('leaves timeFormat alone when it is not sent', async () => {
+    await patchPreferences({ session: { userId: 'user-1' }, body: { pageSize: '50' } }, res());
+    expect(query.mock.calls[0][1][44]).toBeNull();
+  });
+});
+
+describe('PATCH /auth/preferences undoSend (#769)', () => {
+  const res = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn() });
+  for (const value of [true, false]) it(`persists explicit ${value}`, async () => {
+    await patchPreferences({ session: { userId: 'user-1' }, body: { undoSend: value } }, res());
+    expect(query.mock.calls[0][0]).toContain("jsonb_build_object('undoSend', $46::boolean)");
+    expect(query.mock.calls[0][1][45]).toBe(value);
+  });
+  it('rejects a nonboolean without a write', async () => {
+    const r = res();
+    await patchPreferences({ session: { userId: 'user-1' }, body: { undoSend: 'false' } }, r);
+    expect(r.status).toHaveBeenCalledWith(400);
+    expect(query).not.toHaveBeenCalled();
+  });
+});

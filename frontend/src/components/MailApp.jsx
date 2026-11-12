@@ -27,6 +27,7 @@ import { scheduledFeed } from '../utils/scheduledFeed.js';
 import { noticeToast, scheduledLinkId } from '../utils/scheduledView.js';
 import { openScheduledView } from '../utils/scheduledCompose.js';
 import { openSentMessage } from '../utils/openSentMessage.js';
+import { descaleCss } from '../utils/uiScaleCss.js';
 
 // Opens the Scheduled view at one message, highlighted (a notification link or a toast's Open).
 function openScheduledMessage(id) {
@@ -764,7 +765,7 @@ export default function MailApp() {
       width: '100vw', height: 'var(--app-height, 100svh)',
       overflow: 'hidden', background: 'var(--bg-primary)',
     }}>
-    <div style={{
+    <div data-ui-scale-root="" style={{
       display: 'flex',
       // Sized in CSS from the 100dvh parent: an innerHeight read on resize is stale during
       // a rotation in an iOS home-screen app, and the sidebar's bottom fell off screen.
@@ -773,6 +774,7 @@ export default function MailApp() {
       ...(scale !== 1 && {
         transform: `scale(${scale})`,
         transformOrigin: 'top left',
+        '--ui-scale': scale,
       }),
       overflow: 'hidden',
       background: 'var(--bg-primary)',
@@ -969,7 +971,7 @@ function ShortcutHelpOverlay({ shortcuts, onClose }) {
           borderRadius: 14,
           boxShadow: 'var(--shadow-modal)',
           width: '100%', maxWidth: 680,
-          maxHeight: '80vh', overflow: 'auto',
+          maxHeight: descaleCss('80vh'), overflow: 'auto',
           padding: '24px 28px',
           animation: 'modal-enter var(--motion-normal) var(--ease-emphasized) backwards',
         }}
