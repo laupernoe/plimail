@@ -20,7 +20,6 @@ import {
   resolveFolderOrderDrop,
 } from '../utils/sidebar.js';
 import { useMobile } from '../hooks/useMobile.js';
-import LogoMark, { Wordmark } from './LogoMark.jsx';
 import UpcomingPane from './calendar/UpcomingPane.jsx';
 import ProfileModal from './ProfileModal.jsx';
 import { useUiScale, descale } from '../hooks/useUiScale.js';
@@ -896,40 +895,34 @@ export default function Sidebar() {
       transition: isSidebarResizing ? 'none' : 'width 0.2s ease, min-width 0.2s ease',
       overflow: 'hidden',
     }}>
-      {/* Header */}
+      {/* Top row: just the collapse toggle, on the same grid as the nav icons below. */}
       <div style={{
-        paddingTop: 'calc(var(--sat) + 16px)',
-        paddingBottom: 'calc(16px - var(--sat-trim))', paddingLeft: 12, paddingRight: 12,
+        paddingTop: 'calc(var(--sat) + 10px)', paddingLeft: 10, paddingRight: 10,
         display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)',
-        minHeight: 56, flexShrink: 0,
+        justifyContent: sidebarCollapsed ? 'center' : 'flex-start', flexShrink: 0,
       }}>
-        {!sidebarCollapsed && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
-            <LogoMark size={20} />
-            <Wordmark size={15} />
-          </div>
-        )}
         <button
           onClick={isMobile ? () => setMobileSidebarOpen(false) : toggleSidebar}
           title={t('sidebar.toggleSidebar')}
+          aria-label={t('sidebar.toggleSidebar')}
+          aria-expanded={isMobile ? undefined : !sidebarCollapsed}
           className="btn-press"
           style={{
-            background: 'transparent', border: '1px solid transparent', color: 'var(--text-secondary)',
-            cursor: 'pointer', padding: 6, borderRadius: 6, transition: 'all 0.1s',
+            background: 'transparent', border: 'none', color: 'var(--text-secondary)',
+            cursor: 'pointer', width: 32, height: 32, borderRadius: 6, transition: 'background 0.1s, color 0.1s',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginLeft: sidebarCollapsed ? 'auto' : 0,
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-tertiary)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
         >
           {isMobile ? (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-              <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/>
+              <polyline points={sidebarCollapsed ? '13 9 16 12 13 15' : '16 9 13 12 16 15'}/>
             </svg>
           )}
         </button>

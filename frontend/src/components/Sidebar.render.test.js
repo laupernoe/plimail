@@ -317,3 +317,16 @@ describe('Sidebar: Sign out', () => {
     }
   });
 });
+
+describe('Sidebar: the collapse toggle', () => {
+  test('sits alone in the top row, with no logo, and reports its state through aria-expanded', async () => {
+    await mount({ state: { sidebarCollapsed: false } });
+    const toggle = document.querySelector('button[aria-label="sidebar.toggleSidebar"]');
+    assert.ok(toggle, 'the toggle is there');
+    assert.equal(toggle.getAttribute('aria-expanded'), 'true');
+    assert.equal(document.body.textContent.includes('Plimail'), false, 'no wordmark');
+    await React.act(async () => { toggle.click(); });
+    assert.equal(useStore.getState().sidebarCollapsed, true);
+    assert.equal(document.querySelector('button[aria-label="sidebar.toggleSidebar"]').getAttribute('aria-expanded'), 'false');
+  });
+});
