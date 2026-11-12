@@ -3897,6 +3897,19 @@ describe('folder integrity reconciliation safety', () => {
     expect(deletion[1][2]).toEqual([1]);
     expect(deletion[0]).toContain('uid_validity=$5');
   });
+  it('recounts the folder from its visible rows after deleting rows the server no longer has', async () => {
+    const { mgr } = setup([]);
+    query.mockImplementation(sql => Promise.resolve(sql.startsWith('DELETE')
+      ? { rows: [], rowCount: 1 } : { rows: [{ uid: '1', synced_at: new Date(0) }], rowCount: 1 }));
+    await mgr._refreshObservedFolder(acct, 'Sent', observed);
+    const sqls = query.mock.calls.map(([sql]) => sql);
+    const deletion = sqls.findIndex(sql => sql.startsWith('DELETE'));
+    const recount = sqls.findIndex(sql => sql.includes('SET total_count'));
+    expect(deletion).toBeGreaterThanOrEqual(0);
+    expect(recount).toBeGreaterThan(deletion);
+    expect(query.mock.calls[recount][1]).toEqual([acct.id, 'Sent']);
+    expect(sqls[recount].match(/NOT m\.is_deleted/g)).toHaveLength(2);
+  });
   it('backs off unresolved membership without blocking other folders or advancing a checkpoint', async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     const { mgr } = setup([]);

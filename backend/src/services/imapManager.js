@@ -1521,6 +1521,20 @@ export const PROVIDERS = {
   },
 };
 
+// Rebuild a folder's cached counts from its rows. A soft-deleted row (\Deleted, not yet expunged)
+// is hidden from every list, so it counts in neither column. These columns describe only the local
+// cache; the server's numbers come from folderStatus.
+async function recountFolderRows(accountId, folder) {
+  await query(
+    `UPDATE folders
+     SET total_count  = (SELECT COUNT(*) FROM messages m WHERE m.account_id = $1 AND m.folder = $2 AND NOT m.is_deleted),
+         unread_count = (SELECT COUNT(*) FILTER (WHERE m.is_read = false)
+                         FROM messages m WHERE m.account_id = $1 AND m.folder = $2 AND NOT m.is_deleted)
+     WHERE account_id = $1 AND path = $2`,
+    [accountId, folder]
+  );
+}
+
 // DB half of copyMessage: insert the destination sibling row for a message that was
 // just COPY'd from `fromFolder` to `toFolder`. Content columns are copied verbatim
 // from the source row (same set the move CTE re-inserts); only uid ($4, the UIDPLUS
@@ -4515,7 +4529,9 @@ export class ImapManager {
             : [];
           if (expired) throw new Error('Folder integrity sync expired');
           if (gone.length) {
-            await query('DELETE FROM messages WHERE account_id=$1 AND folder=$2 AND uid=ANY($3::bigint[]) AND (synced_at IS NULL OR synced_at < $4) AND EXISTS (SELECT 1 FROM folders WHERE account_id=$1 AND path=$2 AND uid_validity=$5)', [account.id, path, gone, cutoff, String(observed.uidValidity)]);
+            const pruned = await query('DELETE FROM messages WHERE account_id=$1 AND folder=$2 AND uid=ANY($3::bigint[]) AND (synced_at IS NULL OR synced_at < $4) AND EXISTS (SELECT 1 FROM folders WHERE account_id=$1 AND path=$2 AND uid_validity=$5)', [account.id, path, gone, cutoff, String(observed.uidValidity)]);
+            // Rows deleted here bypass adjustFolderCounts, so the cached counts would keep them.
+            if (pruned.rowCount) await recountFolderRows(account.id, path);
           }
           if (changed || gone.length) {
             this.broadcast({ type: 'flags_synced', accountId: account.id }, account.user_id);
@@ -5174,14 +5190,7 @@ export class ImapManager {
         // without this an on-demand folder (e.g. Junk/Spam, which has no follow-up tick) keeps
         // showing the pre-sync count until it is opened again. Mirrors the recompute that backfill
         // and reconcileDeletes already run. These columns describe only the local cache.
-        await query(
-          `UPDATE folders
-           SET total_count = (SELECT COUNT(*) FROM messages m WHERE m.account_id = $1 AND m.folder = $2 AND NOT m.is_deleted),
-               unread_count = (SELECT COUNT(*) FILTER (WHERE m.is_read = false)
-                               FROM messages m WHERE m.account_id = $1 AND m.folder = $2)
-           WHERE account_id = $1 AND path = $2`,
-          [account.id, folder]
-        );
+        await recountFolderRows(account.id, folder);
         // A draft saved in another client arrives already read (\Seen), so it never enters
         // `newMessages` and no new_messages goes out for it. The Inbox's reply-draft markers are
         // worked out from synced rows (routes/draft.js), so say when a Drafts folder gained rows.
@@ -5350,13 +5359,7 @@ export class ImapManager {
       if (missingUids.length === 0) {
         console.log(`Backfill ${logAccount(account)}: no missing UIDs (${dbCount} in DB vs ${serverTotal} on server — within tolerance)`);
         // Still reconcile folder counts — they may be stale if a previous backfill was interrupted.
-        await query(
-          `UPDATE folders
-           SET total_count  = (SELECT COUNT(*)                                FROM messages m WHERE m.account_id = $1 AND m.folder = $2),
-               unread_count = (SELECT COUNT(*) FILTER (WHERE is_read = false)  FROM messages m WHERE m.account_id = $1 AND m.folder = $2)
-           WHERE account_id = $1 AND path = $2`,
-          [account.id, folder]
-        ).catch(() => {});
+        await recountFolderRows(account.id, folder).catch(() => {});
         return;
       }
 
@@ -5657,13 +5660,7 @@ export class ImapManager {
       console.log(`Backfill complete for ${logAccount(account)}/${folder}`);
       // Backfill inserts rows directly without going through adjustFolderCounts,
       // so folder counters would stay at 0 without this reconciliation step.
-      await query(
-        `UPDATE folders
-         SET total_count  = (SELECT COUNT(*)                                FROM messages m WHERE m.account_id = $1 AND m.folder = $2),
-             unread_count = (SELECT COUNT(*) FILTER (WHERE is_read = false)  FROM messages m WHERE m.account_id = $1 AND m.folder = $2)
-         WHERE account_id = $1 AND path = $2`,
-        [account.id, folder]
-      ).catch(err => console.error(`Folder count update after backfill failed for ${logAccount(account)}/${folder}:`, err.message));
+      await recountFolderRows(account.id, folder).catch(err => console.error(`Folder count update after backfill failed for ${logAccount(account)}/${folder}:`, err.message));
       this.broadcast({ type: 'backfill_complete', accountId: account.id }, account.user_id);
     } catch (err) {
       // extractImapError, not err.message: everything in this try block runs IMAP commands
@@ -8250,14 +8247,7 @@ export class ImapManager {
       );
       // Resync cached folder counts from actual row data — reconcile deletes rows
       // without going through adjustFolderCounts, so counts would otherwise drift.
-      await query(
-        `UPDATE folders f
-         SET total_count  = (SELECT COUNT(*)              FROM messages m WHERE m.account_id = $1 AND m.folder = $2),
-             unread_count = (SELECT COUNT(*) FILTER (WHERE m.is_read = false)
-                                             FROM messages m WHERE m.account_id = $1 AND m.folder = $2)
-         WHERE f.account_id = $1 AND f.path = $2`,
-        [account.id, folder]
-      );
+      await recountFolderRows(account.id, folder);
       deletedCount += orphanUids.length;
     }
 
