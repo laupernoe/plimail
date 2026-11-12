@@ -809,6 +809,37 @@ function editOverridesOnly(root, overrides, input, recurrenceId, zones, opts) {
   for (const o of overrides) editComponent(root, o, o === shown ? { ...rest, allDay: input.allDay, start: input.start, end: input.end } : rest, zones, opts);
 }
 
+// The days a series' EXDATEs fall on, in the series' own zone.
+function exdateDays(master, b, zones) {
+  const days = new Set();
+  for (const prop of master.getAllProperties('exdate')) {
+    const ptz = tzidOf(prop) || b.tzid;
+    for (const v of prop.getValues()) days.add(v.isDate ? isoDate(v) : isoDate(utcToWall(toUtcMs(v, ptz, zones), b.tzid, zones)));
+  }
+  return [...days].sort();
+}
+
+// EXDATEs on those days, in the value type and at the time of day of the series' start.
+function setExdateDays(master, days) {
+  master.removeAllProperties('exdate');
+  const startProp = master.getFirstProperty('dtstart');
+  const start = startProp.getFirstValue();
+  for (const d of days) {
+    const prop = new ICAL.Property('exdate');
+    if (start.isDate) {
+      prop.resetType('date');
+      prop.setValue(ICAL.Time.fromDateString(d));
+    } else {
+      const [year, month, day] = d.split('-').map(Number);
+      const time = new ICAL.Time({ year, month, day, hour: start.hour, minute: start.minute, second: start.second, isDate: false });
+      if (isUtc(start)) time.zone = ICAL.Timezone.utcTimezone;
+      else if (tzidOf(startProp)) prop.setParameter('tzid', tzidOf(startProp));
+      prop.setValue(time);
+    }
+    master.addProperty(prop);
+  }
+}
+
 function editSeries(root, input, recurrenceId, zones, opts) {
   const { master, overrides } = masterAndOverrides(root);
   if (!master) return editOverridesOnly(root, overrides, input, recurrenceId, zones, opts);
@@ -847,15 +878,15 @@ function editSeries(root, input, recurrenceId, zones, opts) {
         shiftRuleDays(master, b, newStartMs, zones);
       }
     }
-    if (kindChanged) {
-      // A marker in the old value type no longer names any occurrence.
-      master.removeAllProperties('exdate');
-      overrides.forEach(o => root.removeSubcomponent(o));
-    }
+    // An exception in the old value type no longer names any occurrence. Exclusions are kept by day,
+    // or the occurrences deleted from the series would come back.
+    const excludedDays = kindChanged ? exdateDays(master, b, zones) : null;
+    if (kindChanged) overrides.forEach(o => root.removeSubcomponent(o));
     if (!unchanged) {
       setBounds(master, moved, tzid, zones);
       if (tzid) ensureTimezone(root, tzid);
     }
+    if (excludedDays) setExdateDays(master, excludedDays);
     if (input.recurrence !== undefined) setRecurrence(master, input.recurrence, input, tzid, zones);
   } else if (input.recurrence !== undefined) {
     setRecurrence(master, input.recurrence, { allDay: b.allDay }, b.tzid, zones);

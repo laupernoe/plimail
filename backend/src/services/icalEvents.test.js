@@ -468,3 +468,16 @@ describe('a series made a single event', () => {
     expect(expandResource(out, ...range('2026-10-01T00:00:00Z', '2026-12-01T00:00:00Z')).map(o => o.start)).toEqual(['2026-10-19T07:00:00.000Z']);
   });
 });
+
+describe('a series switched to or from all-day', () => {
+  const window = range('2026-10-18T00:00:00Z', '2026-11-03T00:00:00Z');
+  const skipped = removeOccurrence(WEEKLY, '2026-10-26T09:00:00');
+
+  it('keeps the occurrences deleted from it deleted', () => {
+    const allDay = applyEdit(skipped, { allDay: true, start: '2026-10-19', end: '2026-10-20' }, { scope: 'all' });
+    expect(allDay).toContain('EXDATE;VALUE=DATE:20261026');
+    expect(expandResource(allDay, ...window).map(o => o.start)).toEqual(['2026-10-19', '2026-11-02']);
+    const timed = applyEdit(allDay, { allDay: false, start: '2026-10-19T08:00:00Z', end: '2026-10-19T09:00:00Z', timezone: 'Europe/Zurich' }, { scope: 'all' });
+    expect(expandResource(timed, ...window).map(o => o.start)).toEqual(['2026-10-19T08:00:00.000Z', '2026-11-02T09:00:00.000Z']);
+  });
+});
