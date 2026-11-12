@@ -10,7 +10,7 @@ import { findOwnedAccount } from '../services/ownership.js';
 import { validateHost } from '../services/hostValidation.js';
 import { getConnectionPolicy } from '../services/connectionPolicy.js';
 import { discoverCalendars, findCalDavServer, getEvent, putEvent, deleteEvent } from '../services/caldavClient.js';
-import { syncAccount, credentialsFor, isSyncing } from '../services/caldavSync.js';
+import { syncAccount, credentialsFor, isSyncing, forgetDiscovery } from '../services/caldavSync.js';
 import { applyEdit, buildEvent, eventLoopYielder, expandResourceAsync, inviteInfo, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
 import { forgetScheduling, knownAddresses, mailItip, mailLabels, planInvites } from '../services/calendarInvites.js';
 
@@ -166,7 +166,7 @@ router.post('/accounts/:id/sync', async (req, res) => {
   const account = await loadAccount(req.session.userId, req.params.id);
   if (!account) return res.status(404).json({ error: 'Not found' });
   if (isSyncing(account.id)) return res.status(409).json({ error: 'A sync is already in progress' });
-  const result = await syncAccount(account.id);
+  const result = await syncAccount(account.id, { discover: true });
   res.json({ ok: result.ok, error: result.error, account: publicAccount(await loadAccount(req.session.userId, account.id)) });
 });
 
@@ -174,6 +174,7 @@ router.delete('/accounts/:id', async (req, res) => {
   const r = await query('DELETE FROM caldav_accounts WHERE id = $1 AND user_id = $2', [req.params.id, req.session.userId]);
   if (!r.rowCount) return res.status(404).json({ error: 'Not found' });
   forgetScheduling(req.params.id);
+  forgetDiscovery(req.params.id);
   res.json({ ok: true });
 });
 
