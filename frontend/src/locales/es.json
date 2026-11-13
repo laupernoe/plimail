@@ -321,6 +321,8 @@
       "armed": "{{label}} — haga clic de nuevo para descargar de todos modos"
     },
     "downloadAll": "Descargar todo",
+    "attachmentsShowAll": "Mostrar todos ({{count}})",
+    "attachmentsShowFewer": "Mostrar menos",
     "reply": "Responder",
     "replyAll": "Responder a todos",
     "replyOptions": "Opciones de respuesta",
@@ -1184,6 +1186,8 @@
       "unifiedInboxSection": "Bandeja de entrada unificada",
       "unifiedInboxEnabled": "Incluir en la bandeja unificada",
       "unifiedInboxEnabledDesc": "Mostrar los mensajes de esta cuenta en Todas las bandejas, la búsqueda unificada y los recuentos de categorías.",
+      "notificationsEnabled": "Notificaciones",
+      "notificationsEnabledDesc": "Avisar de los correos nuevos de esta cuenta. Si se desactiva, no se genera ninguna alerta push, de escritorio ni en la aplicación, pero la bandeja de entrada, los contadores de no leídos y las reglas siguen funcionando. Una regla «Notificarme» sigue avisando.",
       "categorizationSection": "Categorización de correo",
       "categorizationEnabled": "Activar categorización del buzón",
       "categorizationEnabledDesc": "Clasifica los correos entrantes en pestañas de categorías. Desactivado por defecto.",
@@ -1240,6 +1244,11 @@
       "layoutDescription": "Elige cómo se organizan la barra lateral, la lista de mensajes y el panel de lectura",
       "language": "Idioma",
       "languageDescription": "Elige el idioma de visualización de la interfaz",
+      "timeFormat": "Formato de hora",
+      "timeFormatDesc": "Elija un reloj de 12 o 24 horas, o siga el idioma.",
+      "timeFormatAuto": "Automático",
+      "timeFormat12": "12 horas",
+      "timeFormat24": "24 horas",
       "fontSize": "Tamaño de fuente",
       "fontSizeDescription": "Escala el texto de la interfaz. El 100 % es el valor predeterminado.",
       "fontSizeReset": "Restablecer al 100 %",
@@ -1251,6 +1260,8 @@
     },
     "messageList": {
       "autoOpenReplyDrafts": "Abrir automáticamente las respuestas guardadas al seleccionar mensajes de la bandeja de entrada",
+      "undoSend": "Deshacer envío",
+      "undoSendDesc": "Retiene el correo saliente 10 segundos para poder deshacerlo. Desactívalo para enviar de inmediato.",
       "title": "Lista de mensajes",
       "senderFavicons": "Favicons de remitentes",
       "senderFaviconsDesc": "Mostrar iconos de sitios web para los remitentes sin foto de contacto. Solo se envía a Twenty Icons el dominio del remitente, nunca su dirección de correo completa.",
@@ -1873,7 +1884,6 @@
       "sourceCode": "Código fuente",
       "upstream": "Basado en MailFlow"
     },
-    "businessNotice": {},
     "search": {
       "placeholder": "Buscar ajustes…",
       "noResults": "Sin resultados para «{{query}}»",
@@ -2146,7 +2156,25 @@
     "signedInGoogle": "Sesión iniciada con Google como {{email}}",
     "signedInNote": "El servidor viene de esta conexión. Si la cuenta deja de conectarse, vuelve a iniciar sesión.",
     "mailboxLabel": "Buzón que abrir",
-    "mailboxHelp": "Para un buzón compartido o delegado, escribe su dirección. Déjalo como está para tu propio buzón."
+    "mailboxHelp": "Para un buzón compartido o delegado, escribe su dirección. Déjalo como está para tu propio buzón.",
+    "autodiscover": {
+      "button": "Buscar configuración",
+      "looking": "Buscando la configuración del servidor para esta dirección…",
+      "failed": "No se encontró configuración para esta dirección. Introdúcela abajo.",
+      "check": "Revísala antes de añadir la cuenta.",
+      "source": {
+        "ispdb": "Configuración de {{domain}} encontrada en la base de datos de Thunderbird.",
+        "autoconfig": "Configuración publicada por {{domain}}.",
+        "wellknown": "Configuración publicada en el sitio web de {{domain}}.",
+        "srv": "Configuración encontrada en los registros DNS de {{domain}}.",
+        "mx": "El correo de {{domain}} lo gestiona un proveedor conocido, cuya configuración se ha rellenado.",
+        "mxIspdb": "Configuración del proveedor que recibe el correo de {{domain}}, según la base de datos de Thunderbird.",
+        "guess": "{{domain}} no publica configuración: estos son los nombres de servidor habituales, deducidos."
+      },
+      "addCalendars": "Añadir también los calendarios de esta cuenta, con la misma contraseña",
+      "calendarsAt": "Servidor de calendario encontrado: {{url}}",
+      "calendarsMailHost": "El servidor de calendario se buscará en los servidores de correo."
+    }
   },
   "googleSignIn": {
     "title": "Iniciar sesión con Google",

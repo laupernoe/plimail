@@ -1,11 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
 import express from 'express';
 import { parseTrustProxyHops } from './trustProxy.js';
 
-// frontend/nginx.conf appends the address of whoever connected to it to X-Forwarded-For. In
-// the https profile that is Caddy, which has already set the header to the client's address.
-const CADDY = '172.18.0.5';
+// A reverse proxy appends the address of whoever connected to it to X-Forwarded-For. With two
+// proxies, the outer one has already set the header to the client's address.
+const OUTER = '172.18.0.5';
 
 // Sets 'trust proxy' the way index.js does (index.js connects to Redis as soon as it loads, so
 // it is not imported here). The assertions are on the req.ip Express derives, not on the parsed
@@ -28,7 +27,7 @@ async function seenAs(setting, forwardedFor) {
 }
 
 describe('TRUST_PROXY_HOPS', () => {
-  it('trusts only nginx when unset, so a client cannot pick its own address', async () => {
+  it('trusts one proxy when unset, so a client behind it cannot pick its own address', async () => {
     for (const value of [undefined, '']) {
       expect(parseTrustProxyHops(value)).toBe(1);
       expect(await seenAs(parseTrustProxyHops(value), '6.6.6.6, 203.0.113.7'))
@@ -36,37 +35,32 @@ describe('TRUST_PROXY_HOPS', () => {
     }
   });
 
-  it('gives each client behind Caddy its own address with 2', async () => {
+  it('gives each client behind two proxies its own address with 2', async () => {
     const hops = parseTrustProxyHops('2');
-    expect(await seenAs(hops, `203.0.113.7, ${CADDY}`)).toEqual({ ip: '203.0.113.7', secure: true });
-    expect(await seenAs(hops, `198.51.100.9, ${CADDY}`)).toEqual({ ip: '198.51.100.9', secure: true });
+    expect(await seenAs(hops, `203.0.113.7, ${OUTER}`)).toEqual({ ip: '203.0.113.7', secure: true });
+    expect(await seenAs(hops, `198.51.100.9, ${OUTER}`)).toEqual({ ip: '198.51.100.9', secure: true });
   });
 
   it('ignores addresses further back than the hops it trusts', async () => {
-    expect((await seenAs(parseTrustProxyHops('2'), `6.6.6.6, 203.0.113.7, ${CADDY}`)).ip)
+    expect((await seenAs(parseTrustProxyHops('2'), `6.6.6.6, 203.0.113.7, ${OUTER}`)).ip)
       .toBe('203.0.113.7');
   });
 
-  it('sees every client behind Caddy as Caddy with 1, which is the behavior being fixed', async () => {
-    expect((await seenAs(1, `203.0.113.7, ${CADDY}`)).ip).toBe(CADDY);
-    expect((await seenAs(1, `198.51.100.9, ${CADDY}`)).ip).toBe(CADDY);
+  it('sees every client behind two proxies as the outer one with 1', async () => {
+    expect((await seenAs(1, `203.0.113.7, ${OUTER}`)).ip).toBe(OUTER);
+    expect((await seenAs(1, `198.51.100.9, ${OUTER}`)).ip).toBe(OUTER);
+  });
+
+  it('trusts nothing with 0, for browsers connecting directly', async () => {
+    expect(parseTrustProxyHops('0')).toBe(0);
+    expect(await seenAs(0, '6.6.6.6')).toEqual({ ip: '127.0.0.1', secure: false });
   });
 
   it('accepts a whole number of proxies, trimmed, and rejects anything else', () => {
     expect(parseTrustProxyHops('1')).toBe(1);
     expect(parseTrustProxyHops(' 2 ')).toBe(2);
-    for (const value of ['0', '-1', '1.5', 'true', 'loopback', '2,3', 'abc']) {
+    for (const value of ['-1', '1.5', 'true', 'loopback', '2,3', 'abc']) {
       expect(parseTrustProxyHops(value)).toBeNull();
     }
-  });
-
-  it('is 2 in the https overlay, where Caddy sits in front of nginx', async () => {
-    const overlay = readFileSync(new URL('../../../docker-compose.https.yml', import.meta.url), 'utf8');
-    const backend = overlay.split(/^ {2}(?=\S)/m).find(service => service.startsWith('backend:')) ?? '';
-    const fallback = backend.match(/^\s*TRUST_PROXY_HOPS: \$\{TRUST_PROXY_HOPS:-([^}]*)\}/m)?.[1];
-    const hops = parseTrustProxyHops(fallback);
-    expect(await seenAs(hops, `203.0.113.7, ${CADDY}`)).toEqual({ ip: '203.0.113.7', secure: true });
-    // One hop fewer sees Caddy, and one more takes whatever precedes the entry Caddy wrote.
-    expect((await seenAs(hops, `6.6.6.6, 203.0.113.7, ${CADDY}`)).ip).toBe('203.0.113.7');
   });
 });

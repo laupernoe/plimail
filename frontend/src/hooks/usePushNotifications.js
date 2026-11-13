@@ -42,9 +42,6 @@ export function usePushNotifications() {
     if (!ok) return;
 
     setPermission(Notification.permission);
-    window.mailflowNative?.notifications?.checkPermission?.()
-      .then((nativePermission) => setPermission(nativePermission || Notification.permission))
-      .catch(() => {});
 
     // Check whether the backend has VAPID keys configured before the user
     // tries to subscribe — lets us show a clear error instead of a cryptic 503.
@@ -72,9 +69,7 @@ export function usePushNotifications() {
   const subscribe = async () => {
     setLoading(true);
     try {
-      const perm = window.mailflowNative?.notifications?.requestPermission
-        ? await window.mailflowNative.notifications.requestPermission()
-        : await Notification.requestPermission();
+      const perm = await Notification.requestPermission();
       setPermission(perm);
       if (perm !== 'granted') return false;
 

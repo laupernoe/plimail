@@ -5,6 +5,10 @@
 
 export const UNDO_SEND_SECONDS = 10;
 
+// What the composer asks the server to hold a message for: the undo window, or nothing when the
+// user turned undo send off (#769). 0 makes the server send straight away.
+export const undoSendSeconds = (enabled) => (enabled === false ? 0 : UNDO_SEND_SECONDS);
+
 // Delivery can outlast the window by a lot (a large attachment over a slow server), so a send
 // still in progress is asked about again rather than given up on straight away.
 export const POLL_INTERVAL_MS = 2000;

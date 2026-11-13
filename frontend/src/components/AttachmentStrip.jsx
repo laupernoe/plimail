@@ -4,6 +4,7 @@ import AttachmentViewer from './AttachmentViewer.jsx';
 import { classifyAttachmentRisk } from '../utils/attachmentRisk.js';
 import { previewKind } from '../utils/attachmentPreview.js';
 import { fileIcon, formatBytes } from '../utils/attachmentUi.jsx';
+import { isCollapsible, visibleAttachments } from '../utils/attachmentCollapse.js';
 
 // riskArmed value for the "Download all" link. A Symbol, so no attachment part can ever equal it.
 const DOWNLOAD_ALL = Symbol('download-all');
@@ -21,6 +22,8 @@ export default function AttachmentStrip({ messageId, attachments, style }) {
   const [riskArmed, setRiskArmed] = useState(null);
   const [downloadingPart, setDownloadingPart] = useState(null);
   const [viewerStart, setViewerStart] = useState(null);
+  // A long list starts collapsed (#653); risky files stay in view either way.
+  const [expanded, setExpanded] = useState(false);
 
   const list = attachments || [];
   const previewable = list.filter(att => previewKind(att));
@@ -29,6 +32,9 @@ export default function AttachmentStrip({ messageId, attachments, style }) {
   // nothing to fetch; the confirming click starts the download itself.
   const anyRiskyAttachment = list.some(att =>
     ['block', 'warn'].includes(classifyAttachmentRisk(att.filename, att.type).level));
+  const isRisky = att => ['block', 'warn'].includes(classifyAttachmentRisk(att.filename, att.type).level);
+  const collapsible = isCollapsible(list);
+  const shown = visibleAttachments(list, expanded, isRisky);
   const downloadAllArmed = riskArmed === DOWNLOAD_ALL;
   const downloadAllUrl = `/api/mail/messages/${messageId}/attachments.zip`;
   const confirmDownloadAll = () => {
@@ -72,9 +78,27 @@ export default function AttachmentStrip({ messageId, attachments, style }) {
   return (
     <div style={style}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <div style={{ fontSize: 12, color: 'var(--text-tertiary)', fontWeight: 500 }}>
-          {t('message.attachment', { count: list.length })}
-        </div>
+        {collapsible ? (
+          <button
+            type="button"
+            onClick={() => setExpanded(v => !v)}
+            aria-expanded={expanded}
+            style={{
+              fontSize: 12, color: 'var(--text-tertiary)', fontWeight: 500, background: 'none', border: 'none',
+              padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+            }}
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
+              style={{ transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.1s' }}>
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+            {t('message.attachment', { count: list.length })}
+          </button>
+        ) : (
+          <div style={{ fontSize: 12, color: 'var(--text-tertiary)', fontWeight: 500 }}>
+            {t('message.attachment', { count: list.length })}
+          </div>
+        )}
         {list.length > 1 && (
           <a
             {...(anyRiskyAttachment ? {
@@ -100,7 +124,7 @@ export default function AttachmentStrip({ messageId, attachments, style }) {
         )}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {list.map((att, i) => {
+        {shown.map((att) => {
           const risk = classifyAttachmentRisk(att.filename, att.type);
           const risky = risk.level === 'block' || risk.level === 'warn';
           const riskColor = risk.level === 'block' ? 'var(--red)' : risk.level === 'warn' ? 'var(--amber)' : 'var(--text-tertiary)';
@@ -111,7 +135,7 @@ export default function AttachmentStrip({ messageId, attachments, style }) {
             : t(`message.attachmentRisk.${risk.level}`, { ext: risk.ext });
           return (
           <button
-            key={i}
+            key={att.part}
             title={canPreview ? t('message.preview.open') : undefined}
             onClick={() => {
               if (risky && !armed) { setRiskArmed(att.part); return; }
@@ -169,6 +193,15 @@ export default function AttachmentStrip({ messageId, attachments, style }) {
           );
         })}
       </div>
+      {collapsible && (
+        <button
+          type="button"
+          onClick={() => setExpanded(v => !v)}
+          style={{ marginTop: 8, fontSize: 12, color: 'var(--accent)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+        >
+          {expanded ? t('message.attachmentsShowFewer') : t('message.attachmentsShowAll', { count: list.length })}
+        </button>
+      )}
       {viewerStart !== null && previewable.length > 0 && (
         <AttachmentViewer
           key={`${messageId}:${viewerStart}`}

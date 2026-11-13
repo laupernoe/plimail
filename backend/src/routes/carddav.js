@@ -205,17 +205,35 @@ function sendXml(res, status, xml) {
      .send(xml);
 }
 
+// A vCard with a large photo stays well under this. nginx used to cap request bodies at 50 MB
+// in front of the backend; this keeps the same bound now that nothing is in front of it.
+export const CARDDAV_BODY_LIMIT_BYTES = 50 * 1024 * 1024;
+
 // Collect the request body as a string by reading the raw stream.
 // We do not go through express.json/text — CardDAV uses custom content types.
-function rawBody(req) {
+// A body over the limit is answered with a 413 here, and resolves null.
+function rawBody(req, res) {
   return new Promise((resolve, reject) => {
     // If a body parser already collected it (unlikely here), use it.
     if (typeof req.body === 'string') return resolve(req.body);
     if (Buffer.isBuffer(req.body)) return resolve(req.body.toString('utf8'));
-    let data = '';
-    req.setEncoding('utf8');
-    req.on('data', chunk => { data += chunk; });
-    req.on('end', () => resolve(data));
+    const refuse = () => {
+      req.removeAllListeners('data');
+      req.resume();
+      res.status(413).end();
+      resolve(null);
+    };
+    if (Number(req.headers['content-length']) > CARDDAV_BODY_LIMIT_BYTES) return refuse();
+    const chunks = [];
+    let received = 0;
+    req.on('data', chunk => {
+      received += chunk.length;
+      if (received > CARDDAV_BODY_LIMIT_BYTES) return refuse();
+      chunks.push(chunk);
+    });
+    req.on('end', () => {
+      if (received <= CARDDAV_BODY_LIMIT_BYTES) resolve(Buffer.concat(chunks).toString('utf8'));
+    });
     req.on('error', reject);
   });
 }
@@ -330,7 +348,8 @@ router.report('/:userId/:bookId/', async (req, res) => {
   if (!book) return res.status(404).end();
   const bookPath = `/carddav/${userId}/${book.id}/`;
 
-  const body = await rawBody(req);
+  const body = await rawBody(req, res);
+  if (body === null) return;
   const isSyncCollection = body.includes('sync-collection');
 
   // Fetch all contacts with their vCard data.
@@ -395,7 +414,8 @@ router.put('/:userId/:bookId/:filename', async (req, res) => {
   if (req.params.userId !== userId) return res.status(403).end();
 
   const uid  = req.params.filename.replace(/\.vcf$/i, '');
-  const body = await rawBody(req);
+  const body = await rawBody(req, res);
+  if (body === null) return;
   if (!body.trim()) return res.status(400).end();
 
   const parsed = parseVCard(body);

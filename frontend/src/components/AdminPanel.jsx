@@ -100,6 +100,26 @@ function isMicrosoftImapHost(host) {
   return h.includes('.outlook.com') || h.includes('office365.com') || h.includes('.hotmail.com') || h.includes('.live.com');
 }
 
+// Where autodiscovery found the settings, as the note under the address names it.
+const DISCOVERY_SOURCE_KEYS = {
+  ispdb: 'accountForm.autodiscover.source.ispdb',
+  autoconfig: 'accountForm.autodiscover.source.autoconfig',
+  wellknown: 'accountForm.autodiscover.source.wellknown',
+  srv: 'accountForm.autodiscover.source.srv',
+  mx: 'accountForm.autodiscover.source.mx',
+  'mx-ispdb': 'accountForm.autodiscover.source.mxIspdb',
+  guess: 'accountForm.autodiscover.source.guess',
+};
+
+// The form fields a discovered configuration fills in (POST /api/accounts/autodiscover).
+export function discoveredFields(found) {
+  if (!found?.imap?.host) return null;
+  const fields = { imap_host: found.imap.host, imap_port: found.imap.port, auth_user: found.username || undefined };
+  if (found.smtp?.host) Object.assign(fields, { smtp_host: found.smtp.host, smtp_port: found.smtp.port, smtp_tls: found.smtp.tls });
+  if (found.smtpUsername) fields.smtp_auth_user = found.smtpUsername;
+  return Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
+}
+
 // prefill (add only): { email, preset } from the Add account chooser.
 // onMicrosoftSignIn (add only): switch to "Sign in with Microsoft" when an Outlook.com host is typed.
 // onSignInAgain (edit only): "Sign in again" for an account connected through a sign-in.
@@ -122,6 +142,11 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
   const [showPass, setShowPass] = useState(false);
   const [showSmtpPass, setShowSmtpPass] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(prefill?.preset || null);
+  // Add only: the settings looked up for the address (#725), and whether to add its calendars too.
+  const [discovery, setDiscovery] = useState({ status: 'idle' }); // idle | looking | found | failed
+  const [addCalendars, setAddCalendars] = useState(false);
+  const discoveryRun = useRef(0);
+  const serversEdited = useRef(false);
   const [mailPolicy, setMailPolicy] = useState({ allowPrivateHosts: false, allowInsecureTls: false, allowNonstandardPorts: false });
   // Whether an Outlook.com address can be connected right away through Integrations, with the
   // instance's own app or MailFlow's built-in one (#674). Asked only once one is typed, and
@@ -177,6 +202,32 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
     setSelectedPreset(key);
   };
 
+  // Only the address is sent. A lookup started by itself fills in only servers the user has not
+  // typed meanwhile; one asked for with the button replaces them.
+  const discover = async (email, { asked = false } = {}) => {
+    const run = ++discoveryRun.current;
+    setDiscovery({ status: 'looking' });
+    let found = null;
+    try { found = await api.autodiscoverAccount(email.trim()); } catch { /* the form stays as it is */ }
+    if (run !== discoveryRun.current) return;
+    const fields = discoveredFields(found);
+    if (!fields) { setDiscovery({ status: 'failed' }); return; }
+    if (asked || !serversEdited.current) {
+      setForm(f => ({ ...f, ...fields, auth_user: authUserEdited ? f.auth_user : (fields.auth_user || f.auth_user) }));
+      serversEdited.current = false;
+      setSelectedPreset(null);
+    }
+    setDiscovery({ status: 'found', source: Object.hasOwn(DISCOVERY_SOURCE_KEYS, found.source) ? found.source : 'guess', domain: found.domain, caldavUrl: found.caldavUrl || null, oauth: found.oauth || null });
+    setAddCalendars(!found.oauth && !!found.caldavUrl);
+  };
+  useEffect(() => {
+    if (!isEdit && !prefill?.preset && prefill?.email && detectProvider(prefill.email) === 'other') discover(prefill.email);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- once, for the address the chooser passed
+  const setServer = (key, val) => { serversEdited.current = true; set(key, val); };
+  const canDiscover = !isEdit && !!detectProvider(form.email_address);
+  // A password account's calendars: not for a host whose provider signs in instead.
+  const calendarsOffered = !isEdit && !gmailHost && !microsoftHost && discovery.status === 'found' && !discovery.oauth;
+
   const handleSubmit = async () => {
     // The login and server of a signed-in account are hidden and not editable: not required.
     if (!form.email_address || (!signedInWith && (!form.auth_user || !form.imap_host))) {
@@ -190,7 +241,7 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
     setSaving(true);
     setError('');
     try {
-      await onSave(form);
+      await onSave(form, calendarsOffered ? { calendars: addCalendars, caldavUrl: discovery.caldavUrl } : undefined);
     } catch (err) {
       setError(err.message);
       setSaving(false);
@@ -281,10 +332,30 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
 
       {!isEdit && (
         <Field label={t('admin.accounts.email')} required>
-          <input value={form.email_address || ''} onChange={e => setEmail(e.target.value)}
-            placeholder={t('admin.accounts.emailPh')} style={inputStyle}
-            onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-            onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <input value={form.email_address || ''} onChange={e => setEmail(e.target.value)}
+              placeholder={t('admin.accounts.emailPh')} style={{ ...inputStyle, flex: '1 1 220px', width: 'auto', minWidth: 0 }}
+              onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+              onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+            <button type="button" data-autodiscover disabled={!canDiscover || discovery.status === 'looking'}
+              onClick={() => discover(form.email_address, { asked: true })} style={{
+                padding: '8px 14px', background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 8,
+                color: 'var(--text-primary)', fontSize: 13, whiteSpace: 'nowrap',
+                cursor: !canDiscover || discovery.status === 'looking' ? 'not-allowed' : 'pointer',
+                opacity: !canDiscover ? 0.5 : 1,
+              }}>{t('accountForm.autodiscover.button')}</button>
+          </div>
+          {discovery.status !== 'idle' && (
+            <div role="status" data-discovery={discovery.status} style={{
+              fontSize: 12, marginTop: 6, lineHeight: 1.5,
+              color: discovery.status === 'found' && discovery.source !== 'guess' ? 'var(--text-secondary)' : 'var(--text-tertiary)',
+            }}>
+              {discovery.status === 'looking' && t('accountForm.autodiscover.looking')}
+              {discovery.status === 'failed' && t('accountForm.autodiscover.failed')}
+              {discovery.status === 'found' && t(DISCOVERY_SOURCE_KEYS[discovery.source], { domain: discovery.domain })}
+              {discovery.status === 'found' && ` ${t('accountForm.autodiscover.check')}`}
+            </div>
+          )}
         </Field>
       )}
 
@@ -329,7 +400,7 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: 10 }}>
         <Field label={t('admin.accounts.imapHost')} required>
-          <input value={form.imap_host || ''} onChange={e => set('imap_host', e.target.value)}
+          <input value={form.imap_host || ''} onChange={e => setServer('imap_host', e.target.value)}
             placeholder={t('admin.accounts.imapHostPh')} style={inputStyle}
             onFocus={e => e.target.style.borderColor = 'var(--accent)'}
             onBlur={e => e.target.style.borderColor = 'var(--border)'} />
@@ -338,7 +409,7 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
           <input
             type={mailPolicy.allowNonstandardPorts ? 'text' : 'number'}
             value={form.imap_port || 993}
-            onChange={e => set('imap_port', mailPolicy.allowNonstandardPorts ? e.target.value : parseInt(e.target.value))}
+            onChange={e => setServer('imap_port', mailPolicy.allowNonstandardPorts ? e.target.value : parseInt(e.target.value))}
             style={inputStyle}
             onFocus={e => e.target.style.borderColor = 'var(--accent)'}
             onBlur={e => e.target.style.borderColor = 'var(--border)'} />
@@ -456,7 +527,7 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: 10 }}>
         <Field label={t('admin.accounts.smtpHost')}>
-          <input value={form.smtp_host || ''} onChange={e => set('smtp_host', e.target.value)}
+          <input value={form.smtp_host || ''} onChange={e => setServer('smtp_host', e.target.value)}
             placeholder={t('admin.accounts.smtpHostPh')} style={inputStyle}
             onFocus={e => e.target.style.borderColor = 'var(--accent)'}
             onBlur={e => e.target.style.borderColor = 'var(--border)'} />
@@ -465,7 +536,12 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
           <input
             type={mailPolicy.allowNonstandardPorts ? 'text' : 'number'}
             value={form.smtp_port || 587}
-            onChange={e => set('smtp_port', mailPolicy.allowNonstandardPorts ? e.target.value : parseInt(e.target.value))}
+            onChange={e => {
+              const port = mailPolicy.allowNonstandardPorts ? e.target.value : parseInt(e.target.value);
+              setServer('smtp_port', port);
+              // A port typed over a discovered one takes its usual security, not the discovered one's.
+              if (!isEdit) set('smtp_tls', Number(port) === 465 ? 'SSL' : 'STARTTLS');
+            }}
             style={inputStyle}
             onFocus={e => e.target.style.borderColor = 'var(--accent)'}
             onBlur={e => e.target.style.borderColor = 'var(--border)'} />
@@ -503,6 +579,18 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
           </button>
         </div>
       </Field>
+      {calendarsOffered && (
+        <label data-add-calendars style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 14, fontSize: 13, color: 'var(--text-secondary)', cursor: 'pointer' }}>
+          <input type="checkbox" checked={addCalendars} onChange={e => setAddCalendars(e.target.checked)}
+            style={{ accentColor: 'var(--accent)', marginTop: 2 }} />
+          <span>
+            {t('accountForm.autodiscover.addCalendars')}
+            <span style={{ display: 'block', fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2, lineHeight: 1.5, overflowWrap: 'anywhere' }}>
+              {discovery.caldavUrl ? t('accountForm.autodiscover.calendarsAt', { url: discovery.caldavUrl }) : t('accountForm.autodiscover.calendarsMailHost')}
+            </span>
+          </span>
+        </label>
+      )}
       </>)}
 
       <div style={{ height: 1, background: 'var(--border-subtle)', margin: '16px 0' }} />
@@ -571,6 +659,33 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
               <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('admin.accounts.unifiedInboxEnabled')}</div>
               <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
                 {t('admin.accounts.unifiedInboxEnabledDesc')}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <button
+              type="button"
+              aria-pressed={form.notifications_muted !== true}
+              onClick={() => set('notifications_muted', form.notifications_muted !== true)}
+              style={{
+                width: 36, height: 20, borderRadius: 10, border: 'none',
+                cursor: 'pointer', padding: 0,
+                background: form.notifications_muted !== true ? 'var(--accent)' : TOGGLE_OFF_BACKGROUND,
+                position: 'relative', transition: 'background 0.2s', flexShrink: 0, marginTop: 1,
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: 2,
+                left: form.notifications_muted !== true ? 18 : 2,
+                width: 16, height: 16,
+                borderRadius: '50%', background: form.notifications_muted !== true ? 'var(--accent-text)' : 'var(--text-secondary)', transition: 'left 0.2s',
+              }} />
+            </button>
+            <div>
+              <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('admin.accounts.notificationsEnabled')}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                {t('admin.accounts.notificationsEnabledDesc')}
               </div>
             </div>
           </div>
@@ -712,15 +827,17 @@ function AccountsTab() {
   const [aliasFormError, setAliasFormError] = useState('');
   const [aliasFormSaving, setAliasFormSaving] = useState(false);
 
-  const handleAdd = async (form) => {
+  // calendars (from the form, when it asked): add the account's calendars now, or not at all.
+  // Without the question, the offer is shown after the account is added.
+  const handleAdd = async (form, { calendars, caldavUrl } = {}) => {
     const account = await api.addAccount(form);
     setAccounts([...accounts, account]);
-    setCalendarOffer(account);
+    setCalendarOffer(calendars === false ? null : { account, auto: !!calendars, serverUrl: caldavUrl || null });
     setSubview('list');
   };
 
   const handleEdit = async (form) => {
-    const updates = { name: form.name, sender_name: form.sender_name || null, color: form.color, icon: form.icon || null, imap_host: form.imap_host, imap_port: form.imap_port, imap_skip_tls_verify: !!form.imap_skip_tls_verify, smtp_host: form.smtp_host, smtp_port: form.smtp_port, smtp_tls: form.smtp_tls, signature: form.signature || null, categorization_enabled: !!form.categorization_enabled, include_in_unified_inbox: form.include_in_unified_inbox !== false };
+    const updates = { name: form.name, sender_name: form.sender_name || null, color: form.color, icon: form.icon || null, imap_host: form.imap_host, imap_port: form.imap_port, imap_skip_tls_verify: !!form.imap_skip_tls_verify, smtp_host: form.smtp_host, smtp_port: form.smtp_port, smtp_tls: form.smtp_tls, signature: form.signature || null, categorization_enabled: !!form.categorization_enabled, include_in_unified_inbox: form.include_in_unified_inbox !== false, notifications_muted: form.notifications_muted === true };
     Object.assign(updates, autoRecipientFields(form), { signature_enabled: form.signature_enabled !== false });
     if (form.auth_pass) updates.auth_pass = form.auth_pass;
     if (OAUTH_PROVIDERS.has(editTarget.oauth_provider)) {
@@ -1240,7 +1357,8 @@ function AccountsTab() {
         </button>
       </div>
 
-      {calendarOffer && <CalendarOffer key={calendarOffer.id} account={calendarOffer} onDismiss={() => setCalendarOffer(null)} />}
+      {calendarOffer && <CalendarOffer key={calendarOffer.account.id} account={calendarOffer.account} auto={calendarOffer.auto}
+        serverUrl={calendarOffer.serverUrl} onDismiss={() => setCalendarOffer(null)} />}
 
       {accounts.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-tertiary)', fontSize: 14 }}>
@@ -2035,7 +2153,7 @@ function LayoutsTab() {
 function BehaviorTab() {
   const { t } = useTranslation();
   const isMobile = useMobile();
-  const { swipeActions, setSwipeAction, syncInterval, setSyncInterval, folderSyncInterval, setFolderSyncInterval, autoOpenReplyDrafts, setAutoOpenReplyDrafts, plaintextEmail, setPlaintextEmail, replyDefault, setReplyDefault, afterRemove, setAfterRemove, markReadBehavior, setMarkReadBehavior, markReadDelay, setMarkReadDelay, accounts, defaultSender, setDefaultSender } = useStore();
+  const { swipeActions, setSwipeAction, syncInterval, setSyncInterval, folderSyncInterval, setFolderSyncInterval, autoOpenReplyDrafts, setAutoOpenReplyDrafts, undoSend, setUndoSend, plaintextEmail, setPlaintextEmail, replyDefault, setReplyDefault, afterRemove, setAfterRemove, markReadBehavior, setMarkReadBehavior, markReadDelay, setMarkReadDelay, accounts, defaultSender, setDefaultSender } = useStore();
 
   // "Set MailFlow as your default email app": registerProtocolHandler is the
   // cross-browser path (works in Firefox and non-installed Chromium) and must be
@@ -2189,6 +2307,13 @@ function BehaviorTab() {
           label={t('admin.messageList.autoOpenReplyDrafts', 'Automatically open saved replies when selecting inbox messages')}
           checked={autoOpenReplyDrafts}
           onChange={setAutoOpenReplyDrafts}
+        />
+
+        <ToggleRow
+          label={t('admin.messageList.undoSend')}
+          desc={t('admin.messageList.undoSendDesc')}
+          checked={undoSend}
+          onChange={setUndoSend}
         />
       </SettingGroup>
 
@@ -5155,7 +5280,7 @@ const LANGUAGES = [
 
 function LanguageTab() {
   const { t } = useTranslation();
-  const { language, setLanguage } = useStore();
+  const { language, setLanguage, timeFormat, setTimeFormat } = useStore();
 
   return (
     <div>
@@ -5197,6 +5322,26 @@ function LanguageTab() {
             </button>
           );
         })}
+      </div>
+
+      {/* Time format (#758): independent of the language above. Automatic keeps the
+          clock the language implies; 12- / 24-hour force it either way. */}
+      <div style={{ marginTop: 28 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
+          {t('admin.appearance.timeFormat')}
+        </div>
+        <div style={{ fontSize: 13, color: 'var(--text-tertiary)', marginBottom: 20 }}>
+          {t('admin.appearance.timeFormatDesc')}
+        </div>
+        <ChoiceChips
+          isActive={v => timeFormat === v}
+          onSelect={setTimeFormat}
+          options={[
+            { value: 'auto', label: t('admin.appearance.timeFormatAuto') },
+            { value: '12',   label: t('admin.appearance.timeFormat12') },
+            { value: '24',   label: t('admin.appearance.timeFormat24') },
+          ]}
+        />
       </div>
     </div>
   );
@@ -7844,6 +7989,7 @@ function makeSearchIndex(t) {
     { label: t('admin.messageList.threadingMode'), keywords: ['thread', 'conversation', 'grouping', 'threading', 'group'], tab: 'appearance', subtab: 'layout', breadcrumb: layoutCrumb },
     // Behavior
     { label: t('admin.messageList.swipeActions'), keywords: ['swipe', 'gesture', 'mobile', 'swipe left', 'swipe right', 'touch'], tab: 'behavior', breadcrumb: behaviorCrumb },
+    { label: t('admin.messageList.undoSend'), keywords: ['undo send', 'undo', 'delay', 'send delay', 'send immediately', 'cancel send'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.syncFrequency'), keywords: ['sync', 'interval', 'frequency', 'refresh', 'poll', 'check mail', '15s', '30s', '60s'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.folderSyncFrequency'), keywords: ['folder', 'sync', 'structure', 'list', 'refresh', 'mailbox', '15 min', '30 min', '1 hour', 'never'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.composeFormat'), keywords: ['compose', 'format', 'rich text', 'plain text', 'html', 'editor'], tab: 'behavior', breadcrumb: behaviorCrumb },
@@ -7854,6 +8000,7 @@ function makeSearchIndex(t) {
     { label: t('admin.messageList.defaultMailApp'), keywords: ['mailto', 'default app', 'default email', 'protocol handler', 'links'], tab: 'behavior', breadcrumb: behaviorCrumb },
     // Appearance > Fonts & Language
     { label: t('admin.appearance.language'), keywords: ['language', 'locale', 'french', 'english', 'spanish', 'german', 'deutsch', 'russian', 'chinese', 'italian', 'czech', 'čeština', 'portuguese', 'português', 'brasil', 'korean', '한국어', 'français', 'español'], tab: 'appearance', subtab: 'fonts', breadcrumb: fontsCrumb },
+    { label: t('admin.appearance.timeFormat'), keywords: ['time format', 'clock', '12-hour', '24-hour', '12 hour', '24 hour', 'am pm', 'time'], tab: 'appearance', subtab: 'fonts', breadcrumb: fontsCrumb },
     { label: t('admin.appearance.fontSize'), keywords: ['font size', 'text size', 'zoom', 'scale', 'accessibility', 'larger text'], tab: 'appearance', subtab: 'fonts', breadcrumb: fontsCrumb },
     // Email providers (admin)
     { label: t('mailSignIn.ms.title'), keywords: ['microsoft', 'outlook', 'hotmail', '365', 'oauth', 'azure', 'entra', 'client id', 'tenant', 'ms365', 'office', 'shared app', 'sign in', 'email providers', 'mailbox', 'mail sign-in'], tab: 'mail-signin', adminOnly: true, breadcrumb: t('admin.tabs.mailSignIn') },

@@ -9,7 +9,7 @@ import { dirname, join } from 'node:path';
 // allowed by the app's CSP), the metric-compatible fonts for PDFs that do not embed theirs, and the
 // character maps for CJK fonts that are not embedded (a Chinese invoice in STSong-Light shows no
 // text without them). They are copied from whichever pdfjs-dist is installed, so they never drift
-// from it, under a path named for its version: nginx caches .js as immutable, and without the
+// from it, under a path named for its version: the server caches them as immutable, and without the
 // version a browser would keep the old decoders after an upgrade.
 function pdfjsRuntimeAssets() {
   const require = createRequire(import.meta.url);
@@ -43,17 +43,12 @@ export default defineConfig({
   plugins: [react(), pdfjsRuntimeAssets()],
   // Module workers, so the pdf.js worker (an ES module) keeps its dynamic imports of the decoders.
   worker: { format: 'es' },
+  // The backend the dev server forwards to: `npm run dev` in backend/ by default.
   server: {
     port: 5173,
-    proxy: {
-      '/api': {
-        target: 'http://backend:3000',
-        changeOrigin: true,
-      },
-      '/ws': {
-        target: 'ws://backend:3000',
-        ws: true,
-      }
-    }
-  }
+    proxy: Object.fromEntries(['/api', '/ws', '/oauth', '/auth/oidc', '/carddav', '/.well-known/carddav'].map(path => [path, {
+      target: process.env.BACKEND_URL || 'http://localhost:3000',
+      ws: path === '/ws',
+    }])),
+  },
 });

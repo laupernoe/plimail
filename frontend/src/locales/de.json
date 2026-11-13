@@ -321,6 +321,8 @@
       "armed": "{{label}} — erneut klicken, um trotzdem herunterzuladen"
     },
     "downloadAll": "Alle herunterladen",
+    "attachmentsShowAll": "Alle anzeigen ({{count}})",
+    "attachmentsShowFewer": "Weniger anzeigen",
     "reply": "Antworten",
     "replyAll": "Allen antworten",
     "replyOptions": "Antwortoptionen",
@@ -1109,6 +1111,8 @@
       "unifiedInboxSection": "Gemeinsamer Posteingang",
       "unifiedInboxEnabled": "Im gemeinsamen Posteingang anzeigen",
       "unifiedInboxEnabledDesc": "Nachrichten dieses Kontos in „Alle Posteingänge“, der gemeinsamen Suche und den Kategoriezählern anzeigen.",
+      "notificationsEnabled": "Benachrichtigungen",
+      "notificationsEnabledDesc": "Bei neuen E-Mails in diesem Konto benachrichtigen. Ist die Option aus, gibt es weder Push-, Desktop- noch In-App-Benachrichtigungen; Posteingang, Ungelesen-Zähler und Regeln funktionieren weiter. Eine Regel „Benachrichtigen“ löst weiterhin aus.",
       "categorizationSection": "E-Mail-Kategorisierung",
       "categorizationEnabled": "Posteingang-Kategorisierung aktivieren",
       "categorizationEnabledDesc": "Eingehende E-Mails in Kategorie-Tabs einteilen. Standardmäßig deaktiviert.",
@@ -1165,6 +1169,11 @@
       "layoutDescription": "Anordnung von Seitenleiste, Nachrichtenliste und Lesebereich auswählen",
       "language": "Sprache",
       "languageDescription": "Anzeigesprache der Oberfläche auswählen",
+      "timeFormat": "Zeitformat",
+      "timeFormatDesc": "Wählen Sie eine 12- oder 24-Stunden-Uhr, oder folgen Sie der Sprache.",
+      "timeFormatAuto": "Automatisch",
+      "timeFormat12": "12 Stunden",
+      "timeFormat24": "24 Stunden",
       "fontSize": "Schriftgröße",
       "fontSizeDescription": "Skaliert den Text der Oberfläche. 100 % ist der Standard.",
       "fontSizeReset": "Auf 100 % zurücksetzen",
@@ -1176,6 +1185,8 @@
     },
     "messageList": {
       "autoOpenReplyDrafts": "Gespeicherte Antworten beim Auswählen von Posteingangsnachrichten automatisch öffnen",
+      "undoSend": "Senden rückgängig machen",
+      "undoSendDesc": "Ausgehende E-Mails 10 Sekunden zurückhalten, damit sie noch zurückgenommen werden können. Ausschalten, um sofort zu senden.",
       "title": "Nachrichtenliste",
       "senderFavicons": "Absender-Favicons",
       "senderFaviconsDesc": "Website-Symbole für Absender ohne Kontaktfoto anzeigen. An Twenty Icons wird nur die Domain des Absenders gesendet, niemals die vollständige E-Mail-Adresse.",
@@ -1798,7 +1809,6 @@
       "sourceCode": "Quellcode",
       "upstream": "Basiert auf MailFlow"
     },
-    "businessNotice": {},
     "rules": {
       "conditionLogicOr": "eine Bedingung (ODER)",
       "accountAll": "Alle Konten",
@@ -2146,7 +2156,25 @@
     "signedInGoogle": "Mit Google angemeldet als {{email}}",
     "signedInNote": "Der Server stammt aus dieser Anmeldung. Wenn das Konto keine Verbindung mehr herstellt, melden Sie sich erneut an.",
     "mailboxLabel": "Zu öffnendes Postfach",
-    "mailboxHelp": "Für ein freigegebenes oder delegiertes Postfach geben Sie dessen Adresse ein. Für Ihr eigenes Postfach lassen Sie es, wie es ist."
+    "mailboxHelp": "Für ein freigegebenes oder delegiertes Postfach geben Sie dessen Adresse ein. Für Ihr eigenes Postfach lassen Sie es, wie es ist.",
+    "autodiscover": {
+      "button": "Einstellungen suchen",
+      "looking": "Servereinstellungen für diese Adresse werden gesucht…",
+      "failed": "Keine Einstellungen für diese Adresse gefunden. Bitte unten eingeben.",
+      "check": "Prüfen Sie sie, bevor Sie das Konto hinzufügen.",
+      "source": {
+        "ispdb": "Einstellungen für {{domain}} in der Thunderbird-Datenbank gefunden.",
+        "autoconfig": "Von {{domain}} veröffentlichte Einstellungen.",
+        "wellknown": "Auf der Website von {{domain}} veröffentlichte Einstellungen.",
+        "srv": "In den DNS-Einträgen von {{domain}} gefundene Einstellungen.",
+        "mx": "Die E-Mails von {{domain}} laufen über einen bekannten Anbieter, dessen Einstellungen eingetragen wurden.",
+        "mxIspdb": "Einstellungen des Anbieters, der die E-Mails für {{domain}} empfängt, aus der Thunderbird-Datenbank.",
+        "guess": "{{domain}} veröffentlicht keine Einstellungen: Dies sind die üblichen, geschätzten Servernamen."
+      },
+      "addCalendars": "Auch die Kalender dieses Kontos mit demselben Passwort hinzufügen",
+      "calendarsAt": "Kalenderserver gefunden: {{url}}",
+      "calendarsMailHost": "Der Kalenderserver wird auf den Mailservern gesucht."
+    }
   },
   "googleSignIn": {
     "title": "Mit Google anmelden",

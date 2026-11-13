@@ -323,6 +323,8 @@
       "armed": "{{label}} — kliknij ponownie, aby mimo to pobrać"
     },
     "downloadAll": "Pobierz wszystko",
+    "attachmentsShowAll": "Pokaż wszystkie ({{count}})",
+    "attachmentsShowFewer": "Pokaż mniej",
     "reply": "Odpowiedz",
     "replyAll": "Odpowiedz wszystkim",
     "replyOptions": "Opcje odpowiedzi",
@@ -1200,6 +1202,8 @@
       "unifiedInboxSection": "Ujednolicona skrzynka odbiorcza",
       "unifiedInboxEnabled": "Uwzględnij w ujednoliconej skrzynce odbiorczej",
       "unifiedInboxEnabledDesc": "Pokazuj wiadomości z tego konta w widoku „Wszystkie skrzynki”, ujednoliconym wyszukiwaniu i licznikach kategorii.",
+      "notificationsEnabled": "Powiadomienia",
+      "notificationsEnabledDesc": "Powiadamiaj o nowych wiadomościach na tym koncie. Po wyłączeniu nie są wysyłane powiadomienia push, pulpitu ani w aplikacji, ale skrzynka odbiorcza, liczniki nieprzeczytanych i reguły nadal działają. Reguła „Powiadom mnie” nadal powiadamia.",
       "categorizationSection": "Kategoryzowanie poczty",
       "categorizationEnabled": "Włącz kategoryzowanie skrzynki odbiorczej",
       "categorizationEnabledDesc": "Sortuj przychodzące wiadomości do kart kategorii. Domyślnie wyłączone.",
@@ -1256,6 +1260,11 @@
       "layoutDescription": "Wybierz układ paska bocznego, listy wiadomości i panelu czytania",
       "language": "Język",
       "languageDescription": "Wybierz język interfejsu",
+      "timeFormat": "Format czasu",
+      "timeFormatDesc": "Wybierz zegar 12- lub 24-godzinny albo podążaj za językiem.",
+      "timeFormatAuto": "Automatycznie",
+      "timeFormat12": "12-godzinny",
+      "timeFormat24": "24-godzinny",
       "fontSize": "Rozmiar czcionki",
       "fontSizeDescription": "Dostosuj rozmiar tekstu interfejsu. Wartość domyślna to 100%.",
       "fontSizeReset": "Przywróć 100%",
@@ -1267,6 +1276,8 @@
     },
     "messageList": {
       "autoOpenReplyDrafts": "Automatycznie otwieraj zapisane odpowiedzi po wybraniu wiadomości w skrzynce odbiorczej",
+      "undoSend": "Cofnij wysyłanie",
+      "undoSendDesc": "Wstrzymuje wychodzące wiadomości na 10 sekund, aby można je było cofnąć. Wyłącz, aby wysyłać natychmiast.",
       "title": "Lista wiadomości",
       "senderFavicons": "Ikony witryn nadawców",
       "senderFaviconsDesc": "Pokazuj ikony witryn nadawców bez zdjęcia kontaktu. Do pobrania ikony wysyłana jest tylko domena nadawcy, nigdy jego pełny adres e-mail.",
@@ -1892,7 +1903,6 @@
       "sourceCode": "Kod źródłowy",
       "upstream": "Oparty na MailFlow"
     },
-    "businessNotice": {},
     "search": {
       "placeholder": "Wyszukaj ustawienie…",
       "noResults": "Brak ustawień pasujących do „{{query}}”",
@@ -2165,7 +2175,25 @@
     "signedInGoogle": "Zalogowano przez Google jako {{email}}",
     "signedInNote": "Serwer pochodzi z tego logowania. Jeśli konto przestanie się łączyć, zaloguj się ponownie.",
     "mailboxLabel": "Skrzynka do otwarcia",
-    "mailboxHelp": "W przypadku skrzynki udostępnionej lub delegowanej wpisz jej adres. Dla własnej skrzynki zostaw bez zmian."
+    "mailboxHelp": "W przypadku skrzynki udostępnionej lub delegowanej wpisz jej adres. Dla własnej skrzynki zostaw bez zmian.",
+    "autodiscover": {
+      "button": "Znajdź ustawienia",
+      "looking": "Wyszukiwanie ustawień serwera dla tego adresu…",
+      "failed": "Nie znaleziono ustawień dla tego adresu. Wpisz je poniżej.",
+      "check": "Sprawdź je przed dodaniem konta.",
+      "source": {
+        "ispdb": "Ustawienia dla {{domain}} znalezione w bazie danych Thunderbirda.",
+        "autoconfig": "Ustawienia opublikowane przez {{domain}}.",
+        "wellknown": "Ustawienia opublikowane na stronie {{domain}}.",
+        "srv": "Ustawienia znalezione w rekordach DNS {{domain}}.",
+        "mx": "Pocztę {{domain}} obsługuje znany dostawca, którego ustawienia zostały uzupełnione.",
+        "mxIspdb": "Ustawienia dostawcy, który odbiera pocztę dla {{domain}}, z bazy danych Thunderbirda.",
+        "guess": "{{domain}} nie publikuje ustawień: to typowe, odgadnięte nazwy serwerów."
+      },
+      "addCalendars": "Dodaj też kalendarze tego konta, z tym samym hasłem",
+      "calendarsAt": "Znaleziono serwer kalendarza: {{url}}",
+      "calendarsMailHost": "Serwer kalendarza zostanie wyszukany na serwerach poczty."
+    }
   },
   "googleSignIn": {
     "title": "Zaloguj się przez Google",

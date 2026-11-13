@@ -19,10 +19,13 @@ fork) include:
   - Added a Source code link (AGPL-3.0 section 13) to Settings, About.
   - Removed the plugin platform and the GTD plugin, the Todoist and CardDAV
     contact-sync integrations, the built-in antispam filter and the mailbox cleanup tool.
+  - Simplified the stack to one image: the backend serves the built frontend itself over
+    HTTP, replacing the nginx frontend image, its TLS handling and the bundled Caddy.
+  - Removed the Electron desktop app, the Capacitor Android app and their release workflow.
 
 Internal identifiers that installed copies depend on (MAILFLOW_* environment variables,
 database and role names, cookie and storage keys, data-mailflow-* attributes, Docker
-volume and network names, the Android package id) keep their original names.
+volume names) keep their original names.
 
 The upstream project's commercial licence offer does not apply to Plimail, which is
 distributed under the AGPL-3.0 only.

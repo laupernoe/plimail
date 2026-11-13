@@ -1521,6 +1521,20 @@ export const PROVIDERS = {
   },
 };
 
+// Rebuild a folder's cached counts from its rows. A soft-deleted row (\Deleted, not yet expunged)
+// is hidden from every list, so it counts in neither column. These columns describe only the local
+// cache; the server's numbers come from folderStatus.
+async function recountFolderRows(accountId, folder) {
+  await query(
+    `UPDATE folders
+     SET total_count  = (SELECT COUNT(*) FROM messages m WHERE m.account_id = $1 AND m.folder = $2 AND NOT m.is_deleted),
+         unread_count = (SELECT COUNT(*) FILTER (WHERE m.is_read = false)
+                         FROM messages m WHERE m.account_id = $1 AND m.folder = $2 AND NOT m.is_deleted)
+     WHERE account_id = $1 AND path = $2`,
+    [accountId, folder]
+  );
+}
+
 // DB half of copyMessage: insert the destination sibling row for a message that was
 // just COPY'd from `fromFolder` to `toFolder`. Content columns are copied verbatim
 // from the source row (same set the move CTE re-inserts); only uid ($4, the UIDPLUS
@@ -2368,7 +2382,7 @@ export async function ensureMailbox(client, path, { resolvePath = false } = {}) 
 // Resolve the server's REAL casing for a mailbox that already exists, by case-insensitive
 // lookup against the folder LIST. On a case-insensitive server "TODO" can already exist when
 // "Todo" was requested; imapflow's already-exists result echoes the REQUESTED casing, which,
-// if persisted (planGtdFolderPersist), never case-matches the synced rows' folder value and
+// if persisted, never case-matches the synced rows' folder value and
 // silently zeroes the state. An exact match wins: a case-sensitive server can hold both
 // "Snoozed" and a user's own "snoozed", and the CREATE collided with the exact one.
 // Best-effort: any list failure (or a client without list) falls back to the caller's known
@@ -2745,7 +2759,7 @@ export class ImapManager {
     this._syncErrorState = new Map();
     this._accountErrorStreak = new Map(); // accountId -> consecutive recoverable failures not yet surfaced
     this._errorForgets = new Map(); // accountId -> times forgetAccountError ran (see there)
-    this.onDemandSyncing = new Set(); // `${accountId}:${folder}` — prevent duplicate on-demand syncs
+    this.onDemandSyncing = new Map(); // `${accountId}:${folder}` -> the running on-demand or spam sync (_claimFolderSync)
     this.syncingAccounts = new Set(); // prevent overlapping interval syncs
     this.syncStartedAt = new Map();   // accountId -> ms when the current sync tick began (hung-sync detection)
     this.syncThrottleSkips = new Map(); // accountId -> remaining ticks to skip when throttled
@@ -4515,7 +4529,9 @@ export class ImapManager {
             : [];
           if (expired) throw new Error('Folder integrity sync expired');
           if (gone.length) {
-            await query('DELETE FROM messages WHERE account_id=$1 AND folder=$2 AND uid=ANY($3::bigint[]) AND (synced_at IS NULL OR synced_at < $4) AND EXISTS (SELECT 1 FROM folders WHERE account_id=$1 AND path=$2 AND uid_validity=$5)', [account.id, path, gone, cutoff, String(observed.uidValidity)]);
+            const pruned = await query('DELETE FROM messages WHERE account_id=$1 AND folder=$2 AND uid=ANY($3::bigint[]) AND (synced_at IS NULL OR synced_at < $4) AND EXISTS (SELECT 1 FROM folders WHERE account_id=$1 AND path=$2 AND uid_validity=$5)', [account.id, path, gone, cutoff, String(observed.uidValidity)]);
+            // Rows deleted here bypass adjustFolderCounts, so the cached counts would keep them.
+            if (pruned.rowCount) await recountFolderRows(account.id, path);
           }
           if (changed || gone.length) {
             this.broadcast({ type: 'flags_synced', accountId: account.id }, account.user_id);
@@ -5108,7 +5124,19 @@ export class ImapManager {
           }
           // alertMessages: remaining messages not silenced by a mark_read rule, and mail a "Notify
           // me" rule filed elsewhere. A push for one of those opens it by id, in its new folder.
-          const { alertMessages, alertCount, send } = newMailAlerts({ remaining: newMessages, mutedIds, notifyMessages });
+          // Read fresh: the account object here is the one the connection opened with, and the
+          // mute is a setting that takes effect without a reconnect (#762). If the read fails
+          // the account is treated as not muted, so a failure never swallows an alert.
+          let accountMuted = false;
+          if (folder === 'INBOX') {
+            try {
+              const r = await query('SELECT notifications_muted FROM email_accounts WHERE id = $1', [account.id]);
+              accountMuted = r.rows[0]?.notifications_muted === true;
+            } catch (err) {
+              console.warn(`notifications_muted lookup failed for ${logAccount(account)}: ${err.message}`);
+            }
+          }
+          const { alertMessages, alertCount, send } = newMailAlerts({ remaining: newMessages, mutedIds, notifyMessages, accountMuted });
           if (send) this.broadcast({
             type: 'new_messages', accountId: account.id,
             folder, messages: newMessages.slice(-5), count: newMessages.length,
@@ -5174,14 +5202,7 @@ export class ImapManager {
         // without this an on-demand folder (e.g. Junk/Spam, which has no follow-up tick) keeps
         // showing the pre-sync count until it is opened again. Mirrors the recompute that backfill
         // and reconcileDeletes already run. These columns describe only the local cache.
-        await query(
-          `UPDATE folders
-           SET total_count = (SELECT COUNT(*) FROM messages m WHERE m.account_id = $1 AND m.folder = $2 AND NOT m.is_deleted),
-               unread_count = (SELECT COUNT(*) FILTER (WHERE m.is_read = false)
-                               FROM messages m WHERE m.account_id = $1 AND m.folder = $2)
-           WHERE account_id = $1 AND path = $2`,
-          [account.id, folder]
-        );
+        await recountFolderRows(account.id, folder);
         // A draft saved in another client arrives already read (\Seen), so it never enters
         // `newMessages` and no new_messages goes out for it. The Inbox's reply-draft markers are
         // worked out from synced rows (routes/draft.js), so say when a Drafts folder gained rows.
@@ -5350,13 +5371,7 @@ export class ImapManager {
       if (missingUids.length === 0) {
         console.log(`Backfill ${logAccount(account)}: no missing UIDs (${dbCount} in DB vs ${serverTotal} on server — within tolerance)`);
         // Still reconcile folder counts — they may be stale if a previous backfill was interrupted.
-        await query(
-          `UPDATE folders
-           SET total_count  = (SELECT COUNT(*)                                FROM messages m WHERE m.account_id = $1 AND m.folder = $2),
-               unread_count = (SELECT COUNT(*) FILTER (WHERE is_read = false)  FROM messages m WHERE m.account_id = $1 AND m.folder = $2)
-           WHERE account_id = $1 AND path = $2`,
-          [account.id, folder]
-        ).catch(() => {});
+        await recountFolderRows(account.id, folder).catch(() => {});
         return;
       }
 
@@ -5657,13 +5672,7 @@ export class ImapManager {
       console.log(`Backfill complete for ${logAccount(account)}/${folder}`);
       // Backfill inserts rows directly without going through adjustFolderCounts,
       // so folder counters would stay at 0 without this reconciliation step.
-      await query(
-        `UPDATE folders
-         SET total_count  = (SELECT COUNT(*)                                FROM messages m WHERE m.account_id = $1 AND m.folder = $2),
-             unread_count = (SELECT COUNT(*) FILTER (WHERE is_read = false)  FROM messages m WHERE m.account_id = $1 AND m.folder = $2)
-         WHERE account_id = $1 AND path = $2`,
-        [account.id, folder]
-      ).catch(err => console.error(`Folder count update after backfill failed for ${logAccount(account)}/${folder}:`, err.message));
+      await recountFolderRows(account.id, folder).catch(err => console.error(`Folder count update after backfill failed for ${logAccount(account)}/${folder}:`, err.message));
       this.broadcast({ type: 'backfill_complete', accountId: account.id }, account.user_id);
     } catch (err) {
       // extractImapError, not err.message: everything in this try block runs IMAP commands
@@ -6408,28 +6417,55 @@ export class ImapManager {
   }
 
   // Syncs the most recent messages in a specific folder on demand.
-  // Called when the user navigates to a folder that has no local messages yet.
-  // Uses a pooled connection — does NOT touch the main sync connection.
+  // Called when the user navigates to a folder that has no local messages yet, and after a change
+  // whose result only a sync can cache (a COPY or APPEND without a UID, a move that dropped the row).
+  // Uses a pooled connection — does NOT touch the main sync connection. Resolves once a pass that
+  // started after this call has finished, and rejects when that pass fails.
   async syncFolderOnDemand(account, folder) {
     const key = `${account.id}:${folder}`;
-    if (this.onDemandSyncing.has(key)) {
-      console.log(`syncFolderOnDemand skipped (already running): ${logAccount(account)}/${folder}`);
-      return;
+    const active = this.onDemandSyncing.get(key);
+    if (active) {
+      // The running pass may have read the folder before the change this caller needs to see, so
+      // returning now would leave that change uncached until a periodic sync. One more pass after
+      // it is shared by every caller that arrives meanwhile.
+      console.log(`syncFolderOnDemand queued behind the running pass: ${logAccount(account)}/${folder}`);
+      active.followUp ??= active.done.then(() => this.syncFolderOnDemand(account, folder));
+      return active.followUp;
     }
-    this.onDemandSyncing.add(key);
-    console.log(`syncFolderOnDemand start: ${logAccount(account)}/${folder}`);
-    try {
-      await withFreshClient(account, async (client) => {
-        await this.syncMessages(account, client, folder, 100, false, true);
-      });
+    return this._claimFolderSync(key, async () => {
+      console.log(`syncFolderOnDemand start: ${logAccount(account)}/${folder}`);
+      try {
+        await this._syncFolderViaPool(account, folder);
+      } catch (err) {
+        console.error(`On-demand sync error ${logAccount(account)}/${folder}:`, err.message);
+        throw err;
+      }
       console.log(`syncFolderOnDemand done: ${logAccount(account)}/${folder}`);
       // sync_complete fires mailflow:refresh in the frontend, reloading the message list
       this.broadcast({ type: 'sync_complete', accountId: account.id }, account.user_id);
-    } catch (err) {
-      console.error(`On-demand sync error ${logAccount(account)}/${folder}:`, err.message);
-    } finally {
-      this.onDemandSyncing.delete(key);
-    }
+    });
+  }
+
+  async _syncFolderViaPool(account, folder, limit = 100) {
+    await withFreshClient(account, async (client) => {
+      await this.syncMessages(account, client, folder, limit, false, true);
+    });
+  }
+
+  // Runs `work` as the one sync of this folder, with a claim that syncFolderOnDemand waits on.
+  // The claim is released before `done` settles, so a follow-up pass never finds its own claim.
+  _claimFolderSync(key, work) {
+    const entry = { followUp: null };
+    const task = (async () => {
+      try {
+        return await work();
+      } finally {
+        if (this.onDemandSyncing.get(key) === entry) this.onDemandSyncing.delete(key);
+      }
+    })();
+    entry.done = task.then(() => {}, () => {});
+    this.onDemandSyncing.set(key, entry);
+    return task;
   }
 
   // Periodically pull new mail into the special-use spam/Junk folder. Server-side spam filtering
@@ -6457,22 +6493,22 @@ export class ImapManager {
     if (!spamPath) return;
     const key = `${account.id}:${spamPath}`;
     if (this.onDemandSyncing.has(key)) return;
-    this.onDemandSyncing.add(key);
     const host = (account.imap_host || '').toLowerCase();
     try {
+      // Claimed only once a host slot is held: an on-demand sync of this folder waits on the
+      // claim, and it should not wait behind a backfill queue as well.
       await this._bgConnSem.acquire(host);
       try {
-        await withFreshClient(account, async (client) => {
-          await this.syncMessages(account, client, spamPath, 50, false, true);
+        if (this.onDemandSyncing.has(key)) return;
+        await this._claimFolderSync(key, async () => {
+          await this._syncFolderViaPool(account, spamPath, 50);
+          this.broadcast({ type: 'folders_synced', accountId: account.id }, account.user_id);
         });
-        this.broadcast({ type: 'folders_synced', accountId: account.id }, account.user_id);
       } finally {
         this._bgConnSem.release(host);
       }
     } catch (err) {
       console.warn(`Periodic spam sync failed for ${logAccount(account)}/${spamPath}:`, err.message);
-    } finally {
-      this.onDemandSyncing.delete(key);
     }
   }
 
@@ -7478,17 +7514,23 @@ export class ImapManager {
       throw err;
     }
 
+    // The server holds the copy from here on. A failed insert must not turn into a reported
+    // failure, which a retry would answer with a second copy, so the destination sync caches it.
+    let cached = false;
     if (newUid != null) {
-      await insertCopiedSibling(accountId, uid, fromFolder, toFolder, newUid);
+      cached = await insertCopiedSibling(accountId, uid, fromFolder, toFolder, newUid)
+        .then(id => id != null, err => {
+          console.error(`copyMessage: caching the copy at uid=${newUid} in ${JSON.stringify(toFolder)} failed, syncing the folder instead: ${err.message}`);
+          return false;
+        });
     }
 
-    if (newUid == null) {
+    if (!cached) {
       // Servers without UIDPLUS confirm COPY but cannot name its destination UID.
       // Pull the target so the folder
       // gains its local sibling row without waiting for the next backfill.
       this.syncFolderOnDemand(account, toFolder)
         .catch(err => console.warn(`Post-copy folder sync failed: ${err.message}`));
-      return null;
     }
 
     return newUid;
@@ -8217,14 +8259,7 @@ export class ImapManager {
       );
       // Resync cached folder counts from actual row data — reconcile deletes rows
       // without going through adjustFolderCounts, so counts would otherwise drift.
-      await query(
-        `UPDATE folders f
-         SET total_count  = (SELECT COUNT(*)              FROM messages m WHERE m.account_id = $1 AND m.folder = $2),
-             unread_count = (SELECT COUNT(*) FILTER (WHERE m.is_read = false)
-                                             FROM messages m WHERE m.account_id = $1 AND m.folder = $2)
-         WHERE f.account_id = $1 AND f.path = $2`,
-        [account.id, folder]
-      );
+      await recountFolderRows(account.id, folder);
       deletedCount += orphanUids.length;
     }
 

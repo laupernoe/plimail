@@ -28,7 +28,6 @@ const STUBS = {
   '/components/ContactsPage.jsx': 'export default function ContactsPage() { return null; }',
   '/components/WindowLayer.jsx': 'export default function WindowLayer() { return null; }',
   '/components/AdminPanel.jsx': 'export default function AdminPanel() { return null; }',
-  '/components/ElectronNotificationBridge.jsx': 'export default function ElectronNotificationBridge() { return null; }',
   '/components/InboxReplyDraftObserver.js': 'export default function InboxReplyDraftObserver() { return null; }',
   // An open socket, so the fallback list refresh for a socket that is down stays quiet.
   '/hooks/useWebSocket.js': 'export const useWebSocket = () => ({ current: { readyState: 1 } });',

@@ -198,13 +198,17 @@ export function subscribeAccent(fn) {
   return () => { _accentListeners.delete(fn); };
 }
 
-// Recompute everything derived from the accent (favicon, PWA theme-color, logo)
+// Recompute everything derived from the accent (favicon, logo)
 // from the *effective* accent. Called after both applyTheme and applyCustomCss so
 // the accent's source (preset theme or custom override) doesn't matter.
 function refreshAccentDerived() {
   const accent = getEffectiveAccent();
-  if (!accent.startsWith('#')) return; // favicon rasteriser + meta expect a hex colour
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', accent);
+  // The browser chrome follows the page background, not the accent
+  try {
+    const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-primary').trim();
+    if (bg) document.querySelector('meta[name="theme-color"]')?.setAttribute('content', bg);
+  } catch { /* computed style unavailable */ }
+  if (!accent.startsWith('#')) return; // favicon rasteriser expects a hex colour
   // Only invalidate the base favicon cache when the accent actually changed — the
   // double applyTheme at startup (localStorage then server prefs) usually repeats it.
   if (_baseAccent !== accent) {
@@ -254,7 +258,7 @@ export function applyTheme(themeName) {
     themeEl.textContent = `:root {\n${cssVars(THEMES[name].vars, '  ')}\n  color-scheme: ${effectiveKey === 'selfhostr-light' ? 'light' : 'dark'};\n}`;
   }
 
-  // Recompute favicon + PWA theme-color + logo from the *effective* accent. If a
+  // Recompute favicon + theme-color + logo from the *effective* accent. If a
   // custom-CSS override of --accent is present, getComputedStyle picks it up here;
   // applyCustomCss also re-runs this so an override applied afterwards is reflected.
   refreshAccentDerived();

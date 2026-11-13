@@ -148,7 +148,7 @@ export const useStore = create((set, get) => ({
         autoLockMinutes: 0, blockRemoteImages: true,
         imageWhitelist: { addresses: [], domains: [] }, shortcuts: {}, aiActions: null,
         hiddenFolders: {}, categorizationEnabled: false,
-        autoOpenReplyDrafts: false, afterRemove: 'next', darkEmailBodies: true,
+        autoOpenReplyDrafts: false, afterRemove: 'next', darkEmailBodies: true, undoSend: true,
         // Folder shortcuts name the previous user's accounts and folders. Left in place, the
         // next user's first favorite saved them into that user's own preferences.
         favoriteFolders: [], recentFolders: [], defaultSender: '', listSort: {},
@@ -549,6 +549,13 @@ export const useStore = create((set, get) => ({
     set({ autoOpenReplyDrafts: Boolean(value) });
     schedulePrefSave({ autoOpenReplyDrafts: Boolean(value) });
   },
+  // Undo send (#769): on holds an outgoing message for the undo window, off sends it at once.
+  undoSend: localStorage.getItem('mailflow_undo_send') !== 'false',
+  setUndoSend: value => {
+    localStorage.setItem('mailflow_undo_send', String(Boolean(value)));
+    set({ undoSend: Boolean(value) });
+    schedulePrefSave({ undoSend: Boolean(value) });
+  },
   composing: false,
   composeData: null,
   composeSession: 0,
@@ -714,6 +721,18 @@ export const useStore = create((set, get) => ({
     set({ language: lng });
     i18n.changeLanguage(lng);
     schedulePrefSave({ language: lng });
+  },
+
+  // Time format (#758): 'auto' follows the language as before, '12' / '24' force a
+  // 12- or 24-hour clock wherever formatDate.js renders a time. Read by that helper
+  // straight from localStorage, so the list and reading pane pick it up on render.
+  timeFormat: ['auto', '12', '24'].includes(localStorage.getItem('mailflow_time_format'))
+    ? localStorage.getItem('mailflow_time_format') : 'auto',
+  setTimeFormat: (val) => {
+    const v = ['auto', '12', '24'].includes(val) ? val : 'auto';
+    localStorage.setItem('mailflow_time_format', v);
+    set({ timeFormat: v });
+    schedulePrefSave({ timeFormat: v });
   },
 
   // How conversations are shown: 'off', 'list' (threads expand inline in the list) or
@@ -1165,6 +1184,10 @@ export const useStore = create((set, get) => ({
         localStorage.setItem('mailflow_auto_open_reply_drafts', String(prefs.autoOpenReplyDrafts));
         set({ autoOpenReplyDrafts: prefs.autoOpenReplyDrafts });
       }
+      if (typeof prefs.undoSend === 'boolean') {
+        localStorage.setItem('mailflow_undo_send', String(prefs.undoSend));
+        set({ undoSend: prefs.undoSend });
+      }
       if (prefs.notificationSound) {
         localStorage.setItem('mailflow_notification_sound', prefs.notificationSound);
         set({ notificationSound: prefs.notificationSound });
@@ -1248,6 +1271,10 @@ export const useStore = create((set, get) => ({
         localStorage.setItem('mailflow_language', prefs.language);
         set({ language: prefs.language });
         i18n.changeLanguage(prefs.language);
+      }
+      if (['auto', '12', '24'].includes(prefs.timeFormat)) {
+        localStorage.setItem('mailflow_time_format', prefs.timeFormat);
+        set({ timeFormat: prefs.timeFormat });
       }
       if (isConversationMode(prefs.conversationMode) || typeof prefs.threadedView === 'boolean') {
         const mode = resolveConversationMode(prefs);

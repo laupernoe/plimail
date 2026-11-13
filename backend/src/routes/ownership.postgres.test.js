@@ -38,9 +38,7 @@ const LIVE = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const DELETED = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 const IN_DISABLED = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 const LOCAL_BOOK = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
-const SYNCED_BOOK = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
 const LOCAL_CONTACT = '44444444-4444-4444-8444-444444444444';
-const SYNCED_CONTACT = '55555555-5555-4555-8555-555555555555';
 
 describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('ownership lookups through the routes on PostgreSQL', () => {
   let server, base;
@@ -90,10 +88,9 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('ownership lookups thro
         ('${LIVE}', '${ACCOUNT}', 1, 'INBOX', '<1@x>', 'Live', 'a@example.com', 'hi', false),
         ('${DELETED}', '${ACCOUNT}', 2, 'INBOX', '<2@x>', 'Gone', 'a@example.com', 'hi', true),
         ('${IN_DISABLED}', '${DISABLED_ACCOUNT}', 3, 'INBOX', '<3@x>', 'Old', 'a@example.com', 'hi', false);
-      INSERT INTO address_books (id, user_id, source) VALUES ('${LOCAL_BOOK}', 'owner', 'local'), ('${SYNCED_BOOK}', 'owner', 'carddav');
+      INSERT INTO address_books (id, user_id, source) VALUES ('${LOCAL_BOOK}', 'owner', 'local');
       INSERT INTO contacts (id, user_id, address_book_id, uid, display_name, emails, phones) VALUES
-        ('${LOCAL_CONTACT}', 'owner', '${LOCAL_BOOK}', 'l1', 'Local', '[]', '[]'),
-        ('${SYNCED_CONTACT}', 'owner', '${SYNCED_BOOK}', 's1', 'Synced', '[]', '[]')`);
+        ('${LOCAL_CONTACT}', 'owner', '${LOCAL_BOOK}', 'l1', 'Local', '[]', '[]')`);
   });
 
   const call = async (method, path, body) => {
@@ -104,7 +101,6 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('ownership lookups thro
     return { status: res.status, json: text ? JSON.parse(text) : null };
   };
   const notFound = { status: 404, json: { error: 'Message not found' } };
-  const readOnly = { status: 403, json: { error: 'This contact is synced from CardDAV and is read-only' } };
 
   it('serves a message, but not a deleted one', async () => {
     expect((await call('GET', `/mail/messages/${LIVE}`)).json).toMatchObject({ id: LIVE, subject: 'Live', account_name: 'Mine' });
@@ -133,14 +129,8 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('ownership lookups thro
     expect(imap.backfillAllFolders).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps a CardDAV contact read-only and lets a local one be edited and deleted', async () => {
-    expect((await call('GET', `/contacts/${SYNCED_CONTACT}`)).json).toMatchObject({ display_name: 'Synced', read_only: true });
-    expect((await call('GET', `/contacts/${LOCAL_CONTACT}`)).json).toMatchObject({ display_name: 'Local', read_only: false });
-    expect(await call('PATCH', `/contacts/${SYNCED_CONTACT}`, { displayName: 'Changed' })).toEqual(readOnly);
-    expect(await call('DELETE', `/contacts/${SYNCED_CONTACT}`)).toEqual(readOnly);
-    const { rows: [synced] } = await database.client.query('SELECT display_name FROM contacts WHERE id = $1', [SYNCED_CONTACT]);
-    expect(synced).toEqual({ display_name: 'Synced' });
-
+  it("lets the owner edit and delete a contact", async () => {
+    expect((await call('GET', `/contacts/${LOCAL_CONTACT}`)).json).toMatchObject({ display_name: 'Local' });
     expect(await call('PATCH', `/contacts/${LOCAL_CONTACT}`, { displayName: 'Changed' })).toMatchObject({ status: 200, json: { display_name: 'Changed' } });
     expect(await call('DELETE', `/contacts/${LOCAL_CONTACT}`)).toEqual({ status: 200, json: { ok: true } });
   });

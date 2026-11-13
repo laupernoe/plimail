@@ -2,7 +2,6 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/index.js';
 import { api } from '../utils/api.js';
-import { installCapacitorNativeBridge } from '../utils/capacitorNativeBridge.js';
 import { playNotificationSound } from '../utils/notificationSounds.js';
 import { accountAffectsUnifiedInbox } from '../utils/unifiedInbox.js';
 import { recordDiagEvent } from '../utils/diagEvents.js';
@@ -11,19 +10,6 @@ import { SOCKET_CAUGHT_UP_EVENT } from '../utils/resumeRefresh.js';
 
 function _applyServerCounts(counts) {
   useStore.getState().setUnreadCounts(counts);
-}
-
-async function _forwardNativeNewMailNotification(notification) {
-  await installCapacitorNativeBridge();
-  window.mailflowNative?.notifications?.showNewMail?.({
-    title: notification.title,
-    body: notification.body,
-    count: notification.count,
-    accountId: notification.accountId,
-    folder: notification.folder,
-    messageId: notification.messageId,
-    message: notification.message,
-  }).catch(() => {});
 }
 
 // Auth-related close codes that should not trigger reconnect
@@ -172,8 +158,6 @@ export function useWebSocket() {
             const { notificationSound, customSoundDataUrl } = useStore.getState();
             playNotificationSound(notificationSound, customSoundDataUrl);
           }
-
-          _forwardNativeNewMailNotification(notification);
         }
 
         if (messages && messages.length > 0) {

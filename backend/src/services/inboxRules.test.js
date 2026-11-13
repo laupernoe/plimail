@@ -1006,3 +1006,16 @@ describe('newMailPushPayload', () => {
     expect(payload).not.toHaveProperty('messageId');
   });
 });
+
+describe('newMailAlerts for a muted account (#762)', () => {
+  const a = { id: 'a' }, filed = { id: 'f', folder: 'Shops' };
+  it('raises no alert for inbox mail but still lists it', () => {
+    expect(newMailAlerts({ remaining: [a], accountMuted: true })).toEqual({ alertMessages: [], alertCount: 0, send: true });
+  });
+  it('still alerts for mail a Notify me rule filed', () => {
+    expect(newMailAlerts({ remaining: [], notifyMessages: [filed], accountMuted: true })).toEqual({ alertMessages: [filed], alertCount: 1, send: true });
+  });
+  it('is off by default', () => {
+    expect(newMailAlerts({ remaining: [a] }).alertCount).toBe(1);
+  });
+});

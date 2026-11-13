@@ -321,6 +321,8 @@
       "armed": "{{label}} — cliquez à nouveau pour télécharger quand même"
     },
     "downloadAll": "Tout télécharger",
+    "attachmentsShowAll": "Tout afficher ({{count}})",
+    "attachmentsShowFewer": "Afficher moins",
     "reply": "Répondre",
     "replyAll": "Répondre à tous",
     "replyOptions": "Options de réponse",
@@ -1184,6 +1186,8 @@
       "unifiedInboxSection": "Boîte de réception unifiée",
       "unifiedInboxEnabled": "Inclure dans la boîte unifiée",
       "unifiedInboxEnabledDesc": "Afficher les messages de ce compte dans Toutes les boîtes, la recherche unifiée et les compteurs de catégories.",
+      "notificationsEnabled": "Notifications de nouveaux messages",
+      "notificationsEnabledDesc": "Alerter pour les nouveaux messages de ce compte. Désactivé, aucune alerte push, bureau ou dans l’application n’est émise, mais la boîte de réception, les compteurs de non-lus et les règles continuent de fonctionner. Une règle « Me notifier » alerte toujours.",
       "categorizationSection": "Catégorisation des e-mails",
       "categorizationEnabled": "Activer la catégorisation",
       "categorizationEnabledDesc": "Classe les e-mails entrants dans des onglets de catégories. Désactivé par défaut.",
@@ -1240,6 +1244,11 @@
       "layoutDescription": "Choisissez comment la barre latérale, la liste des messages et le volet de lecture sont disposés",
       "language": "Langue",
       "languageDescription": "Choisissez la langue d'affichage de l'interface",
+      "timeFormat": "Format de l’heure",
+      "timeFormatDesc": "Choisissez une horloge de 12 ou 24 heures, ou suivez la langue.",
+      "timeFormatAuto": "Automatique",
+      "timeFormat12": "12 heures",
+      "timeFormat24": "24 heures",
       "fontSize": "Taille de police",
       "fontSizeDescription": "Redimensionne le texte de l'interface. 100 % est la valeur par défaut.",
       "fontSizeReset": "Réinitialiser à 100 %",
@@ -1251,6 +1260,8 @@
     },
     "messageList": {
       "autoOpenReplyDrafts": "Ouvrir automatiquement les réponses enregistrées à la sélection d’un message reçu",
+      "undoSend": "Annuler l’envoi",
+      "undoSendDesc": "Retient le courrier sortant pendant 10 secondes pour pouvoir l’annuler. Désactivez pour envoyer immédiatement.",
       "title": "Liste des messages",
       "senderFavicons": "Favicons des expéditeurs",
       "senderFaviconsDesc": "Afficher les icônes de site web pour les expéditeurs sans photo de contact. Seul le domaine de l'expéditeur, jamais son adresse e-mail complète, est envoyé à Twenty Icons.",
@@ -1873,7 +1884,6 @@
       "sourceCode": "Code source",
       "upstream": "Basé sur MailFlow"
     },
-    "businessNotice": {},
     "search": {
       "placeholder": "Rechercher dans les paramètres…",
       "noResults": "Aucun résultat pour « {{query}} »",
@@ -2146,7 +2156,25 @@
     "signedInGoogle": "Connecté avec Google en tant que {{email}}",
     "signedInNote": "Le serveur provient de cette connexion. Si le compte ne se connecte plus, reconnectez-vous.",
     "mailboxLabel": "Boîte aux lettres à ouvrir",
-    "mailboxHelp": "Pour une boîte partagée ou déléguée, saisissez son adresse. Laissez tel quel pour votre propre boîte."
+    "mailboxHelp": "Pour une boîte partagée ou déléguée, saisissez son adresse. Laissez tel quel pour votre propre boîte.",
+    "autodiscover": {
+      "button": "Trouver les réglages",
+      "looking": "Recherche des réglages de serveur pour cette adresse…",
+      "failed": "Aucun réglage trouvé pour cette adresse. Saisissez-les ci-dessous.",
+      "check": "Vérifiez-les avant d'ajouter le compte.",
+      "source": {
+        "ispdb": "Réglages de {{domain}} trouvés dans la base de données de Thunderbird.",
+        "autoconfig": "Réglages publiés par {{domain}}.",
+        "wellknown": "Réglages publiés sur le site web de {{domain}}.",
+        "srv": "Réglages trouvés dans les enregistrements DNS de {{domain}}.",
+        "mx": "Le courrier de {{domain}} est géré par un fournisseur connu, dont les réglages ont été remplis.",
+        "mxIspdb": "Réglages du fournisseur qui reçoit le courrier de {{domain}}, d'après la base de données de Thunderbird.",
+        "guess": "{{domain}} ne publie aucun réglage : voici les noms de serveur habituels, devinés."
+      },
+      "addCalendars": "Ajouter aussi les calendriers de ce compte, avec le même mot de passe",
+      "calendarsAt": "Serveur de calendrier trouvé : {{url}}",
+      "calendarsMailHost": "Le serveur de calendrier sera cherché sur les serveurs de courrier."
+    }
   },
   "googleSignIn": {
     "title": "Se connecter avec Google",

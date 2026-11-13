@@ -341,9 +341,10 @@ export async function applyInboxRules(messages, account, imapManager) {
 
 // What a sync alerts for (push, toast, sound) after the rules ran: new Inbox mail no rule silenced
 // with mark_read, and mail a "Notify me" rule filed elsewhere (#588). `send` is whether there is
-// anything to tell the client at all: new Inbox mail to list, or an alert.
-export function newMailAlerts({ remaining, mutedIds = new Set(), notifyMessages = [] }) {
-  const alertMessages = [...remaining.filter(m => !mutedIds.has(m.id)), ...notifyMessages];
+// anything to tell the client at all: new Inbox mail to list, or an alert. A muted account (#762)
+// alerts for nothing but mail a "Notify me" rule filed, so one sender can still come through.
+export function newMailAlerts({ remaining, mutedIds = new Set(), notifyMessages = [], accountMuted = false }) {
+  const alertMessages = [...(accountMuted ? [] : remaining.filter(m => !mutedIds.has(m.id))), ...notifyMessages];
   return { alertMessages, alertCount: alertMessages.length, send: remaining.length > 0 || notifyMessages.length > 0 };
 }
 

@@ -321,6 +321,8 @@
       "armed": "{{label}} — click again to download anyway"
     },
     "downloadAll": "Download all",
+    "attachmentsShowAll": "Show all ({{count}})",
+    "attachmentsShowFewer": "Show fewer",
     "reply": "Reply",
     "replyAll": "Reply All",
     "replyOptions": "Reply options",
@@ -1184,6 +1186,8 @@
       "unifiedInboxSection": "Unified Inbox",
       "unifiedInboxEnabled": "Include in Unified Inbox",
       "unifiedInboxEnabledDesc": "Show messages from this account in All Inboxes, unified search, and category counts.",
+      "notificationsEnabled": "New mail notifications",
+      "notificationsEnabledDesc": "Alert for new mail in this account. When off, no push, desktop or in-app alert is raised, but the inbox, unread counts and rules still work. A “Notify me” rule still alerts.",
       "categorizationSection": "Email Categorization",
       "categorizationEnabled": "Enable inbox categorization",
       "categorizationEnabledDesc": "Sort incoming emails into category tabs. Disabled by default.",
@@ -1240,6 +1244,11 @@
       "layoutDescription": "Choose how the sidebar, message list, and reading pane are arranged",
       "language": "Language",
       "languageDescription": "Choose the display language for the interface",
+      "timeFormat": "Time format",
+      "timeFormatDesc": "Choose a 12-hour or 24-hour clock, or follow the language.",
+      "timeFormatAuto": "Automatic",
+      "timeFormat12": "12-hour",
+      "timeFormat24": "24-hour",
       "fontSize": "Font Size",
       "fontSizeDescription": "Scale the interface text. 100% is the default.",
       "fontSizeReset": "Reset to 100%",
@@ -1251,6 +1260,8 @@
     },
     "messageList": {
       "autoOpenReplyDrafts": "Automatically open saved replies when selecting inbox messages",
+      "undoSend": "Undo send",
+      "undoSendDesc": "Hold outgoing mail for 10 seconds so it can still be undone. Turn off to send immediately.",
       "title": "Message List",
       "senderFavicons": "Sender favicons",
       "senderFaviconsDesc": "Show website icons for senders without a contact photo. Only the sender's domain, never their full email address, is sent to Twenty Icons.",
@@ -1873,7 +1884,6 @@
       "sourceCode": "Source code",
       "upstream": "Based on MailFlow"
     },
-    "businessNotice": {},
     "search": {
       "placeholder": "Search settings…",
       "noResults": "No settings match “{{query}}”",
@@ -2146,7 +2156,25 @@
     "signedInGoogle": "Signed in with Google as {{email}}",
     "signedInNote": "The server comes from this sign-in. If the account stops connecting, sign in again.",
     "mailboxLabel": "Mailbox to open",
-    "mailboxHelp": "For a shared or delegated mailbox, enter its address. Leave as is for your own mailbox."
+    "mailboxHelp": "For a shared or delegated mailbox, enter its address. Leave as is for your own mailbox.",
+    "autodiscover": {
+      "button": "Find settings",
+      "looking": "Looking up the server settings for this address…",
+      "failed": "No settings found for this address. Enter them below.",
+      "check": "Check them before adding the account.",
+      "source": {
+        "ispdb": "Settings for {{domain}} found in Thunderbird's database.",
+        "autoconfig": "Settings published by {{domain}}.",
+        "wellknown": "Settings published on the {{domain}} website.",
+        "srv": "Settings found in the DNS records of {{domain}}.",
+        "mx": "The mail for {{domain}} is handled by a known provider, whose settings are filled in.",
+        "mxIspdb": "Settings of the provider that receives the mail for {{domain}}, from Thunderbird's database.",
+        "guess": "{{domain}} publishes no settings: these are the usual server names, guessed."
+      },
+      "addCalendars": "Also add the calendars of this account, with the same password",
+      "calendarsAt": "Calendar server found: {{url}}",
+      "calendarsMailHost": "The calendar server is looked for on the mail servers."
+    }
   },
   "googleSignIn": {
     "title": "Sign in with Google",

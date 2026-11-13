@@ -375,6 +375,11 @@ describe('attachment viewer', () => {
   }
   const chip = filename => [...document.querySelectorAll('button')].find(b => b.textContent.includes(filename));
   async function clickChip(filename) {
+    // A long list starts collapsed (#653); a chip it hides needs the list expanded first.
+    if (!chip(filename)) {
+      const showAll = [...document.querySelectorAll('button')].find(b => b.textContent.includes('message.attachmentsShowAll'));
+      if (showAll) await React.act(async () => { showAll.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true, button: 0 })); });
+    }
     await React.act(async () => {
       chip(filename).dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
     });

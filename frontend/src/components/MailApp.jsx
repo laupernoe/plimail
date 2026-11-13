@@ -27,6 +27,7 @@ import { scheduledFeed } from '../utils/scheduledFeed.js';
 import { noticeToast, scheduledLinkId } from '../utils/scheduledView.js';
 import { openScheduledView } from '../utils/scheduledCompose.js';
 import { openSentMessage } from '../utils/openSentMessage.js';
+import { descaleCss } from '../utils/uiScaleCss.js';
 
 // Opens the Scheduled view at one message, highlighted (a notification link or a toast's Open).
 function openScheduledMessage(id) {
@@ -39,7 +40,6 @@ const WindowLayer  = lazy(() => import('./WindowLayer.jsx'));
 
 const ComposeModal = lazy(() => import('./ComposeModal.jsx'));
 const AdminPanel   = lazy(() => import('./AdminPanel.jsx'));
-const ElectronNotificationBridge = lazy(() => import('./ElectronNotificationBridge.jsx'));
 
 const lazyFallback = (
   <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
@@ -109,7 +109,6 @@ export default function MailApp() {
   }, [autoLockMinutes, lockScreen]);
 
   const scale = fontSize / 100;
-  const hasNativeBridge = Boolean(window.mailflowNative || window.Capacitor?.isNativePlatform?.());
 
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -492,7 +491,6 @@ export default function MailApp() {
       if (showAppBadge && total > 0) navigator.setAppBadge(total).catch(() => {});
       else navigator.clearAppBadge().catch(() => {});
     }
-    window.mailflowNative?.badges?.setUnreadCount?.(total).catch(() => {});
   }, [unreadCounts, selectedAccountId, showAppBadge, showFaviconBadge]);
 
   // ── Global keyboard shortcut listener ──────────────────────────────────────
@@ -510,46 +508,6 @@ export default function MailApp() {
   useEffect(() => { mobileSidebarOpenRef.current = mobileSidebarOpen; }, [mobileSidebarOpen]);
   useEffect(() => { showShortcutHelpRef.current = showShortcutHelp; }, [showShortcutHelp]);
   useEffect(() => { paletteOpenRef.current = paletteOpen; }, [paletteOpen]);
-
-  useEffect(() => {
-    window.__mailflowHandleAndroidBack = () => {
-      if (composingRef.current) {
-        useStore.getState().closeCompose();
-        return true;
-      }
-
-      if (showAdminRef.current) {
-        setShowAdmin(false);
-        return true;
-      }
-
-      if (paletteOpenRef.current) {
-        setPaletteOpen(false);
-        return true;
-      }
-
-      if (showShortcutHelpRef.current) {
-        setShowShortcutHelp(false);
-        return true;
-      }
-
-      if (mobileSidebarOpenRef.current) {
-        setMobileSidebarOpen(false);
-        return true;
-      }
-
-      if (selectedMessageIdRef.current) {
-        setSelectedMessage(null);
-        return true;
-      }
-
-      return false;
-    };
-
-    return () => {
-      if (window.__mailflowHandleAndroidBack) delete window.__mailflowHandleAndroidBack;
-    };
-  }, [setMobileSidebarOpen, setSelectedMessage, setShowAdmin]);
 
   useEffect(() => {
     if (isMobile) return;
@@ -764,7 +722,7 @@ export default function MailApp() {
       width: '100vw', height: 'var(--app-height, 100svh)',
       overflow: 'hidden', background: 'var(--bg-primary)',
     }}>
-    <div style={{
+    <div data-ui-scale-root="" style={{
       display: 'flex',
       // Sized in CSS from the 100dvh parent: an innerHeight read on resize is stale during
       // a rotation in an iOS home-screen app, and the sidebar's bottom fell off screen.
@@ -773,6 +731,7 @@ export default function MailApp() {
       ...(scale !== 1 && {
         transform: `scale(${scale})`,
         transformOrigin: 'top left',
+        '--ui-scale': scale,
       }),
       overflow: 'hidden',
       background: 'var(--bg-primary)',
@@ -897,7 +856,6 @@ export default function MailApp() {
       <Suspense fallback={lazyFallback}>{showAdmin && <AdminPanel />}</Suspense>
       {/* Detached message windows (#219) — desktop only. */}
       {!isMobile && <Suspense fallback={null}><WindowLayer /></Suspense>}
-      <Suspense fallback={null}>{hasNativeBridge && <ElectronNotificationBridge />}</Suspense>
       <NotificationToasts />
       <CommandPalette open={paletteOpen} labelPickerMessage={labelPickerMessage}
         onClose={() => { setPaletteOpen(false); setLabelPickerMessage(null); }} />
@@ -969,7 +927,7 @@ function ShortcutHelpOverlay({ shortcuts, onClose }) {
           borderRadius: 14,
           boxShadow: 'var(--shadow-modal)',
           width: '100%', maxWidth: 680,
-          maxHeight: '80vh', overflow: 'auto',
+          maxHeight: descaleCss('80vh'), overflow: 'auto',
           padding: '24px 28px',
           animation: 'modal-enter var(--motion-normal) var(--ease-emphasized) backwards',
         }}

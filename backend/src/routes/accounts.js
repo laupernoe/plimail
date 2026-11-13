@@ -13,6 +13,8 @@ import { normalizeAddressList } from '../utils/addressList.js';
 import { reportConnect } from '../services/connectReport.js';
 import { findOwnedAccount, findOwnedAlias } from '../services/ownership.js';
 import { NEXT_ACCOUNT_SORT_ORDER, setAccountOrder } from '../services/accountOrder.js';
+import { discoverAccountSettings } from '../services/accountAutodiscover.js';
+import { consume } from '../services/rateLimiter.js';
 
 // Serialize an account's reconnect triggers so a rapid settings change (e.g. an
 // enabled double-toggle) can't fire two overlapping disconnect→connect chains —
@@ -74,14 +76,14 @@ export const SAFE_FIELDS = [
   'imap_host', 'imap_port', 'imap_tls', 'imap_skip_tls_verify',
   'smtp_host', 'smtp_port', 'smtp_tls',
   'auth_user', 'smtp_auth_user', 'oauth_provider', 'oauth_public_client', 'enabled',
-  'include_in_unified_inbox',
+  'include_in_unified_inbox', 'notifications_muted',
   'last_sync', 'sync_error', 'sync_error_code', 'sort_order', 'folder_mappings',
   'signature', 'signature_enabled', 'created_at', 'categorization_enabled',
   'auto_cc_addresses', 'auto_bcc_addresses',
 ];
 // Columns PUT /:id may write. The settings form sends back what GET returned, so every
 // non-secret one must be in SAFE_FIELDS or saving an unrelated edit would write it as empty.
-export const ACCOUNT_UPDATE_FIELDS = ['name', 'sender_name', 'color', 'icon', 'enabled', 'include_in_unified_inbox', 'auth_user', 'auth_pass', 'sort_order', 'imap_host', 'imap_port', 'imap_tls', 'imap_skip_tls_verify', 'smtp_host', 'smtp_port', 'smtp_tls', 'smtp_auth_user', 'smtp_auth_pass', 'folder_mappings', 'signature', 'signature_enabled', 'categorization_enabled', 'auto_cc_addresses', 'auto_bcc_addresses'];
+export const ACCOUNT_UPDATE_FIELDS = ['name', 'sender_name', 'color', 'icon', 'enabled', 'include_in_unified_inbox', 'notifications_muted', 'auth_user', 'auth_pass', 'sort_order', 'imap_host', 'imap_port', 'imap_tls', 'imap_skip_tls_verify', 'smtp_host', 'smtp_port', 'smtp_tls', 'smtp_auth_user', 'smtp_auth_pass', 'folder_mappings', 'signature', 'signature_enabled', 'categorization_enabled', 'auto_cc_addresses', 'auto_bcc_addresses'];
 // What an API token sees of an account (#617): enough to name it, pick a From and draft as the
 // composer does (signature on or off, the automatic Cc and Bcc), and nothing of its settings:
 // no hosts, ports, TLS or login names, signatures or folder mappings.
@@ -239,6 +241,32 @@ router.patch('/order', async (req, res) => {
   }
 });
 
+// The servers to suggest for an address (Add account). Takes the address only: a password in
+// the body is ignored, and nothing found here is saved until POST / validates it.
+const AUTODISCOVER_PER_MINUTE = 20;
+router.post('/autodiscover', async (req, res) => {
+  const email = req.body?.email;
+  if (typeof email !== 'string' || !email.trim() || email.length > 254) {
+    return res.status(400).json({ error: 'A valid email address is required' });
+  }
+  const rate = await consume(`autodiscover:${req.session.userId}`, AUTODISCOVER_PER_MINUTE, 60_000);
+  if (rate.limited) {
+    res.set('Retry-After', String(Math.ceil(rate.resetMs / 1000)));
+    return res.status(429).json({ error: 'Too many lookups, try again in a minute' });
+  }
+  const policy = await getConnectionPolicy();
+  try {
+    const found = await discoverAccountSettings(email, {
+      allowPrivate: policy.allowPrivateHosts, allowNonstandardPorts: policy.allowNonstandardPorts,
+    });
+    if (!found) return res.status(400).json({ error: 'A valid email address is required' });
+    res.json(found);
+  } catch (err) {
+    console.warn('POST /accounts/autodiscover failed:', err.message);
+    res.status(502).json({ error: 'Could not look up the settings for this address' });
+  }
+});
+
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const updates = { ...req.body };
@@ -313,7 +341,7 @@ router.put('/:id', async (req, res) => {
       const value = ((key === 'auth_pass' || key === 'smtp_auth_pass') && updates[key]) ? encrypt(updates[key])
         : (key === 'smtp_auth_user' || key === 'smtp_auth_pass') ? (updates[key] || null)
         : (key === 'signature') ? sanitizeSignature(updates[key]) || null
-        : (key === 'include_in_unified_inbox') ? !!updates[key]
+        : (key === 'include_in_unified_inbox' || key === 'notifications_muted') ? !!updates[key]
         : updates[key];
       values.push(value);
     }
