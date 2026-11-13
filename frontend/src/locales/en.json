@@ -991,15 +991,26 @@
     "textColor": "Text color",
     "link": "Insert link",
     "imageUrl": "Image from URL",
-    "imageUpload": "Upload image (max 300 KB)",
+    "imageUpload": "Insert image (PNG, JPEG, GIF or WebP)",
+    "imageUploading": "Uploading image…",
     "sourceMode": "Edit HTML source",
     "visualMode": "Visual editor",
     "linkPrompt": "Link URL:",
     "imageUrlPrompt": "Image URL:",
     "imageTooLarge": {
       "title": "Image too large",
-      "body": "Must be under 300 KB. Use an external URL for larger images."
-    }
+      "body": "Must be under 5 MB. It is scaled down to 600 px wide when uploaded."
+    },
+    "imageWrongType": {
+      "title": "Image type not supported",
+      "body": "Use a PNG, JPEG, GIF or WebP image."
+    },
+    "imageUploadFailed": "Could not upload the image",
+    "imageSize": "Size",
+    "imageSmall": "Small",
+    "imageMedium": "Medium",
+    "imageFull": "Full size",
+    "imageRemove": "Remove"
   },
   "profile": {
     "title": "Edit Profile",

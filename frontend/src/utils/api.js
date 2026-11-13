@@ -26,7 +26,11 @@ async function request(method, path, body, extraHeaders) {
     headers: { [CSRF_HEADER]: CSRF_VALUE, ...(extraHeaders || {}) },
     ...(pageClosing ? { keepalive: true } : {}),
   };
-  if (body) {
+  if (typeof Blob !== 'undefined' && body instanceof Blob) {
+    // A file goes up as itself, with its own type (an image uploaded into a signature).
+    opts.headers['Content-Type'] = body.type || 'application/octet-stream';
+    opts.body = body;
+  } else if (body) {
     opts.headers['Content-Type'] = 'application/json';
     opts.body = JSON.stringify(body);
   }
@@ -188,6 +192,8 @@ export const api = {
   put: (path, body) => request('PUT', path, body),
   patch: (path, body) => request('PATCH', path, body),
   delete: (path) => request('DELETE', path),
+  // Resolves with { id, url, width, height }; url is what the signature's <img src> names.
+  uploadSignatureImage: (file) => request('POST', '/signature-images', file),
 
   // Auth
   login: (username, password) => request('POST', '/auth/login', { username, password }),
