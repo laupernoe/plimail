@@ -2001,7 +2001,14 @@
       "modelsPriceNote": "Dostupné modely: {{total}}. Ceny jsou v amerických dolarech za milion tokenů (vstup / výstup).",
       "testSave": "Uložit a otestovat připojení",
       "featureComposeHint": "V editoru: psaní konceptu, vylepšení, zkrácení, oprava pravopisu a zpřehlednění zprávy.",
-      "featureSummarizeHint": "V okně čtení: shrnutí zprávy a spouštění vlastních akcí AI nad ní."
+      "featureSummarizeHint": "V okně čtení: shrnutí zprávy a spouštění vlastních akcí AI nad ní.",
+      "connectionMethodAnthropic": "Anthropic (Claude)",
+      "anthropicWhy": "Používá klíč API Anthropic, účtovaný podle využití. Předplatné Claude.ai (Pro nebo Max) nelze připojit k jiným aplikacím, proto vytvořte klíč v konzoli Anthropic.",
+      "anthropicKey": "Klíč API Anthropic",
+      "anthropicKeyPh": "sk-ant-…",
+      "anthropicGetKey": "Vytvořit klíč",
+      "anthropicModelHaiku": "Claude Haiku 5.5 (rychlý, nejlevnější)",
+      "anthropicModelSonnet": "Claude Sonnet 5.5 (schopnější)"
     },
     "aiActions": {
       "description": "Vytvořte si vlastní akce AI. Při čtení zprávy se zobrazí v nabídce AI vedle možnosti Shrnout. Pokyn každé akce se použije na obsah zprávy.",

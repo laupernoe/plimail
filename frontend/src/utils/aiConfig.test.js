@@ -28,6 +28,7 @@ describe('AI connection choices', () => {
       { value: 'openrouter', labelKey: 'admin.ai.connectionMethodOpenrouter' },
       { value: 'api', labelKey: 'admin.ai.connectionMethodApi' },
       { value: 'account', labelKey: 'admin.ai.connectionMethodAccount' },
+      { value: 'anthropic', labelKey: 'admin.ai.connectionMethodAnthropic' },
     ]);
     assert.deepEqual(AI_ACCOUNT_PROVIDER_OPTIONS, [
       { value: 'chatgpt', labelKey: 'admin.ai.subscriptionProviderChatgpt' },
@@ -135,6 +136,7 @@ describe('normalizeAiForm', () => {
       apiKeyConfig: { baseUrl: '', apiKey: '', model: '' },
       chatgptConfig: { model: 'gpt-5.6-luna' },
       openrouterConfig: { apiKey: '', model: 'mistralai/mistral-nemo' },
+      anthropicConfig: { apiKey: '', model: 'claude-haiku-5-5' },
       features: { compose: true, summarize: true },
       newUsersEnabled: true,
     });
@@ -154,6 +156,7 @@ describe('normalizeAiForm', () => {
       apiKeyConfig: { baseUrl: 'http://ollama:11434/v1', apiKey: '••••••••', model: 'llama3' },
       chatgptConfig: { model: 'gpt-5.6-luna' },
       openrouterConfig: { apiKey: '', model: 'mistralai/mistral-nemo' },
+      anthropicConfig: { apiKey: '', model: 'claude-haiku-5-5' },
       features: { compose: false, summarize: true },
       newUsersEnabled: true,
     });
@@ -172,6 +175,7 @@ describe('normalizeAiForm', () => {
       apiKeyConfig: { baseUrl: 'https://api.example/v1', apiKey: '••••••••', model: 'fallback' },
       chatgptConfig: { model: 'gpt-5.4' },
       openrouterConfig: { apiKey: '', model: 'mistralai/mistral-nemo' },
+      anthropicConfig: { apiKey: '', model: 'claude-haiku-5-5' },
       features: { compose: true, summarize: true },
       newUsersEnabled: true,
     });
@@ -288,6 +292,7 @@ describe('buildAiSavePayload', () => {
       apiKeyConfig: { baseUrl: 'https://api.example/v1', apiKey: '••••••••', model: 'fallback' },
       chatgptConfig: { model: 'gpt-5.4-mini' },
       openrouterConfig: { apiKey: '', model: 'mistralai/mistral-nemo' },
+      anthropicConfig: { apiKey: '', model: 'claude-haiku-5-5' },
       features: { compose: true, summarize: true },
       newUsersEnabled: true,
     });
@@ -310,6 +315,7 @@ describe('buildAiSavePayload', () => {
       apiKeyConfig: { baseUrl: 'https://api.example/v1', apiKey: '••••••••', model: 'fallback' },
       chatgptConfig: { model: 'gpt-5.4-mini' },
       openrouterConfig: { apiKey: '', model: 'mistralai/mistral-nemo' },
+      anthropicConfig: { apiKey: '', model: 'claude-haiku-5-5' },
       features: { compose: true, summarize: true },
       newUsersEnabled: true,
     });
@@ -473,5 +479,29 @@ describe('OpenRouter', () => {
     assert.deepEqual(filterOpenRouterModels(models, 'claude haiku').map(m => m.id), ['anthropic/claude-3.5-haiku']);
     assert.equal(filterOpenRouterModels(models, '').length, 2);
     assert.equal(filterOpenRouterModels(models, 'nope').length, 0);
+  });
+});
+
+describe('Anthropic (Claude)', () => {
+  it('offers Haiku, the default, and Sonnet only', () => {
+    assert.deepEqual(aiConfig.ANTHROPIC_MODEL_OPTIONS.map(o => o.value), ['claude-haiku-5-5', 'claude-sonnet-5-5']);
+    const form = selectAiConnectionMethod(normalizeAiForm(), 'anthropic');
+    assert.equal(form.anthropicConfig.model, 'claude-haiku-5-5');
+    assert.equal(normalizeAiForm({ anthropicConfig: { model: 'claude-opus-5-5' } }).anthropicConfig.model, 'claude-haiku-5-5');
+  });
+
+  it('infers the method from a stored provider and maps it back on save', () => {
+    const form = normalizeAiForm({ provider: 'anthropic', anthropicConfig: { apiKey: '••••••••', model: 'claude-sonnet-5-5' } });
+    assert.equal(form.connectionMethod, 'anthropic');
+    const payload = buildAiSavePayload({ ...form, anthropicConfig: { apiKey: ' sk-ant-1 ', model: 'claude-sonnet-5-5' } });
+    assert.equal(payload.provider, 'anthropic');
+    assert.deepEqual(payload.anthropicConfig, { apiKey: 'sk-ant-1', model: 'claude-sonnet-5-5' });
+  });
+
+  it('needs a key and one of the two models', () => {
+    const base = { enabled: true, connectionMethod: 'anthropic' };
+    assert.equal(isAiFormValid({ ...base, anthropicConfig: { apiKey: 'sk-ant-1', model: 'claude-haiku-5-5' } }), true);
+    assert.equal(isAiFormValid({ ...base, anthropicConfig: { apiKey: '', model: 'claude-haiku-5-5' } }), false);
+    assert.equal(isAiFormValid({ ...base, anthropicConfig: { apiKey: 'k', model: 'claude-opus-5-5' } }), false);
   });
 });

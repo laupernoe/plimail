@@ -1622,7 +1622,14 @@
       "modelsPriceNote": "{{total}} Modelle verfügbar. Preise in US-Dollar pro Million Tokens (Eingabe / Ausgabe).",
       "testSave": "Speichern und Verbindung testen",
       "featureComposeHint": "Im Editor: Entwurf schreiben, verbessern, kürzen, Rechtschreibung korrigieren und eine Nachricht klarer formulieren.",
-      "featureSummarizeHint": "Im Lesebereich: eine Nachricht zusammenfassen und eigene KI-Aktionen darauf ausführen."
+      "featureSummarizeHint": "Im Lesebereich: eine Nachricht zusammenfassen und eigene KI-Aktionen darauf ausführen.",
+      "connectionMethodAnthropic": "Anthropic (Claude)",
+      "anthropicWhy": "Verwendet einen Anthropic-API-Schlüssel, abgerechnet nach Nutzung. Ein Claude.ai-Abo (Pro oder Max) lässt sich nicht mit anderen Apps verbinden, erstellen Sie daher einen Schlüssel in der Anthropic Console.",
+      "anthropicKey": "Anthropic-API-Schlüssel",
+      "anthropicKeyPh": "sk-ant-…",
+      "anthropicGetKey": "Schlüssel erstellen",
+      "anthropicModelHaiku": "Claude Haiku 5.5 (schnell, am günstigsten)",
+      "anthropicModelSonnet": "Claude Sonnet 5.5 (leistungsfähiger)"
     },
     "aiActions": {
       "description": "Erstellen Sie eigene KI-Aktionen. Sie erscheinen beim Lesen einer Nachricht im KI-Menü neben „Zusammenfassen“. Der Prompt jeder Aktion wird auf den Nachrichteninhalt angewendet.",

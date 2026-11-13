@@ -1697,7 +1697,14 @@
       "modelsPriceNote": "{{total}} modèles disponibles. Les prix sont en dollars US par million de tokens (entrée / sortie).",
       "testSave": "Enregistrer et tester la connexion",
       "featureComposeHint": "Dans l'éditeur : rédiger un brouillon, améliorer, raccourcir, corriger l'orthographe et rendre un message plus clair.",
-      "featureSummarizeHint": "Dans le volet de lecture : résumer un message et lancer vos propres actions IA dessus."
+      "featureSummarizeHint": "Dans le volet de lecture : résumer un message et lancer vos propres actions IA dessus.",
+      "connectionMethodAnthropic": "Anthropic (Claude)",
+      "anthropicWhy": "Utilise une clé API Anthropic, facturée à l'usage. Un abonnement Claude.ai (Pro ou Max) ne peut pas être connecté à d'autres applications : créez une clé dans la console Anthropic.",
+      "anthropicKey": "Clé API Anthropic",
+      "anthropicKeyPh": "sk-ant-…",
+      "anthropicGetKey": "Créer une clé",
+      "anthropicModelHaiku": "Claude Haiku 5.5 (rapide, le moins cher)",
+      "anthropicModelSonnet": "Claude Sonnet 5.5 (plus performant)"
     },
     "aiActions": {
       "description": "Créez vos propres actions IA. Elles apparaissent dans le menu IA lors de la lecture d'un message, à côté de Résumer. Le prompt de chaque action est appliqué au contenu du message.",

@@ -1697,7 +1697,14 @@
       "modelsPriceNote": "사용 가능한 모델 {{total}}개. 가격은 100만 토큰당 미국 달러입니다(입력 / 출력).",
       "testSave": "저장하고 연결 테스트",
       "featureComposeHint": "작성 창에서: 초안 작성, 다듬기, 간결하게, 맞춤법 수정, 메시지를 더 명확하게 만들기.",
-      "featureSummarizeHint": "읽기 창에서: 메시지 요약 및 직접 만든 AI 동작 실행."
+      "featureSummarizeHint": "읽기 창에서: 메시지 요약 및 직접 만든 AI 동작 실행.",
+      "connectionMethodAnthropic": "Anthropic (Claude)",
+      "anthropicWhy": "사용량에 따라 요금이 부과되는 Anthropic API 키를 사용합니다. Claude.ai 구독(Pro 또는 Max)은 다른 앱에 연결할 수 없으므로 Anthropic 콘솔에서 키를 만드세요.",
+      "anthropicKey": "Anthropic API 키",
+      "anthropicKeyPh": "sk-ant-…",
+      "anthropicGetKey": "키 만들기",
+      "anthropicModelHaiku": "Claude Haiku 5.5 (빠름, 가장 저렴)",
+      "anthropicModelSonnet": "Claude Sonnet 5.5 (더 뛰어남)"
     },
     "aiActions": {
       "remove": "제거",

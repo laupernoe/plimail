@@ -1697,7 +1697,14 @@
       "modelsPriceNote": "共 {{total}} 个可用模型。价格单位为美元每百万 token（输入 / 输出）。",
       "testSave": "保存并测试连接",
       "featureComposeHint": "在写信界面：撰写草稿、润色、缩短、纠正拼写，以及让邮件更清晰。",
-      "featureSummarizeHint": "在阅读窗格：总结邮件，并对其运行你自己的 AI 操作。"
+      "featureSummarizeHint": "在阅读窗格：总结邮件，并对其运行你自己的 AI 操作。",
+      "connectionMethodAnthropic": "Anthropic (Claude)",
+      "anthropicWhy": "使用按用量计费的 Anthropic API 密钥。Claude.ai 订阅（Pro 或 Max）无法连接到其他应用，请在 Anthropic 控制台中创建密钥。",
+      "anthropicKey": "Anthropic API 密钥",
+      "anthropicKeyPh": "sk-ant-…",
+      "anthropicGetKey": "创建密钥",
+      "anthropicModelHaiku": "Claude Haiku 5.5（快速，最便宜）",
+      "anthropicModelSonnet": "Claude Sonnet 5.5（能力更强）"
     },
     "aiActions": {
       "description": "创建你自己的 AI 操作。它们会在阅读邮件时出现在 AI 菜单中，与“摘要”并列。每个操作的提示词会应用于邮件内容。",

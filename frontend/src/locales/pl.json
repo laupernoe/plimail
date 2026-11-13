@@ -1716,7 +1716,14 @@
       "modelsPriceNote": "Dostępne modele: {{total}}. Ceny w dolarach amerykańskich za milion tokenów (wejście / wyjście).",
       "testSave": "Zapisz i przetestuj połączenie",
       "featureComposeHint": "W edytorze: pisanie szkicu, ulepszanie, skracanie, poprawianie pisowni i wyjaśnianie wiadomości.",
-      "featureSummarizeHint": "W panelu czytania: streszczanie wiadomości i uruchamianie na niej własnych akcji AI."
+      "featureSummarizeHint": "W panelu czytania: streszczanie wiadomości i uruchamianie na niej własnych akcji AI.",
+      "connectionMethodAnthropic": "Anthropic (Claude)",
+      "anthropicWhy": "Używa klucza API Anthropic, rozliczanego za użycie. Subskrypcji Claude.ai (Pro lub Max) nie można połączyć z innymi aplikacjami, więc utwórz klucz w konsoli Anthropic.",
+      "anthropicKey": "Klucz API Anthropic",
+      "anthropicKeyPh": "sk-ant-…",
+      "anthropicGetKey": "Utwórz klucz",
+      "anthropicModelHaiku": "Claude Haiku 5.5 (szybki, najtańszy)",
+      "anthropicModelSonnet": "Claude Sonnet 5.5 (bardziej zaawansowany)"
     },
     "aiActions": {
       "description": "Utwórz własne działania AI. Pojawią się w menu AI podczas czytania wiadomości, obok działania „Podsumuj”. Monit każdego działania zostanie zastosowany do treści wiadomości.",
