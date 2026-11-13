@@ -6298,7 +6298,7 @@ const TAB_GROUPS = [
   { id: 'mail', labelKey: 'admin.tabs.groupMail', tabIds: ['accounts', 'rules', 'categories'] },
   { id: 'calendar', labelKey: 'admin.tabs.groupCalendar', tabIds: ['calendar-accounts', 'calendar-list'] },
   { id: 'preferences', labelKey: 'admin.tabs.groupPreferences', tabIds: ['appearance', 'behavior', 'notifications', 'shortcuts', 'security'] },
-  { id: 'ai-extensions', labelKey: 'admin.tabs.groupAiExtensions', tabIds: ['ai-actions', 'ai'] },
+  { id: 'ai', labelKey: 'admin.tabs.groupAi', tabIds: ['ai-actions', 'ai'] },
   { id: 'admin', labelKey: 'admin.tabs.groupAdmin', tabIds: ['users', 'sso', 'mail-signin', 'backup'] },
 ];
 
@@ -6347,7 +6347,7 @@ const TABS = [
     id: 'security', labelKey: 'admin.tabs.security',
     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
   },
-  // AI & Extensions
+  // AI
   {
     id: 'ai-actions', labelKey: 'admin.tabs.aiActions',
     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8 19 13M15 9h.01M17.8 6.2 19 5M3 21l9-9M12.2 6.2 11 5"/></svg>,
@@ -8006,7 +8006,7 @@ function makeSearchIndex(t) {
     { label: t('mailSignIn.ms.title'), keywords: ['microsoft', 'outlook', 'hotmail', '365', 'oauth', 'azure', 'entra', 'client id', 'tenant', 'ms365', 'office', 'shared app', 'sign in', 'email providers', 'mailbox', 'mail sign-in'], tab: 'mail-signin', adminOnly: true, breadcrumb: t('admin.tabs.mailSignIn') },
     { label: t('admin.integrations.google.title'), keywords: ['google', 'gmail', 'workspace', 'oauth', 'client id', 'sign in', 'email providers', 'mailbox'], tab: 'mail-signin', adminOnly: true, breadcrumb: t('admin.tabs.mailSignIn') },
     // Integrations
-    { label: t('admin.ai.title'), keywords: ['ai', 'artificial intelligence', 'chatgpt', 'ollama', 'llm', 'language model', 'summarize', 'draft', 'compose assistant', 'openai', 'local ai', 'inference', 'gpt'], tab: 'ai', adminOnly: true, breadcrumb: tabLabel('ai') },
+    { label: t('admin.ai.title'), keywords: ['ai', 'artificial intelligence', 'chatgpt', 'ollama', 'llm', 'language model', 'summarize', 'draft', 'compose assistant', 'openai', 'local ai', 'inference', 'gpt', 'openrouter', 'mistral', 'model'], tab: 'ai', adminOnly: true, breadcrumb: tabLabel('ai') },
     { label: t('admin.categories.title'), keywords: ['categories', 'categorize', 'newsletter', 'promotion', 'social', 'automated', 'inbox tabs', 'sort emails', 'classify'], tab: 'categories', breadcrumb: tabLabel('categories') },
     // Security
     { label: t('admin.security.totpTitle'), keywords: ['2fa', 'totp', 'authenticator', 'two factor', 'otp', 'two-factor', 'mfa', 'security code'], tab: 'security', subtab: 'security', breadcrumb: secCrumb },
