@@ -32,6 +32,7 @@ import contactsRoutes from './routes/contacts.js';
 import aiRoutes from './routes/ai.js';
 import categoriesRoutes from './routes/categories.js';
 import senderFaviconsRoutes from './routes/senderFavicons.js';
+import signatureImagesRoutes from './routes/signatureImages.js';
 import diagnosticsRoutes from './routes/diagnostics.js';
 import backupRoutes from './routes/backup.js';
 import apiTokenRoutes from './routes/apiTokens.js';
@@ -157,6 +158,7 @@ app.use('/api/calendar', calendarRoutes);
 app.use('/api', aiRoutes);
 app.use('/api', categoriesRoutes);
 app.use('/api/sender-favicons', senderFaviconsRoutes);
+app.use('/api/signature-images', signatureImagesRoutes);
 app.use('/api/diagnostics', diagnosticsRoutes);
 
 // CardDAV server — body is read lazily inside each handler via rawBody()

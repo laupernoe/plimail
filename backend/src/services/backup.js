@@ -40,6 +40,7 @@ export const SETUP_TABLES = [
   // User content that exists nowhere else, so even a setup-only backup carries it.
   'scheduled_message_attachments',
   'scheduled_messages',
+  'signature_images',
   'snoozed_messages',
   'system_settings',
   'trusted_devices',
