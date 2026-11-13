@@ -5416,6 +5416,16 @@ function SecurityPrivacyTab({ initialSubTab }) {
 }
 
 // ─── About Tab ───────────────────────────────────────────────────────────────
+const PLIMAIL_REPO_URL = 'https://github.com/laupernoe/plimail';
+
+function GitHubMark({ size }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" style={{ flexShrink: 0 }}>
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+    </svg>
+  );
+}
+
 function AboutTab() {
   const { t } = useTranslation();
   const [info, setInfo] = useState(null);
@@ -5435,9 +5445,9 @@ function AboutTab() {
     [t('admin.about.frontendBuild'), feSha],
     [t('admin.about.license'),       'AGPL-3.0'],
   ];
-  // AGPL-3.0 §13: the source of the running version is offered to every user of the service.
+  // AGPL-3.0 §13: the source of the running version is offered to every user of the service,
+  // which is why it is the first thing on this tab.
   const generalRows = [
-    [t('admin.about.sourceCode'), 'https://github.com/laupernoe/plimail'],
     [t('admin.about.upstream'),   'https://github.com/maathimself/mailflow'],
   ];
 
@@ -5452,9 +5462,24 @@ function AboutTab() {
       <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
         Plimail
       </div>
-      <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24 }}>
+      <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14 }}>
         {t('admin.about.subtitle')}
       </div>
+      <a href={PLIMAIL_REPO_URL} target="_blank" rel="noopener noreferrer"
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24,
+          padding: '11px 14px', borderRadius: 10, border: '1px solid var(--border)',
+          background: 'var(--bg-secondary)', color: 'var(--text-primary)', textDecoration: 'none',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-tertiary)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-secondary)'; }}
+      >
+        <GitHubMark size={18} />
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: 'block', fontSize: 13, fontWeight: 500 }}>{t('admin.about.sourceCode')}</span>
+          <span style={{ display: 'block', fontSize: 12, color: 'var(--accent)' }}>github.com/laupernoe/plimail</span>
+        </span>
+      </a>
       <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border-subtle)', marginBottom: 12 }}>
         {infoRows.map(([label, value], i) => (
           <div key={label} style={rowStyle(i === infoRows.length - 1)}>
@@ -8369,6 +8394,17 @@ export default function AdminPanel() {
             </svg>
             {t('admin.close')}
           </button>
+          <a href={PLIMAIL_REPO_URL} target="_blank" rel="noopener noreferrer"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px 0',
+              fontSize: 11, color: 'var(--text-tertiary)', textDecoration: 'none',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+          >
+            <GitHubMark size={12} />
+            Plimail · GitHub
+          </a>
         </div>
 
         {/* Content */}
