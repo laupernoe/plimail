@@ -1,3 +1,4 @@
+import Anthropic from '@anthropic-ai/sdk';
 import { decrypt, encrypt } from './encryption.js';
 import { query } from './db.js';
 import { getConnectionPolicy } from './connectionPolicy.js';
@@ -10,12 +11,24 @@ import { aiEnabledForNewUser, setAiEnabledForNewUser } from './aiNewUsers.js';
 export const AI_PROVIDER_API_KEY = 'api-key';
 export const AI_PROVIDER_CHATGPT = 'chatgpt';
 export const AI_PROVIDER_OPENROUTER = 'openrouter';
+export const AI_PROVIDER_ANTHROPIC = 'anthropic';
 export const MASKED_API_KEY = '••••••••';
 export const DEFAULT_CODEX_MODEL = 'gpt-5.6-luna';
 export const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 export const DEFAULT_OPENROUTER_MODEL = 'mistralai/mistral-nemo';
+// The owner limits Claude to these two: Haiku, the cheapest, by default, and Sonnet.
+export const ANTHROPIC_MODELS = Object.freeze(['claude-haiku-5-5', 'claude-sonnet-5-5']);
+export const DEFAULT_ANTHROPIC_MODEL = ANTHROPIC_MODELS[0];
+// Sonnet 5.5 can hand a declined request to another model inside the same call; Haiku 5.5 has no
+// server-side fallback, and sending the parameter to it is pointless or a 400.
+const ANTHROPIC_FALLBACK_BETA = 'server-side-fallback-2026-07-01';
+const ANTHROPIC_FALLBACK_MODELS = new Set(['claude-sonnet-5-5']);
+const ANTHROPIC_DEFAULT_MAX_TOKENS = 8192;
+// Thinking counts toward max_tokens on these models, so a tiny cap (the connection test asks for
+// 16) could be spent before any text.
+const ANTHROPIC_MIN_MAX_TOKENS = 512;
 
-const PROVIDERS = new Set([AI_PROVIDER_API_KEY, AI_PROVIDER_CHATGPT, AI_PROVIDER_OPENROUTER]);
+const PROVIDERS = new Set([AI_PROVIDER_API_KEY, AI_PROVIDER_CHATGPT, AI_PROVIDER_OPENROUTER, AI_PROVIDER_ANTHROPIC]);
 const ERROR_BODY_LIMIT_BYTES = 8 * 1024;
 const JSON_BODY_LIMIT_BYTES = 2 * 1024 * 1024;
 const SSE_EVENT_LIMIT_BYTES = 256 * 1024;
@@ -51,6 +64,10 @@ export function normalizeAiConfig(raw = {}) {
   const openrouterSource = raw.openrouterConfig && typeof raw.openrouterConfig === 'object'
     ? raw.openrouterConfig
     : {};
+  const anthropicSource = raw.anthropicConfig && typeof raw.anthropicConfig === 'object'
+    ? raw.anthropicConfig
+    : {};
+  const anthropicModel = cleanString(anthropicSource.model);
   const provider = PROVIDERS.has(raw.provider) ? raw.provider : AI_PROVIDER_API_KEY;
   return {
     enabled: raw.enabled !== false,
@@ -66,6 +83,10 @@ export function normalizeAiConfig(raw = {}) {
     openrouterConfig: {
       apiKey: openrouterSource.apiKey || null,
       model: cleanString(openrouterSource.model) || DEFAULT_OPENROUTER_MODEL,
+    },
+    anthropicConfig: {
+      apiKey: anthropicSource.apiKey || null,
+      model: ANTHROPIC_MODELS.includes(anthropicModel) ? anthropicModel : DEFAULT_ANTHROPIC_MODEL,
     },
     features: {
       compose: raw.features?.compose !== false,
@@ -85,6 +106,10 @@ function publicConfig(config) {
     openrouterConfig: {
       ...config.openrouterConfig,
       apiKey: config.openrouterConfig.apiKey ? MASKED_API_KEY : '',
+    },
+    anthropicConfig: {
+      ...config.anthropicConfig,
+      apiKey: config.anthropicConfig.apiKey ? MASKED_API_KEY : '',
     },
   };
 }
@@ -169,6 +194,94 @@ async function* parseChatCompletionsSse(response, { signal, secrets } = {}) {
   }
 }
 
+// ── Anthropic (Claude) ─────────────────────────────────────────────────────────
+//
+// The Claude API through the official SDK. Claude Haiku 5.5 and Sonnet 5.5 reject non-default
+// temperature/top_p/top_k, a final assistant turn (prefill) and, on Sonnet, thinking disabled, so
+// none of those are sent: thinking stays at its default and effort is low, which suits these short
+// mail tasks. Sonnet's declines are retried server-side on another model; Haiku has no fallback.
+
+// The provider abstraction speaks OpenAI-style messages; system messages become the top-level
+// `system`, the rest stay in order. `jsonSchema` asks for structured output.
+export function buildAnthropicRequest(model, messages, { maxTokens, jsonSchema, stream = false } = {}) {
+  const system = messages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
+  const turns = messages.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content }));
+  if (!turns.length || turns[turns.length - 1].role !== 'user') {
+    throw new AiProviderError('The last message sent to Claude must be from the user', { status: 400 });
+  }
+  const outputConfig = { effort: 'low' };
+  if (jsonSchema) outputConfig.format = { type: 'json_schema', schema: jsonSchema };
+  const body = {
+    model,
+    max_tokens: Math.max(ANTHROPIC_MIN_MAX_TOKENS, Number.isFinite(maxTokens) ? maxTokens : ANTHROPIC_DEFAULT_MAX_TOKENS),
+    ...(system ? { system } : {}),
+    messages: turns,
+    output_config: outputConfig,
+    ...(stream ? { stream: true } : {}),
+  };
+  if (ANTHROPIC_FALLBACK_MODELS.has(model)) {
+    body.betas = [ANTHROPIC_FALLBACK_BETA];
+    body.fallbacks = 'default';
+  }
+  return body;
+}
+
+function anthropicRefusal(details) {
+  const category = typeof details?.category === 'string' ? ` (${sanitizeText(details.category)})` : '';
+  return new AiProviderError(`Claude declined this request${category}`, { status: 422, expose: true });
+}
+
+// The SDK's typed errors, as the messages an admin can act on. The key never appears: the SDK's
+// messages carry the API's error text, not the request headers, and it is redacted besides.
+export function anthropicError(error, { apiKey, callerSignal } = {}) {
+  if (error instanceof AiProviderError) return error;
+  if (error instanceof Anthropic.APIUserAbortError || callerSignal?.aborted) {
+    return new AiProviderError('AI provider request was aborted', { status: 499, expose: true });
+  }
+  if (error instanceof Anthropic.APIConnectionTimeoutError) {
+    return new AiProviderError('AI provider request timed out', { status: 504, expose: true });
+  }
+  if (error instanceof Anthropic.APIConnectionError) {
+    return new AiProviderError('Could not reach the Claude API', { status: 502, expose: true });
+  }
+  const detail = sanitizeText(redactSecrets(error?.error?.error?.message || error?.message || '', [apiKey]));
+  const suffix = detail ? `: ${detail}` : '';
+  if (error instanceof Anthropic.AuthenticationError) {
+    return new AiProviderError('Anthropic rejected the API key (401). Check the key in the AI settings.', { status: 502, expose: true });
+  }
+  if (error instanceof Anthropic.PermissionDeniedError) {
+    return new AiProviderError(`This Anthropic API key may not use this model (403)${suffix}`, { status: 502, expose: true });
+  }
+  if (error instanceof Anthropic.RateLimitError) {
+    return new AiProviderError('The Claude API is rate limiting this key (429). Try again in a moment.', { status: 429, expose: true });
+  }
+  if (error instanceof Anthropic.InternalServerError) {
+    return new AiProviderError(`The Claude API is unavailable (${error.status ?? 'server error'}). Try again later.`, { status: 503, expose: true });
+  }
+  if (error instanceof Anthropic.APIError) {
+    return new AiProviderError(`AI provider error (${error.status ?? 'unknown'})${suffix}`, { status: 502, expose: true });
+  }
+  return new AiProviderError(`AI provider request failed: ${sanitizeText(error?.message) || 'unknown error'}`, { status: 502, expose: true });
+}
+
+// The text of a finished response, read by block type: a response can open with thinking blocks.
+export function anthropicResponseText(response, { allowEmpty = false } = {}) {
+  if (response?.stop_reason === 'refusal') throw anthropicRefusal(response.stop_details);
+  const text = (response?.content || [])
+    .filter(block => block?.type === 'text' && typeof block.text === 'string')
+    .map(block => block.text)
+    .join('');
+  if (text || allowEmpty) return text;
+  throw new AiProviderError(
+    `AI provider returned an empty completion (stop_reason: ${sanitizeText(String(response?.stop_reason || 'unknown'))})`,
+    { status: 502, expose: true },
+  );
+}
+
+function defaultAnthropicClient(options) {
+  return new Anthropic(options);
+}
+
 export function createAiProvider({
   queryFn = query,
   encryptFn = encrypt,
@@ -180,6 +293,7 @@ export function createAiProvider({
   getCodexStatusFn = getCodexStatus,
   streamCodexResponsesFn = streamCodexResponses,
   completeCodexTextFn = completeCodexText,
+  createAnthropicClientFn = defaultAnthropicClient,
 } = {}) {
   async function loadAiConfig() {
     const result = await queryFn("SELECT value FROM system_settings WHERE key = 'ai_config'");
@@ -219,14 +333,27 @@ export function createAiProvider({
     const storedRouterKey = typeof routerKey === 'string' && routerKey.trim() && routerKey !== MASKED_API_KEY
       ? encryptFn(routerKey.trim())
       : (existing?.openrouterConfig.apiKey || null);
+    const incomingAnthropic = input.anthropicConfig || {};
+    const anthropicKey = incomingAnthropic.apiKey;
+    const storedAnthropicKey = typeof anthropicKey === 'string' && anthropicKey.trim() && anthropicKey !== MASKED_API_KEY
+      ? encryptFn(anthropicKey.trim())
+      : (existing?.anthropicConfig.apiKey || null);
+    const anthropicModel = cleanString(incomingAnthropic.model);
+    if (anthropicModel && !ANTHROPIC_MODELS.includes(anthropicModel)) {
+      throw new AiProviderError(`Claude model must be one of: ${ANTHROPIC_MODELS.join(', ')}`, { status: 400 });
+    }
     const config = normalizeAiConfig({
       ...input,
       apiKeyConfig: { ...incomingApi, apiKey: storedKey },
       openrouterConfig: { ...incomingRouter, apiKey: storedRouterKey },
+      anthropicConfig: { ...incomingAnthropic, apiKey: storedAnthropicKey },
     });
 
     if (config.enabled && config.provider === AI_PROVIDER_OPENROUTER && !config.openrouterConfig.apiKey) {
       throw new AiProviderError('OpenRouter API key is required', { status: 400 });
+    }
+    if (config.enabled && config.provider === AI_PROVIDER_ANTHROPIC && !config.anthropicConfig.apiKey) {
+      throw new AiProviderError('Anthropic API key is required', { status: 400 });
     }
 
     if (config.enabled && config.provider === AI_PROVIDER_API_KEY
@@ -270,6 +397,9 @@ export function createAiProvider({
       throw new AiProviderError('AI provider not fully configured');
     }
     if (config.provider === AI_PROVIDER_OPENROUTER && !config.openrouterConfig.apiKey) {
+      throw new AiProviderError('AI provider not fully configured');
+    }
+    if (config.provider === AI_PROVIDER_ANTHROPIC && !config.anthropicConfig.apiKey) {
       throw new AiProviderError('AI provider not fully configured');
     }
     return config;
@@ -366,6 +496,51 @@ export function createAiProvider({
     }
   }
 
+  function anthropicClient(config) {
+    const apiKey = decryptFn(config.anthropicConfig.apiKey);
+    // The SDK retries 429 and 5xx itself; two retries keep a slow failure under the route's patience.
+    return { apiKey, client: createAnthropicClientFn({ apiKey, maxRetries: 2, timeout: DEFAULT_TIMEOUT_MS }) };
+  }
+
+  function anthropicCreate(client, body, options) {
+    const { betas } = body;
+    return betas ? client.beta.messages.create(body, options) : client.messages.create(body, options);
+  }
+
+  async function completeAnthropic(config, messages, { signal, maxTokens, allowEmpty = false, jsonSchema } = {}) {
+    const body = buildAnthropicRequest(config.anthropicConfig.model, messages, { maxTokens, jsonSchema });
+    const { apiKey, client } = anthropicClient(config);
+    let response;
+    try {
+      response = await anthropicCreate(client, body, { signal });
+    } catch (error) {
+      throw anthropicError(error, { apiKey, callerSignal: signal });
+    }
+    return anthropicResponseText(response, { allowEmpty });
+  }
+
+  async function* streamAnthropic(config, messages, { signal, maxTokens } = {}) {
+    const body = buildAnthropicRequest(config.anthropicConfig.model, messages, { maxTokens, stream: true });
+    const { apiKey, client } = anthropicClient(config);
+    let outputChars = 0;
+    try {
+      const stream = await anthropicCreate(client, body, { signal, timeout: 120_000 });
+      for await (const event of stream) {
+        if (event?.type === 'message_delta' && event.delta?.stop_reason === 'refusal') {
+          throw anthropicRefusal(event.delta.stop_details);
+        }
+        if (event?.type !== 'content_block_delta' || event.delta?.type !== 'text_delta') continue;
+        const text = event.delta.text;
+        if (typeof text !== 'string' || !text) continue;
+        outputChars += text.length;
+        if (outputChars > OUTPUT_LIMIT_CHARS) throw new AiProviderError('AI provider output was too large', { status: 502 });
+        yield text;
+      }
+    } catch (error) {
+      throw anthropicError(error, { apiKey, callerSignal: signal });
+    }
+  }
+
   function codexRequest(config, messages, options, credentials) {
     return {
       ...credentials,
@@ -377,6 +552,7 @@ export function createAiProvider({
 
   async function completeText(messages, options = {}) {
     const config = await requireSelectedConfig();
+    if (config.provider === AI_PROVIDER_ANTHROPIC) return completeAnthropic(config, messages, options);
     if (config.provider !== AI_PROVIDER_CHATGPT) return completeApiKey(config, messages, options);
     let credentials = await getCodexAccessFn();
     try {
@@ -390,6 +566,10 @@ export function createAiProvider({
 
   async function* streamChat(messages, options = {}) {
     const config = await requireSelectedConfig();
+    if (config.provider === AI_PROVIDER_ANTHROPIC) {
+      yield* streamAnthropic(config, messages, options);
+      return;
+    }
     if (config.provider !== AI_PROVIDER_CHATGPT) {
       yield* streamApiKey(config, messages, options);
       return;
@@ -430,6 +610,10 @@ export function createAiProvider({
     }
     if (config.provider === AI_PROVIDER_OPENROUTER) {
       const enabled = Boolean(config.openrouterConfig.apiKey && config.openrouterConfig.model);
+      return { enabled, provider: config.provider, features: config.features, reconnectRequired: false };
+    }
+    if (config.provider === AI_PROVIDER_ANTHROPIC) {
+      const enabled = Boolean(config.anthropicConfig.apiKey);
       return { enabled, provider: config.provider, features: config.features, reconnectRequired: false };
     }
     const connection = await getCodexStatusFn();
