@@ -4,6 +4,7 @@ import { query } from './db.js';
 import { findOwnedAccount, findOwnedMessages } from './ownership.js';
 import { sanitizeSignature, sanitizeComposeBody, composeHtmlToText } from './emailSanitizer.js';
 import { embedInlineDataImages } from '../utils/inlineImages.js';
+import { inlineSignatureImages } from './signatureImages.js';
 import { redactEmail } from '../utils/redact.js';
 import { resolveSentFolder } from '../utils/mailUtils.js';
 import { MAILER_ID } from './mailerIdentity.js';
@@ -260,9 +261,12 @@ export async function resolveIdentity(userId, input) {
 
   // Allow the client to override the signature per-send (editedSignature === undefined means use DB value).
   // Sanitize client-supplied HTML to prevent injecting scripts or tracking pixels into sent mail.
-  const signature = editedSignature !== undefined
+  const sanitized = editedSignature !== undefined
     ? (editedSignature ? sanitizeSignature(editedSignature) : null)
     : fromSignature;  // fromSignature from DB is already sanitized on write
+  // Uploaded images go out with the message (as cid: parts, by buildMailOptions), so a held or
+  // scheduled send carries them too and recipients never load them from this server.
+  const signature = await inlineSignatureImages(sanitized, userId);
 
   return { account: owned, plaintextEmail, fromName, fromEmail, replyTo, signature };
 }

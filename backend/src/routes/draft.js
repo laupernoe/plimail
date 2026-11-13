@@ -8,6 +8,7 @@ import { sanitizeSignature, sanitizeComposeBody, sanitizeEmail, composeHtmlToTex
 import { imageProxyPath } from '../services/imageProxy.js';
 import { storeFetchedBody } from '../services/messageBodyStore.js';
 import { embedInlineDataImages } from '../utils/inlineImages.js';
+import { inlineSignatureImages } from '../services/signatureImages.js';
 import { imapManager } from '../index.js';
 import { noteDraftsChanged, resolveDraftsFolder, isDraftsPath, findReplacedDraft } from '../services/draftCopies.js';
 import { draftFolderPaths, createReplyGraph, replyChainIdsFor, indexReplyDrafts, createReplyDraftIndex, headerIds } from '../services/replyDraftLookup.js';
@@ -270,7 +271,7 @@ function textToHtml(text) {
     .join('');
 }
 
-async function buildRawDraft({ accountId, aliasId, to, cc, bcc, subject, body, bodyIsHtml, quotedBody, quotedBodyHtml, editedSignature, inReplyTo, references, attachments = [] }) {
+async function buildRawDraft({ userId, accountId, aliasId, to, cc, bcc, subject, body, bodyIsHtml, quotedBody, quotedBodyHtml, editedSignature, inReplyTo, references, attachments = [] }) {
   const replyToId = replyHeader(inReplyTo, true);
   const referenceIds = replyHeader(references) || replyToId;
   const acctResult = await query(
@@ -298,7 +299,9 @@ async function buildRawDraft({ accountId, aliasId, to, cc, bcc, subject, body, b
   }
 
   const rawSignature = editedSignature !== undefined ? (editedSignature || null) : fromSignature;
-  const effectiveSignature = rawSignature ? sanitizeSignature(rawSignature) : null;
+  // Uploaded images are put in as data: URIs, which the draft keeps as cid: parts on IMAP and
+  // inline in the copy the composer reopens, as an image pasted into the signature already was.
+  const effectiveSignature = rawSignature ? await inlineSignatureImages(sanitizeSignature(rawSignature), userId) : null;
 
   const sigText = effectiveSignature ? composeHtmlToText(effectiveSignature) : null;
 
@@ -369,7 +372,7 @@ router.post('/draft', async (req, res) => {
   try { attachments = normalizeDraftAttachments(rawAttachments); } catch (err) { return res.status(err.status || 400).json({ error: err.message }); }
 
   try {
-    const { rawMessage, account, meta } = await buildRawDraft({ accountId, aliasId, to, cc, bcc, subject, body, bodyIsHtml, quotedBody, quotedBodyHtml, editedSignature, inReplyTo, references, attachments });
+    const { rawMessage, account, meta } = await buildRawDraft({ userId: req.session.userId, accountId, aliasId, to, cc, bcc, subject, body, bodyIsHtml, quotedBody, quotedBodyHtml, editedSignature, inReplyTo, references, attachments });
 
     const draftsFolder = await resolveDraftsFolder(account);
     if (!draftsFolder) return res.status(422).json({ error: 'No Drafts folder found for this account' });

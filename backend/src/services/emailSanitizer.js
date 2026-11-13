@@ -1,6 +1,7 @@
 import sanitizeHtml from 'sanitize-html';
 import { parse, serialize, defaultTreeAdapter } from 'parse5';
 import { logger } from './logger.js';
+import { SIGNATURE_IMAGE_SRC_RE } from '../utils/signatureImagePath.js';
 
 // Strip the <head> element from email HTML, preserving any <style> blocks inside it.
 //
@@ -809,6 +810,18 @@ export function sanitizeSignature(html) {
           const normalized = normalizeHref(out.href);
           if (normalized === null) delete out.href;
           else out.href = normalized;
+        }
+        return { tagName, attribs: out };
+      },
+      // The only image a signature may name by a path on this server is one uploaded into it
+      // (services/signatureImages.js), which goes out inline. Any other relative src would reach
+      // recipients as a reference to nothing; a protocol-relative one is an https image.
+      'img': (tagName, attribs) => {
+        const out = { ...attribs };
+        if ('src' in out) {
+          const src = asBrowserUrl(out.src);
+          if (src.startsWith('//')) out.src = 'https:' + src;
+          else if (!/^[a-z][a-z0-9+.-]*:/i.test(src) && !SIGNATURE_IMAGE_SRC_RE.test(src)) delete out.src;
         }
         return { tagName, attribs: out };
       },
