@@ -428,6 +428,38 @@
       "title": "Posticipato fino a {{when}}",
       "failTitle": "Impossibile cambiare l'orario",
       "failBody": "Resta l'orario precedente. Riprova."
+    },
+    "translate": "Traduci",
+    "translation": "Traduzione",
+    "translateTo": "Traduci in",
+    "translating": "Traduzione in corso…",
+    "translationShow": "Mostra traduzione",
+    "translationShowOriginal": "Mostra originale",
+    "translationEmpty": "L'IA non ha restituito alcuna traduzione.",
+    "scamCheck": "È una truffa?",
+    "scam": {
+      "title": "Controllo truffa",
+      "checking": "Controllo del messaggio…",
+      "verdictSafe": "Sembra sicuro",
+      "verdictSuspicious": "Sospetto",
+      "verdictScam": "Probabile truffa",
+      "confidence": "certezza {{percent}}%",
+      "recheck": "Ricontrolla",
+      "aiFailed": "Il controllo IA non è terminato: {{message}}",
+      "redFlags": "Segnali d'allarme in questo messaggio",
+      "noRedFlags": "Nessun segnale d'allarme tecnico nei link, negli allegati o nei controlli del mittente.",
+      "disclaimer": "Un parere dell'IA, non una garanzia. Non inviare mai password, codici o dati di pagamento solo perché un'email li chiede.",
+      "flag": {
+        "linkMismatch": "Un link mostra {{shown}} ma porta a {{actual}}",
+        "doubleExtension": "Nome di file camuffato: {{name}}",
+        "executable": "Allegato che avvia un programma: {{name}}",
+        "macro": "File Office con macro: {{name}}",
+        "active": "Pagina web o immagine che può mostrare un falso accesso: {{name}}",
+        "archive": "Archivio il cui contenuto non può essere controllato: {{name}}",
+        "authFail": "Il dominio del mittente non ha superato il controllo {{mechanism}}",
+        "replyTo": "Le risposte vanno a un altro indirizzo: {{address}}",
+        "displayName": "Il nome del mittente mostra {{shown}} ma il messaggio arriva da {{actual}}"
+      }
     }
   },
   "messageList": {

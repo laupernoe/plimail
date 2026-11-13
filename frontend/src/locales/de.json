@@ -428,6 +428,38 @@
       "title": "Zurückgestellt bis {{when}}",
       "failTitle": "Zeitpunkt konnte nicht geändert werden",
       "failBody": "Der bisherige Zeitpunkt bleibt. Bitte erneut versuchen."
+    },
+    "translate": "Übersetzen",
+    "translation": "Übersetzung",
+    "translateTo": "Übersetzen in",
+    "translating": "Wird übersetzt…",
+    "translationShow": "Übersetzung anzeigen",
+    "translationShowOriginal": "Original anzeigen",
+    "translationEmpty": "Die KI hat keine Übersetzung geliefert.",
+    "scamCheck": "Ist das Betrug?",
+    "scam": {
+      "title": "Betrugsprüfung",
+      "checking": "Nachricht wird geprüft…",
+      "verdictSafe": "Wirkt unbedenklich",
+      "verdictSuspicious": "Verdächtig",
+      "verdictScam": "Wahrscheinlich Betrug",
+      "confidence": "{{percent}} % sicher",
+      "recheck": "Erneut prüfen",
+      "aiFailed": "Die KI-Prüfung wurde nicht abgeschlossen: {{message}}",
+      "redFlags": "Warnzeichen in dieser Nachricht",
+      "noRedFlags": "Keine technischen Warnzeichen in Links, Anhängen oder Absenderprüfungen gefunden.",
+      "disclaimer": "Eine KI-Einschätzung, keine Garantie. Senden Sie nie Passwörter, Codes oder Zahlungsdaten, nur weil eine E-Mail danach fragt.",
+      "flag": {
+        "linkMismatch": "Ein Link zeigt {{shown}}, führt aber zu {{actual}}",
+        "doubleExtension": "Getarnter Dateiname: {{name}}",
+        "executable": "Anhang, der ein Programm ausführt: {{name}}",
+        "macro": "Office-Datei mit Makros: {{name}}",
+        "active": "Webseite oder Bild, das eine gefälschte Anmeldung zeigen kann: {{name}}",
+        "archive": "Archiv, dessen Inhalt nicht geprüft werden kann: {{name}}",
+        "authFail": "Die Absenderdomain hat die {{mechanism}}-Prüfung nicht bestanden",
+        "replyTo": "Antworten gehen an eine andere Adresse: {{address}}",
+        "displayName": "Der Absendername zeigt {{shown}}, die Mail kommt aber von {{actual}}"
+      }
     }
   },
   "messageList": {

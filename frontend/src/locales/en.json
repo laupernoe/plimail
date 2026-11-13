@@ -428,6 +428,38 @@
       "title": "Snoozed until {{when}}",
       "failTitle": "Could not change the snooze time",
       "failBody": "It keeps its earlier time. Try again."
+    },
+    "translate": "Translate",
+    "translation": "Translation",
+    "translateTo": "Translate into",
+    "translating": "Translating…",
+    "translationShow": "Show translation",
+    "translationShowOriginal": "Show original",
+    "translationEmpty": "The AI returned no translation.",
+    "scamCheck": "Is this a scam?",
+    "scam": {
+      "title": "Scam check",
+      "checking": "Checking this message…",
+      "verdictSafe": "Looks safe",
+      "verdictSuspicious": "Suspicious",
+      "verdictScam": "Likely a scam",
+      "confidence": "{{percent}}% sure",
+      "recheck": "Check again",
+      "aiFailed": "The AI check did not finish: {{message}}",
+      "redFlags": "Warning signs in this message",
+      "noRedFlags": "No technical warning signs found in the links, attachments or sender checks.",
+      "disclaimer": "An AI opinion, not a guarantee. Never send a password, code or payment details because an email asks for them.",
+      "flag": {
+        "linkMismatch": "A link shows {{shown}} but goes to {{actual}}",
+        "doubleExtension": "Disguised file name: {{name}}",
+        "executable": "Attachment that runs a program: {{name}}",
+        "macro": "Office file with macros: {{name}}",
+        "active": "Web page or image that can show a fake login: {{name}}",
+        "archive": "Archive whose contents cannot be checked: {{name}}",
+        "authFail": "The sender's domain failed its {{mechanism}} check",
+        "replyTo": "Replies go to another address: {{address}}",
+        "displayName": "The sender name shows {{shown}} but the mail is from {{actual}}"
+      }
     }
   },
   "messageList": {

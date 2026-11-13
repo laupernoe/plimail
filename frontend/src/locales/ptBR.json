@@ -428,6 +428,38 @@
       "title": "Adiado até {{when}}",
       "failTitle": "Não foi possível alterar o horário",
       "failBody": "O horário anterior foi mantido. Tente novamente."
+    },
+    "translate": "Traduzir",
+    "translation": "Tradução",
+    "translateTo": "Traduzir para",
+    "translating": "Traduzindo…",
+    "translationShow": "Mostrar tradução",
+    "translationShowOriginal": "Ver original",
+    "translationEmpty": "A IA não retornou nenhuma tradução.",
+    "scamCheck": "Isto é golpe?",
+    "scam": {
+      "title": "Verificação de golpe",
+      "checking": "Verificando esta mensagem…",
+      "verdictSafe": "Parece seguro (sem sinais de golpe)",
+      "verdictSuspicious": "Suspeito",
+      "verdictScam": "Provavelmente um golpe",
+      "confidence": "{{percent}}% de certeza na análise",
+      "recheck": "Verificar de novo",
+      "aiFailed": "A verificação por IA não terminou: {{message}}",
+      "redFlags": "Sinais de alerta nesta mensagem",
+      "noRedFlags": "Nenhum sinal técnico de alerta nos links, anexos ou verificações do remetente.",
+      "disclaimer": "Uma opinião da IA, não uma garantia. Nunca envie senha, código ou dados de pagamento só porque um e-mail pediu.",
+      "flag": {
+        "linkMismatch": "Um link mostra {{shown}} mas leva para {{actual}}",
+        "doubleExtension": "Nome de arquivo disfarçado: {{name}}",
+        "executable": "Anexo que executa um programa: {{name}}",
+        "macro": "Arquivo do Office com macros: {{name}}",
+        "active": "Página web ou imagem que pode mostrar um login falso: {{name}}",
+        "archive": "Arquivo compactado cujo conteúdo não pode ser verificado: {{name}}",
+        "authFail": "O domínio do remetente falhou na verificação {{mechanism}}",
+        "replyTo": "As respostas vão para outro endereço: {{address}}",
+        "displayName": "O nome do remetente mostra {{shown}} mas o e-mail vem de {{actual}}"
+      }
     }
   },
   "messageList": {

@@ -430,6 +430,38 @@
       "title": "Odłożone do {{when}}",
       "failTitle": "Nie udało się zmienić czasu powrotu",
       "failBody": "Pozostaje poprzedni czas. Spróbuj ponownie."
+    },
+    "translate": "Przetłumacz",
+    "translation": "Tłumaczenie",
+    "translateTo": "Przetłumacz na",
+    "translating": "Tłumaczenie…",
+    "translationShow": "Pokaż tłumaczenie",
+    "translationShowOriginal": "Pokaż oryginał",
+    "translationEmpty": "AI nie zwróciła tłumaczenia.",
+    "scamCheck": "Czy to oszustwo?",
+    "scam": {
+      "title": "Sprawdzenie oszustwa",
+      "checking": "Sprawdzanie wiadomości…",
+      "verdictSafe": "Wygląda bezpiecznie",
+      "verdictSuspicious": "Podejrzane",
+      "verdictScam": "Prawdopodobnie oszustwo",
+      "confidence": "pewność {{percent}}%",
+      "recheck": "Sprawdź ponownie",
+      "aiFailed": "Sprawdzanie przez AI nie zostało ukończone: {{message}}",
+      "redFlags": "Sygnały ostrzegawcze w tej wiadomości",
+      "noRedFlags": "Nie znaleziono technicznych sygnałów ostrzegawczych w linkach, załącznikach ani weryfikacji nadawcy.",
+      "disclaimer": "To opinia AI, nie gwarancja. Nigdy nie wysyłaj hasła, kodu ani danych płatniczych tylko dlatego, że prosi o nie e-mail.",
+      "flag": {
+        "linkMismatch": "Link pokazuje {{shown}}, ale prowadzi do {{actual}}",
+        "doubleExtension": "Zamaskowana nazwa pliku: {{name}}",
+        "executable": "Załącznik uruchamiający program: {{name}}",
+        "macro": "Plik Office z makrami: {{name}}",
+        "active": "Strona lub obraz, który może pokazać fałszywe logowanie: {{name}}",
+        "archive": "Archiwum, którego zawartości nie można sprawdzić: {{name}}",
+        "authFail": "Domena nadawcy nie przeszła kontroli {{mechanism}}",
+        "replyTo": "Odpowiedzi trafiają na inny adres: {{address}}",
+        "displayName": "Nazwa nadawcy pokazuje {{shown}}, ale wiadomość pochodzi z {{actual}}"
+      }
     }
   },
   "messageList": {

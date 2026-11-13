@@ -102,3 +102,36 @@ describe('ChatGPT authorization API', () => {
     );
   });
 });
+
+describe('AI actions on a received message', () => {
+  it('streams a translation, passing the meta frame on and keeping it out of the text', async () => {
+    let request;
+    globalThis.fetch = async (url, init) => {
+      request = { url, init };
+      return new Response([
+        'data: {"meta":{"language":"de","truncated":null}}\n\n',
+        'data: {"choices":[{"delta":{"content":"Hallo"}}]}\n\n',
+        'data: [DONE]\n\n',
+      ].join(''), { headers: { 'Content-Type': 'text/event-stream' } });
+    };
+    const metas = [];
+    const text = await api.ai.translateMessage('m-1', { language: 'de', onMeta: m => metas.push(m) });
+    assert.equal(text, 'Hallo');
+    assert.deepEqual(metas, [{ language: 'de', truncated: null }]);
+    assert.equal(request.url, '/api/ai/messages/m-1/translate');
+    assert.equal(request.init.body, JSON.stringify({ language: 'de' }));
+    assert.equal(request.init.headers[CSRF_HEADER], CSRF_VALUE);
+  });
+
+  it('posts the scam check with the CSRF header', async () => {
+    const calls = [];
+    globalThis.fetch = async (url, init) => {
+      calls.push([url, init]);
+      return { ok: true, status: 200, json: async () => ({ flags: [], analysis: null }) };
+    };
+    await api.ai.scamCheck('m-1', { language: 'fr' });
+    assert.equal(calls[0][0], '/api/ai/messages/m-1/scam-check');
+    assert.equal(calls[0][1].method, 'POST');
+    assert.equal(calls[0][1].headers[CSRF_HEADER], CSRF_VALUE);
+  });
+});
