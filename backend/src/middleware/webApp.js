@@ -4,8 +4,9 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 
 // The image used to put nginx in front of the backend; these are the headers, compression and
-// caching it provided, now served by Express itself. Plimail speaks plain HTTP: HTTPS is the job
-// of the operator's reverse proxy, which tells us about it with X-Forwarded-Proto (trust proxy).
+// caching it provided, now served by Express itself. A real certificate is the job of the
+// operator's reverse proxy or tunnel, which tells us about HTTPS with X-Forwarded-Proto (trust
+// proxy); the built-in HTTPS listener (index.js) only serves a self-signed one.
 
 // 'unsafe-inline' styles are required by the React app (inline style props). Email images load
 // from arbitrary https origins. Over plain HTTP the WebSocket is ws:, which 'self' does not cover
@@ -33,8 +34,11 @@ export function securityHeaders(req, res, next) {
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   res.setHeader('Content-Security-Policy', contentSecurityPolicy(req.secure));
   // Only once the browser has reached us over HTTPS, through a proxy we trust to say so: sent over
-  // HTTP it would be ignored, and on a LAN install it would lock the host out of plain HTTP.
-  if (req.secure) res.setHeader('Strict-Transport-Security', 'max-age=63072000');
+  // HTTP it would be ignored, and on a LAN install it would lock the host out of plain HTTP. Never
+  // from the built-in HTTPS listener (req.socket.encrypted), whatever certificate it serves: its
+  // self-signed default is one a browser must not be pinned to, HSTS covers every port of the host
+  // (plain HTTP on 3000 included), and a trusted certificate belongs on the proxy, which sends it.
+  if (req.secure && !req.socket.encrypted) res.setHeader('Strict-Transport-Security', 'max-age=63072000');
   next();
 }
 

@@ -3,10 +3,12 @@ import express from 'express';
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import https from 'node:https';
+import { generateSelfSignedCertificate } from '../services/tlsCertificate.js';
 import { compress, mountWebApp, securityHeaders } from './webApp.js';
 
 // Mounted the way index.js mounts it, over a built app laid out as Vite lays it out.
-let dir, server, base;
+let dir, server, base, tlsServer, tlsCa;
 beforeAll(async () => {
   dir = mkdtempSync(path.join(tmpdir(), 'plimail-webapp-'));
   mkdirSync(path.join(dir, 'assets'));
@@ -34,13 +36,25 @@ beforeAll(async () => {
   expect(mountWebApp(app, dir)).toBe(true);
   await new Promise(resolve => { server = app.listen(0, '127.0.0.1', resolve); });
   base = `http://127.0.0.1:${server.address().port}`;
+  const pair = generateSelfSignedCertificate(['127.0.0.1']);
+  tlsCa = pair.cert;
+  tlsServer = https.createServer(pair, app);
+  await new Promise(resolve => { tlsServer.listen(0, '127.0.0.1', resolve); });
 });
 afterAll(async () => {
   await new Promise(resolve => server.close(resolve));
+  await new Promise(resolve => tlsServer.close(resolve));
   rmSync(dir, { recursive: true, force: true });
 });
 
 const get = (urlPath, headers = {}) => fetch(base + urlPath, { headers });
+// Over the built-in HTTPS listener; fetch cannot be handed the self-signed certificate.
+const getTls = urlPath => new Promise((resolve, reject) => {
+  https.get({ host: '127.0.0.1', port: tlsServer.address().port, path: urlPath, ca: tlsCa }, res => {
+    res.resume();
+    res.on('end', () => resolve(res));
+  }).on('error', reject);
+});
 
 describe('the built web app', () => {
   it('answers a client-side route with index.html, never cached', async () => {
@@ -95,6 +109,13 @@ describe('security headers and compression', () => {
     const res = await get('/');
     expect(res.headers.get('content-security-policy')).toContain("connect-src 'self' wss: ws:;");
     expect(res.headers.get('strict-transport-security')).toBeNull();
+  });
+
+  it('sends no HSTS over the built-in HTTPS listener, its WebSocket being wss:', async () => {
+    const res = await getTls('/');
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-security-policy']).toContain("connect-src 'self' wss:;");
+    expect(res.headers['strict-transport-security']).toBeUndefined();
   });
 
   it('sends HSTS and drops ws: once a trusted proxy says the browser used HTTPS', async () => {

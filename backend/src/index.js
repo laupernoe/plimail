@@ -4,12 +4,14 @@ import session from 'express-session';
 import cors from 'cors';
 import { corsExceptDav } from './middleware/corsExceptDav.js';
 import { createServer } from 'http';
+import { createServer as createHttpsServer } from 'https';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import RedisStore from 'connect-redis';
 import 'dotenv/config';
 import { redisClient } from './services/redis.js';
 import { parseTrustProxyHops } from './utils/trustProxy.js';
+import { loadOrCreateCertificate } from './services/tlsCertificate.js';
 import { buildSessionOptions } from './utils/sessionConfig.js';
 import { mountApiAuth } from './middleware/apiChain.js';
 import { compress, mountWebApp, securityHeaders } from './middleware/webApp.js';
@@ -70,7 +72,19 @@ if (trustProxyHops === null) {
 }
 app.set('trust proxy', trustProxyHops);
 const httpServer = createServer(app);
-const wss = createWebSocketServer(httpServer);
+// The same app over HTTPS, with the certificate in TLS_CERT_DIR: the operator's own, or a
+// self-signed one generated there at the first start (tlsCertificate.js). It is for people who
+// open the port directly; a trusted certificate comes from the reverse proxy or tunnel in front.
+const TLS_CERT_DIR = process.env.TLS_CERT_DIR || fileURLToPath(new URL('../certs', import.meta.url));
+let tlsCertificate;
+try {
+  tlsCertificate = loadOrCreateCertificate(TLS_CERT_DIR, { appUrl: process.env.APP_URL });
+} catch (err) {
+  console.error(`FATAL: cannot load the HTTPS certificate: ${err.message}. Exiting.`);
+  process.exit(1);
+}
+const httpsServer = createHttpsServer({ cert: tlsCertificate.cert, key: tlsCertificate.key }, app);
+const wss = createWebSocketServer(httpServer, httpsServer);
 
 // Redis — connect the shared client before any route or session middleware uses it.
 await redisClient.connect();
@@ -259,13 +273,27 @@ const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`Plimail backend running on port ${PORT}`);
 });
+const TLS_PORT = process.env.TLS_PORT || 3443;
+httpsServer.listen(TLS_PORT, () => {
+  console.log(`Plimail HTTPS on port ${TLS_PORT}, certificate in ${TLS_CERT_DIR}`);
+});
+
+// Both listeners close before the process exits, each letting its requests in flight finish.
+const servers = {
+  close(done) {
+    let open = 2;
+    const closed = () => { if (--open === 0) done(); };
+    httpServer.close(closed);
+    httpsServer.close(closed);
+  },
+};
 
 function exitAfterClose(code, { wsCode = 1001, wsReason = 'Shutting down' } = {}) {
   // A send held for its undo window lives only in this process: it is delivered now rather than
   // lost with the restart, and the scheduled sender's sends in flight finish (sendShutdown.js).
   shutDown({
     code,
-    httpServer,
+    httpServer: servers,
     closeClients: () => closeWebSocketClients(wss, wsCode, wsReason),
     quit: () => redisClient.quit(),
     exit: c => process.exit(c),
