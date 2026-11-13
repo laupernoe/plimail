@@ -22,7 +22,7 @@ import {
 const router = Router();
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const AI_LANGUAGE_NAMES = {
+export const AI_LANGUAGE_NAMES = {
   en: 'English',
   ru: 'Russian',
   de: 'German',
@@ -43,7 +43,7 @@ export function aiLanguageInstruction(language) {
   return `Always respond in ${name}, unless the user explicitly asks for another language. For email drafting and rewriting, preserve the original email language when it differs from ${name}.`;
 }
 
-function serviceError(res, error, fallback = 'Request failed') {
+export function serviceError(res, error, fallback = 'Request failed') {
   let status = Number.isInteger(error?.status) && error.status >= 400 && error.status < 600
     ? error.status
     : 500;
@@ -195,6 +195,53 @@ router.get('/ai/status', requireAuth, async (req, res) => {
   }
 });
 
+// Answers the request and returns false when this user may not use AI for `purpose` (undefined:
+// every switch). The code tells the client which refusal it is: this user's AI access, or a switch
+// that is off for everyone.
+export async function gateAiRequest(req, res, purpose) {
+  let access;
+  try {
+    access = await getUserAiAccess(req.session.userId);
+  } catch (error) {
+    serviceError(res, error, 'Failed to load AI status');
+    return false;
+  }
+  const { status } = access;
+  if (!status.enabled) {
+    const error = status.reconnectRequired
+      ? 'AI provider requires reconnection'
+      : 'AI provider is disabled or unavailable';
+    res.status(503).json({ error });
+    return false;
+  }
+  if (!access.allowed) {
+    res.status(403).json({
+      error: 'AI is not enabled for your account. Ask your administrator.',
+      code: 'ai_user_disabled',
+    });
+    return false;
+  }
+  const features = purpose === undefined ? AI_FEATURES : AI_PURPOSES[purpose];
+  const off = features.find(feature => !aiFeatureEnabled(status, feature));
+  if (off) {
+    const error = off === 'compose'
+      ? 'The AI writing assistant is turned off by your administrator.'
+      : 'AI summaries and actions are turned off by your administrator.';
+    res.status(403).json({ error, code: 'ai_feature_disabled', feature: off });
+    return false;
+  }
+  return true;
+}
+
+export async function userLanguage(userId) {
+  try {
+    const prefResult = await query('SELECT preferences FROM users WHERE id = $1', [userId]);
+    return prefResult.rows[0]?.preferences?.language || 'en';
+  } catch {
+    return 'en'; // non-critical: fall back to English on a preferences read error
+  }
+}
+
 function validateMessages(messages) {
   if (!Array.isArray(messages) || messages.length === 0) return 'messages array is required';
   for (const message of messages) {
@@ -219,42 +266,9 @@ router.post('/ai/chat', requireAuth, async (req, res) => {
   if (purpose !== undefined && !isAiPurpose(purpose)) {
     return res.status(400).json({ error: `purpose must be one of: ${Object.keys(AI_PURPOSES).join(', ')}` });
   }
+  if (!await gateAiRequest(req, res, purpose)) return;
 
-  let access;
-  try {
-    access = await getUserAiAccess(req.session.userId);
-  } catch (error) {
-    return serviceError(res, error, 'Failed to load AI status');
-  }
-  const { status } = access;
-  if (!status.enabled) {
-    const error = status.reconnectRequired
-      ? 'AI provider requires reconnection'
-      : 'AI provider is disabled or unavailable';
-    return res.status(503).json({ error });
-  }
-  // The code tells the client which refusal it is: this user's AI access, or a switch that is
-  // off for everyone.
-  if (!access.allowed) {
-    return res.status(403).json({
-      error: 'AI is not enabled for your account. Ask your administrator.',
-      code: 'ai_user_disabled',
-    });
-  }
-  const features = purpose === undefined ? AI_FEATURES : AI_PURPOSES[purpose];
-  const off = features.find(feature => !aiFeatureEnabled(status, feature));
-  if (off) {
-    const error = off === 'compose'
-      ? 'The AI writing assistant is turned off by your administrator.'
-      : 'AI summaries and actions are turned off by your administrator.';
-    return res.status(403).json({ error, code: 'ai_feature_disabled', feature: off });
-  }
-
-  let language = 'en';
-  try {
-    const prefResult = await query('SELECT preferences FROM users WHERE id = $1', [req.session.userId]);
-    language = prefResult.rows[0]?.preferences?.language || 'en';
-  } catch { /* non-critical: fall back to English on a preferences read error */ }
+  const language = await userLanguage(req.session.userId);
   const providerMessages = [
     { role: 'system', content: aiLanguageInstruction(language) },
     ...messages,
