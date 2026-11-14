@@ -15,6 +15,8 @@ import AttachmentStrip from './AttachmentStrip.jsx';
 import { isDarkTheme, canShowDark, showDark } from '../utils/darkScheme.js';
 import AiResultBox from './AiResultBox.jsx';
 import { useAiActions } from '../hooks/useAiActions.js';
+import { useMessageAiTools } from '../hooks/useMessageAiTools.js';
+import { MailAiPanels, withMailActions } from './MessageAiPanels.jsx';
 import { BUILTIN_SUMMARIZE } from '../aiActions.js';
 import { formatDateTime } from '../utils/formatDate.js';
 import { bodyCache } from '../utils/bodyCache.js';
@@ -145,6 +147,7 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
 
   const loadedBody = async () => body;
   const ai = useAiActions(message.id, body, message.subject);
+  const mailAi = useMessageAiTools(message.id);
 
   // Fills at once, as in the list and the reading pane; put back if the server refuses it.
   const handleStar = async () => {
@@ -293,12 +296,12 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
     { key: 'print', label: t('message.print'), icon: <PrintIcon />, onClick: handlePrint },
     darkToggleShown && { key: 'dark', label: darkLabel, icon: <DarkToggleIcon shownDark={shownDark} />, onClick: () => setDarkChoice(bodyDark ? 'original' : 'dark'), pressed: shownDark, disabled: darkRefused },
   ].filter(Boolean);
-  const aiTools = aiEnabled && body ? {
+  const aiTools = withMailActions(aiEnabled && body ? {
     items: [{ ...BUILTIN_SUMMARIZE, label: t('message.summarize') }, ...(ai.aiActions || [])],
     results: ai.results,
     onRun: action => ai.run(action),
     onManage: () => { const st = useStore.getState(); st.setAdminTab('ai-actions'); st.setShowAdmin(true); },
-  } : null;
+  } : null, mailAi, t);
 
   const when = formatDateTime(message.date);
   const who = message.from_name || message.from_email || '';
@@ -374,8 +377,9 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
               message. The body response already carries them. */}
           <AttachmentStrip messageId={message.id} attachments={body?.attachments} style={{ marginBottom: 12 }} />
           {/* AI results pinned above the message, as in the reading pane (#204). */}
-          {Object.keys(ai.results).length > 0 && (
+          {(Object.keys(ai.results).length > 0 || mailAi.translation || mailAi.scam) && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, margin: '4px 0 12px' }}>
+              <MailAiPanels mailAi={mailAi} />
               {Object.entries(ai.results).map(([key, result]) => {
                 const action = ai.actionFor(key);
                 return (

@@ -428,6 +428,38 @@
       "title": "暂停至 {{when}}",
       "failTitle": "无法更改提醒时间",
       "failBody": "保留原来的时间。请重试。"
+    },
+    "translate": "翻译",
+    "translation": "译文",
+    "translateTo": "翻译成",
+    "translating": "正在翻译…",
+    "translationShow": "显示译文",
+    "translationShowOriginal": "显示原文",
+    "translationEmpty": "AI 未返回译文。",
+    "scamCheck": "这是诈骗吗？",
+    "scam": {
+      "title": "诈骗检查",
+      "checking": "正在检查此邮件…",
+      "verdictSafe": "看起来安全",
+      "verdictSuspicious": "可疑",
+      "verdictScam": "很可能是诈骗",
+      "confidence": "把握 {{percent}}%",
+      "recheck": "重新检查",
+      "aiFailed": "AI 检查未完成：{{message}}",
+      "redFlags": "此邮件中的警示信号",
+      "noRedFlags": "链接、附件和发件人检查中未发现技术性警示信号。",
+      "disclaimer": "这是 AI 的判断，并非保证。切勿因邮件要求就发送密码、验证码或付款信息。",
+      "flag": {
+        "linkMismatch": "链接显示为 {{shown}}，实际指向 {{actual}}",
+        "doubleExtension": "伪装的文件名：{{name}}",
+        "executable": "会运行程序的附件：{{name}}",
+        "macro": "带宏的 Office 文件：{{name}}",
+        "active": "可能显示虚假登录页的网页或图片：{{name}}",
+        "archive": "无法检查内容的压缩包：{{name}}",
+        "authFail": "发件人域名未通过 {{mechanism}} 检查",
+        "replyTo": "回复会发送到另一个地址：{{address}}",
+        "displayName": "发件人名称显示为 {{shown}}，但邮件来自 {{actual}}"
+      }
     }
   },
   "messageList": {
@@ -1708,7 +1740,14 @@
       "modelsPriceNote": "共 {{total}} 个可用模型。价格单位为美元每百万 token（输入 / 输出）。",
       "testSave": "保存并测试连接",
       "featureComposeHint": "在写信界面：撰写草稿、润色、缩短、纠正拼写，以及让邮件更清晰。",
-      "featureSummarizeHint": "在阅读窗格：总结邮件，并对其运行你自己的 AI 操作。"
+      "featureSummarizeHint": "在阅读窗格：总结邮件，并对其运行你自己的 AI 操作。",
+      "connectionMethodAnthropic": "Anthropic (Claude)",
+      "anthropicWhy": "使用按用量计费的 Anthropic API 密钥。Claude.ai 订阅（Pro 或 Max）无法连接到其他应用，请在 Anthropic 控制台中创建密钥。",
+      "anthropicKey": "Anthropic API 密钥",
+      "anthropicKeyPh": "sk-ant-…",
+      "anthropicGetKey": "创建密钥",
+      "anthropicModelHaiku": "Claude Haiku 5.5（快速，最便宜）",
+      "anthropicModelSonnet": "Claude Sonnet 5.5（能力更强）"
     },
     "aiActions": {
       "description": "创建你自己的 AI 操作。它们会在阅读邮件时出现在 AI 菜单中，与“摘要”并列。每个操作的提示词会应用于邮件内容。",

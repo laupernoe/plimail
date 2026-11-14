@@ -10,10 +10,13 @@ import { autoRecipientFields } from '../utils/autoRecipients.js';
 import {
   AI_ACCOUNT_PROVIDER_OPTIONS,
   AI_CONNECTION_METHOD_ACCOUNT,
+  AI_CONNECTION_METHOD_ANTHROPIC,
   AI_CONNECTION_METHOD_API,
   AI_CONNECTION_METHOD_OPENROUTER,
   AI_CONNECTION_METHOD_OPTIONS,
   AI_PROVIDER_CHATGPT,
+  ANTHROPIC_KEYS_URL,
+  ANTHROPIC_MODEL_OPTIONS,
   OPENAI_MODELS_URL,
   OPENROUTER_KEYS_URL,
   buildAiSavePayload,
@@ -3584,6 +3587,7 @@ function AISection() {
 
   const openrouterSelected = form.connectionMethod === AI_CONNECTION_METHOD_OPENROUTER;
   const apiSelected = form.connectionMethod === AI_CONNECTION_METHOD_API;
+  const anthropicSelected = form.connectionMethod === AI_CONNECTION_METHOD_ANTHROPIC;
   const accountSelected = form.connectionMethod === AI_CONNECTION_METHOD_ACCOUNT;
   const chatgptSelected = accountSelected && form.accountProvider === AI_PROVIDER_CHATGPT;
   const chatgptConnected = codexStatus.connected === true || deviceState?.phase === 'connected';
@@ -3714,6 +3718,38 @@ function AISection() {
           </>
         )}
 
+        {anthropicSelected && (
+          <>
+            {/* A Claude.ai subscription has no API: third-party apps connect with an API key. */}
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5, marginTop: -6, marginBottom: 14 }}>
+              {t('admin.ai.anthropicWhy')}
+            </div>
+            {field(
+              t('admin.ai.anthropicKey'),
+              form.anthropicConfig.apiKey,
+              value => setForm(f => ({ ...f, anthropicConfig: { ...f.anthropicConfig, apiKey: value } })),
+              'password',
+              t('admin.ai.anthropicKeyPh'),
+              <a href={ANTHROPIC_KEYS_URL} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>{t('admin.ai.anthropicGetKey')}</a>,
+            )}
+            <div style={{ marginBottom: 14 }}>
+              <label htmlFor="ai-anthropic-model" style={{ display: 'block', fontSize: 12, color: 'var(--text-secondary)', marginBottom: 5 }}>{t('admin.ai.model')}</label>
+              <select
+                id="ai-anthropic-model"
+                value={form.anthropicConfig.model}
+                onChange={e => setForm(f => ({ ...f, anthropicConfig: { ...f.anthropicConfig, model: e.target.value } }))}
+                style={{ ...inputStyle, cursor: 'pointer' }}
+              >
+                {ANTHROPIC_MODEL_OPTIONS.map(({ value, labelKey }) => (
+                  <option key={value} value={value}>{t(labelKey)}</option>
+                ))}
+              </select>
+            </div>
+            {testButton(t('admin.ai.testSave'))}
+            {resultBox(testResult)}
+          </>
+        )}
+
         {chatgptSelected && (
           <>
             {field(
@@ -3781,7 +3817,7 @@ function AISection() {
           </>
         )}
 
-        {(openrouterSelected || apiSelected || chatgptSelected) && (
+        {(openrouterSelected || apiSelected || anthropicSelected || chatgptSelected) && (
           <div style={{ marginBottom: 14 }}>
             <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>{t('admin.ai.features')}</div>
             {toggle(t('admin.ai.featureCompose'), form.features.compose, () => setForm(f => ({ ...f, features: { ...f.features, compose: !f.features.compose } })), t('admin.ai.featureComposeHint'))}

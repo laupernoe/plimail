@@ -428,6 +428,38 @@
       "title": "Snoozed until {{when}}",
       "failTitle": "Could not change the snooze time",
       "failBody": "It keeps its earlier time. Try again."
+    },
+    "translate": "Translate",
+    "translation": "Translation",
+    "translateTo": "Translate into",
+    "translating": "Translating…",
+    "translationShow": "Show translation",
+    "translationShowOriginal": "Show original",
+    "translationEmpty": "The AI returned no translation.",
+    "scamCheck": "Is this a scam?",
+    "scam": {
+      "title": "Scam check",
+      "checking": "Checking this message…",
+      "verdictSafe": "Looks safe",
+      "verdictSuspicious": "Suspicious",
+      "verdictScam": "Likely a scam",
+      "confidence": "{{percent}}% sure",
+      "recheck": "Check again",
+      "aiFailed": "The AI check did not finish: {{message}}",
+      "redFlags": "Warning signs in this message",
+      "noRedFlags": "No technical warning signs found in the links, attachments or sender checks.",
+      "disclaimer": "An AI opinion, not a guarantee. Never send a password, code or payment details because an email asks for them.",
+      "flag": {
+        "linkMismatch": "A link shows {{shown}} but goes to {{actual}}",
+        "doubleExtension": "Disguised file name: {{name}}",
+        "executable": "Attachment that runs a program: {{name}}",
+        "macro": "Office file with macros: {{name}}",
+        "active": "Web page or image that can show a fake login: {{name}}",
+        "archive": "Archive whose contents cannot be checked: {{name}}",
+        "authFail": "The sender's domain failed its {{mechanism}} check",
+        "replyTo": "Replies go to another address: {{address}}",
+        "displayName": "The sender name shows {{shown}} but the mail is from {{actual}}"
+      }
     }
   },
   "messageList": {
@@ -1708,7 +1740,14 @@
       "modelsPriceNote": "{{total}} models available. Prices are in US dollars per million tokens (input / output).",
       "testSave": "Save and test connection",
       "featureComposeHint": "In the composer: write a draft, improve, shorten, fix spelling and make a message clearer.",
-      "featureSummarizeHint": "In the reading pane: summarize a message and run your own AI actions on it."
+      "featureSummarizeHint": "In the reading pane: summarize a message and run your own AI actions on it.",
+      "connectionMethodAnthropic": "Anthropic (Claude)",
+      "anthropicWhy": "Uses an Anthropic API key, billed per use. A Claude.ai subscription (Pro or Max) cannot be connected to other apps, so create a key in the Anthropic Console.",
+      "anthropicKey": "Anthropic API key",
+      "anthropicKeyPh": "sk-ant-…",
+      "anthropicGetKey": "Create a key",
+      "anthropicModelHaiku": "Claude Haiku 5.5 (fast, cheapest)",
+      "anthropicModelSonnet": "Claude Sonnet 5.5 (more capable)"
     },
     "aiActions": {
       "description": "Create your own AI actions. They appear in the AI menu when reading a message, alongside Summarize. Each action's prompt is applied to the message content.",

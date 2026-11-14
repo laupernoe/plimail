@@ -428,6 +428,38 @@
       "title": "Posticipato fino a {{when}}",
       "failTitle": "Impossibile cambiare l'orario",
       "failBody": "Resta l'orario precedente. Riprova."
+    },
+    "translate": "Traduci",
+    "translation": "Traduzione",
+    "translateTo": "Traduci in",
+    "translating": "Traduzione in corso…",
+    "translationShow": "Mostra traduzione",
+    "translationShowOriginal": "Mostra originale",
+    "translationEmpty": "L'IA non ha restituito alcuna traduzione.",
+    "scamCheck": "È una truffa?",
+    "scam": {
+      "title": "Controllo truffa",
+      "checking": "Controllo del messaggio…",
+      "verdictSafe": "Sembra sicuro",
+      "verdictSuspicious": "Sospetto",
+      "verdictScam": "Probabile truffa",
+      "confidence": "certezza {{percent}}%",
+      "recheck": "Ricontrolla",
+      "aiFailed": "Il controllo IA non è terminato: {{message}}",
+      "redFlags": "Segnali d'allarme in questo messaggio",
+      "noRedFlags": "Nessun segnale d'allarme tecnico nei link, negli allegati o nei controlli del mittente.",
+      "disclaimer": "Un parere dell'IA, non una garanzia. Non inviare mai password, codici o dati di pagamento solo perché un'email li chiede.",
+      "flag": {
+        "linkMismatch": "Un link mostra {{shown}} ma porta a {{actual}}",
+        "doubleExtension": "Nome di file camuffato: {{name}}",
+        "executable": "Allegato che avvia un programma: {{name}}",
+        "macro": "File Office con macro: {{name}}",
+        "active": "Pagina web o immagine che può mostrare un falso accesso: {{name}}",
+        "archive": "Archivio il cui contenuto non può essere controllato: {{name}}",
+        "authFail": "Il dominio del mittente non ha superato il controllo {{mechanism}}",
+        "replyTo": "Le risposte vanno a un altro indirizzo: {{address}}",
+        "displayName": "Il nome del mittente mostra {{shown}} ma il messaggio arriva da {{actual}}"
+      }
     }
   },
   "messageList": {
@@ -1708,7 +1740,14 @@
       "modelsPriceNote": "{{total}} modelli disponibili. I prezzi sono in dollari USA per milione di token (input / output).",
       "testSave": "Salva e prova la connessione",
       "featureComposeHint": "Nell'editor: scrivere una bozza, migliorare, accorciare, correggere l'ortografia e rendere più chiaro un messaggio.",
-      "featureSummarizeHint": "Nel pannello di lettura: riassumere un messaggio ed eseguire le tue azioni IA su di esso."
+      "featureSummarizeHint": "Nel pannello di lettura: riassumere un messaggio ed eseguire le tue azioni IA su di esso.",
+      "connectionMethodAnthropic": "Anthropic (Claude)",
+      "anthropicWhy": "Usa una chiave API Anthropic, fatturata a consumo. Un abbonamento Claude.ai (Pro o Max) non può essere collegato ad altre app, quindi crea una chiave nella Console Anthropic.",
+      "anthropicKey": "Chiave API Anthropic",
+      "anthropicKeyPh": "sk-ant-…",
+      "anthropicGetKey": "Crea una chiave",
+      "anthropicModelHaiku": "Claude Haiku 5.5 (veloce, il più economico)",
+      "anthropicModelSonnet": "Claude Sonnet 5.5 (più capace)"
     },
     "aiActions": {
       "description": "Crea le tue azioni IA. Appaiono nel menu IA durante la lettura di un messaggio, accanto a Riassumi. Il prompt di ogni azione viene applicato al contenuto del messaggio.",

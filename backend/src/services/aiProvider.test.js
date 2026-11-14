@@ -103,6 +103,7 @@ describe('normalizeAiConfig', () => {
       },
       chatgptConfig: { model: 'gpt-5.6-luna' },
       openrouterConfig: { apiKey: null, model: 'mistralai/mistral-nemo' },
+      anthropicConfig: { apiKey: null, model: 'claude-haiku-5-5' },
       features: { compose: false, summarize: true },
     });
   });
@@ -119,6 +120,7 @@ describe('normalizeAiConfig', () => {
       apiKeyConfig: { baseUrl: 'https://api.example/v1', apiKey: null, model: 'api-model' },
       chatgptConfig: { model: 'gpt-5.4' },
       openrouterConfig: { apiKey: null, model: 'mistralai/mistral-nemo' },
+      anthropicConfig: { apiKey: null, model: 'claude-haiku-5-5' },
       features: { compose: true, summarize: true },
     });
   });

@@ -428,6 +428,38 @@
       "title": "Pospuesto hasta {{when}}",
       "failTitle": "No se pudo cambiar la hora",
       "failBody": "Mantiene la hora anterior. Inténtalo de nuevo."
+    },
+    "translate": "Traducir",
+    "translation": "Traducción",
+    "translateTo": "Traducir a",
+    "translating": "Traduciendo…",
+    "translationShow": "Mostrar traducción",
+    "translationShowOriginal": "Mostrar original",
+    "translationEmpty": "La IA no devolvió ninguna traducción.",
+    "scamCheck": "¿Es una estafa?",
+    "scam": {
+      "title": "Comprobación de estafa",
+      "checking": "Comprobando este mensaje…",
+      "verdictSafe": "Parece seguro",
+      "verdictSuspicious": "Sospechoso",
+      "verdictScam": "Probablemente una estafa",
+      "confidence": "{{percent}} % de certeza",
+      "recheck": "Volver a comprobar",
+      "aiFailed": "La comprobación con IA no terminó: {{message}}",
+      "redFlags": "Señales de alerta en este mensaje",
+      "noRedFlags": "No se encontraron señales técnicas de alerta en los enlaces, adjuntos ni comprobaciones del remitente.",
+      "disclaimer": "Una opinión de la IA, no una garantía. Nunca envíes una contraseña, un código o datos de pago porque un correo te los pida.",
+      "flag": {
+        "linkMismatch": "Un enlace muestra {{shown}} pero lleva a {{actual}}",
+        "doubleExtension": "Nombre de archivo disfrazado: {{name}}",
+        "executable": "Adjunto que ejecuta un programa: {{name}}",
+        "macro": "Archivo de Office con macros: {{name}}",
+        "active": "Página web o imagen que puede mostrar un inicio de sesión falso: {{name}}",
+        "archive": "Archivo comprimido cuyo contenido no se puede comprobar: {{name}}",
+        "authFail": "El dominio del remitente no superó la comprobación {{mechanism}}",
+        "replyTo": "Las respuestas van a otra dirección: {{address}}",
+        "displayName": "El nombre del remitente muestra {{shown}} pero el correo viene de {{actual}}"
+      }
     }
   },
   "messageList": {
@@ -1708,7 +1740,14 @@
       "modelsPriceNote": "{{total}} modelos disponibles. Los precios son en dólares estadounidenses por millón de tokens (entrada / salida).",
       "testSave": "Guardar y probar la conexión",
       "featureComposeHint": "En el editor: redactar un borrador, mejorar, acortar, corregir la ortografía y hacer un mensaje más claro.",
-      "featureSummarizeHint": "En el panel de lectura: resumir un mensaje y ejecutar tus propias acciones de IA sobre él."
+      "featureSummarizeHint": "En el panel de lectura: resumir un mensaje y ejecutar tus propias acciones de IA sobre él.",
+      "connectionMethodAnthropic": "Anthropic (Claude)",
+      "anthropicWhy": "Usa una clave de API de Anthropic, facturada por uso. Una suscripción de Claude.ai (Pro o Max) no se puede conectar a otras aplicaciones, así que crea una clave en la consola de Anthropic.",
+      "anthropicKey": "Clave de API de Anthropic",
+      "anthropicKeyPh": "sk-ant-…",
+      "anthropicGetKey": "Crear una clave",
+      "anthropicModelHaiku": "Claude Haiku 5.5 (rápido, el más barato)",
+      "anthropicModelSonnet": "Claude Sonnet 5.5 (más capaz)"
     },
     "aiActions": {
       "description": "Crea tus propias acciones de IA. Aparecen en el menú de IA al leer un mensaje, junto a Resumir. El prompt de cada acción se aplica al contenido del mensaje.",

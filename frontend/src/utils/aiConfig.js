@@ -1,20 +1,32 @@
 export const AI_PROVIDER_API_KEY = 'api-key';
 export const AI_PROVIDER_CHATGPT = 'chatgpt';
 export const AI_PROVIDER_OPENROUTER = 'openrouter';
+export const AI_PROVIDER_ANTHROPIC = 'anthropic';
 export const AI_CONNECTION_METHOD_OPENROUTER = 'openrouter';
 export const AI_CONNECTION_METHOD_API = 'api';
 export const AI_CONNECTION_METHOD_ACCOUNT = 'account';
+export const AI_CONNECTION_METHOD_ANTHROPIC = 'anthropic';
 export const DEFAULT_CODEX_MODEL = 'gpt-5.6-luna';
 export const DEFAULT_OPENROUTER_MODEL = 'mistralai/mistral-nemo';
 export const OPENROUTER_KEYS_URL = 'https://openrouter.ai/keys';
 export const OPENROUTER_MODELS_URL = 'https://openrouter.ai/models';
 export const OPENAI_MODELS_URL = 'https://developers.openai.com/api/docs/models';
+export const ANTHROPIC_KEYS_URL = 'https://console.anthropic.com/settings/keys';
+// The owner limits Claude to these two, Haiku (the cheapest) first and by default. Kept in sync
+// with ANTHROPIC_MODELS in backend/src/services/aiProvider.js, which refuses any other.
+export const ANTHROPIC_MODEL_OPTIONS = [
+  { value: 'claude-haiku-5-5', labelKey: 'admin.ai.anthropicModelHaiku' },
+  { value: 'claude-sonnet-5-5', labelKey: 'admin.ai.anthropicModelSonnet' },
+];
+export const DEFAULT_ANTHROPIC_MODEL = ANTHROPIC_MODEL_OPTIONS[0].value;
+const ANTHROPIC_MODELS = new Set(ANTHROPIC_MODEL_OPTIONS.map(({ value }) => value));
 
 // OpenRouter comes first: one key reaches many models and it is the one we recommend.
 export const AI_CONNECTION_METHOD_OPTIONS = [
   { value: AI_CONNECTION_METHOD_OPENROUTER, labelKey: 'admin.ai.connectionMethodOpenrouter' },
   { value: AI_CONNECTION_METHOD_API, labelKey: 'admin.ai.connectionMethodApi' },
   { value: AI_CONNECTION_METHOD_ACCOUNT, labelKey: 'admin.ai.connectionMethodAccount' },
+  { value: AI_CONNECTION_METHOD_ANTHROPIC, labelKey: 'admin.ai.connectionMethodAnthropic' },
 ];
 export const AI_ACCOUNT_PROVIDER_OPTIONS = [
   { value: AI_PROVIDER_CHATGPT, labelKey: 'admin.ai.subscriptionProviderChatgpt' },
@@ -40,6 +52,10 @@ export function normalizeAiForm(raw = {}) {
   const openrouterConfig = raw.openrouterConfig && typeof raw.openrouterConfig === 'object'
     ? raw.openrouterConfig
     : {};
+  const anthropicConfig = raw.anthropicConfig && typeof raw.anthropicConfig === 'object'
+    ? raw.anthropicConfig
+    : {};
+  const anthropicModel = cleanString(anthropicConfig.model);
   const explicitConnectionMethod = cleanString(raw.connectionMethod);
   if (explicitConnectionMethod && !CONNECTION_METHODS.has(explicitConnectionMethod)) {
     throw new TypeError(`Unsupported connection method: ${explicitConnectionMethod}`);
@@ -55,6 +71,8 @@ export function normalizeAiForm(raw = {}) {
     ? AI_CONNECTION_METHOD_ACCOUNT
     : raw.provider === AI_PROVIDER_OPENROUTER
       ? AI_CONNECTION_METHOD_OPENROUTER
+      : raw.provider === AI_PROVIDER_ANTHROPIC
+      ? AI_CONNECTION_METHOD_ANTHROPIC
       : raw.provider === AI_PROVIDER_API_KEY || hasLegacyApiConfig
       ? AI_CONNECTION_METHOD_API
       : '';
@@ -78,6 +96,10 @@ export function normalizeAiForm(raw = {}) {
       apiKey: typeof openrouterConfig.apiKey === 'string' ? openrouterConfig.apiKey : '',
       model: cleanString(openrouterConfig.model) || DEFAULT_OPENROUTER_MODEL,
     },
+    anthropicConfig: {
+      apiKey: typeof anthropicConfig.apiKey === 'string' ? anthropicConfig.apiKey : '',
+      model: ANTHROPIC_MODELS.has(anthropicModel) ? anthropicModel : DEFAULT_ANTHROPIC_MODEL,
+    },
     features: {
       compose: raw.features?.compose !== false,
       summarize: raw.features?.summarize !== false,
@@ -98,6 +120,9 @@ export function isAiFormValid(form = {}) {
   if (form.enabled === false) return true;
   if (form.connectionMethod === AI_CONNECTION_METHOD_OPENROUTER) {
     return !!cleanString(form.openrouterConfig?.apiKey) && !!cleanString(form.openrouterConfig?.model);
+  }
+  if (form.connectionMethod === AI_CONNECTION_METHOD_ANTHROPIC) {
+    return !!cleanString(form.anthropicConfig?.apiKey) && ANTHROPIC_MODELS.has(form.anthropicConfig?.model);
   }
   if (form.connectionMethod === AI_CONNECTION_METHOD_API) {
     return !!cleanBaseUrl(form.apiKeyConfig?.baseUrl) && !!cleanString(form.apiKeyConfig?.model);
@@ -120,10 +145,13 @@ export function buildAiSavePayload(form = {}) {
       ? normalized.accountProvider
       : normalized.connectionMethod === AI_CONNECTION_METHOD_OPENROUTER
         ? AI_PROVIDER_OPENROUTER
-        : AI_PROVIDER_API_KEY,
+        : normalized.connectionMethod === AI_CONNECTION_METHOD_ANTHROPIC
+          ? AI_PROVIDER_ANTHROPIC
+          : AI_PROVIDER_API_KEY,
     apiKeyConfig: normalized.apiKeyConfig,
     chatgptConfig: normalized.chatgptConfig,
     openrouterConfig: { ...normalized.openrouterConfig, apiKey: normalized.openrouterConfig.apiKey.trim() },
+    anthropicConfig: { ...normalized.anthropicConfig, apiKey: normalized.anthropicConfig.apiKey.trim() },
     features: normalized.features,
     newUsersEnabled: normalized.newUsersEnabled,
   };

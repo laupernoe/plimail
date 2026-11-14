@@ -428,6 +428,38 @@
       "title": "En attente jusqu'à {{when}}",
       "failTitle": "Impossible de modifier l'heure de retour",
       "failBody": "L'heure précédente est conservée. Réessayez."
+    },
+    "translate": "Traduire",
+    "translation": "Traduction",
+    "translateTo": "Traduire en",
+    "translating": "Traduction en cours…",
+    "translationShow": "Afficher la traduction",
+    "translationShowOriginal": "Afficher l'original",
+    "translationEmpty": "L'IA n'a renvoyé aucune traduction.",
+    "scamCheck": "Arnaque ?",
+    "scam": {
+      "title": "Vérification d'arnaque",
+      "checking": "Vérification du message…",
+      "verdictSafe": "Semble sûr",
+      "verdictSuspicious": "Suspect",
+      "verdictScam": "Probablement une arnaque",
+      "confidence": "sûr à {{percent}} %",
+      "recheck": "Revérifier",
+      "aiFailed": "La vérification par l'IA n'a pas abouti : {{message}}",
+      "redFlags": "Signaux d'alerte dans ce message",
+      "noRedFlags": "Aucun signal d'alerte technique dans les liens, les pièces jointes ou les contrôles de l'expéditeur.",
+      "disclaimer": "Un avis de l'IA, pas une garantie. N'envoyez jamais un mot de passe, un code ou des données de paiement parce qu'un e-mail le demande.",
+      "flag": {
+        "linkMismatch": "Un lien affiche {{shown}} mais mène à {{actual}}",
+        "doubleExtension": "Nom de fichier déguisé : {{name}}",
+        "executable": "Pièce jointe qui exécute un programme : {{name}}",
+        "macro": "Fichier Office avec macros : {{name}}",
+        "active": "Page web ou image pouvant afficher une fausse connexion : {{name}}",
+        "archive": "Archive dont le contenu ne peut pas être vérifié : {{name}}",
+        "authFail": "Le domaine de l'expéditeur a échoué au contrôle {{mechanism}}",
+        "replyTo": "Les réponses partent vers une autre adresse : {{address}}",
+        "displayName": "Le nom de l'expéditeur affiche {{shown}} mais le message vient de {{actual}}"
+      }
     }
   },
   "messageList": {
@@ -1708,7 +1740,14 @@
       "modelsPriceNote": "{{total}} modèles disponibles. Les prix sont en dollars US par million de tokens (entrée / sortie).",
       "testSave": "Enregistrer et tester la connexion",
       "featureComposeHint": "Dans l'éditeur : rédiger un brouillon, améliorer, raccourcir, corriger l'orthographe et rendre un message plus clair.",
-      "featureSummarizeHint": "Dans le volet de lecture : résumer un message et lancer vos propres actions IA dessus."
+      "featureSummarizeHint": "Dans le volet de lecture : résumer un message et lancer vos propres actions IA dessus.",
+      "connectionMethodAnthropic": "Anthropic (Claude)",
+      "anthropicWhy": "Utilise une clé API Anthropic, facturée à l'usage. Un abonnement Claude.ai (Pro ou Max) ne peut pas être connecté à d'autres applications : créez une clé dans la console Anthropic.",
+      "anthropicKey": "Clé API Anthropic",
+      "anthropicKeyPh": "sk-ant-…",
+      "anthropicGetKey": "Créer une clé",
+      "anthropicModelHaiku": "Claude Haiku 5.5 (rapide, le moins cher)",
+      "anthropicModelSonnet": "Claude Sonnet 5.5 (plus performant)"
     },
     "aiActions": {
       "description": "Créez vos propres actions IA. Elles apparaissent dans le menu IA lors de la lecture d'un message, à côté de Résumer. Le prompt de chaque action est appliqué au contenu du message.",

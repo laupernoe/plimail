@@ -61,12 +61,24 @@ async function request(method, path, body, extraHeaders) {
 
 // purpose is 'compose' (writing assistant), 'summarize' (summaries and AI actions) or 'reply'
 // (Reply with AI, which needs both): the server checks it against the admin's switches (#644).
-export async function streamAiChat(messages, { purpose, signal, onDelta } = {}) {
-  const response = await fetch(`${BASE}/ai/chat`, {
+export function streamAiChat(messages, { purpose, signal, onDelta } = {}) {
+  return streamAiSse('/ai/chat', { messages, purpose }, { signal, onDelta });
+}
+
+// A message translated server-side into `language` (an i18n locale code), streamed like /ai/chat.
+// onMeta receives { language, truncated } before the text.
+export function streamMessageTranslation(messageId, { language, signal, onDelta, onMeta } = {}) {
+  return streamAiSse(`/ai/messages/${encodeURIComponent(messageId)}/translate`, { language }, { signal, onDelta, onMeta });
+}
+
+// The /ai/chat stream format: `data:` lines of { choices: [{ delta: { content } }] }, an { error },
+// or { meta }, ended by [DONE].
+async function streamAiSse(path, body, { signal, onDelta, onMeta } = {}) {
+  const response = await fetch(`${BASE}${path}`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json', [CSRF_HEADER]: CSRF_VALUE },
-    body: JSON.stringify({ messages, purpose }),
+    body: JSON.stringify(body),
     signal,
   });
   if (!response.ok) {
@@ -97,6 +109,10 @@ export async function streamAiChat(messages, { purpose, signal, onDelta } = {}) 
       if (parsed?.error) {
         const message = typeof parsed.error === 'string' ? parsed.error : parsed.error.message;
         throw new Error(message || 'AI request failed');
+      }
+      if (parsed?.meta) {
+        onMeta?.(parsed.meta);
+        return;
       }
       const delta = parsed?.choices?.[0]?.delta?.content;
       if (typeof delta === 'string' && delta) {
@@ -623,6 +639,8 @@ export const api = {
     openrouterModels: () => request('GET', '/admin/ai/openrouter/models'),
     status: () => request('GET', '/ai/status'),
     chat: streamAiChat,
+    translateMessage: streamMessageTranslation,
+    scamCheck: (messageId, { language } = {}) => request('POST', `/ai/messages/${encodeURIComponent(messageId)}/scam-check`, { language }),
     codex: {
       start: () => request('POST', '/admin/ai/codex/device'),
       poll: (flowId) => request('POST', '/admin/ai/codex/device/poll', { flowId }),

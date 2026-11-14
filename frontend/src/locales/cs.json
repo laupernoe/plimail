@@ -626,6 +626,38 @@
       "title": "Odloženo do {{when}}",
       "failTitle": "Čas návratu se nepodařilo změnit",
       "failBody": "Zůstává původní čas. Zkuste to znovu."
+    },
+    "translate": "Přeložit",
+    "translation": "Překlad",
+    "translateTo": "Přeložit do",
+    "translating": "Překládá se…",
+    "translationShow": "Zobrazit překlad",
+    "translationShowOriginal": "Zobrazit originál",
+    "translationEmpty": "AI nevrátila žádný překlad.",
+    "scamCheck": "Je to podvod?",
+    "scam": {
+      "title": "Kontrola podvodu",
+      "checking": "Kontroluje se zpráva…",
+      "verdictSafe": "Vypadá bezpečně",
+      "verdictSuspicious": "Podezřelé",
+      "verdictScam": "Pravděpodobně podvod",
+      "confidence": "jistota {{percent}} %",
+      "recheck": "Zkontrolovat znovu",
+      "aiFailed": "Kontrola AI nebyla dokončena: {{message}}",
+      "redFlags": "Varovné signály v této zprávě",
+      "noRedFlags": "V odkazech, přílohách ani kontrolách odesílatele nebyly nalezeny technické varovné signály.",
+      "disclaimer": "Názor AI, ne záruka. Nikdy neposílejte heslo, kód ani platební údaje jen proto, že o ně e-mail žádá.",
+      "flag": {
+        "linkMismatch": "Odkaz ukazuje {{shown}}, ale vede na {{actual}}",
+        "doubleExtension": "Maskovaný název souboru: {{name}}",
+        "executable": "Příloha, která spouští program: {{name}}",
+        "macro": "Soubor Office s makry: {{name}}",
+        "active": "Webová stránka nebo obrázek, který může zobrazit falešné přihlášení: {{name}}",
+        "archive": "Archiv, jehož obsah nelze zkontrolovat: {{name}}",
+        "authFail": "Doména odesílatele neprošla kontrolou {{mechanism}}",
+        "replyTo": "Odpovědi jdou na jinou adresu: {{address}}",
+        "displayName": "Jméno odesílatele ukazuje {{shown}}, ale zpráva je z {{actual}}"
+      }
     }
   },
   "compose": {
@@ -2012,7 +2044,14 @@
       "modelsPriceNote": "Dostupné modely: {{total}}. Ceny jsou v amerických dolarech za milion tokenů (vstup / výstup).",
       "testSave": "Uložit a otestovat připojení",
       "featureComposeHint": "V editoru: psaní konceptu, vylepšení, zkrácení, oprava pravopisu a zpřehlednění zprávy.",
-      "featureSummarizeHint": "V okně čtení: shrnutí zprávy a spouštění vlastních akcí AI nad ní."
+      "featureSummarizeHint": "V okně čtení: shrnutí zprávy a spouštění vlastních akcí AI nad ní.",
+      "connectionMethodAnthropic": "Anthropic (Claude)",
+      "anthropicWhy": "Používá klíč API Anthropic, účtovaný podle využití. Předplatné Claude.ai (Pro nebo Max) nelze připojit k jiným aplikacím, proto vytvořte klíč v konzoli Anthropic.",
+      "anthropicKey": "Klíč API Anthropic",
+      "anthropicKeyPh": "sk-ant-…",
+      "anthropicGetKey": "Vytvořit klíč",
+      "anthropicModelHaiku": "Claude Haiku 5.5 (rychlý, nejlevnější)",
+      "anthropicModelSonnet": "Claude Sonnet 5.5 (schopnější)"
     },
     "aiActions": {
       "description": "Vytvořte si vlastní akce AI. Při čtení zprávy se zobrazí v nabídce AI vedle možnosti Shrnout. Pokyn každé akce se použije na obsah zprávy.",

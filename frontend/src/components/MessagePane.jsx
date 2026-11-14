@@ -32,6 +32,8 @@ import { downloadEml } from '../utils/downloadEml.js';
 import { buildPrintDocument, openPrintWindow, printInWindow } from '../utils/printMessage.js';
 import AiResultBox from './AiResultBox.jsx';
 import { useAiActions } from '../hooks/useAiActions.js';
+import { useMessageAiTools } from '../hooks/useMessageAiTools.js';
+import { MailAiPanels, withMailActions } from './MessageAiPanels.jsx';
 import AttachmentStrip from './AttachmentStrip.jsx';
 import {
   ActionBtn, MessageTools, ReplySplitButton, RemoteImagesNotice, UnsubscribeNotice, TOUCH_MIN,
@@ -240,6 +242,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
   // status: 'loading' | 'done' | 'error'. Restored from localStorage on message change.
   const ai = useAiActions(selectedMessageId, body, message?.subject);
   const aiResults = ai.results;
+  const mailAi = useMessageAiTools(selectedMessageId);
   const [aiClassifying, setAiClassifying] = useState(false);
   const [unsubscribeStatus, setUnsubscribeStatus] = useState(null); // null | 'loading' | 'done' | 'error'
   const moveBtnRef = useRef(null);
@@ -1307,12 +1310,12 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
     { key: 'print', label: t('message.print'), title: withShortcut(t('message.print'), 'printMessage'), icon: <PrintIcon />, onClick: handlePrint },
     darkToggleShown && { key: 'dark', label: darkToggleLabel, icon: <DarkToggleIcon shownDark={shownDark} />, onClick: toggleDark, pressed: shownDark, disabled: darkRefused },
   ].filter(Boolean) : [];
-  const aiTools = aiStatus?.enabled && aiStatus?.features?.summarize && body ? {
+  const aiTools = withMailActions(aiStatus?.enabled && aiStatus?.features?.summarize && body ? {
     items: [{ ...BUILTIN_SUMMARIZE, label: t('message.summarize') }, ...(aiActions || [])],
     results: aiResults,
     onRun: action => runAiAction(action),
     onManage: () => { setAdminTab('ai-actions'); setShowAdmin(true); },
-  } : null;
+  } : null, mailAi, t);
 
   // Only messages you sent (or drafts you saved) have a Bcc on record (#585).
   const bccList = Array.isArray(body?.bccAddresses) ? body.bccAddresses : [];
@@ -1749,8 +1752,9 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
         )}
 
         {/* AI action results — pinned boxes above the message (#204) */}
-        {Object.keys(aiResults).length > 0 && (
+        {(Object.keys(aiResults).length > 0 || mailAi.translation || mailAi.scam) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+            <MailAiPanels mailAi={mailAi} />
             {Object.entries(aiResults).map(([key, result]) => {
               const action = key === BUILTIN_SUMMARIZE.id
                 ? BUILTIN_SUMMARIZE
