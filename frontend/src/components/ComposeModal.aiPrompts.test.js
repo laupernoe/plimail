@@ -1,5 +1,5 @@
-// The composer's AI actions: each one's instruction, and that none of them asks for a sign-off
-// of its own (the composer appends the signature).
+// The composer's AI actions and tone presets: each one's instruction, and that none of them asks
+// for a sign-off of its own (the composer appends the signature).
 
 import { test, describe, before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -66,7 +66,7 @@ before(() => {
   });
 });
 
-async function run(menuKey) {
+async function run(menuKey, { direct } = {}) {
   chats.length = 0;
   useStore.setState({ plaintextEmail: false, composing: false, composeData: null, prepareComposeSwitch: null });
   useStore.getState().openCompose({ accountId: 'acct', to: ['bob@example.invalid'], cc: [], subject: 'Plan', body: '<p>helo bob</p>', bodyIsHtml: true });
@@ -74,8 +74,12 @@ async function run(menuKey) {
   await React.act(async () => { root.render(React.createElement(ComposeModal)); });
   await React.act(async () => {});
   const press = (el) => React.act(async () => { el.dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true })); });
-  await press(document.querySelector('button[title="compose.toolbar.aiAssist"]'));
-  await press([...document.querySelectorAll('button')].find(b => b.textContent === menuKey));
+  if (direct) {
+    await press(document.querySelector(direct));
+  } else {
+    await press(document.querySelector('button[title="compose.toolbar.aiAssist"]'));
+    await press([...document.querySelectorAll('button')].find(b => b.textContent === menuKey));
+  }
   await React.act(async () => {});
   await React.act(async () => root.unmount());
   return chats[0];
@@ -96,7 +100,28 @@ describe('composer AI actions', () => {
     assert.equal(user.content, 'helo bob');
   });
 
-  for (const [name, key] of [['Improve', 'aiImprove'], ['Shorten', 'aiShorten'], ['Fix spelling', 'aiFixGrammar'], ['Make clearer', 'aiMakeClearer']]) {
+  test('the toolbar spell-check button proofreads in one click, without opening the menu', async () => {
+    const [system, user] = await run(null, { direct: '[data-testid="ai-spellcheck"]' });
+    assert.match(system.content, /only the spelling, grammar and punctuation/);
+    assert.equal(user.content, 'helo bob');
+  });
+
+  for (const [key, tone] of [
+    ['toneProfessional', /professional and polished/],
+    ['toneFriendly', /warm and friendly/],
+    ['toneFormal', /formal and respectful.*vous, Sie/],
+    ['toneDiplomatic', /polite and diplomatic/],
+    ['toneDirect', /direct and assertive/],
+  ]) {
+    test(`the ${key} preset rewrites the draft in that tone, keeping facts and language`, async () => {
+      const [system, user] = await run(`compose.toolbar.${key}`);
+      assert.match(system.content, tone);
+      assert.match(system.content, /Keep the meaning, every fact, name, date and number, and the language/);
+      assert.equal(user.content, 'helo bob');
+    });
+  }
+
+  for (const [name, key] of [['Improve', 'aiImprove'], ['Shorten', 'aiShorten'], ['Fix spelling', 'aiFixGrammar'], ['Make clearer', 'aiMakeClearer'], ['Professional', 'toneProfessional'], ['Friendly', 'toneFriendly'], ['Formal', 'toneFormal'], ['Diplomatic', 'toneDiplomatic'], ['Direct', 'toneDirect']]) {
     test(`${name} adds no sign-off of its own`, async () => {
       const [system] = await run(`compose.toolbar.${key}`);
       assert.match(system.content, /Do not add a greeting, closing line, sign-off, name or signature/);
