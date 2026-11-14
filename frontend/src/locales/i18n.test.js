@@ -115,6 +115,9 @@ const dir = dirname(fileURLToPath(import.meta.url));
 // Two locales sharing a value is only allowed if both appear in the same group.
 // Any unlisted pair will still fail.
 const SAME_VALUE_ALLOWED = {
+  // ── Composer tone presets ──────────────────────────────────────────────────
+  'compose.toolbar.toneFormal':             [['en', 'es', 'ptBR']], // Formal
+  'compose.toolbar.toneDiplomatic':         [['es', 'ptBR']], // Diplomático
   // ── List sort menu (#528) ───────────────────────────────────────────────────
   'messageList.sortSummary':                'any', // "{{sort}}, {{dir}}": only the placeholders and a comma
   'messageList.sortDate':                   [['en', 'fr'], ['it', 'ptBR', 'pl'], ['cs', 'de']], // Date / Data / Datum

@@ -35,6 +35,15 @@ import { openSentMessage } from '../utils/openSentMessage.js';
 import { aiReplyAvailable, loadReplyConversation, buildReplyPrompt, MAX_INSTRUCTION_CHARS } from '../utils/aiReply.js';
 import { frameGeometry } from '../utils/frameGeometry.js';
 import { AI_MESSAGE_MAX_CHARS } from '../aiActions.js';
+
+// The tone presets in the composer's AI menu: what the rewrite should sound like.
+export const AI_TONES = Object.freeze({
+  toneProfessional: 'professional and polished: courteous, precise and well organised, with no slang',
+  toneFriendly: 'warm and friendly: relaxed and personal, but still polite',
+  toneFormal: 'formal and respectful, suited to an administration, a client or someone the writer does not know; in a language with a formal "you" (vous, Sie, usted, Lei), use it',
+  toneDiplomatic: 'polite and diplomatic: soften criticism, refusals and complaints without changing what is asked, refused or reported',
+  toneDirect: 'direct and assertive: get to the point, state requests and deadlines plainly and drop the hedging, while staying polite',
+});
 import { stripTags } from '../utils/stripTags.js';
 import { aiTextToHtml } from '../utils/aiText.js';
 import { browserTimeZone, checkSendAt, formatSendAt } from '../utils/scheduleTimes.js';
@@ -967,6 +976,10 @@ export default function ComposeModal() {
         system: 'You are a professional email writing assistant. Rewrite the following email so it is clearer and easier to understand: simpler sentences, a logical order, no ambiguity. Keep the meaning, the facts and the language of the email; keep the tone appropriate to the original. Return only the rewritten email body text. Use plain text with no markdown or HTML.' + NO_SIGNOFF,
         user: currentText.trim() || '(empty)',
       },
+      ...Object.fromEntries(Object.entries(AI_TONES).map(([key, tone]) => [key, {
+        system: `You are a professional email writing assistant. Rewrite the following email so that it is ${tone}. Keep the meaning, every fact, name, date and number, and the language of the email. Return only the rewritten email body text. Use plain text with no markdown or HTML.` + NO_SIGNOFF,
+        user: currentText.trim() || '(empty)',
+      }])),
     };
     const { system, user } = PROMPTS[action] || PROMPTS.draft;
     // Improve, Shorten and Grammar replace the whole draft with their result (applyAiText), so
@@ -4109,6 +4122,19 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
                 </svg>
               </button>
             )}
+            {aiEnabled && (
+              <button title={t('compose.toolbar.aiFixGrammar')} aria-label={t('compose.toolbar.aiFixGrammar')} onMouseDown={e => {
+                e.preventDefault();
+                setAiMenuPos(null);
+                onAiAction('grammar');
+              }} style={{
+                background: 'none', border: 'none', borderRadius: 4,
+                padding: '6px 4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                flex: 1, color: 'var(--text-secondary)', WebkitTapHighlightColor: 'transparent',
+              }}>
+                <SpellCheckIcon size={16} />
+              </button>
+            )}
             <button title={t('compose.toolbar.moreFormatting')} onMouseDown={e => { e.preventDefault(); setShowMobileMore(m => !m); }}
               style={{ background: showMobileMore ? 'var(--bg-hover)' : 'none', border: 'none', borderRadius: 4, padding: '6px 4px', color: showMobileMore ? 'var(--accent)' : 'var(--text-secondary)', cursor: 'pointer', fontSize: 18, fontWeight: 300, lineHeight: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: 1, WebkitTapHighlightColor: 'transparent' }}>+</button>
           </div>
@@ -4236,6 +4262,17 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
                 <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
                 <path d="M5 3v4M19 17v4M3 5h4M17 19h4"/>
               </svg>
+            </button>
+            <button title={t('compose.toolbar.aiFixGrammar')} aria-label={t('compose.toolbar.aiFixGrammar')} data-testid="ai-spellcheck" onMouseDown={e => {
+              e.preventDefault();
+              setAiMenuPos(null);
+              onAiAction('grammar');
+            }} style={{
+              background: 'none', border: 'none', borderRadius: 4,
+              padding: '3px 6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center',
+              color: 'var(--text-secondary)',
+            }}>
+              <SpellCheckIcon size={13} />
             </button>
           </>
         )}
@@ -4397,7 +4434,7 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
           position: 'fixed', top: descale(aiMenuPos.top, uiScale), left: descale(aiMenuPos.left, uiScale), zIndex: 9999,
           background: 'var(--bg-elevated)', border: '1px solid var(--border)',
           borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
-          padding: '4px 0', minWidth: 148,
+          padding: '4px 0', minWidth: 180,
         }}>
           {[
             // A reply is written from the conversation, which Write draft does not read.
@@ -4408,7 +4445,18 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
             { key: 'shorten', label: t('compose.toolbar.aiShorten') },
             { key: 'grammar', label: t('compose.toolbar.aiFixGrammar') },
             { key: 'clearer', label: t('compose.toolbar.aiMakeClearer') },
-          ].map(({ key, label }) => (
+            { heading: t('compose.toolbar.aiToneHeading') },
+            { key: 'toneProfessional', label: t('compose.toolbar.toneProfessional') },
+            { key: 'toneFriendly', label: t('compose.toolbar.toneFriendly') },
+            { key: 'toneFormal', label: t('compose.toolbar.toneFormal') },
+            { key: 'toneDiplomatic', label: t('compose.toolbar.toneDiplomatic') },
+            { key: 'toneDirect', label: t('compose.toolbar.toneDirect') },
+          ].map(({ key, label, heading }) => heading ? (
+            <div key="tone-heading" role="presentation" style={{
+              borderTop: '1px solid var(--border)', margin: '4px 0 0', padding: '8px 14px 3px',
+              fontSize: 11, color: 'var(--text-tertiary)',
+            }}>{heading}</div>
+          ) : (
             <button key={key} onMouseDown={e => {
               e.preventDefault();
               setAiMenuPos(null);
@@ -4425,6 +4473,14 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
         </div>
       )}
     </>
+  );
+}
+
+function SpellCheckIcon({ size }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m6 16 6-12 6 12"/><path d="M8 12h8"/><path d="m16 20 2 2 4-4"/>
+    </svg>
   );
 }
 
