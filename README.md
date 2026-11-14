@@ -46,9 +46,15 @@ Open `http://your-host:3000` and create the first account, which becomes the adm
 
 ## HTTPS
 
-Plimail serves plain HTTP on port 3000; put your own reverse proxy (Caddy, Traefik, nginx…) in
-front of it for HTTPS, forwarding `X-Forwarded-For` and `X-Forwarded-Proto` and WebSocket
-upgrades on `/ws`.
+Plimail serves HTTP on port 3000, and HTTPS with a self-signed certificate on 3443 (generated at
+the first start and kept in the `certs` volume; browsers ask you to accept it once). For a real
+certificate, put your reverse proxy (Caddy, Traefik, nginx…) or tunnel (Cloudflare Tunnel…) in
+front, forwarding `X-Forwarded-For` and `X-Forwarded-Proto` and WebSocket upgrades on `/ws`. To
+serve your own certificate on 3443 instead, mount a directory holding `cert.pem` and `key.pem` at
+`/certs`.
+
+HSTS is sent only when a trusted proxy reports HTTPS, never from port 3443 itself, so a browser
+is never pinned to the self-signed certificate.
 
 ## Configuration
 
@@ -59,12 +65,15 @@ Everything is set in `.env`.
 | `SESSION_SECRET` | yes | Signs session cookies, at least 32 characters |
 | `DB_PASSWORD` | yes | Password of the bundled PostgreSQL |
 | `ENCRYPTION_KEY` | yes | 64 hex characters, encrypts stored account credentials. Keep it safe: if it changes, every account must be signed in again |
-| `APP_URL` | yes | The URL people open, e.g. `https://mail.example.com`. WebSocket and sign-in redirects only accept this origin |
+| `APP_URL` | yes | The URL people open, e.g. `https://mail.example.com`. WebSocket and sign-in redirects only accept this origin (the WebSocket on 3443 also accepts the address the browser opened) |
 | `TRUST_PROXY_HOPS` | no | Reverse proxies in front of Plimail: `1` (default) or `0` when browsers connect directly. With `1`, make sure only the proxy can reach the port |
-| `HTTP_PORT` | no | Host port, default `3000`; `127.0.0.1:3000` when the proxy is on the same host |
+| `HTTP_PORT` | no | Host port for HTTP, default `3000`; `127.0.0.1:3000` when the proxy is on the same host |
+| `HTTPS_PORT` | no | Host port for HTTPS with the self-signed certificate, default `3443` |
 
-Session cookies are marked `Secure` only when the browser reached Plimail over HTTPS (as reported
-by a trusted proxy), so plain HTTP on a LAN still works.
+Session cookies are marked `Secure` only when the browser reached Plimail over HTTPS (port 3443,
+or as reported by a trusted proxy), so plain HTTP on a LAN still works. Pick one of the two in a
+given browser: after a sign-in over HTTPS, the browser keeps the `Secure` cookie from being
+replaced over plain HTTP on the same host.
 
 Optional settings, also read from `.env`:
 

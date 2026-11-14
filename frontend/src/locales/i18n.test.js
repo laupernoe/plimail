@@ -119,6 +119,7 @@ const SAME_VALUE_ALLOWED = {
   'messageList.sortSummary':                'any', // "{{sort}}, {{dir}}": only the placeholders and a comma
   'messageList.sortDate':                   [['en', 'fr'], ['it', 'ptBR', 'pl'], ['cs', 'de']], // Date / Data / Datum
   // ── Universal placeholders / brand names (all locales share) ───────────────
+  'admin.tabs.groupAi':                     [['en', 'cs', 'ko', 'pl', 'zhCN'], ['es', 'fr', 'it', 'ptBR']], // AI / IA, the abbreviation
   'admin.about.kofi':                       'any', // Ko-fi — brand name, same everywhere
   'admin.about.githubSponsors':             'any', // GitHub Sponsors — product name, same everywhere
   'admin.ai.subscriptionProviderChatgpt':    'any', // ChatGPT Plus/Pro (Codex Subscription) — product name, same everywhere

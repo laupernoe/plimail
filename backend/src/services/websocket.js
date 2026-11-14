@@ -17,8 +17,25 @@ if (!ALLOWED_ORIGIN) {
 // Clients only ever send a small ping, in a single frame. ws otherwise buffers
 // messages of up to 100 MiB for the handler to parse, and holds each fragment
 // of an unfinished message as a view that keeps its whole socket read alive.
-export function createWebSocketServer(server) {
-  return new WebSocketServer({ server, maxPayload: 16 * 1024, maxFragments: 1 });
+// One server for every listener (index.js has HTTP and the built-in HTTPS), so wss.clients and the
+// broadcasts cover both.
+export function createWebSocketServer(...servers) {
+  const wss = new WebSocketServer({ noServer: true, maxPayload: 16 * 1024, maxFragments: 1 });
+  for (const server of servers) {
+    server.on('upgrade', (req, socket, head) => {
+      wss.handleUpgrade(req, socket, head, ws => wss.emit('connection', ws, req));
+    });
+  }
+  return wss;
+}
+
+// APP_URL names one origin, usually the public one behind the proxy or tunnel. The built-in HTTPS
+// listener is opened directly, at an address APP_URL may not name (https://192.168.1.10:3443), so
+// there a page is also accepted from the very origin the upgrade was addressed to. A cross-site
+// page cannot claim that origin, and a rebound DNS name that does carries no session cookie.
+function sameOriginOverBuiltInTls(req, origin) {
+  return Boolean(req.socket?.encrypted) && Boolean(req.headers.host)
+    && origin.toLowerCase() === `https://${req.headers.host.toLowerCase()}`;
 }
 
 // Closes every client, with 1001 (going away) on shutdown or 1012 on a restart. The HTTP server's
@@ -41,7 +58,7 @@ export function setupWebSocket(wss, sessionMiddleware, imapManager) {
     // Reject cross-origin WebSocket connections when APP_URL is configured.
     // Browsers always send Origin on WS upgrades; absence means a non-browser client.
     const origin = req.headers.origin;
-    if (ALLOWED_ORIGIN && origin && origin !== ALLOWED_ORIGIN) {
+    if (ALLOWED_ORIGIN && origin && origin !== ALLOWED_ORIGIN && !sameOriginOverBuiltInTls(req, origin)) {
       ws.close(1008, 'Forbidden');
       return;
     }

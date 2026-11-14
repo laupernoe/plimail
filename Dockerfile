@@ -1,5 +1,6 @@
-# One image: the frontend is built with Vite and served by the Express backend, over plain HTTP
-# on port 3000. HTTPS is left to the operator's reverse proxy.
+# One image: the frontend is built with Vite and served by the Express backend, over HTTP on port
+# 3000 and over HTTPS on 3443 with a self-signed certificate (kept in /certs). A trusted
+# certificate is left to the operator's reverse proxy or tunnel.
 
 # ── Frontend build ─────────────────────────────────────────────────────────────
 FROM --platform=$BUILDPLATFORM node:22-alpine AS web
@@ -29,6 +30,8 @@ ARG BUILD_SHA=dev
 ARG APP_VERSION
 ENV NODE_ENV=production \
     PORT=3000 \
+    TLS_PORT=3443 \
+    TLS_CERT_DIR=/certs \
     BUILD_SHA=$BUILD_SHA \
     IMAGE_CACHE_DIR=/var/cache/mailflow/images
 
@@ -40,11 +43,11 @@ COPY --from=web /web/dist ./public
 
 RUN VERSION="${APP_VERSION:-$(node -p "require('./package.json').version")}" && \
     printf '{"version":"%s"}\n' "${VERSION#v}" > build-meta.json && \
-    mkdir -p /var/cache/mailflow/images && \
-    chown -R node:node /var/cache/mailflow
+    mkdir -p /var/cache/mailflow/images /certs && \
+    chown -R node:node /var/cache/mailflow /certs
 
 USER node
-EXPOSE 3000
+EXPOSE 3000 3443
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
   CMD wget -qO- "http://127.0.0.1:${PORT}/api/health" || exit 1
 CMD ["node", "src/index.js"]

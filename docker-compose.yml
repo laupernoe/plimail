@@ -1,5 +1,6 @@
 # Plimail: the app, PostgreSQL and Redis. Settings come from .env (see .env.example).
-# HTTP only; put your own reverse proxy in front for HTTPS.
+# HTTP on 3000, HTTPS with a self-signed certificate on 3443; for a trusted certificate, put your
+# reverse proxy or tunnel in front.
 services:
   plimail:
     image: ghcr.io/laupernoe/plimail:latest
@@ -10,8 +11,12 @@ services:
     env_file: .env
     ports:
       - "${HTTP_PORT:-3000}:3000"
+      - "${HTTPS_PORT:-3443}:3443"
     volumes:
       - image_cache:/var/cache/mailflow/images
+      # The self-signed certificate, generated at the first start. To serve your own, bind-mount a
+      # directory holding cert.pem and key.pem here instead.
+      - certs:/certs
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,3 +57,4 @@ volumes:
   postgres_data:
   redis_data:
   image_cache:
+  certs:
