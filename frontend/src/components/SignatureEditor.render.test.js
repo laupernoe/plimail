@@ -111,3 +111,107 @@ describe('pasting into the signature editor', () => {
     }
   });
 });
+
+describe('images in the signature editor', () => {
+  const ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
+  async function mount() {
+    const saved = [];
+    const root = createRoot(document.getElementById('root'));
+    await act(async () => {
+      root.render(React.createElement(SignatureEditor, { value: '<p>Marty Example</p>', onChange: html => saved.push(html) }));
+    });
+    return { saved, root, editor: document.querySelector('[contenteditable]') };
+  }
+
+  // Answers the upload as the server does, and records what was sent.
+  function stubUpload(calls) {
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = async (url, opts) => {
+      calls.push({ url, opts });
+      return new Response(JSON.stringify({ id: ID, url: `/api/signature-images/${ID}`, width: 600, height: 200 }),
+        { status: 201, headers: { 'Content-Type': 'application/json' } });
+    };
+    document.execCommand = (command, showUi, value) => {
+      if (command !== 'insertHTML') return false;
+      insertAtCaret(document.querySelector('[contenteditable]'), value);
+      return true;
+    };
+    return () => { globalThis.fetch = realFetch; delete document.execCommand; };
+  }
+
+  async function chooseFile(file) {
+    const input = document.querySelector('input[type="file"]');
+    Object.defineProperty(input, 'files', { value: [file], configurable: true });
+    await act(async () => {
+      input.dispatchEvent(new window.Event('change', { bubbles: true }));
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+  }
+
+  test('the insert button uploads the chosen image and puts it in the signature', async () => {
+    const calls = [];
+    const restore = stubUpload(calls);
+    const { saved, root } = await mount();
+    try {
+      const button = document.querySelector('button[aria-label="signatureEditor.imageUpload"]');
+      assert.ok(button, 'an insert image button is in the toolbar');
+      let opened = false;
+      document.querySelector('input[type="file"]').click = () => { opened = true; };
+      await act(async () => { button.dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true, cancelable: true })); });
+      assert.equal(opened, true, 'the button opens the file picker');
+
+      const file = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], 'logo.png', { type: 'image/png' });
+      await chooseFile(file);
+      assert.equal(calls.length, 1);
+      assert.equal(calls[0].url, '/api/signature-images');
+      assert.equal(calls[0].opts.method, 'POST');
+      assert.equal(calls[0].opts.headers['Content-Type'], 'image/png');
+      assert.equal(calls[0].opts.body, file);
+      assert.match(saved.at(-1), new RegExp(`<img src="/api/signature-images/${ID}" alt="" width="240">`));
+    } finally {
+      restore();
+      await act(async () => root.unmount());
+    }
+  });
+
+  test('a clicked image can be shown small or at full size, and removed', async () => {
+    const restore = stubUpload([]);
+    const { saved, root, editor } = await mount();
+    try {
+      await chooseFile(new File([new Uint8Array([1])], 'logo.png', { type: 'image/png' }));
+      const img = editor.querySelector('img');
+      await act(async () => { img.dispatchEvent(new window.MouseEvent('click', { bubbles: true })); });
+      const sizeButton = key => document.querySelector(`[role="toolbar"] button[aria-label="signatureEditor.${key}"]`);
+      assert.equal(sizeButton('imageMedium').getAttribute('aria-pressed'), 'true');
+
+      await act(async () => { sizeButton('imageSmall').dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true, cancelable: true })); });
+      assert.match(saved.at(-1), /width="120"/);
+      await act(async () => { sizeButton('imageFull').dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true, cancelable: true })); });
+      assert.doesNotMatch(saved.at(-1), /width=/);
+      assert.ok(saved.every(html => !html.includes('data-signature-selected')), 'the selection mark is never saved');
+
+      await act(async () => { sizeButton('imageRemove').dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true, cancelable: true })); });
+      assert.doesNotMatch(saved.at(-1), /<img/);
+      assert.match(saved.at(-1), /Marty Example/);
+      assert.equal(document.querySelector('[role="toolbar"]'), null);
+    } finally {
+      restore();
+      await act(async () => root.unmount());
+    }
+  });
+
+  test('a file that is not a PNG, JPEG, GIF or WebP image is not uploaded', async () => {
+    const calls = [];
+    const restore = stubUpload(calls);
+    const { saved, root } = await mount();
+    try {
+      await chooseFile(new File(['<svg/>'], 'logo.svg', { type: 'image/svg+xml' }));
+      assert.equal(calls.length, 0);
+      assert.ok(saved.every(html => !html.includes('<img')));
+    } finally {
+      restore();
+      await act(async () => root.unmount());
+    }
+  });
+});

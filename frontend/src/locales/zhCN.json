@@ -991,15 +991,26 @@
     "textColor": "文字颜色",
     "link": "插入链接",
     "imageUrl": "通过 URL 插入图片",
-    "imageUpload": "上传图片（最大 300 KB）",
+    "imageUpload": "插入图片（PNG、JPEG、GIF 或 WebP）",
+    "imageUploading": "正在上传图片…",
     "sourceMode": "编辑 HTML 源码",
     "visualMode": "可视化编辑器",
     "linkPrompt": "链接 URL：",
     "imageUrlPrompt": "图片 URL：",
     "imageTooLarge": {
       "title": "图片过大",
-      "body": "图片须小于 300 KB。如需使用更大图片，请改用外部 URL。"
-    }
+      "body": "必须小于 5 MB。上传时会缩小到 600 px 宽。"
+    },
+    "imageWrongType": {
+      "title": "不支持的图片类型",
+      "body": "请使用 PNG、JPEG、GIF 或 WebP 图片。"
+    },
+    "imageUploadFailed": "无法上传图片",
+    "imageSize": "大小",
+    "imageSmall": "小",
+    "imageMedium": "中",
+    "imageFull": "原始大小",
+    "imageRemove": "移除"
   },
   "profile": {
     "title": "编辑个人资料",

@@ -1033,15 +1033,26 @@
     "textColor": "Barva textu",
     "link": "Vložit odkaz",
     "imageUrl": "Obrázek z URL",
-    "imageUpload": "Nahrát obrázek (max. 300 kB)",
+    "imageUpload": "Vložit obrázek (PNG, JPEG, GIF nebo WebP)",
+    "imageUploading": "Nahrávání obrázku…",
     "sourceMode": "Upravit zdrojový kód HTML",
     "visualMode": "Vizuální editor",
     "linkPrompt": "URL odkazu:",
     "imageUrlPrompt": "URL obrázku:",
     "imageTooLarge": {
       "title": "Obrázek je příliš velký",
-      "body": "Musí být menší než 300 kB. Pro větší obrázky použijte externí URL."
-    }
+      "body": "Musí mít méně než 5 MB. Při nahrání se zmenší na šířku 600 px."
+    },
+    "imageWrongType": {
+      "title": "Nepodporovaný typ obrázku",
+      "body": "Použijte obrázek PNG, JPEG, GIF nebo WebP."
+    },
+    "imageUploadFailed": "Obrázek se nepodařilo nahrát",
+    "imageSize": "Velikost",
+    "imageSmall": "Malá",
+    "imageMedium": "Střední",
+    "imageFull": "Plná velikost",
+    "imageRemove": "Odebrat"
   },
   "spam": {
     "movedToSpam": "Přesunuto do spamu",

@@ -174,6 +174,31 @@ describe('POST /api/mail/draft — local row persistence', () => {
       .toBe('<root@example.test> <parent@example.test>');
   });
 
+  it('carries an uploaded signature image inline, in the IMAP copy and in the row the composer reopens', async () => {
+    const IMG = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+    const png = Buffer.from('\x89PNG\r\n\x1a\nsignature-logo', 'latin1');
+    query.mockReset();
+    query.mockImplementation(async (sql, params) => {
+      if (sql.includes('signature_images')) {
+        return { rows: params[1] === 'user-1' && params[0].includes(IMG) ? [{ id: IMG, content_type: 'image/png', data: png }] : [] };
+      }
+      if (sql.includes('email_accounts')) return { rows: [ACCOUNT_ROW] };
+      return { rows: [{ path: 'Drafts' }] };
+    });
+    const res = await fetch(`${base}/api/mail/draft`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ accountId: ACCOUNT_ID, to: ['recipient@example.test'], subject: 'Hi', body: 'Hello',
+        editedSignature: `<p>Me</p><img src="/api/signature-images/${IMG}" width="120">` }),
+    });
+    expect(res.status).toBe(200);
+    const raw = imapManager.appendToFolder.mock.calls[0][2].toString();
+    const cid = raw.match(/Content-ID: <([^>]+)>/)?.[1];
+    expect(cid).toBeTruthy();
+    expect(raw.replace(/=\r\n/g, '').replace(/=3D/g, '=')).toContain(`src="cid:${cid}"`);
+    expect(raw).not.toContain('/api/signature-images/');
+    expect(imapManager.upsertDraftMessageRecord.mock.calls[0][3].bodyHtml).toContain(`src="data:image/png;base64,${png.toString('base64')}"`);
+  });
+
   it('appends the draft with CRLF line endings (#365)', async () => {
     const res = await fetch(`${base}/api/mail/draft`, {
       method: 'POST', headers: { 'content-type': 'application/json' },

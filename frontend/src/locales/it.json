@@ -991,15 +991,26 @@
     "textColor": "Colore testo",
     "link": "Inserisci link",
     "imageUrl": "Immagine da URL",
-    "imageUpload": "Carica immagine (max 300 KB)",
+    "imageUpload": "Inserisci immagine (PNG, JPEG, GIF o WebP)",
+    "imageUploading": "Caricamento immagine…",
     "sourceMode": "Modifica sorgente HTML",
     "visualMode": "Editor visuale",
     "linkPrompt": "URL del link:",
     "imageUrlPrompt": "URL dell'immagine:",
     "imageTooLarge": {
       "title": "Immagine troppo grande",
-      "body": "Deve essere inferiore a 300 KB. Usa un URL esterno per immagini più grandi."
-    }
+      "body": "Deve essere inferiore a 5 MB. Viene ridotta a 600 px di larghezza al caricamento."
+    },
+    "imageWrongType": {
+      "title": "Tipo di immagine non supportato",
+      "body": "Usa un'immagine PNG, JPEG, GIF o WebP."
+    },
+    "imageUploadFailed": "Impossibile caricare l'immagine",
+    "imageSize": "Dimensione",
+    "imageSmall": "Piccola",
+    "imageMedium": "Media",
+    "imageFull": "Dimensione originale",
+    "imageRemove": "Rimuovi"
   },
   "profile": {
     "title": "Modifica profilo",

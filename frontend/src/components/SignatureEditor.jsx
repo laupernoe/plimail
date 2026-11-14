@@ -2,6 +2,19 @@ import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/index.js';
 import { pasteWithoutPageColors } from '../utils/contentEditablePaste.js';
+import { api } from '../utils/api.js';
+
+// What the server takes (routes/signatureImages.js): it scales the image to 600 px wide at most.
+const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+// The widths an image is shown at in the signature; full is the image's own (at most 600 px).
+const IMAGE_SIZES = [
+  { key: 'signatureEditor.imageSmall', width: 120 },
+  { key: 'signatureEditor.imageMedium', width: 240 },
+  { key: 'signatureEditor.imageFull', width: null },
+];
+// Marks the image the size bar acts on. Only the editor shows it; it never reaches the signature.
+const SELECTED = 'data-signature-selected';
 
 const BTN = {
   background: 'none', border: 'none', borderRadius: 4,
@@ -10,18 +23,24 @@ const BTN = {
   display: 'flex', alignItems: 'center', justifyContent: 'center',
 };
 
-function ToolBtn({ onClick, title, active, children }) {
+function ToolBtn({ onClick, title, active, disabled, children }) {
   const [hov, setHov] = useState(false);
   return (
     <button
+      type="button"
       title={title}
-      onMouseDown={e => { e.preventDefault(); onClick(); }}
+      aria-label={title}
+      aria-pressed={active === undefined ? undefined : Boolean(active)}
+      disabled={disabled}
+      onMouseDown={e => { e.preventDefault(); if (!disabled) onClick(); }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
         ...BTN,
-        background: active || hov ? 'var(--bg-hover)' : 'none',
+        background: active || (hov && !disabled) ? 'var(--bg-hover)' : 'none',
         color: active ? 'var(--accent)' : 'var(--text-secondary)',
+        opacity: disabled ? 0.5 : 1,
+        cursor: disabled ? 'default' : 'pointer',
       }}
     >
       {children}
@@ -48,7 +67,20 @@ export default function SignatureEditor({ value, onChange }) {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const emit = () => onChange(editorRef.current?.innerHTML || '');
+  const [uploading, setUploading] = useState(0);
+  const [selectedImg, setSelectedImg] = useState(null);
+  const [, setImgVersion] = useState(0);
+
+  // The editor's HTML without the editor's own marks.
+  const currentHtml = () => {
+    const editor = editorRef.current;
+    if (!editor) return '';
+    if (!editor.querySelector(`[${SELECTED}]`)) return editor.innerHTML;
+    const copy = editor.cloneNode(true);
+    copy.querySelectorAll(`[${SELECTED}]`).forEach(el => el.removeAttribute(SELECTED));
+    return copy.innerHTML;
+  };
+  const emit = () => onChange(currentHtml());
 
   // onMouseDown + e.preventDefault() keeps focus in the contenteditable so
   // execCommand acts on the current selection rather than on nothing.
@@ -70,24 +102,109 @@ export default function SignatureEditor({ value, onChange }) {
     if (url) exec('insertImage', url);
   };
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 300 * 1024) {
-      addNotification({ type: 'error', title: t('signatureEditor.imageTooLarge.title'), body: t('signatureEditor.imageTooLarge.body') });
-      e.target.value = '';
-      return;
+  const selectImage = (img) => {
+    editorRef.current?.querySelectorAll(`[${SELECTED}]`).forEach(el => { if (el !== img) el.removeAttribute(SELECTED); });
+    if (img) img.setAttribute(SELECTED, '');
+    setSelectedImg(img);
+  };
+
+  // Uploads each image file and puts it where the caret was (or at `range`), shown at the medium
+  // size. Returns false when there is no image among the files, so a paste or drop of anything
+  // else is left to the browser.
+  const insertImageFiles = (files, range = saveSelection()) => {
+    const images = [...(files || [])].filter(f => f.type?.startsWith('image/'));
+    if (!images.length) return false;
+    for (const file of images) {
+      if (!IMAGE_TYPES.includes(file.type)) {
+        addNotification({ type: 'error', title: t('signatureEditor.imageWrongType.title'), body: t('signatureEditor.imageWrongType.body') });
+        continue;
+      }
+      if (file.size > MAX_IMAGE_BYTES) {
+        addNotification({ type: 'error', title: t('signatureEditor.imageTooLarge.title'), body: t('signatureEditor.imageTooLarge.body') });
+        continue;
+      }
+      setUploading(n => n + 1);
+      api.uploadSignatureImage(file).then(({ url, width }) => {
+        const editor = editorRef.current;
+        if (!editor) return;
+        if (!/^\/api\/signature-images\/[0-9a-f-]+$/i.test(String(url))) throw new Error('Unexpected upload answer');
+        editor.focus();
+        if (range && editor.contains(range.commonAncestorContainer)) restoreSelection(range);
+        else placeCaretAtEnd(editor);
+        const shown = Math.min(Number(width) || IMAGE_SIZES[1].width, IMAGE_SIZES[1].width);
+        document.execCommand('insertHTML', false, `<img src="${url}" alt="" width="${shown}">`);
+        emit();
+      }).catch(err => {
+        addNotification({ type: 'error', title: t('signatureEditor.imageUploadFailed'), body: err.message });
+      }).finally(() => setUploading(n => n - 1));
     }
-    const reader = new FileReader();
-    reader.onload = () => exec('insertImage', reader.result);
-    reader.readAsDataURL(file);
+    return true;
+  };
+
+  const handleFileUpload = (e) => {
+    insertImageFiles(e.target.files);
     e.target.value = '';
   };
+
+  const handlePaste = (e) => {
+    if (e.clipboardData?.files?.length && insertImageFiles(e.clipboardData.files)) {
+      e.preventDefault();
+      return;
+    }
+    pasteWithoutPageColors(e);
+  };
+
+  const handleDrop = (e) => {
+    const files = e.dataTransfer?.files;
+    if (!files?.length) return;
+    const at = document.caretRangeFromPoint?.(e.clientX, e.clientY) || null;
+    if (insertImageFiles(files, at)) e.preventDefault();
+  };
+
+  const handleEditorClick = (e) => {
+    selectImage(e.target?.tagName === 'IMG' ? e.target : null);
+  };
+
+  const handleEditorKeyDown = (e) => {
+    if (selectedImg && (e.key === 'Backspace' || e.key === 'Delete')) {
+      e.preventDefault();
+      removeSelectedImage();
+    }
+  };
+
+  const handleEditorInput = () => {
+    if (selectedImg && !editorRef.current?.contains(selectedImg)) setSelectedImg(null);
+    emit();
+  };
+
+  const setImageWidth = (width) => {
+    if (!selectedImg) return;
+    // Firefox's resize handles leave a width and height in the style; the attribute is what counts.
+    selectedImg.style.removeProperty('width');
+    selectedImg.style.removeProperty('height');
+    if (!selectedImg.getAttribute('style')) selectedImg.removeAttribute('style');
+    selectedImg.removeAttribute('height');
+    if (width) selectedImg.setAttribute('width', String(width));
+    else selectedImg.removeAttribute('width');
+    setImgVersion(v => v + 1);
+    emit();
+  };
+
+  const removeSelectedImage = () => {
+    if (!selectedImg) return;
+    selectedImg.remove();
+    setSelectedImg(null);
+    editorRef.current?.focus();
+    emit();
+  };
+
+  const selectedWidth = selectedImg ? Number(selectedImg.getAttribute('width')) || null : undefined;
 
   const toggleSource = () => {
     if (!showSource) {
       // Visual → Source: capture current HTML
-      const html = editorRef.current?.innerHTML || '';
+      const html = currentHtml();
+      setSelectedImg(null);
       setSourceVal(html);
       setShowSource(true);
     } else {
@@ -167,13 +284,17 @@ export default function SignatureEditor({ value, onChange }) {
           </svg>
         </ToolBtn>
 
-        <ToolBtn title={t('signatureEditor.imageUpload')} onClick={() => fileInputRef.current?.click()}>
+        <ToolBtn
+          title={uploading ? t('signatureEditor.imageUploading') : t('signatureEditor.imageUpload')}
+          disabled={showSource || uploading > 0}
+          onClick={() => fileInputRef.current?.click()}
+        >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
             <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
           </svg>
         </ToolBtn>
-        <input ref={fileInputRef} type="file" accept="image/*"
+        <input ref={fileInputRef} type="file" accept={IMAGE_TYPES.join(',')} multiple
           style={{ display: 'none' }} onChange={handleFileUpload} />
 
         <Sep />
@@ -184,6 +305,35 @@ export default function SignatureEditor({ value, onChange }) {
           </svg>
         </ToolBtn>
       </div>
+
+      {/* The image clicked in the editor: its size, or take it out */}
+      {selectedImg && !showSource && (
+        <div
+          role="toolbar"
+          aria-label={t('signatureEditor.imageSize')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap',
+            padding: '4px 8px', borderBottom: '1px solid var(--border-subtle)',
+            fontSize: 12, color: 'var(--text-secondary)',
+          }}
+        >
+          <span style={{ marginRight: 6 }}>{t('signatureEditor.imageSize')}</span>
+          {IMAGE_SIZES.map(size => (
+            <ToolBtn key={size.key} title={t(size.key)}
+              active={selectedWidth === size.width}
+              onClick={() => setImageWidth(size.width)}>
+              <span style={{ fontSize: 12 }}>{t(size.key)}</span>
+            </ToolBtn>
+          ))}
+          <div style={{ flex: 1 }} />
+          <ToolBtn title={t('signatureEditor.imageRemove')} onClick={removeSelectedImage}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 5 }}>
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/>
+            </svg>
+            <span style={{ fontSize: 12 }}>{t('signatureEditor.imageRemove')}</span>
+          </ToolBtn>
+        </div>
+      )}
 
       {/* Editor area */}
       {showSource ? (
@@ -205,8 +355,12 @@ export default function SignatureEditor({ value, onChange }) {
           ref={editorRef}
           contentEditable
           suppressContentEditableWarning
-          onInput={emit}
-          onPaste={pasteWithoutPageColors}
+          className="signature-editor"
+          onInput={handleEditorInput}
+          onPaste={handlePaste}
+          onDrop={handleDrop}
+          onClick={handleEditorClick}
+          onKeyDown={handleEditorKeyDown}
           style={{
             minHeight: 100, padding: '10px 12px',
             color: 'var(--text-primary)', fontSize: 13,
@@ -230,4 +384,11 @@ function restoreSelection(range) {
   const sel = window.getSelection();
   sel.removeAllRanges();
   sel.addRange(range);
+}
+
+function placeCaretAtEnd(el) {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  restoreSelection(range);
 }

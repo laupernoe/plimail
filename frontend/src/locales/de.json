@@ -991,15 +991,26 @@
     "textColor": "Textfarbe",
     "link": "Link einfügen",
     "imageUrl": "Bild von URL",
-    "imageUpload": "Bild hochladen (max. 300 KB)",
+    "imageUpload": "Bild einfügen (PNG, JPEG, GIF oder WebP)",
+    "imageUploading": "Bild wird hochgeladen…",
     "sourceMode": "HTML-Quelltext bearbeiten",
     "visualMode": "Visueller Editor",
     "linkPrompt": "Link-URL:",
     "imageUrlPrompt": "Bild-URL:",
     "imageTooLarge": {
       "title": "Bild zu groß",
-      "body": "Muss unter 300 KB sein. Für größere Bilder eine externe URL verwenden."
-    }
+      "body": "Muss kleiner als 5 MB sein. Beim Hochladen wird es auf 600 px Breite verkleinert."
+    },
+    "imageWrongType": {
+      "title": "Bildtyp nicht unterstützt",
+      "body": "Ein PNG-, JPEG-, GIF- oder WebP-Bild verwenden."
+    },
+    "imageUploadFailed": "Bild konnte nicht hochgeladen werden",
+    "imageSize": "Größe",
+    "imageSmall": "Klein",
+    "imageMedium": "Mittel",
+    "imageFull": "Originalgröße",
+    "imageRemove": "Entfernen"
   },
   "profile": {
     "title": "Profil bearbeiten",

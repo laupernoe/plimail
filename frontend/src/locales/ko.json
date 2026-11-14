@@ -995,11 +995,22 @@
     "sourceMode": "HTML 소스 편집",
     "linkPrompt": "링크 URL:",
     "visualMode": "비주얼 편집기",
-    "imageUpload": "이미지 업로드(최대 300KB)",
+    "imageUpload": "이미지 삽입 (PNG, JPEG, GIF 또는 WebP)",
+    "imageUploading": "이미지 업로드 중…",
     "imageTooLarge": {
       "title": "이미지가 너무 큼",
-      "body": "300KB 미만이어야 합니다. 더 큰 이미지에는 외부 URL을 사용하세요."
-    }
+      "body": "5MB 미만이어야 합니다. 업로드할 때 너비 600px로 줄어듭니다."
+    },
+    "imageWrongType": {
+      "title": "지원하지 않는 이미지 형식",
+      "body": "PNG, JPEG, GIF 또는 WebP 이미지를 사용하세요."
+    },
+    "imageUploadFailed": "이미지를 업로드할 수 없습니다",
+    "imageSize": "크기",
+    "imageSmall": "작게",
+    "imageMedium": "중간",
+    "imageFull": "원본 크기",
+    "imageRemove": "삭제"
   },
   "profile": {
     "displayName": "표시 이름",

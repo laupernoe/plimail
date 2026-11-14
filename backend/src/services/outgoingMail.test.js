@@ -106,6 +106,26 @@ describe('resolveIdentity', () => {
     expect((await resolveIdentity('u1', valid({ editedSignature: '<p>New</p><script>x</script>' }))).signature).not.toContain('script');
   });
 
+  it('sends an uploaded signature image inline, as a cid: part of the built message', async () => {
+    const IMG = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+    const png = Buffer.from('\x89PNG\r\n\x1a\nsignature-logo', 'latin1');
+    query.mockImplementation(async (sql, params) => ({
+      rows: sql.includes('signature_images')
+        ? (params[1] === 'u1' && params[0].includes(IMG) ? [{ id: IMG, content_type: 'image/png', data: png }] : [])
+        : [{ preferences: {} }],
+    }));
+    const id = await resolveIdentity('u1', valid({ editedSignature: `<p>Me</p><img src="/api/signature-images/${IMG}" width="120">` }));
+    expect(id.signature).toContain(`src="data:image/png;base64,${png.toString('base64')}"`);
+    const raw = (await renderRawMessage(buildMailOptions(valid(), id))).toString();
+    expect(raw).toContain('Content-Type: multipart/related');
+    const cid = raw.match(/Content-ID: <([^>]+)>/)?.[1];
+    expect(cid).toBeTruthy();
+    // The HTML part is quoted-printable: undo its soft line breaks and =3D before looking.
+    expect(raw.replace(/=\r\n/g, '').replace(/=3D/g, '=')).toContain(`src="cid:${cid}"`);
+    expect(raw).toContain(png.toString('base64'));
+    expect(raw).not.toContain('/api/signature-images/');
+  });
+
   it('throws a 404 SendError for an account the user does not own', async () => {
     findOwnedAccount.mockResolvedValue(null);
     await expect(resolveIdentity('u1', valid())).rejects.toMatchObject({ name: 'SendError', status: 404, message: 'Account not found' });

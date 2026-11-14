@@ -749,6 +749,23 @@ describe('sanitizeSignature', () => {
     expect(out).toContain('href="mailto:a@b.com"');
   });
 
+  it('keeps an uploaded signature image, and no other path on this server', () => {
+    const id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    expect(sanitizeSignature(`<img src="/api/signature-images/${id}" width="120">`))
+      .toBe(`<img src="/api/signature-images/${id}" width="120" />`);
+    for (const src of ['/api/mail/messages/x/body', `/api/signature-images/${id}/../../auth/me`, 'api/signature-images/x', '../x.png']) {
+      expect(sanitizeSignature(`<img src="${src}">`)).toBe('<img />');
+    }
+  });
+
+  it('keeps https and data: images, makes a protocol-relative one https, and drops other schemes', () => {
+    expect(sanitizeSignature('<img src="https://example.com/a.png">')).toBe('<img src="https://example.com/a.png" />');
+    expect(sanitizeSignature('<img src="//example.com/a.png">')).toBe('<img src="https://example.com/a.png" />');
+    expect(sanitizeSignature('<img src="data:image/png;base64,AAAA">')).toBe('<img src="data:image/png;base64,AAAA" />');
+    expect(sanitizeSignature('<img src="javascript:alert(1)">')).toBe('<img />');
+    expect(sanitizeSignature('<img src="http://example.com/a.png">')).toBe('<img />');
+  });
+
   it('returns falsy input unchanged', () => {
     expect(sanitizeSignature(null)).toBeNull();
     expect(sanitizeSignature('')).toBe('');
