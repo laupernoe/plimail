@@ -1982,6 +1982,25 @@
       "downloadFailed": "No se pudo iniciar la copia de seguridad.",
       "connectionLost": "La conexión se perdió durante la restauración, así que se desconoce el resultado. Esta página se recargará cuando Plimail vuelva a responder; comprueba entonces que tus datos son los restaurados.",
       "tooLarge": "El archivo es más grande de lo que permite el proxy situado delante de Plimail."
+    },
+    "writingStyle": {
+      "title": "Mi estilo de escritura",
+      "description": "La IA lee tus últimos correos enviados y describe cómo escribes, para que los borradores que sugiere suenen como tú. Puedes editar o borrar la descripción en cualquier momento.",
+      "useStyle": "Escribir con mi estilo",
+      "useStyleHint": "Para borradores, reescrituras y respuestas escritas con IA. La corrección mantiene tu redacción tal cual.",
+      "profileLabel": "Cómo escribes",
+      "profilePh": "Aún no se ha aprendido nada. Aprende de tus correos enviados o describe cómo escribes.",
+      "learn": "Aprender de mis correos enviados",
+      "learnAgain": "Volver a aprender",
+      "learning": "Leyendo tus correos enviados…",
+      "learned": "Se ha aprendido tu estilo de escritura.",
+      "saved": "Estilo de escritura guardado.",
+      "clear": "Borrar",
+      "learnedFrom": "Aprendido de {{n}} correos enviados el {{date}}",
+      "updatedOn": "Actualizado el {{date}}",
+      "notEnoughMail": "Todavía no hay suficientes correos enviados para aprender. Se necesitan al menos 3.",
+      "rateLimited": "Demasiados intentos. Vuelve a intentarlo en unos minutos.",
+      "loadFailed": "No se pudo cargar tu estilo de escritura."
     }
   },
   "blockList": {

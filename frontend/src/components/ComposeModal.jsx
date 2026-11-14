@@ -987,6 +987,8 @@ export default function ComposeModal() {
     try {
       const fullText = await api.ai.chat(messages, {
         purpose: 'compose',
+        // Proofreading keeps the user's own wording, so it is not restyled.
+        writingStyle: action !== 'grammar',
         signal: controller.signal,
         onDelta: (text) => setAiPanel(p => p ? { ...p, text } : p),
       });
@@ -1040,6 +1042,7 @@ export default function ComposeModal() {
         // A draft written from received mail: the server holds it to both the writing assistant
         // and summaries switches (#644).
         purpose: 'reply',
+        writingStyle: true,
         signal: controller.signal,
         onDelta: (text) => setAiPanel(p => p ? { ...p, text } : p),
       });

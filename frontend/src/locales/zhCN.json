@@ -1982,6 +1982,25 @@
       "downloadFailed": "无法开始备份。",
       "connectionLost": "恢复过程中连接中断，因此结果未知。Plimail 恢复响应后本页面会重新加载；届时请确认数据是否已恢复。",
       "tooLarge": "文件大小超过了 Plimail 前面的反向代理所允许的上限。"
+    },
+    "writingStyle": {
+      "title": "我的写作风格",
+      "description": "AI 会阅读你最近发送的邮件并描述你的写作方式，让它建议的草稿更像你写的。你可以随时编辑或清除这段描述。",
+      "useStyle": "用我的风格写作",
+      "useStyleHint": "适用于用 AI 撰写的草稿、改写和回复。校对会保留你原本的措辞。",
+      "profileLabel": "你的写作方式",
+      "profilePh": "尚未学习。可以从已发送邮件中学习，或自己描述你的写作方式。",
+      "learn": "从我的已发送邮件中学习",
+      "learnAgain": "重新学习",
+      "learning": "正在读取已发送邮件…",
+      "learned": "已学会你的写作风格。",
+      "saved": "写作风格已保存。",
+      "clear": "清除",
+      "learnedFrom": "于 {{date}} 从 {{n}} 封已发送邮件中学习",
+      "updatedOn": "更新于 {{date}}",
+      "notEnoughMail": "已发送邮件还不够，至少需要 3 封。",
+      "rateLimited": "尝试次数过多，请几分钟后再试。",
+      "loadFailed": "无法加载你的写作风格。"
     }
   },
   "blockList": {

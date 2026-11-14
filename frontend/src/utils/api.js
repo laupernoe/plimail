@@ -61,8 +61,9 @@ async function request(method, path, body, extraHeaders) {
 
 // purpose is 'compose' (writing assistant), 'summarize' (summaries and AI actions) or 'reply'
 // (Reply with AI, which needs both): the server checks it against the admin's switches (#644).
-export function streamAiChat(messages, { purpose, signal, onDelta } = {}) {
-  return streamAiSse('/ai/chat', { messages, purpose }, { signal, onDelta });
+// writingStyle asks the server to write in the user's learned style, when they have it turned on.
+export function streamAiChat(messages, { purpose, writingStyle, signal, onDelta } = {}) {
+  return streamAiSse('/ai/chat', { messages, purpose, ...(writingStyle === true ? { writingStyle: true } : {}) }, { signal, onDelta });
 }
 
 // A message translated server-side into `language` (an i18n locale code), streamed like /ai/chat.
@@ -641,6 +642,11 @@ export const api = {
     chat: streamAiChat,
     translateMessage: streamMessageTranslation,
     scamCheck: (messageId, { language } = {}) => request('POST', `/ai/messages/${encodeURIComponent(messageId)}/scam-check`, { language }),
+    writingStyle: {
+      get: () => request('GET', '/ai/writing-style'),
+      put: (data) => request('PUT', '/ai/writing-style', data),
+      learn: () => request('POST', '/ai/writing-style/learn'),
+    },
     codex: {
       start: () => request('POST', '/admin/ai/codex/device'),
       poll: (flowId) => request('POST', '/admin/ai/codex/device/poll', { flowId }),

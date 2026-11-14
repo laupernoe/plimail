@@ -101,6 +101,39 @@ describe('ChatGPT authorization API', () => {
       (error) => error.code === 'ai_feature_disabled' && error.feature === 'summarize',
     );
   });
+
+  it('asks for the user\'s writing style only when the caller says so', async () => {
+    const bodies = [];
+    globalThis.fetch = async (_url, init) => {
+      bodies.push(JSON.parse(init.body));
+      return new Response('data: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } });
+    };
+    const messages = [{ role: 'user', content: 'Draft' }];
+    await api.ai.chat(messages, { purpose: 'compose', writingStyle: true });
+    await api.ai.chat(messages, { purpose: 'compose' });
+    await api.ai.chat(messages, { purpose: 'compose', writingStyle: false });
+    assert.deepEqual(bodies, [
+      { messages, purpose: 'compose', writingStyle: true },
+      { messages, purpose: 'compose' },
+      { messages, purpose: 'compose' },
+    ]);
+  });
+
+  it('reads, saves and learns the writing style', async () => {
+    const calls = [];
+    globalThis.fetch = async (url, init) => {
+      calls.push([url, init.method, init.body]);
+      return { ok: true, status: 200, json: async () => ({ enabled: true }) };
+    };
+    await api.ai.writingStyle.get();
+    await api.ai.writingStyle.put({ enabled: false });
+    await api.ai.writingStyle.learn();
+    assert.deepEqual(calls, [
+      ['/api/ai/writing-style', 'GET', undefined],
+      ['/api/ai/writing-style', 'PUT', JSON.stringify({ enabled: false })],
+      ['/api/ai/writing-style/learn', 'POST', undefined],
+    ]);
+  });
 });
 
 describe('AI actions on a received message', () => {
