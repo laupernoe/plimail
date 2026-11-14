@@ -200,7 +200,14 @@ describe('POST /api/ai/writing-style/learn', () => {
         .mockResolvedValue({ text: 'A fetched sample that is long enough.' });
       mocks.completeText.mockResolvedValue('- Be brief');
       const pending = learn();
-      await vi.advanceTimersByTimeAsync(9000);
+      // The request crosses real sockets, so the hung fetch's timer exists only once the route
+      // reaches it: time moves on in steps, with I/O let through between them, until it answers.
+      let answered = false;
+      pending.finally(() => { answered = true; });
+      while (!answered) {
+        await new Promise(resolve => setImmediate(resolve));
+        await vi.advanceTimersByTimeAsync(1000);
+      }
       const response = await pending;
       expect(response.status).toBe(200);
       expect(mocks.fetchMessageBody).toHaveBeenCalledTimes(12);
