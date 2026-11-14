@@ -4,7 +4,7 @@ import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, statSync, wri
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import https from 'node:https';
-import { generateSelfSignedCertificate, loadOrCreateCertificate, subjectAltNames } from './tlsCertificate.js';
+import { derInteger, generateSelfSignedCertificate, loadOrCreateCertificate, subjectAltNames } from './tlsCertificate.js';
 
 const quiet = { log: vi.fn(), warn: vi.fn() };
 const dirs = [];
@@ -15,7 +15,25 @@ function tempDir() {
 }
 afterEach(() => { for (const d of dirs.splice(0)) rmSync(d, { recursive: true, force: true }); });
 
+describe('derInteger', () => {
+  it('writes the minimal encoding, which OpenSSL insists on', () => {
+    expect(derInteger(Buffer.from([0x00, 0x05, 0xaa])).toString('hex')).toBe('020205aa');
+    expect(derInteger(Buffer.from([0x00, 0x00, 0x7f])).toString('hex')).toBe('02017f');
+    expect(derInteger(Buffer.from([0x00, 0x90])).toString('hex')).toBe('02020090');
+    expect(derInteger(Buffer.from([0x90])).toString('hex')).toBe('02020090');
+    expect(derInteger(Buffer.from([0x00])).toString('hex')).toBe('020100');
+    expect(derInteger(Buffer.from([0x02])).toString('hex')).toBe('020102');
+  });
+});
+
 describe('generateSelfSignedCertificate', () => {
+  it('parses whatever random serial it draws', () => {
+    for (let i = 0; i < 1500; i += 1) {
+      const { cert } = generateSelfSignedCertificate(['localhost']);
+      expect(() => new X509Certificate(cert)).not.toThrow();
+    }
+  });
+
   it('produces a self-signed X.509 certificate that verifies against its own key', () => {
     const now = new Date('2026-11-13T00:00:00Z');
     const { cert, key } = generateSelfSignedCertificate(['localhost', '127.0.0.1', '::1', 'mail.example.com'], now);
