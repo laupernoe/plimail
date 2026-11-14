@@ -18,6 +18,7 @@ import {
   pollDeviceFlow,
   startDeviceFlow,
 } from '../services/openaiCodexAuth.js';
+import { enabledWritingStyle, writingStyleInstruction } from '../services/writingStyle.js';
 
 const router = Router();
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -271,8 +272,14 @@ router.post('/ai/chat', requireAuth, async (req, res) => {
   const language = await userLanguage(req.session.userId);
   const providerMessages = [
     { role: 'system', content: aiLanguageInstruction(language) },
-    ...messages,
   ];
+  // The user's own style, learned from their sent mail, for text written as them. The client
+  // leaves the flag off for proofreading, which must not restyle the draft.
+  if (req.body?.writingStyle === true && (purpose === 'compose' || purpose === 'reply')) {
+    const style = await enabledWritingStyle(req.session.userId);
+    if (style) providerMessages.push({ role: 'system', content: writingStyleInstruction(style) });
+  }
+  providerMessages.push(...messages);
 
   const controller = new AbortController();
   const abort = () => {
