@@ -27,7 +27,15 @@ function der(tag, content) {
 const seq = (...items) => der(0x30, Buffer.concat(items));
 const set = (...items) => der(0x31, Buffer.concat(items));
 const explicit = (n, value) => der(0xa0 + n, value);
-const integer = bytes => der(0x02, bytes[0] & 0x80 ? Buffer.concat([Buffer.from([0]), bytes]) : bytes);
+// A DER INTEGER is minimal: no leading zero byte unless the next byte has its top bit set, which
+// would read as negative. A random serial starting 0x00 0x0X was otherwise refused as padding.
+export function derInteger(bytes) {
+  let start = 0;
+  while (start < bytes.length - 1 && bytes[start] === 0 && !(bytes[start + 1] & 0x80)) start += 1;
+  const minimal = bytes.subarray(start);
+  return der(0x02, minimal[0] & 0x80 ? Buffer.concat([Buffer.from([0]), minimal]) : minimal);
+}
+const integer = derInteger;
 const octetString = bytes => der(0x04, bytes);
 const utf8 = s => der(0x0c, Buffer.from(s, 'utf8'));
 
