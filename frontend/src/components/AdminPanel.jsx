@@ -50,6 +50,7 @@ import { htmlLang } from '../utils/browserLanguage.js';
 import BackupSettings from './BackupSettings.jsx';
 import PasswordInput from './PasswordInput.jsx';
 import ApiTokensSection from './ApiTokensSection.jsx';
+import WritingStyleSection from './WritingStyleSection.jsx';
 import { CalendarAccountsTab, CalendarListTab } from './calendar/AccountsModal.jsx';
 import CalendarOffer from './calendar/CalendarOffer.jsx';
 
@@ -3843,6 +3844,8 @@ function AiActionsTab() {
   const { aiActions, setAiActions } = useStore();
   const [items, setItems] = useState(() => (aiActions || []).map(a => ({ ...a })));
   const [aiEnabled, setAiEnabled] = useState(null);
+  // The writing style is used only by the writing assistant, which an admin can switch off.
+  const [composeEnabled, setComposeEnabled] = useState(false);
 
   // Populate once when prefs finish loading, without clobbering in-progress edits.
   useEffect(() => {
@@ -3850,7 +3853,10 @@ function AiActionsTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aiActions]);
   useEffect(() => {
-    api.ai.status().then(s => setAiEnabled(!!s?.enabled)).catch(() => setAiEnabled(false));
+    api.ai.status().then(s => {
+      setAiEnabled(!!s?.enabled);
+      setComposeEnabled(s?.features?.compose !== false);
+    }).catch(() => setAiEnabled(false));
   }, []);
 
   // Persist only complete, trimmed, bounded actions (mirrors the backend validation).
@@ -3924,6 +3930,8 @@ function AiActionsTab() {
       <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-tertiary)' }}>
         {t('admin.aiActions.count', { n: items.length, max: AI_ACTION_LIMITS.max })}
       </div>
+
+      <WritingStyleSection available={aiEnabled === true && composeEnabled} />
     </div>
   );
 }

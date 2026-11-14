@@ -1988,6 +1988,25 @@
       "downloadFailed": "The backup could not be started.",
       "connectionLost": "The connection was lost during the restore, so its outcome is unknown. This page reloads once Plimail answers again; then check that your data is the restored one.",
       "tooLarge": "The file is larger than the proxy in front of Plimail allows."
+    },
+    "writingStyle": {
+      "title": "My writing style",
+      "description": "The AI reads your recent sent mail and describes how you write, so the drafts it suggests sound like you. You can edit the description or clear it at any time.",
+      "useStyle": "Write in my style",
+      "useStyleHint": "For drafts, rewrites and replies written with AI. Proofreading keeps your wording as it is.",
+      "profileLabel": "How you write",
+      "profilePh": "Nothing learned yet. Learn from your sent mail, or describe how you write.",
+      "learn": "Learn from my sent mail",
+      "learnAgain": "Learn again",
+      "learning": "Reading your sent mail…",
+      "learned": "Your writing style has been learned.",
+      "saved": "Writing style saved.",
+      "clear": "Clear",
+      "learnedFrom": "Learned from {{n}} sent emails on {{date}}",
+      "updatedOn": "Updated on {{date}}",
+      "notEnoughMail": "Not enough sent mail to learn from yet. At least 3 sent emails are needed.",
+      "rateLimited": "Too many attempts. Try again in a few minutes.",
+      "loadFailed": "Your writing style could not be loaded."
     }
   },
   "blockList": {
