@@ -1988,6 +1988,25 @@
       "downloadFailed": "Impossibile avviare il backup.",
       "connectionLost": "La connessione si è interrotta durante il ripristino, quindi l'esito è sconosciuto. Questa pagina si ricaricherà quando Plimail risponderà di nuovo; verifica poi che i dati siano quelli ripristinati.",
       "tooLarge": "Il file è più grande di quanto consenta il proxy davanti a Plimail."
+    },
+    "writingStyle": {
+      "title": "Il mio stile di scrittura",
+      "description": "L'IA legge le tue ultime email inviate e descrive come scrivi, così le bozze che propone ti somigliano. Puoi modificare o cancellare la descrizione in qualsiasi momento.",
+      "useStyle": "Scrivi con il mio stile",
+      "useStyleHint": "Per bozze, riscritture e risposte scritte con l'IA. La correzione lascia invariata la tua formulazione.",
+      "profileLabel": "Come scrivi",
+      "profilePh": "Ancora niente di appreso. Impara dalle tue email inviate o descrivi come scrivi.",
+      "learn": "Impara dalle mie email inviate",
+      "learnAgain": "Impara di nuovo",
+      "learning": "Lettura delle email inviate…",
+      "learned": "Il tuo stile di scrittura è stato appreso.",
+      "saved": "Stile di scrittura salvato.",
+      "clear": "Cancella",
+      "learnedFrom": "Appreso da {{n}} email inviate il {{date}}",
+      "updatedOn": "Aggiornato il {{date}}",
+      "notEnoughMail": "Non ci sono ancora abbastanza email inviate da cui imparare. Ne servono almeno 3.",
+      "rateLimited": "Troppi tentativi. Riprova tra qualche minuto.",
+      "loadFailed": "Impossibile caricare il tuo stile di scrittura."
     }
   },
   "blockList": {

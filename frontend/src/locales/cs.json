@@ -2067,6 +2067,25 @@
       "remove": "Odebrat",
       "add": "Přidat akci",
       "count": "Počet akcí: {{n}} z {{max}}"
+    },
+    "writingStyle": {
+      "title": "Můj styl psaní",
+      "description": "AI přečte vaše nedávno odeslané e-maily a popíše, jak píšete, aby navržené koncepty zněly jako vy. Popis můžete kdykoli upravit nebo vymazat.",
+      "useStyle": "Psát mým stylem",
+      "useStyleHint": "Pro koncepty, přepisy a odpovědi psané s AI. Korektura ponechá vaše formulace beze změny.",
+      "profileLabel": "Jak píšete",
+      "profilePh": "Zatím se nic nenaučilo. Naučte se z odeslaných e-mailů, nebo popište, jak píšete.",
+      "learn": "Naučit se z mých odeslaných e-mailů",
+      "learnAgain": "Naučit se znovu",
+      "learning": "Čtení odeslaných e-mailů…",
+      "learned": "Váš styl psaní byl naučen.",
+      "saved": "Styl psaní uložen.",
+      "clear": "Vymazat",
+      "learnedFrom": "Naučeno z odeslaných e-mailů ({{n}}), {{date}}",
+      "updatedOn": "Aktualizováno {{date}}",
+      "notEnoughMail": "Zatím není dost odeslaných e-mailů. Jsou potřeba alespoň 3.",
+      "rateLimited": "Příliš mnoho pokusů. Zkuste to znovu za několik minut.",
+      "loadFailed": "Styl psaní se nepodařilo načíst."
     }
   },
   "diagnostics": {

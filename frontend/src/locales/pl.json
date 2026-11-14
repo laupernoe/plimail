@@ -2007,6 +2007,25 @@
       "downloadFailed": "Nie udało się rozpocząć tworzenia kopii zapasowej.",
       "connectionLost": "Połączenie zostało przerwane podczas przywracania, więc jego wynik jest nieznany. Ta strona odświeży się, gdy Plimail znów zacznie odpowiadać; sprawdź wtedy, czy dane zostały przywrócone.",
       "tooLarge": "Plik jest większy, niż pozwala serwer proxy przed Plimail."
+    },
+    "writingStyle": {
+      "title": "Mój styl pisania",
+      "description": "AI czyta Twoje ostatnio wysłane wiadomości i opisuje, jak piszesz, aby proponowane wersje robocze brzmiały jak Ty. Opis możesz w każdej chwili edytować lub wyczyścić.",
+      "useStyle": "Pisz moim stylem",
+      "useStyleHint": "Dotyczy wersji roboczych, przeredagowań i odpowiedzi pisanych z AI. Korekta zachowuje Twoje sformułowania.",
+      "profileLabel": "Jak piszesz",
+      "profilePh": "Jeszcze niczego się nie nauczono. Ucz się z wysłanych wiadomości albo opisz, jak piszesz.",
+      "learn": "Ucz się z moich wysłanych wiadomości",
+      "learnAgain": "Naucz się ponownie",
+      "learning": "Czytanie wysłanych wiadomości…",
+      "learned": "Twój styl pisania został poznany.",
+      "saved": "Zapisano styl pisania.",
+      "clear": "Wyczyść",
+      "learnedFrom": "Nauczono na podstawie wysłanych wiadomości ({{n}}), {{date}}",
+      "updatedOn": "Zaktualizowano {{date}}",
+      "notEnoughMail": "Za mało wysłanych wiadomości do nauki. Potrzebne są co najmniej 3.",
+      "rateLimited": "Zbyt wiele prób. Spróbuj ponownie za kilka minut.",
+      "loadFailed": "Nie udało się wczytać Twojego stylu pisania."
     }
   },
   "blockList": {

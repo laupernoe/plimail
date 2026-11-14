@@ -569,3 +569,46 @@ describe('aiLanguageInstruction', () => {
     },
   );
 });
+
+describe('chat in the user\'s writing style', () => {
+  const hi = [{ role: 'user', content: 'Draft a thank-you note' }];
+  let style;
+
+  beforeEach(() => {
+    style = { ai_writing_style: '- Open with "Salut"', ai_writing_style_enabled: true };
+    const base = mocks.query.getMockImplementation();
+    mocks.query.mockImplementation(async (sql, params) => (
+      /SELECT ai_writing_style, ai_writing_style_enabled FROM users/i.test(sql) ? { rows: [style] } : base(sql, params)
+    ));
+  });
+
+  const systemMessages = () => mocks.streamChat.mock.calls[0][0].filter((m) => m.role === 'system').map((m) => m.content);
+  const STYLE = /^Write in the user's own style, described below\.[\s\S]*\n- Open with "Salut"$/;
+
+  it.each(['compose', 'reply'])('adds the style after the language instruction for %s with the flag', async (purpose) => {
+    expect((await chat({ messages: hi, purpose, writingStyle: true })).status).toBe(200);
+    const [messages] = mocks.streamChat.mock.calls[0];
+    expect(messages).toHaveLength(3);
+    expect(messages[0].content).toMatch(/^Always respond in/);
+    expect(messages[1]).toEqual({ role: 'system', content: expect.stringMatching(STYLE) });
+    expect(messages[2]).toEqual(hi[0]);
+  });
+
+  it.each([
+    ['without the flag', { purpose: 'compose' }],
+    ['with a flag that is not true', { purpose: 'compose', writingStyle: 'yes' }],
+    ['for a summary', { purpose: 'summarize', writingStyle: true }],
+  ])('leaves the style out %s', async (_, body) => {
+    expect((await chat({ messages: hi, ...body })).status).toBe(200);
+    expect(systemMessages()).toHaveLength(1);
+  });
+
+  it.each([
+    ['turned off', () => { style.ai_writing_style_enabled = false; }],
+    ['empty', () => { style.ai_writing_style = '  '; }],
+  ])('leaves the style out when it is %s', async (_, change) => {
+    change();
+    expect((await chat({ messages: hi, writingStyle: true })).status).toBe(200);
+    expect(systemMessages()).toHaveLength(1);
+  });
+});

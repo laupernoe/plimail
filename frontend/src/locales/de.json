@@ -1988,6 +1988,25 @@
       "downloadFailed": "Die Sicherung konnte nicht gestartet werden.",
       "connectionLost": "Die Verbindung ist während der Wiederherstellung abgebrochen, daher ist das Ergebnis unbekannt. Diese Seite wird neu geladen, sobald Plimail wieder antwortet; prüfen Sie dann, ob Ihre Daten wiederhergestellt wurden.",
       "tooLarge": "Die Datei ist größer, als der Proxy vor Plimail zulässt."
+    },
+    "writingStyle": {
+      "title": "Mein Schreibstil",
+      "description": "Die KI liest Ihre zuletzt gesendeten E-Mails und beschreibt, wie Sie schreiben, damit ihre Entwürfe nach Ihnen klingen. Sie können die Beschreibung jederzeit bearbeiten oder löschen.",
+      "useStyle": "In meinem Stil schreiben",
+      "useStyleHint": "Für Entwürfe, Umformulierungen und Antworten mit KI. Die Korrektur lässt Ihre Formulierungen unverändert.",
+      "profileLabel": "Wie Sie schreiben",
+      "profilePh": "Noch nichts gelernt. Lernen Sie aus Ihren gesendeten E-Mails oder beschreiben Sie, wie Sie schreiben.",
+      "learn": "Aus meinen gesendeten E-Mails lernen",
+      "learnAgain": "Erneut lernen",
+      "learning": "Gesendete E-Mails werden gelesen…",
+      "learned": "Ihr Schreibstil wurde gelernt.",
+      "saved": "Schreibstil gespeichert.",
+      "clear": "Löschen",
+      "learnedFrom": "Am {{date}} aus {{n}} gesendeten E-Mails gelernt",
+      "updatedOn": "Aktualisiert am {{date}}",
+      "notEnoughMail": "Noch nicht genug gesendete E-Mails zum Lernen. Mindestens 3 sind nötig.",
+      "rateLimited": "Zu viele Versuche. Versuchen Sie es in ein paar Minuten erneut.",
+      "loadFailed": "Ihr Schreibstil konnte nicht geladen werden."
     }
   },
   "blockList": {

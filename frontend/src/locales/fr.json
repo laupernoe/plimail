@@ -1988,6 +1988,25 @@
       "downloadFailed": "La sauvegarde n'a pas pu démarrer.",
       "connectionLost": "La connexion a été perdue pendant la restauration, son résultat est donc inconnu. Cette page se rechargera dès que Plimail répondra de nouveau ; vérifiez alors que vos données sont bien celles restaurées.",
       "tooLarge": "Le fichier dépasse la taille autorisée par le proxy placé devant Plimail."
+    },
+    "writingStyle": {
+      "title": "Mon style d'écriture",
+      "description": "L'IA lit vos derniers e-mails envoyés et décrit votre façon d'écrire, pour que les brouillons qu'elle propose vous ressemblent. Vous pouvez modifier ou effacer cette description à tout moment.",
+      "useStyle": "Écrire dans mon style",
+      "useStyleHint": "Pour les brouillons, reformulations et réponses rédigés avec l'IA. La correction garde votre formulation telle quelle.",
+      "profileLabel": "Votre façon d'écrire",
+      "profilePh": "Rien n'a encore été appris. Apprenez à partir de vos e-mails envoyés, ou décrivez votre façon d'écrire.",
+      "learn": "Apprendre de mes e-mails envoyés",
+      "learnAgain": "Réapprendre",
+      "learning": "Lecture de vos e-mails envoyés…",
+      "learned": "Votre style d'écriture a été appris.",
+      "saved": "Style d'écriture enregistré.",
+      "clear": "Effacer",
+      "learnedFrom": "Appris à partir de {{n}} e-mails envoyés le {{date}}",
+      "updatedOn": "Mis à jour le {{date}}",
+      "notEnoughMail": "Pas encore assez d'e-mails envoyés pour apprendre. Il en faut au moins 3.",
+      "rateLimited": "Trop de tentatives. Réessayez dans quelques minutes.",
+      "loadFailed": "Impossible de charger votre style d'écriture."
     }
   },
   "blockList": {
