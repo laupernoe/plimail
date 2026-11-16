@@ -201,6 +201,41 @@ describe('configuration persistence', () => {
     },
   );
 
+  describe('the stored API key and a new base URL', () => {
+    const initial = {
+      enabled: true,
+      provider: AI_PROVIDER_API_KEY,
+      apiKeyConfig: { baseUrl: 'https://api.example/v1', apiKey: 'encrypted:original-key', model: 'm' },
+    };
+    const save = (provider, baseUrl, apiKey = MASKED_API_KEY) => provider.saveAiConfig({
+      enabled: true, provider: AI_PROVIDER_API_KEY, apiKeyConfig: { baseUrl, apiKey, model: 'm' },
+    });
+
+    it.each([
+      'https://evil.example/v1',
+      'http://api.example/v1',
+      'https://api.example:8443/v1',
+    ])('drops the stored key when the masked key is saved with %s', async (baseUrl) => {
+      const { provider, settings } = factory({ initial });
+      const saved = await save(provider, baseUrl);
+      expect(settings.read().apiKeyConfig.apiKey).toBeNull();
+      // The admin form shows the key as missing.
+      expect(saved.apiKeyConfig.apiKey).toBe('');
+    });
+
+    it('keeps it for another path on the same origin', async () => {
+      const { provider, settings } = factory({ initial });
+      await save(provider, 'https://API.example/openai/v1/');
+      expect(settings.read().apiKeyConfig.apiKey).toBe('encrypted:original-key');
+    });
+
+    it('stores a new key sent with the new origin', async () => {
+      const { provider, settings } = factory({ initial });
+      await save(provider, 'https://other.example/v1', 'other-key');
+      expect(settings.read().apiKeyConfig.apiKey).toBe('encrypted:other-key');
+    });
+  });
+
   it('encrypts a replacement API key and never returns it', async () => {
     const { provider, settings } = factory();
     const saved = await provider.saveAiConfig({

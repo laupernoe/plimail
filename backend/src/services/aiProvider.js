@@ -96,6 +96,14 @@ export function normalizeAiConfig(raw = {}) {
   };
 }
 
+function sameOrigin(a, b) {
+  try {
+    return new URL(normalizeBaseUrl(a)).origin === new URL(normalizeBaseUrl(b)).origin;
+  } catch {
+    return false;
+  }
+}
+
 function publicConfig(config) {
   if (!config) return null;
   return {
@@ -331,9 +339,12 @@ export function createAiProvider({
     const existing = await loadAiConfig();
     const incomingApi = input.apiKeyConfig || {};
     const incomingKey = incomingApi.apiKey;
+    // The masked key keeps the stored one only for the address it was entered for: sent with a base
+    // URL on another origin, it would hand the key to that server.
+    const keepKey = sameOrigin(existing?.apiKeyConfig.baseUrl, incomingApi.baseUrl);
     const storedKey = typeof incomingKey === 'string' && incomingKey && incomingKey !== MASKED_API_KEY
       ? encryptFn(incomingKey)
-      : (existing?.apiKeyConfig.apiKey || null);
+      : (keepKey ? existing?.apiKeyConfig.apiKey || null : null);
     const incomingRouter = input.openrouterConfig || {};
     const routerKey = incomingRouter.apiKey;
     const storedRouterKey = typeof routerKey === 'string' && routerKey.trim() && routerKey !== MASKED_API_KEY
