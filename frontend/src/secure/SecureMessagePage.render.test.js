@@ -151,6 +151,31 @@ test('a wrong password says how many tries are left, and the right one shows the
   assert.ok(link?.getAttribute('href').startsWith('blob:'));
 });
 
+test('an attachment opens as a download unless it is a raster image, whatever type the sender gave', async () => {
+  server.sealed = await sealMessage(PASSWORD, {
+    subject: 'Pictures', html: '<p>See attached.</p>', text: 'See attached.',
+    attachments: [
+      { filename: 'page.html', mimeType: 'text/html', data: new Uint8Array([60, 104, 49, 62]) },
+      { filename: 'logo.svg', mimeType: 'image/svg+xml', data: new Uint8Array([60, 115]) },
+      { filename: 'photo.png', mimeType: 'image/png', data: new Uint8Array([137, 80, 78, 71]) },
+    ],
+  }, { iterations: 1000 });
+  const types = [];
+  const createObjectURL = URL.createObjectURL;
+  URL.createObjectURL = (blob) => { types.push(blob.type); return createObjectURL(blob); };
+  try {
+    await act(async () => { root.render(createElement(SecureMessagePage, { token: TOKEN })); });
+    await until(() => !!container.querySelector('#secure-password'));
+    await submitPassword(PASSWORD);
+    await until(() => text().includes('Pictures'));
+  } finally {
+    URL.createObjectURL = createObjectURL;
+  }
+  assert.deepEqual(types, ['application/octet-stream', 'application/octet-stream', 'image/png']);
+  const names = [...container.querySelectorAll('a[download]')].map(a => a.getAttribute('download'));
+  assert.deepEqual(names, ['page.html', 'logo.svg', 'photo.png']);
+});
+
 test('a reply is encrypted with the message key before it is posted', async () => {
   await act(async () => { root.render(createElement(SecureMessagePage, { token: TOKEN })); });
   await until(() => !!container.querySelector('#secure-password'));
