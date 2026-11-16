@@ -39,7 +39,8 @@ export function SecureSendToggle({ value, onChange, disabled, mobile }) {
 
 const STRENGTH_COLOR = { tooShort: 'var(--text-tertiary)', weak: 'var(--red)', fair: 'var(--amber)', strong: 'var(--green)' };
 
-export default function SecureSendPanel({ value, onChange, disabled, mobile }) {
+// `embedded`: inside the lock's panel (PgpSendPanel.jsx ProtectionPanel), which draws the frame.
+export default function SecureSendPanel({ value, onChange, disabled, mobile, embedded = false }) {
   const { t } = useTranslation();
   if (value == null) return null;
   const set = patch => onChange({ ...value, ...patch });
@@ -61,7 +62,7 @@ export default function SecureSendPanel({ value, onChange, disabled, mobile }) {
   return (
     <section
       aria-label={t('compose.secure.title')}
-      style={{
+      style={embedded ? { display: 'flex', flexDirection: 'column', gap: 10 } : {
         padding: mobile ? '12px 14px' : '10px 14px', borderTop: '1px solid var(--border-subtle)',
         background: 'var(--bg-tertiary)', display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0,
       }}
