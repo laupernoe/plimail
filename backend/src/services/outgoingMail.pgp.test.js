@@ -17,7 +17,6 @@ import { createAccountSmtpTransport } from './smtpTransport.js';
 import {
   SendError, buildMailOptions, deliverAndRecord, prepareDelivery, renderPgpMime, renderRawMessage, validateSendInput,
 } from './outgoingMail.js';
-import { pgpKindOfText } from './pgpDetect.js';
 
 const ARMORED = '-----BEGIN PGP MESSAGE-----\n\nwV4DR2b2udXyHrYSAQdAO6w9yEmS1wxDsLAtYdp7xd1Gs7zR1Ve4YqvNC5o+lG4w\n=hYZ0\n-----END PGP MESSAGE-----\n';
 const account = { id: 'a1', email_address: 'me@example.com', name: 'Me', sender_name: null, oauth_provider: null, smtp_host: 'smtp.example.com' };
@@ -108,7 +107,7 @@ describe('PGP/MIME assembly', () => {
     expect(delivery.mailOptions.envelope).toEqual({ from: 'me@example.com', to: ['bob@example.net', 'carol@example.org', 'hidden@example.com'] });
     expect(delivery.rawMessage.toString('latin1')).toMatch(/^Bcc: hidden@example\.com$/m);
     // The Sent copy is still an encrypted message to whoever reads it, the sender included.
-    expect(pgpKindOfText(delivery.rawMessage.toString('latin1'))).toBe('encrypted');
+    expect(delivery.rawMessage.toString('latin1')).toMatch(/^Content-Type: multipart\/encrypted; protocol="application\/pgp-encrypted";/m);
 
     // Through a real (stream) transport, what goes on the wire is the raw message, without Bcc.
     const wire = await nodemailer.createTransport({ streamTransport: true, buffer: true, newline: 'windows' }).sendMail(delivery.mailOptions);
