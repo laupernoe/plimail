@@ -92,7 +92,8 @@
       "pgpWarning": "Se você usa criptografia no Plimail, suas chaves continuam protegidas pela senha anterior: ela será pedida uma vez para desbloqueá-las. Sem ela, seus e-mails criptografados não poderão mais ser lidos."
     },
     "showPassword": "Mostrar senha",
-    "hidePassword": "Ocultar senha"
+    "hidePassword": "Ocultar senha",
+    "passwordRule": "Use pelo menos 8 caracteres e no máximo 72."
   },
   "compose": {
     "unsupportedDraftFrom": "Escolha um remetente configurado antes de salvar ou enviar este rascunho.",
@@ -187,6 +188,7 @@
       "aiImprove": "Melhorar",
       "aiShorten": "Encurtar",
       "aiFixGrammar": "Corrigir ortografia",
+      "aiProtected": "A IA fica desativada enquanto esta mensagem estiver protegida: o texto chegaria sem criptografia ao provedor de IA.",
       "aiMakeClearer": "Deixar mais claro",
       "aiToneHeading": "Mudar o tom",
       "toneProfessional": "Profissional",
@@ -2030,6 +2032,12 @@
       "failed": "A restauração falhou: {{message}}",
       "downloadFailed": "Não foi possível iniciar o backup.",
       "connectionLost": "A conexão caiu durante a restauração, então o resultado é desconhecido. Esta página será recarregada quando o Plimail responder de novo; confira então se os dados são os restaurados.",
+      "identityTitle": "Confirme que é você",
+      "identityIntro": "Um backup contém as credenciais de todas as contas e uma restauração substitui este servidor, então confirme primeiro quem você é. A confirmação vale por 5 minutos.",
+      "identityConfirm": "Confirmar",
+      "identityOidcHint": "Entre novamente pelo login único com o botão abaixo, depois volte a esta aba e selecione Confirmar. Cada login confirma uma única vez, em até 10 minutos.",
+      "identityOidcNoProvider": "Backup e restauração exigem um login recente pelo login único, e sua conta não tem nenhuma identidade de login único para entrar. Peça a outro administrador.",
+      "identityTotpSetup": "Este servidor exige autenticação de dois fatores. Configure um aplicativo autenticador nas suas configurações de segurança antes de um backup ou de uma restauração.",
       "tooLarge": "O arquivo é maior do que o proxy na frente do Plimail permite."
     },
     "writingStyle": {

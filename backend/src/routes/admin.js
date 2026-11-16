@@ -17,6 +17,7 @@ import { uuidParam } from '../utils/uuid.js';
 import { destroyUserSessions } from '../services/userSessions.js';
 import { listUserIdentities, removeIdentitiesForPasswordReset, unlinkUserIdentity } from '../services/userIdentities.js';
 import { PgpRequestError, setKeysProtection } from '../services/pgpKeyring.js';
+import { passwordProblem } from '../utils/passwordPolicy.js';
 
 const router = Router();
 router.use(requireAdmin);
@@ -204,13 +205,8 @@ export async function setUserPassword(req, res) {
   if (pgpKeys !== undefined && id !== req.session.userId) {
     return res.status(400).json({ error: 'Only your own keys can be re-encrypted' });
   }
-  if (typeof password !== 'string' || password.length < 8) {
-    return res.status(400).json({ error: 'Password must be at least 8 characters' });
-  }
-  if (Buffer.byteLength(password, 'utf8') > 72) {
-    // bcrypt ignores everything past 72 bytes, so a longer password would not mean what it says.
-    return res.status(400).json({ error: 'Password must be at most 72 bytes' });
-  }
+  const problem = passwordProblem(password);
+  if (problem) return res.status(400).json({ error: problem });
   const target = await query('SELECT username FROM users WHERE id = $1', [id]);
   if (!target.rows.length) return res.status(404).json({ error: 'User not found' });
 

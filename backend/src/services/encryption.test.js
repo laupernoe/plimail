@@ -45,6 +45,17 @@ describe('deriveKey', () => {
   });
 });
 
+describe('isValidEncryptionKey', () => {
+  it('accepts 64 hex digits in either case and nothing else, as index.js checks at startup', async () => {
+    const { isValidEncryptionKey } = await loadWithKey(KEY);
+    expect(isValidEncryptionKey(KEY)).toBe(true);
+    expect(isValidEncryptionKey(KEY.toUpperCase())).toBe(true);
+    for (const bad of [undefined, '', 'a1'.repeat(31), 'a1'.repeat(33), 'zz'.repeat(32), `${'a1'.repeat(31)}g1`, ` ${KEY}`.slice(0, 64)]) {
+      expect(isValidEncryptionKey(bad)).toBe(false);
+    }
+  });
+});
+
 describe('encryptBytes / decryptBytes', () => {
   const opts = { purpose: 'scheduled-send', aad: 'scheduled:m1:u1:payload:1' };
 

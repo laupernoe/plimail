@@ -92,7 +92,8 @@
       "pgpWarning": "如果您在 Plimail 中使用加密，您的密钥仍受旧密码保护：解锁时会询问一次旧密码。没有它，将无法再阅读加密邮件。"
     },
     "showPassword": "显示密码",
-    "hidePassword": "隐藏密码"
+    "hidePassword": "隐藏密码",
+    "passwordRule": "请使用 8 到 72 个字符。"
   },
   "compose": {
     "unsupportedDraftFrom": "保存或发送此草稿前，请选择已配置的发件人。",
@@ -187,6 +188,7 @@
       "aiImprove": "改进",
       "aiShorten": "精简",
       "aiFixGrammar": "纠正拼写",
+      "aiProtected": "此邮件受保护期间无法使用 AI：其内容会以未加密的形式发送给 AI 服务提供商。",
       "aiMakeClearer": "让表达更清晰",
       "aiToneHeading": "更改语气",
       "toneProfessional": "专业",
@@ -2030,6 +2032,12 @@
       "failed": "恢复失败：{{message}}",
       "downloadFailed": "无法开始备份。",
       "connectionLost": "恢复过程中连接中断，因此结果未知。Plimail 恢复响应后本页面会重新加载；届时请确认数据是否已恢复。",
+      "identityTitle": "确认是您本人",
+      "identityIntro": "备份包含所有账户的凭据，恢复会替换此服务器，因此请先确认您的身份。确认在 5 分钟内有效。",
+      "identityConfirm": "确认",
+      "identityOidcHint": "请用下方按钮通过单点登录重新登录，然后回到此标签页并选择“确认”。每次登录只能确认一次，且须在 10 分钟内。",
+      "identityOidcNoProvider": "备份和恢复需要最近通过单点登录登录，而您的账户没有可用于登录的单点登录身份。请联系其他管理员。",
+      "identityTotpSetup": "此服务器要求双重身份验证。在备份或恢复之前，请在安全设置中设置身份验证器应用。",
       "tooLarge": "文件大小超过了 Plimail 前面的反向代理所允许的上限。"
     },
     "writingStyle": {

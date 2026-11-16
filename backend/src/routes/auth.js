@@ -20,7 +20,10 @@ import { destroyUserSessions } from '../services/userSessions.js';
 import { touchLastSeen } from '../services/lastSeen.js';
 import { removeIdentitiesForPasswordReset } from '../services/userIdentities.js';
 import { aiEnabledForNewUser } from '../services/aiNewUsers.js';
-import { consume as rlConsume, reset as rlReset } from '../services/rateLimiter.js';
+import { consume as rlConsume, release as rlRelease, reset as rlReset } from '../services/rateLimiter.js';
+import { consumeLoginAttempt } from '../services/loginLimiter.js';
+import { rateLimitAddress } from '../utils/rateLimitAddress.js';
+import { passwordProblem } from '../utils/passwordPolicy.js';
 
 const router = Router();
 
@@ -74,24 +77,28 @@ async function createTrustedDevice(userId, req, res) {
   });
 }
 
+// Every attempt counts against the address's budget; one that succeeds hands its own hit back,
+// never the whole bucket, which would wipe out the failures before it (loginLimiter.js).
 function rateLimit(config) {
   return async (req, res, next) => {
     const { maxRequests, windowMs } = config;
-    const key = `auth:${req.ip}`;
+    const key = `auth:${rateLimitAddress(req.ip)}`;
     const { limited, resetMs } = await rlConsume(key, maxRequests, windowMs);
     if (limited) {
       res.setHeader('Retry-After', Math.ceil(resetMs / 1000));
       return res.status(429).json({ error: 'Too many attempts. Please try again later.' });
     }
-    res.locals.resetRateLimit = () => rlReset(key);
+    res.locals.releaseRateLimit = () => rlRelease(key);
     next();
   };
 }
 const authLimiter = rateLimit(authLimiterConfig);
 
 router.post('/register', authLimiter, async (req, res) => {
-  const { username, password, inviteToken } = req.body;
-  if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+  const { username, password, inviteToken } = req.body ?? {};
+  if (!username || !password || typeof username !== 'string') return res.status(400).json({ error: 'Username and password required' });
+  const problem = passwordProblem(password);
+  if (problem) return res.status(400).json({ error: problem });
   const trimmedUsername = username.toLowerCase().trim();
   if (trimmedUsername.length < 1 || trimmedUsername.length > 120) {
     return res.status(400).json({ error: 'Username must be between 1 and 120 characters' });
@@ -209,8 +216,10 @@ router.post('/register', authLimiter, async (req, res) => {
 });
 
 router.post('/login', authLimiter, async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+  const { username, password } = req.body ?? {};
+  if (!username || !password || typeof username !== 'string' || typeof password !== 'string') {
+    return res.status(400).json({ error: 'Username and password required' });
+  }
 
   try {
     const authSetting = await query(
@@ -218,6 +227,12 @@ router.post('/login', authLimiter, async (req, res) => {
     );
     if (authSetting.rows[0]?.value === 'true') {
       return res.status(403).json({ error: 'Password login is disabled. Please sign in with your SSO provider.' });
+    }
+
+    const attempt = await consumeLoginAttempt(username.toLowerCase().trim(), req.ip);
+    if (attempt.limited) {
+      res.setHeader('Retry-After', Math.ceil(attempt.resetMs / 1000));
+      return res.status(429).json({ error: 'Too many attempts. Please try again later.' });
     }
 
     const result = await query('SELECT * FROM users WHERE username = $1', [username.toLowerCase().trim()]);
@@ -240,32 +255,12 @@ router.post('/login', authLimiter, async (req, res) => {
       logAuthEvent('login_fail', { username: user.username, userId: user.id, ip: req.ip, success: false });
       return res.status(401).json({ error: 'Invalid credentials' });
     }
+    // The password is right, whether or not a second factor follows.
+    await attempt.succeeded();
+    await res.locals.releaseRateLimit?.();
 
     // Regenerate session ID before storing any auth state to prevent session fixation
     await new Promise((resolve, reject) => req.session.regenerate(err => err ? reject(err) : resolve()));
-
-    // Check trusted device cookie — bypass 2FA if valid
-    const rawCookies = req.headers.cookie || '';
-    const deviceToken = rawCookies.split(';').map(c => c.trim()).find(c => c.startsWith('mf_td='))?.slice(6);
-    if (deviceToken) {
-      const tokenHash = crypto.createHash('sha256').update(deviceToken).digest('hex');
-      const deviceRes = await query(
-        `SELECT id FROM trusted_devices
-         WHERE user_id = $1 AND token_hash = $2
-           AND (expires_at IS NULL OR expires_at > NOW())`,
-        [user.id, tokenHash]
-      );
-      if (deviceRes.rows.length > 0) {
-        await query('UPDATE trusted_devices SET last_used_at = NOW() WHERE id = $1', [deviceRes.rows[0].id]);
-        req.session.userId = user.id;
-        req.session.username = user.username;
-        req.session.isAdmin = user.is_admin;
-        imapManager.connectAllForUser(user.id);
-        logAuthEvent('login_success', { username: user.username, userId: user.id, ip: req.ip, success: true });
-        res.locals.resetRateLimit?.();
-        return res.json({ user: { id: user.id, username: user.username, displayName: user.display_name, avatar: user.avatar, isAdmin: user.is_admin, totpEnabled: user.totp_enabled } });
-      }
-    }
 
     // Load enforcement policy and device trust setting together
     const policyResult = await query(
@@ -275,7 +270,33 @@ router.post('/login', authLimiter, async (req, res) => {
     for (const row of policyResult.rows) policyMap[row.key] = row.value;
     const enforcement = policyMap.mfa_enforcement || 'off';
     const trustSetting = policyMap.mfa_device_trust || '30d';
-    const deviceTrustAvailable = getTrustDurationMs(trustSetting) > 0;
+    const trustMs = getTrustDurationMs(trustSetting);
+    const deviceTrustAvailable = trustMs > 0;
+
+    // Check trusted device cookie — bypass 2FA if valid. The admin's setting as it is now decides:
+    // "never" trusts no device, and a shorter duration than the device was remembered for ends its
+    // trust early, so tightening the policy is not undone by cookies issued under the old one.
+    const rawCookies = req.headers.cookie || '';
+    const deviceToken = rawCookies.split(';').map(c => c.trim()).find(c => c.startsWith('mf_td='))?.slice(6);
+    if (deviceToken && deviceTrustAvailable) {
+      const tokenHash = crypto.createHash('sha256').update(deviceToken).digest('hex');
+      const deviceRes = await query(
+        `SELECT id FROM trusted_devices
+         WHERE user_id = $1 AND token_hash = $2
+           AND (expires_at IS NULL OR expires_at > NOW())
+           AND created_at > $3`,
+        [user.id, tokenHash, new Date(Date.now() - trustMs)]
+      );
+      if (deviceRes.rows.length > 0) {
+        await query('UPDATE trusted_devices SET last_used_at = NOW() WHERE id = $1', [deviceRes.rows[0].id]);
+        req.session.userId = user.id;
+        req.session.username = user.username;
+        req.session.isAdmin = user.is_admin;
+        imapManager.connectAllForUser(user.id);
+        logAuthEvent('login_success', { username: user.username, userId: user.id, ip: req.ip, success: true });
+        return res.json({ user: { id: user.id, username: user.username, displayName: user.display_name, avatar: user.avatar, isAdmin: user.is_admin, totpEnabled: user.totp_enabled } });
+      }
+    }
 
     // If user has TOTP configured, require a TOTP challenge before creating a full session
     if (user.totp_enabled) {
@@ -310,7 +331,6 @@ router.post('/login', authLimiter, async (req, res) => {
     imapManager.connectAllForUser(user.id);
 
     logAuthEvent('login_success', { username: user.username, userId: user.id, ip: req.ip, success: true });
-    res.locals.resetRateLimit?.();
     res.json({ user: { id: user.id, username: user.username, displayName: user.display_name, avatar: user.avatar, isAdmin: user.is_admin, totpEnabled: user.totp_enabled } });
   } catch {
     res.status(500).json({ error: 'Login failed' });
@@ -375,7 +395,7 @@ router.post('/2fa/challenge', authLimiter, async (req, res) => {
 
   imapManager.connectAllForUser(user.id);
   logAuthEvent('totp_success', { username: user.username, userId: user.id, ip: req.ip, success: true });
-  res.locals.resetRateLimit?.();
+  res.locals.releaseRateLimit?.();
   rlReset(`totp:${uid}`);
   res.json({ user: { id: user.id, username: user.username, displayName: user.display_name, avatar: user.avatar, isAdmin: user.is_admin, totpEnabled: user.totp_enabled } });
 });
@@ -491,7 +511,7 @@ router.post('/2fa/verify-email-otp', authLimiter, async (req, res) => {
 
   imapManager.connectAllForUser(user.id);
   logAuthEvent('totp_success', { username: user.username, userId: user.id, ip: req.ip, success: true });
-  res.locals.resetRateLimit?.();
+  res.locals.releaseRateLimit?.();
   rlReset(`totp:${uid}`);
   res.json({ user: { id: user.id, username: user.username, displayName: user.display_name, avatar: user.avatar, isAdmin: user.is_admin, totpEnabled: user.totp_enabled } });
 });
@@ -561,7 +581,7 @@ router.post('/2fa/enrollment/enable', authLimiter, async (req, res) => {
 
   imapManager.connectAllForUser(user.id);
   logAuthEvent('totp_success', { username: user.username, userId: user.id, ip: req.ip, success: true });
-  res.locals.resetRateLimit?.();
+  res.locals.releaseRateLimit?.();
   rlReset(`totp:${uid}`);
   res.json({ user: { id: user.id, username: user.username, displayName: user.display_name, avatar: user.avatar, isAdmin: user.is_admin, totpEnabled: true } });
 });
@@ -1171,9 +1191,8 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
 router.post('/reset-password', authLimiter, async (req, res) => {
   const { token, password } = req.body;
   if (!token || typeof token !== 'string') return res.status(400).json({ error: 'Token required' });
-  if (!password || typeof password !== 'string' || password.length < 8) {
-    return res.status(400).json({ error: 'Password must be at least 8 characters' });
-  }
+  const problem = passwordProblem(password);
+  if (problem) return res.status(400).json({ error: problem });
 
   const tokenHash = crypto.createHash('sha256').update(token.trim()).digest('hex');
   try {
@@ -1214,7 +1233,7 @@ router.post('/reset-password', authLimiter, async (req, res) => {
     if (removed.length) console.log(`[auth] password reset for ${username} removed ${removed.length} linked identity(s): ${removed.map(i => i.provider_name).join(', ')}`);
     removed.forEach(() => logAuthEvent('identity_unlinked', { userId, username, ip: req.ip, success: true }));
 
-    res.locals.resetRateLimit?.();
+    res.locals.releaseRateLimit?.();
     res.json({ ok: true });
   } catch (err) {
     console.error('reset-password error:', err.message);

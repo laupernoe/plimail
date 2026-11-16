@@ -92,7 +92,8 @@
       "pgpWarning": "Si vous utilisez le chiffrement dans Plimail, vos clés restent protégées par votre ancien mot de passe : il vous sera demandé une fois pour les déverrouiller. Sans lui, vos messages chiffrés ne pourront plus être lus."
     },
     "showPassword": "Afficher le mot de passe",
-    "hidePassword": "Masquer le mot de passe"
+    "hidePassword": "Masquer le mot de passe",
+    "passwordRule": "Utilisez au moins 8 caractères, et pas plus de 72."
   },
   "compose": {
     "unsupportedDraftFrom": "Choisissez un expéditeur configuré avant d’enregistrer ou d’envoyer ce brouillon.",
@@ -187,6 +188,7 @@
       "aiImprove": "Améliorer",
       "aiShorten": "Raccourcir",
       "aiFixGrammar": "Corriger l'orthographe",
+      "aiProtected": "L'IA est désactivée tant que ce message est protégé : son texte parviendrait au fournisseur d'IA sans chiffrement.",
       "aiMakeClearer": "Rendre plus clair",
       "aiToneHeading": "Changer le ton",
       "toneProfessional": "Professionnel",
@@ -2030,6 +2032,12 @@
       "failed": "La restauration a échoué : {{message}}",
       "downloadFailed": "La sauvegarde n'a pas pu démarrer.",
       "connectionLost": "La connexion a été perdue pendant la restauration, son résultat est donc inconnu. Cette page se rechargera dès que Plimail répondra de nouveau ; vérifiez alors que vos données sont bien celles restaurées.",
+      "identityTitle": "Confirmez votre identité",
+      "identityIntro": "Une sauvegarde contient les identifiants de tous les comptes et une restauration remplace ce serveur : confirmez d’abord votre identité. La confirmation vaut 5 minutes.",
+      "identityConfirm": "Confirmer",
+      "identityOidcHint": "Reconnectez-vous par authentification unique avec le bouton ci-dessous, puis revenez à cet onglet et sélectionnez Confirmer. Chaque connexion confirme une seule fois, dans les 10 minutes.",
+      "identityOidcNoProvider": "La sauvegarde et la restauration demandent une connexion récente par authentification unique, et votre compte n’a aucune identité d’authentification unique pour se connecter. Demandez à un autre administrateur.",
+      "identityTotpSetup": "Ce serveur exige l’authentification à deux facteurs. Configurez une application d’authentification dans vos paramètres de sécurité avant une sauvegarde ou une restauration.",
       "tooLarge": "Le fichier dépasse la taille autorisée par le proxy placé devant Plimail."
     },
     "writingStyle": {

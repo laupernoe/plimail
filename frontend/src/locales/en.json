@@ -92,7 +92,8 @@
       "pgpWarning": "If you use encryption in Plimail, your keys stay protected by your previous password: you will be asked for it once to unlock them. Without it, your encrypted mail can no longer be read."
     },
     "showPassword": "Show password",
-    "hidePassword": "Hide password"
+    "hidePassword": "Hide password",
+    "passwordRule": "Use at least 8 characters, and no more than 72."
   },
   "compose": {
     "unsupportedDraftFrom": "Choose a configured sender before saving or sending this draft.",
@@ -187,6 +188,7 @@
       "aiImprove": "Improve",
       "aiShorten": "Shorten",
       "aiFixGrammar": "Fix spelling and grammar",
+      "aiProtected": "AI is off while this message is protected: its text would reach the AI provider unencrypted.",
       "aiMakeClearer": "Make clearer",
       "aiToneHeading": "Change the tone",
       "toneProfessional": "Professional",
@@ -2030,6 +2032,12 @@
       "failed": "Restore failed: {{message}}",
       "downloadFailed": "The backup could not be started.",
       "connectionLost": "The connection was lost during the restore, so its outcome is unknown. This page reloads once Plimail answers again; then check that your data is the restored one.",
+      "identityTitle": "Confirm it is you",
+      "identityIntro": "A backup holds every account's credentials, and a restore replaces this server, so confirm who you are first. It counts for 5 minutes.",
+      "identityConfirm": "Confirm",
+      "identityOidcHint": "Sign in again through single sign-on with the button below, then come back to this tab and select Confirm. Each sign-in confirms once, within 10 minutes.",
+      "identityOidcNoProvider": "Backup and restore need a recent sign-in through single sign-on, and your account has no single sign-on identity to sign in with. Ask another administrator.",
+      "identityTotpSetup": "This server requires two-factor authentication. Set up an authenticator app in your security settings before a backup or a restore.",
       "tooLarge": "The file is larger than the proxy in front of Plimail allows."
     },
     "writingStyle": {

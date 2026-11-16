@@ -19,7 +19,11 @@ vi.mock('../middleware/auth.js', () => {
   return { requireAuth: signIn, requireAdmin: signIn };
 });
 vi.mock('../index.js', () => ({ imapManager: imap }));
-vi.mock('../services/aiAccess.js', () => ({ getUserAiAccess: vi.fn(async () => ({ allowed: true })) }));
+vi.mock('../services/aiAccess.js', async (importOriginal) => ({
+  ...await importOriginal(),
+  getUserAiAccess: vi.fn(async () => ({ allowed: true, status: { enabled: true, features: { compose: true, summarize: true } } })),
+}));
+vi.mock('../services/rateLimiter.js', () => ({ consume: vi.fn(async () => ({ limited: false })) }));
 vi.mock('../services/categorizer.js', () => ({
   invalidateSocialDomainCache: vi.fn(), backfillCategories: vi.fn(async () => {}),
   aiClassifyMessage: vi.fn(async () => 'newsletter'), BUILTIN_SETS: {},

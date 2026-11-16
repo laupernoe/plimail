@@ -11,34 +11,42 @@ marked.setOptions({
 });
 
 // Tags a markdown document can legitimately produce. Deliberately excludes <img>,
-// <script>, <style>, <iframe>, and form elements.
+// <script>, <style>, <iframe>, and form elements, and <a>: a link written by the model, which
+// the mail it read can steer, would sit in the app's own box looking like the app's advice.
 const ALLOWED_TAGS = [
   'p', 'br', 'hr', 'strong', 'em', 'del', 's', 'code', 'pre', 'blockquote',
   'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-  'a', 'table', 'thead', 'tbody', 'tr', 'th', 'td',
+  'table', 'thead', 'tbody', 'tr', 'th', 'td',
 ];
 
-// Force links to open in a new tab without leaking the opener. Registered per call and
-// removed immediately in finally so it never affects other DOMPurify sanitizes (e.g. the
-// email renderer, which uses inline options and no hooks).
-function hardenLinks(node) {
-  if (node.tagName === 'A') {
-    node.setAttribute('target', '_blank');
-    node.setAttribute('rel', 'noopener noreferrer');
-  }
+// Where a link really goes, shown when its text does not already say it.
+export function linkTarget(href) {
+  let url;
+  try { url = new URL(href); } catch { return ''; }
+  if (url.protocol === 'http:' || url.protocol === 'https:') return url.hostname;
+  if (url.protocol === 'mailto:') return decodeURIComponent(url.pathname);
+  return '';
+}
+
+// A link becomes its text, followed by its real domain unless the text is the address itself (an
+// autolink). DOMPurify then drops the <a> and keeps what is inside. Registered per call and
+// removed in finally so it never affects other DOMPurify sanitizes (e.g. the email renderer).
+function unlink(node, data) {
+  if (data.tagName !== 'a') return;
+  const href = (node.getAttribute('href') || '').trim();
+  const text = (node.textContent || '').trim();
+  const target = linkTarget(href);
+  const autolink = text === href || `http://${text}` === href || `mailto:${text}` === href;
+  if (!target || autolink) return;
+  node.parentNode?.insertBefore(node.ownerDocument.createTextNode(` (${target})`), node.nextSibling);
 }
 
 export function renderMarkdown(text) {
   const html = marked.parse(text || '', { async: false });
-  DOMPurify.addHook('afterSanitizeAttributes', hardenLinks);
+  DOMPurify.addHook('uponSanitizeElement', unlink);
   try {
-    // DOMPurify blocks javascript:/unsafe URLs in href by default; the tag allow-list
-    // (no <img>/<svg>) removes the usual data:-URI vectors.
-    return DOMPurify.sanitize(html, {
-      ALLOWED_TAGS,
-      ALLOWED_ATTR: ['href', 'title', 'target', 'rel'],
-    });
+    return DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR: [] });
   } finally {
-    DOMPurify.removeHook('afterSanitizeAttributes');
+    DOMPurify.removeHook('uponSanitizeElement');
   }
 }

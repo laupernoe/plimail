@@ -412,6 +412,7 @@ const SAME_VALUE_ALLOWED = {
   'admin.folderMappings.sent':                       [['es', 'ptBR']], // "Enviados"
   'admin.integrations.google.configured':            [['es', 'ptBR']], // "Configurado"
   'admin.lock.confirmPin':                           [['es', 'ptBR']], // "Confirmar PIN"
+  'admin.backup.identityConfirm':                    [['es', 'ptBR']], // "Confirmar"
   'admin.messageList.defaultReply':                  [['es', 'ptBR']], // "Responder"
   'admin.messageList.defaultReplyAll':               [['es', 'ptBR']], // "Responder a todos"
   'admin.messageList.paginated':                     [['es', 'ptBR']], // "Paginado"

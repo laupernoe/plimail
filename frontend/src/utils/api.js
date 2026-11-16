@@ -351,6 +351,9 @@ export const api = {
     deleteSystemEmail: () => request('DELETE', '/admin/system-email'),
     getAuthEvents: (params) => request('GET', '/admin/auth-events?' + new URLSearchParams(params)),
     checkBackup: (scope) => request('GET', `/admin/backup/check?scope=${encodeURIComponent(scope)}`),
+    // A backup or a restore needs the admin to have confirmed who they are in the last minutes.
+    backupReauth: () => request('GET', '/admin/backup/reauth'),
+    confirmBackup: (data) => request('POST', '/admin/backup/confirm', data),
     backupUrl: (scope) => `${BASE}/admin/backup?scope=${encodeURIComponent(scope)}`,
     // The file streams up and the server streams progress lines back, one JSON object per
     // line, ending with the result. Resolves with that result. An error with `lost` set means
@@ -372,7 +375,9 @@ export const api = {
         if (res.status === 423) window.dispatchEvent(new CustomEvent('mailflow:locked'));
         if (res.status === 401) window.dispatchEvent(new CustomEvent('mailflow:session_expired'));
         const err = await res.json().catch(() => ({ error: 'Request failed' }));
-        const e = new Error(err.error || 'Request failed'); e.status = res.status; throw e;
+        const e = new Error(err.error || 'Request failed'); e.status = res.status;
+        if (typeof err.code === 'string') e.code = err.code;
+        throw e;
       }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();

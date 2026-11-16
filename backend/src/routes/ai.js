@@ -19,9 +19,20 @@ import {
   startDeviceFlow,
 } from '../services/openaiCodexAuth.js';
 import { enabledWritingStyle, writingStyleInstruction } from '../services/writingStyle.js';
+import { consume } from '../services/rateLimiter.js';
 
 const router = Router();
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// The provider is billed to the instance, so one user cannot spend it without bound: a burst
+// limit, an hourly one, and a cap on what a single request can send and ask for.
+export const CHAT_LIMITS = [
+  { key: 'ai_chat', max: 30, windowMs: 60_000 },
+  { key: 'ai_chat_hour', max: 300, windowMs: 3_600_000 },
+];
+export const CHAT_MAX_MESSAGES = 50;
+export const CHAT_MAX_MESSAGE_CHARS = 32_000;
+export const CHAT_MAX_TOTAL_CHARS = 100_000;
+export const CHAT_MAX_TOKENS = 4096;
 
 export const AI_LANGUAGE_NAMES = {
   en: 'English',
@@ -245,11 +256,15 @@ export async function userLanguage(userId) {
 
 function validateMessages(messages) {
   if (!Array.isArray(messages) || messages.length === 0) return 'messages array is required';
+  if (messages.length > CHAT_MAX_MESSAGES) return 'Too many messages';
+  let total = 0;
   for (const message of messages) {
     if (!message?.role || typeof message.content !== 'string') return 'Each message must have role and content';
     if (!['system', 'user', 'assistant'].includes(message.role)) return 'Invalid message role';
-    if (message.content.length > 32_000) return 'Message content exceeds maximum length';
+    if (message.content.length > CHAT_MAX_MESSAGE_CHARS) return 'Message content exceeds maximum length';
+    total += message.content.length;
   }
+  if (total > CHAT_MAX_TOTAL_CHARS) return 'Messages exceed the maximum total length';
   return null;
 }
 
@@ -268,6 +283,12 @@ router.post('/ai/chat', requireAuth, async (req, res) => {
     return res.status(400).json({ error: `purpose must be one of: ${Object.keys(AI_PURPOSES).join(', ')}` });
   }
   if (!await gateAiRequest(req, res, purpose)) return;
+  for (const { key, max, windowMs } of CHAT_LIMITS) {
+    const rate = await consume(`${key}:${req.session.userId}`, max, windowMs);
+    if (rate.limited) {
+      return res.status(429).json({ error: 'Too many AI requests. Try again later.', code: 'rate_limited' });
+    }
+  }
 
   const language = await userLanguage(req.session.userId);
   const providerMessages = [
@@ -294,7 +315,7 @@ router.post('/ai/chat', requireAuth, async (req, res) => {
   res.flushHeaders();
 
   try {
-    for await (const delta of streamChat(providerMessages, { signal: controller.signal })) {
+    for await (const delta of streamChat(providerMessages, { signal: controller.signal, maxTokens: CHAT_MAX_TOKENS })) {
       if (controller.signal.aborted || res.destroyed) break;
       res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: delta } }] })}\n\n`);
     }
@@ -302,8 +323,10 @@ router.post('/ai/chat', requireAuth, async (req, res) => {
       res.write('data: [DONE]\n\n');
       res.end();
     }
-  } catch {
+  } catch (error) {
     if (!controller.signal.aborted && !res.destroyed) {
+      // The message only, never the prompt: it holds the user's mail.
+      if (!error?.expose) console.error('AI chat failed:', error?.message || error);
       res.write(`data: ${JSON.stringify({ error: 'AI request failed' })}\n\n`);
       res.write('data: [DONE]\n\n');
       res.end();

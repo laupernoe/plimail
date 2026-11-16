@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/index.js';
 import { api } from '../utils/api.js';
+import PasswordInput from './PasswordInput.jsx';
 
 // Backup and restore (#452), mounted as the admin-only "Backup" tab in AdminPanel: download a
 // backup of this installation, or replace the installation with one.
@@ -79,6 +80,13 @@ export default function BackupSettings({
   const [downloading, setDownloading] = useState(false);
   const [file, setFile] = useState(null);
   const [confirming, setConfirming] = useState(false);
+  // The server asks the admin to confirm who they are before a backup or a restore, for a few
+  // minutes at a time. { action, reauth, oidc } while the form for it shows, action being what
+  // goes on once confirmed.
+  const [identity, setIdentity] = useState(null);
+  const [identityForm, setIdentityForm] = useState({ password: '', code: '' });
+  const [identityError, setIdentityError] = useState('');
+  const [identityBusy, setIdentityBusy] = useState(false);
   const [{ phase, rows, error }, setShown] = useState(restoreState);
 
   useEffect(() => {
@@ -109,6 +117,17 @@ export default function BackupSettings({
 
   // A navigation rather than a fetch, so the browser streams a file of any size to disk. The
   // check first catches what would otherwise only show as a failed download.
+  const askIdentity = async (action, known) => {
+    setIdentityError('');
+    setIdentityForm({ password: '', code: '' });
+    try {
+      const { reauth, oidc } = known ?? await api.admin.backupReauth();
+      setIdentity({ action, reauth, oidc });
+    } catch (err) {
+      addNotification({ type: 'error', title: err.message });
+    }
+  };
+
   const download = async () => {
     const scope = includeMail ? 'full' : 'setup';
     setDownloading(true);
@@ -121,7 +140,8 @@ export default function BackupSettings({
       a.click();
       a.remove();
     } catch (err) {
-      addNotification({ type: 'error', title: t('admin.backup.downloadFailed'), body: err.message });
+      if (err.code === 'reauth_required') await askIdentity('download');
+      else addNotification({ type: 'error', title: t('admin.backup.downloadFailed'), body: err.message });
     } finally {
       setDownloading(false);
     }
@@ -129,11 +149,27 @@ export default function BackupSettings({
 
   const restore = async () => {
     setConfirming(false);
+    // Asked before the upload, so an unconfirmed admin does not send the whole file for nothing.
+    try {
+      const known = await api.admin.backupReauth();
+      if (!known.confirmedUntil) {
+        await askIdentity('restore', known);
+        return;
+      }
+    } catch (err) {
+      addNotification({ type: 'error', title: t('admin.backup.failed', { message: err.message }) });
+      return;
+    }
     setRestoreState({ phase: 'restoring', rows: 0, error: '' });
     try {
       await api.admin.restoreBackup(file, progress => setRestoreState({ rows: progress.rows }));
       setRestoreState({ phase: 'restarting' });
     } catch (err) {
+      if (err.code === 'reauth_required') {
+        setRestoreState({ phase: 'idle', error: '' });
+        await askIdentity('restore');
+        return;
+      }
       if (!err.lost) {
         const message = err.status === 413 ? t('admin.backup.tooLarge') : err.message;
         setRestoreState({ phase: 'failed', error: message });
@@ -150,6 +186,81 @@ export default function BackupSettings({
       setRestoreState({ phase: 'restartTimeout' });
     }
   };
+
+  const confirmIdentity = async (e) => {
+    e.preventDefault();
+    if (!identity || identityBusy) return;
+    setIdentityBusy(true);
+    setIdentityError('');
+    try {
+      await api.admin.confirmBackup({
+        ...(identity.reauth === 'password' ? { password: identityForm.password } : {}),
+        ...(identity.reauth === 'totp' ? { totpCode: identityForm.code } : {}),
+      });
+      const { action } = identity;
+      setIdentity(null);
+      if (action === 'download') await download();
+      else await restore();
+    } catch (err) {
+      // A code works once, and a refused password is typed again.
+      setIdentityForm({ password: '', code: '' });
+      setIdentityError(err.message);
+    } finally {
+      setIdentityBusy(false);
+    }
+  };
+
+  const oidcProviders = Array.isArray(identity?.oidc?.providers) ? identity.oidc.providers : [];
+  const identityReady = identity?.reauth === 'password' ? !!identityForm.password
+    : identity?.reauth === 'totp' ? identityForm.code.length === 6
+      : identity?.reauth === 'oidc' ? oidcProviders.length > 0 : false;
+  const identityPanel = identity && (
+    <form onSubmit={confirmIdentity} aria-labelledby="backup-identity-title"
+      style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 12, marginTop: 10, border: '1px solid var(--border)', borderRadius: 8 }}>
+      <div id="backup-identity-title" style={{ fontWeight: 600, fontSize: 13 }}>{t('admin.backup.identityTitle')}</div>
+      <div style={hintStyle}>{t('admin.backup.identityIntro')}</div>
+      {identity.reauth === 'password' && (
+        <label style={labelStyle}>
+          <span>{t('admin.apiTokens.passwordLabel')}</span>
+          <PasswordInput autoComplete="current-password" value={identityForm.password}
+            onChange={e => setIdentityForm(f => ({ ...f, password: e.target.value }))} style={inputStyle} />
+        </label>
+      )}
+      {identity.reauth === 'totp' && (
+        <label style={labelStyle}>
+          <span>{t('admin.apiTokens.totpLabel')}</span>
+          <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={identityForm.code}
+            onChange={e => setIdentityForm(f => ({ ...f, code: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
+            style={{ ...inputStyle, letterSpacing: '0.3em', fontVariantNumeric: 'tabular-nums' }} />
+        </label>
+      )}
+      {identity.reauth === 'oidc' && (oidcProviders.length ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={hintStyle}>{t('admin.backup.identityOidcHint')}</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {oidcProviders.map(p => (
+              <a key={p.slug} href={`/auth/oidc/${p.slug}/start?action=reauth`} style={{ ...secondaryBtn, textDecoration: 'none' }}>
+                {t('admin.apiTokens.reauthOidcButton', { provider: p.name })}
+              </a>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div style={hintStyle}>{t('admin.backup.identityOidcNoProvider')}</div>
+      ))}
+      {identity.reauth === 'totpSetup' && <div style={hintStyle}>{t('admin.backup.identityTotpSetup')}</div>}
+      {identityError && <div role="alert" style={{ fontSize: 13, color: 'var(--danger, #dc2626)' }}>{identityError}</div>}
+      <div style={{ display: 'flex', gap: 10 }}>
+        {identity.reauth !== 'totpSetup' && (
+          <button type="submit" disabled={!identityReady || identityBusy}
+            style={{ ...primaryBtn, marginTop: 0, opacity: !identityReady || identityBusy ? 0.5 : 1 }}>
+            {t('admin.backup.identityConfirm')}
+          </button>
+        )}
+        <button type="button" onClick={() => setIdentity(null)} style={secondaryBtn}>{t('common.cancel')}</button>
+      </div>
+    </form>
+  );
 
   const chooseFile = e => {
     setFile(e.target.files?.[0] || null);
@@ -179,6 +290,7 @@ export default function BackupSettings({
         style={{ ...primaryBtn, alignSelf: 'flex-start', opacity: !loaded || busy || downloading ? 0.5 : 1 }}>
         {t('admin.backup.create')}
       </button>
+      {identity?.action === 'download' && identityPanel}
 
       <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: 16 }}>
         <Row label={t('admin.backup.restoreTitle')} help={`${t('admin.backup.restoreIntro')} ${t('admin.backup.versionNote')}`}>
@@ -201,6 +313,7 @@ export default function BackupSettings({
                 {t('admin.backup.restore')}
               </button>
             )}
+            {identity?.action === 'restore' && identityPanel}
             {status && <div role="status" style={{ fontSize: 13 }}>{status}</div>}
             {phase === 'failed' && (
               <div role="alert" style={{ fontSize: 13, color: 'var(--danger, #dc2626)' }}>
@@ -225,4 +338,10 @@ const dangerBtn = {
 const secondaryBtn = {
   padding: '7px 14px', borderRadius: 8, border: '1px solid var(--border)',
   cursor: 'pointer', background: 'transparent', color: 'var(--text-primary)', fontSize: 13,
+};
+const hintStyle = { fontSize: 12.5, color: 'var(--text-secondary)' };
+const labelStyle = { fontSize: 13, display: 'flex', flexDirection: 'column', gap: 6 };
+const inputStyle = {
+  padding: '7px 9px', background: 'var(--bg-tertiary)', border: '1px solid var(--border)',
+  borderRadius: 6, color: 'var(--text-primary)', fontSize: 13, maxWidth: 280,
 };

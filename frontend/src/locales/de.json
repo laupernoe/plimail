@@ -92,7 +92,8 @@
       "pgpWarning": "Wenn Sie in Plimail Verschlüsselung nutzen, bleiben Ihre Schlüssel mit Ihrem früheren Passwort geschützt: Es wird einmal abgefragt, um sie zu entsperren. Ohne es können Ihre verschlüsselten Nachrichten nicht mehr gelesen werden."
     },
     "showPassword": "Passwort anzeigen",
-    "hidePassword": "Passwort verbergen"
+    "hidePassword": "Passwort verbergen",
+    "passwordRule": "Verwenden Sie mindestens 8 und höchstens 72 Zeichen."
   },
   "compose": {
     "unsupportedDraftFrom": "Wähle einen eingerichteten Absender, bevor du diesen Entwurf speicherst oder sendest.",
@@ -187,6 +188,7 @@
       "aiImprove": "Verbessern",
       "aiShorten": "Kürzen",
       "aiFixGrammar": "Rechtschreibung korrigieren",
+      "aiProtected": "KI ist aus, solange diese Nachricht geschützt ist: Ihr Text würde unverschlüsselt an den KI-Anbieter gehen.",
       "aiMakeClearer": "Klarer formulieren",
       "aiToneHeading": "Ton ändern",
       "toneProfessional": "Professionell",
@@ -2030,6 +2032,12 @@
       "failed": "Wiederherstellung fehlgeschlagen: {{message}}",
       "downloadFailed": "Die Sicherung konnte nicht gestartet werden.",
       "connectionLost": "Die Verbindung ist während der Wiederherstellung abgebrochen, daher ist das Ergebnis unbekannt. Diese Seite wird neu geladen, sobald Plimail wieder antwortet; prüfen Sie dann, ob Ihre Daten wiederhergestellt wurden.",
+      "identityTitle": "Bestätigen Sie, dass Sie es sind",
+      "identityIntro": "Eine Sicherung enthält die Zugangsdaten aller Konten, und eine Wiederherstellung ersetzt diesen Server. Bestätigen Sie deshalb zuerst, wer Sie sind. Die Bestätigung gilt 5 Minuten.",
+      "identityConfirm": "Bestätigen",
+      "identityOidcHint": "Melden Sie sich über die Schaltfläche unten erneut per Single Sign-on an, kehren Sie dann zu diesem Tab zurück und wählen Sie Bestätigen. Jede Anmeldung bestätigt einmal, innerhalb von 10 Minuten.",
+      "identityOidcNoProvider": "Sicherung und Wiederherstellung erfordern eine kürzliche Anmeldung per Single Sign-on, und Ihr Konto hat keine Single-Sign-on-Identität, mit der es sich anmelden kann. Wenden Sie sich an einen anderen Administrator.",
+      "identityTotpSetup": "Dieser Server erfordert Zwei-Faktor-Authentifizierung. Richten Sie vor einer Sicherung oder Wiederherstellung eine Authenticator-App in Ihren Sicherheitseinstellungen ein.",
       "tooLarge": "Die Datei ist größer, als der Proxy vor Plimail zulässt."
     },
     "writingStyle": {

@@ -1,5 +1,5 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { query } from './db.js';
+import { query, withTransaction } from './db.js';
 
 // Password-protected messages (migration 0093). The browser encrypts; this module only ever
 // handles ciphertext, and a hash of the recipient's authentication key. See
@@ -256,14 +256,42 @@ export function publicMeta(row) {
   };
 }
 
-// Counts a wrong password, and locks the message for good at the last one. One statement, so
-// guesses sent at once cannot slip past the count. Returns what is left, or locked.
-export async function recordFailedAttempt(id) {
+// A try at the password is counted before the key is compared, in one statement, so tries sent
+// at once cannot all be compared while the count still shows room: each takes one of the
+// MAX_FAILED_ATTEMPTS slots first, and once they are all taken no other try gets as far as the
+// comparison. The row comes back with its verifier for that comparison; null when the message is
+// not openable or every slot is taken (attemptsExhausted tells those apart). A right key hands
+// its slot back (attemptSucceeded), so opening the message again and again never locks it; a
+// wrong one keeps it, and locks the message once the count has reached the limit (attemptFailed).
+export async function reserveAttempt(token) {
+  if (!isToken(token)) return null;
+  const { rows } = await query(
+    `UPDATE secure_messages SET failed_attempts = failed_attempts + 1
+     WHERE token = $1 AND ${OPENABLE} AND failed_attempts < $2
+     RETURNING id, user_id, failed_attempts, auth_verifier`,
+    [token, MAX_FAILED_ATTEMPTS],
+  );
+  return rows[0] || null;
+}
+
+// The message is still openable but its slots are all held by tries not yet answered.
+export async function attemptsExhausted(token) {
+  return Boolean(await findOpenable(token));
+}
+
+export async function attemptSucceeded(id) {
+  await query(
+    'UPDATE secure_messages SET failed_attempts = GREATEST(failed_attempts - 1, 0) WHERE id = $1',
+    [id],
+  );
+}
+
+// Returns what is left, or locked.
+export async function attemptFailed(id) {
   const { rows } = await query(
     `UPDATE secure_messages
-     SET failed_attempts = failed_attempts + 1,
-         locked_at = CASE WHEN failed_attempts + 1 >= $2 THEN NOW() ELSE NULL END
-     WHERE id = $1 AND locked_at IS NULL
+     SET locked_at = CASE WHEN failed_attempts >= $2 THEN COALESCE(locked_at, NOW()) ELSE locked_at END
+     WHERE id = $1
      RETURNING failed_attempts, locked_at`,
     [id, MAX_FAILED_ATTEMPTS],
   );
@@ -286,17 +314,26 @@ export async function openMessage(id) {
   return { ciphertext: Buffer.from(rows[0].ciphertext).toString('base64'), iv: rows[0].iv };
 }
 
-// Stores a reply while the message is still openable and has room for one. Null otherwise.
+// Stores a reply while the message is still openable and has room for one. Null otherwise. The
+// message row is locked first, so replies sent at once are counted one after the other: in one
+// statement, each would count the replies as they were when it began and all could pass the cap.
 export async function addReply(id, ciphertext, iv) {
-  const { rows } = await query(
-    `INSERT INTO secure_message_replies (secure_message_id, ciphertext, iv)
-     SELECT $1, $2, $3
-     WHERE EXISTS (SELECT 1 FROM secure_messages WHERE id = $1 AND ${OPENABLE})
-       AND (SELECT COUNT(*) FROM secure_message_replies WHERE secure_message_id = $1) < $4
-     RETURNING id, created_at`,
-    [id, ciphertext, iv, MAX_REPLIES],
-  );
-  return rows[0] ? { id: rows[0].id, createdAt: iso(rows[0].created_at) } : null;
+  const row = await withTransaction(async (client) => {
+    const { rows: [message] } = await client.query(
+      `SELECT id FROM secure_messages WHERE id = $1 AND ${OPENABLE} FOR UPDATE`,
+      [id],
+    );
+    if (!message) return null;
+    const { rows } = await client.query(
+      `INSERT INTO secure_message_replies (secure_message_id, ciphertext, iv)
+       SELECT $1, $2, $3
+       WHERE (SELECT COUNT(*) FROM secure_message_replies WHERE secure_message_id = $1) < $4
+       RETURNING id, created_at`,
+      [id, ciphertext, iv, MAX_REPLIES],
+    );
+    return rows[0] || null;
+  });
+  return row ? { id: row.id, createdAt: iso(row.created_at) } : null;
 }
 
 export async function countReplies(id) {
