@@ -220,6 +220,29 @@ describe('discoverAccountSettings', () => {
     expect(r.source).toBe('guess');
   });
 
+  it('takes implicit TLS over STARTTLS whatever order the document lists them in', async () => {
+    const doc = xml({
+      imap: imap({ host: 'starttls.example.org', port: 143, socket: 'STARTTLS', user: 'first' })
+        + imap({ host: 'imap.example.org', port: 993, socket: 'SSL', user: 'second' }),
+      smtp: smtp({ host: 'submission.example.org', port: 587, socket: 'STARTTLS' })
+        + smtp({ host: 'smtps.example.org', port: 465, socket: 'SSL' }),
+    });
+    const r = await run('a@example.org', { fetch: fetchFrom({ 'https://autoconfig.example.org/mail/config-v1.1.xml': doc }) });
+    expect(r).toMatchObject({
+      source: 'autoconfig', username: 'second',
+      imap: { host: 'imap.example.org', port: 993, tls: 'SSL' }, smtp: { host: 'smtps.example.org', port: 465, tls: 'SSL' },
+    });
+  });
+
+  it('falls back to STARTTLS when the document offers nothing else', async () => {
+    const doc = xml({
+      imap: imap({ host: 'imap.example.org', port: 143, socket: 'STARTTLS' }),
+      smtp: smtp({ host: 'smtp.example.org', port: 587, socket: 'STARTTLS' }),
+    });
+    const r = await run('a@example.org', { fetch: fetchFrom({ 'https://autoconfig.example.org/mail/config-v1.1.xml': doc }) });
+    expect(r).toMatchObject({ imap: { port: 143, tls: 'STARTTLS' }, smtp: { port: 587, tls: 'STARTTLS' } });
+  });
+
   it('uses SRV records, implicit TLS first, in SRV order', async () => {
     const resolver = resolverFrom({ srv: {
       '_imap._tcp.example.org': [{ name: 'starttls.example.org', port: 143, priority: 0, weight: 0 }],
