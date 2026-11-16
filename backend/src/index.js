@@ -11,6 +11,7 @@ import RedisStore from 'connect-redis';
 import 'dotenv/config';
 import { redisClient } from './services/redis.js';
 import { parseTrustProxyHops } from './utils/trustProxy.js';
+import { directRequestHandler, stripForwardedOnUpgrade } from './utils/directListener.js';
 import { loadOrCreateCertificate } from './services/tlsCertificate.js';
 import { buildSessionOptions } from './utils/sessionConfig.js';
 import { mountApiAuth } from './middleware/apiChain.js';
@@ -90,7 +91,11 @@ try {
   console.error(`FATAL: cannot load the HTTPS certificate: ${err.message}. Exiting.`);
   process.exit(1);
 }
-const httpsServer = createHttpsServer({ cert: tlsCertificate.cert, key: tlsCertificate.key }, app);
+// Nothing forwards to this listener, so whatever forwarded headers a request brings are the
+// client's own and must not decide req.ip (directListener.js).
+const httpsServer = stripForwardedOnUpgrade(
+  createHttpsServer({ cert: tlsCertificate.cert, key: tlsCertificate.key }, directRequestHandler(app))
+);
 const wss = createWebSocketServer(httpServer, httpsServer);
 
 // Redis — connect the shared client before any route or session middleware uses it.
