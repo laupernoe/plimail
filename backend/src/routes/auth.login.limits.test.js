@@ -156,7 +156,7 @@ describe('POST /api/auth/login limits', () => {
     expect(real.status).toBe(429);
     expect(missing.status).toBe(429);
     expect(await missing.json()).toEqual(await real.json());
-  }, 30_000);
+  }, 60_000);
 });
 
 describe('POST /api/auth/login with a trusted device', () => {

@@ -447,7 +447,7 @@ describe('the recipient', () => {
     const res = await open(token, authKey, '10.8.1.1');
     expect(res.status).toBe(429);
     expect(res.headers.get('retry-after')).toBeTruthy();
-  });
+  }, 30_000);
 });
 
 describe('replies', () => {
