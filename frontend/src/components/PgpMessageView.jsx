@@ -4,6 +4,9 @@ import DOMPurify from 'dompurify';
 import { api } from '../utils/api.js';
 import { armoredPublicFrom, shortFingerprint, unlockPrivateKey } from '../utils/pgp.js';
 import { rememberUnlockedKey, unlockedKey } from '../utils/pgpSession.js';
+import { isLoginKey, openOwnKey } from '../utils/pgpKeys.js';
+import { keySecretEntry, keySecretOwner, waitForKeySecret } from '../utils/pgpSecret.js';
+import { unlockOwnKey } from '../utils/pgpUnlock.js';
 import {
   analyzeRaw, decryptMessage, deliveryAddresses, findDecryptionKeys, senderKeysFor, verifySigned,
 } from '../utils/pgpReader.js';
@@ -211,7 +214,10 @@ function useSenderKeys(fromEmail) {
   return { lookingUp, lookUp };
 }
 
-// The encrypted message: the lock banner, the passphrase, then the decrypted message. When the
+// The encrypted message: the lock banner, then the decrypted message. A key protected by the
+// Plimail password opens by itself with the secret this tab has (utils/pgpSecret.js); without
+// one, Unlock asks for the password once (PgpUnlockPrompt.jsx). A key with its own passphrase asks
+// for it here. When the
 // message cannot be read here (no key, not for these keys, damaged, no encrypted part found),
 // `onShowOriginal` shows it as it was received, so nothing in it is ever out of reach; a message
 // that turns out to hold no encrypted part at all is shown that way at once.
@@ -230,6 +236,7 @@ export default function PgpMessageView({ message, onOpenSettings, onShowOriginal
   const [failure, setFailure] = useState('');
   const sender = useSenderKeys(message.from_email);
   const keyRow = candidates[keyIndex] || null;
+  const userId = keySecretOwner();
 
   // Decrypts with `key`; false when it is not the key (a hidden recipient tried in turn).
   const attempt = async (analyzed, key, sKeys) => {
@@ -269,13 +276,24 @@ export default function PgpMessageView({ message, onOpenSettings, onShowOriginal
         if (cancelled) return;
         if (!rows.length) { setPhase('notForYou'); return; }
         setCandidates(rows);
-        // Keys already unlocked in this tab are tried first, without asking.
+        // Keys already unlocked in this tab are tried first, then those the Plimail password's
+        // secret opens, all without asking.
         setPhase('decrypting');
         for (const row of rows) {
           const key = unlockedKey(row.fingerprint);
           if (key && await attempt(analyzed, key, sKeys)) return;
           if (cancelled) return;
         }
+        const entry = userId && rows.some(isLoginKey) ? (await waitForKeySecret(userId), keySecretEntry(userId)) : null;
+        if (entry) {
+          for (const row of rows.filter(r => isLoginKey(r) && !unlockedKey(r.fingerprint))) {
+            let key;
+            try { key = await openOwnKey(row, { secret: entry.secret, verified: entry.verified }); } catch { continue; }
+            if (cancelled) return;
+            if (await attempt(analyzed, key, sKeys)) return;
+          }
+        }
+        if (cancelled) return;
         const firstLocked = rows.findIndex(r => !unlockedKey(r.fingerprint));
         if (firstLocked < 0) { setFailure(t('pgp.read.decryptFailed')); setPhase('failed'); return; }
         setKeyIndex(firstLocked);
@@ -315,6 +333,26 @@ export default function PgpMessageView({ message, onOpenSettings, onShowOriginal
     setPhase('failed');
   };
 
+  // A key protected by the Plimail password, and this tab without the secret (or with the current
+  // password's, the key being an earlier one's): the prompt, then the message.
+  const unlockWithPassword = async () => {
+    if (!keyRow || phase === 'decrypting') return;
+    setFormError('');
+    let key;
+    try {
+      key = await unlockOwnKey(keyRow, userId);
+    } catch (err) {
+      if (err?.code !== 'unlockCancelled') setFormError(t('pgp.errors.wrongPassphrase'));
+      return;
+    }
+    setPhase('decrypting');
+    if (await attempt(analysis, key, senderKeys)) return;
+    const next = candidates.findIndex((r, i) => i > keyIndex && !unlockedKey(r.fingerprint));
+    if (next >= 0) { setKeyIndex(next); setPhase('locked'); return; }
+    setFailure(t('pgp.read.decryptFailed'));
+    setPhase('failed');
+  };
+
   const lookUpSigner = async () => {
     const sKeys = await sender.lookUp();
     setSenderKeys(sKeys);
@@ -346,7 +384,14 @@ export default function PgpMessageView({ message, onOpenSettings, onShowOriginal
       )}
       {phase === 'notForYou' && <div style={banner('warn')}>{t('pgp.read.notForYou')}</div>}
       {phase === 'failed' && <div role="alert" style={banner('bad')}>{failure}</div>}
-      {phase === 'locked' && keyRow && (
+      {phase === 'locked' && keyRow && isLoginKey(keyRow) && (
+        <div style={{ ...banner('neutral'), flexWrap: 'wrap' }}>
+          <span style={{ flex: '1 1 220px', color: 'var(--text-primary)' }}>{t('pgp.read.unlockWithPassword')}</span>
+          <button type="button" onClick={unlockWithPassword} style={button('primary')}>{t('pgp.read.unlock')}</button>
+          {formError && <span role="alert" style={{ color: 'var(--red)', fontSize: 12, flexBasis: '100%' }}>{formError}</span>}
+        </div>
+      )}
+      {phase === 'locked' && keyRow && !isLoginKey(keyRow) && (
         <form onSubmit={unlock} style={{ ...banner('neutral'), flexDirection: 'column', alignItems: 'stretch' }}>
           <span style={{ color: 'var(--text-primary)' }}>{t('pgp.read.enterPassphrase', { email: keyRow.emails?.[0] || '' })}</span>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>

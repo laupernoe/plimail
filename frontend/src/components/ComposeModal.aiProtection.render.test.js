@@ -84,19 +84,24 @@ const settle = () => React.act(async () => { for (let i = 0; i < 5; i++) await n
 const button = (label) => [...document.querySelectorAll('button')].find(b => b.textContent === label);
 const press = (el) => React.act(async () => { el.dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true })); });
 const click = (el) => React.act(async () => { el.dispatchEvent(new window.MouseEvent('click', { bubbles: true })); });
-const lock = () => document.querySelector('button[aria-label="compose.secure.toggle"]');
+// The password link is chosen from the Send menu, and its panel's close button turns it off.
+const passwordPanel = () => document.querySelector('section[aria-label="compose.sendWithPassword"]');
+const choosePasswordLink = async () => {
+  await click(document.querySelector('button[aria-label="compose.sendOptions"]'));
+  await click(document.querySelector('[data-preset="sendWithPassword"]'));
+};
 const aiButton = () => document.querySelector('button[title="compose.toolbar.aiAssist"], button[title="compose.toolbar.aiProtected"]');
 
-test('turning the lock on drops an open suggestion and turns the AI actions off, saying why', async () => {
+test('choosing a password link drops an open suggestion and turns the AI actions off, saying why', async () => {
   await press(aiButton());
   await press(button('compose.toolbar.aiImprove'));
   await settle();
   assert.ok(button('compose.toolbar.aiApply'), 'the suggestion is shown');
   assert.equal(chats.length, 1);
 
-  await click(lock());
+  await choosePasswordLink();
   await settle();
-  assert.equal(lock().getAttribute('aria-pressed'), 'true');
+  assert.ok(passwordPanel(), 'the password link is on');
   assert.equal(button('compose.toolbar.aiApply'), undefined, 'the suggestion is gone');
   assert.equal(aiButton().getAttribute('title'), 'compose.toolbar.aiProtected');
   assert.equal(aiButton().getAttribute('aria-disabled'), 'true');
@@ -107,10 +112,10 @@ test('turning the lock on drops an open suggestion and turns the AI actions off,
   assert.equal(chats.length, 1, 'nothing more went to the provider');
 });
 
-test('turning the lock off brings the AI actions back', async () => {
-  await click(lock());
+test('cancelling the protection brings the AI actions back', async () => {
+  await click(button('pgp.compose.cancelProtection'));
   await settle();
-  assert.equal(lock().getAttribute('aria-pressed'), 'false');
+  assert.equal(passwordPanel(), null, 'the password link is off');
   assert.equal(aiButton().getAttribute('title'), 'compose.toolbar.aiAssist');
   assert.ok(document.querySelector('[data-testid="ai-spellcheck"]'));
 });

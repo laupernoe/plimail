@@ -4,11 +4,12 @@ import { useStore } from '../store/index.js';
 import { api } from '../utils/api.js';
 import LogoMark, { Wordmark } from './LogoMark.jsx';
 import PasswordInput from './PasswordInput.jsx';
+import { establishKeySecret } from '../utils/pgpSecret.js';
 import { passwordFitsRule } from '../utils/passwordRule.js';
 
 export default function LoginPage() {
   const { t } = useTranslation();
-  const { setUser, loadPreferences } = useStore();
+  const { setUser: setStoreUser, loadPreferences } = useStore();
   const [mode, setMode] = useState('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -86,6 +87,14 @@ export default function LoginPage() {
       setMode('reset');
     }
   }, [t]);
+
+  // Signed in with a password: it also unlocks the user's OpenPGP keys for this tab, from a
+  // passphrase derived here in the background (utils/pgpSecret.js). After setUser, which keeps
+  // only a secret of the user signing in.
+  const setUser = (user) => {
+    setStoreUser(user);
+    if (user?.id && password) establishKeySecret(user.id, password, { fetchSalt: () => api.pgp.kdf() });
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -608,8 +617,11 @@ export default function LoginPage() {
                 </>
               ) : (
                 <>
-                  <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--text-tertiary)' }}>
+                  <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--text-tertiary)' }}>
                     {t('login.resetPassword.desc')}
+                  </p>
+                  <p style={{ margin: '0 0 20px', fontSize: 12.5, lineHeight: 1.5, color: 'var(--amber)' }}>
+                    {t('login.resetPassword.pgpWarning')}
                   </p>
                   <form onSubmit={submitReset} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     <div>

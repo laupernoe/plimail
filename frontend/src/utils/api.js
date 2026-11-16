@@ -228,6 +228,11 @@ export const api = {
     keys: () => request('GET', '/pgp/keys'),
     addKey: (data) => request('POST', '/pgp/keys', data),
     removeKey: (id) => request('DELETE', `/pgp/keys/${id}`),
+    markStale: (id, stale) => request('PATCH', `/pgp/keys/${id}`, { stale }),
+    // The same keys encrypted another way, all or none: [{ id, armoredPrivate, protection }].
+    setProtection: (keys) => request('PUT', '/pgp/keys/protection', { keys }),
+    kdf: () => request('GET', '/pgp/kdf'),
+    verifyPassword: (password) => request('POST', '/pgp/verify-password', { password }),
     keyring: () => request('GET', '/pgp/keyring'),
     addToKeyring: (data) => request('POST', '/pgp/keyring', data),
     setVerified: (fingerprint, verified) => request('PATCH', `/pgp/keyring/${fingerprint}`, { verified }),
@@ -331,7 +336,8 @@ export const api = {
     updateUser: (id, data) => request('PATCH', `/admin/users/${id}`, data),
     deleteUser: (id) => request('DELETE', `/admin/users/${id}`),
     disableUserTotp: (id) => request('POST', `/admin/users/${id}/totp/disable`),
-    setUserPassword: (id, password) => request('POST', `/admin/users/${id}/password`, { password }),
+    // `pgpKeys`: an admin's own keys, re-encrypted for the new password (utils/pgpKeys.js).
+    setUserPassword: (id, password, pgpKeys) => request('POST', `/admin/users/${id}/password`, { password, ...(pgpKeys ? { pgpKeys } : {}) }),
     getUserIdentities: (id) => request('GET', `/admin/users/${id}/identities`),
     unlinkUserIdentity: (id, identityId) => request('DELETE', `/admin/users/${id}/identities/${identityId}`),
     getSettings: () => request('GET', '/admin/settings'),

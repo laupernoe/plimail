@@ -88,7 +88,8 @@
       "mismatch": "As senhas não coincidem",
       "tooShort": "A senha deve ter pelo menos 8 caracteres",
       "doneDesc": "Sua senha foi atualizada. Agora você já pode entrar.",
-      "backToLogin": "← Voltar ao login"
+      "backToLogin": "← Voltar ao login",
+      "pgpWarning": "Se você usa criptografia no Plimail, suas chaves continuam protegidas pela senha anterior: ela será pedida uma vez para desbloqueá-las. Sem ela, seus e-mails criptografados não poderão mais ser lidos."
     },
     "showPassword": "Mostrar senha",
     "hidePassword": "Ocultar senha",
@@ -221,7 +222,6 @@
     },
     "scheduleSend": {
       "title": "Enviar mais tarde",
-      "tooltip": "Enviar mais tarde (Ctrl+Shift+Enter)",
       "tomorrowMorning": "Amanhã de manhã",
       "tomorrowAfternoon": "Amanhã à tarde",
       "mondayMorning": "Segunda de manhã",
@@ -294,7 +294,6 @@
     "selectAccount": "Escolha uma conta para enviar",
     "smtpAuthDisabled": "A Microsoft desativou o envio por apps de e-mail (SMTP) nesta conta. Você ainda pode enviar pelo Outlook na web. Em uma conta corporativa ou de estudante, o administrador pode reativá-lo.",
     "secure": {
-      "toggle": "Proteger com senha",
       "title": "Mensagem protegida por senha",
       "explain": "Os destinatários recebem um link no lugar da mensagem e o abrem com esta senha. O assunto também não é enviado às claras.",
       "password": "Senha",
@@ -320,7 +319,13 @@
       "noticeOpen": "Abra aqui:",
       "noticeExpires": "O link expira em {{date}}.",
       "noticePassword": "Para lê-la, você precisa da senha que {{name}} passou separadamente."
-    }
+    },
+    "sendOptions": "Opções de envio",
+    "sendOptionsTooltip": "Outras formas de enviar: criptografado, com senha, mais tarde",
+    "sendEncrypted": "Enviar criptografado (PGP)",
+    "sendEncryptedShort": "Enviar criptografado",
+    "sendWithPassword": "Enviar com senha",
+    "sendWithPasswordShort": "Enviar protegido"
   },
   "message": {
     "find": {
@@ -1715,7 +1720,10 @@
       "usernameTaken": "Esse nome de usuário já está em uso.",
       "invalidEmail": "Esse endereço de e-mail não é válido.",
       "saveFailed": "Não foi possível salvar: {{message}}",
-      "passwordNotSet": "As outras alterações foram salvas, mas a senha não foi definida: {{message}}"
+      "passwordNotSet": "As outras alterações foram salvas, mas a senha não foi definida: {{message}}",
+      "newPasswordPgpWarning": "Se este usuário usa criptografia, as chaves dele continuam protegidas pela senha anterior: ele vai precisar dela uma vez para desbloqueá-las e, sem ela, os e-mails criptografados não poderão mais ser lidos. Sugira que ele exporte antes um backup das chaves.",
+      "pgpUnlockNeeded": "Desbloqueie primeiro suas chaves de criptografia: elas passam para a nova senha junto com ela.",
+      "pgpRewrapFailed": "Não foi possível passar suas chaves para a nova senha, então a senha não foi alterada."
     },
     "ai": {
       "title": "Assistente de IA",
@@ -2576,9 +2584,7 @@
   "pgp": {
     "settings": {
       "title": "Criptografia (PGP)",
-      "intro": "Suas chaves OpenPGP permitem que outras pessoas enviem e-mails criptografados para você e que você assine e criptografe o que envia. Sua chave privada fica armazenada aqui apenas bloqueada pela frase secreta, que nunca sai do seu navegador, então você pode usá-la em todos os dispositivos em que fizer login.",
-      "noKeys": "Você ainda não tem uma chave. Crie uma para um endereço ou importe uma chave que você já usa (do Proton, Thunderbird ou GnuPG, por exemplo).",
-      "generateTitle": "Criar uma chave",
+      "intro": "O Plimail criptografa seus e-mails com OpenPGP. Cada um dos seus endereços recebe uma chave, desbloqueada automaticamente pela sua senha do Plimail. Os e-mails para quem tem uma chave são criptografados para essa pessoa: só ela e você podem lê-los.",
       "address": "Endereço",
       "name": "Nome na chave",
       "passphrase": "Frase secreta",
@@ -2616,7 +2622,39 @@
       "markVerified": "Marcar como verificada",
       "markUnverified": "Marcar como não verificada",
       "export": "Exportar",
-      "verifyHint": "Compare esta impressão digital com a do proprietário, pessoalmente ou por telefone, antes de marcá-la como verificada."
+      "verifyHint": "Compare esta impressão digital com a do proprietário, pessoalmente ou por telefone, antes de marcá-la como verificada.",
+      "addressesTitle": "Seus endereços",
+      "stateActive": "Chave ativa, desbloqueada automaticamente",
+      "stateLocked": "Chave ativa, bloqueada nesta aba",
+      "stateStale": "Chave bloqueada por uma senha anterior",
+      "stateOwn": "Chave ativa, protegida pela própria frase secreta",
+      "stateMaking": "Criando a chave…",
+      "stateNone": "Ainda sem chave",
+      "unlock": "Desbloquear",
+      "createKeys": "Criar minhas chaves",
+      "autoEncrypt": "Criptografar automaticamente quando todos os destinatários têm uma chave",
+      "autoEncryptHint": "A mensagem é criptografada e assinada sem nenhum passo extra. Quando um destinatário não tem chave, ela vai como e-mail comum.",
+      "resetWarning": "Suas chaves são desbloqueadas pela senha do Plimail. Se ela for redefinida (senha esquecida ou por um administrador), elas só abrem com a antiga, e sem ela seus e-mails criptografados não podem mais ser lidos. Guarde um backup.",
+      "backupTitle": "Exportar um backup das minhas chaves",
+      "backupNote": "Escolha uma frase secreta para o arquivo de backup (pelo menos {{n}} caracteres). Ela é necessária para importar as chaves de novo; ninguém pode recuperá-la.",
+      "backupNoteOwn": "Suas chaves são exportadas como estão, cada uma bloqueada pela própria frase secreta.",
+      "backupPassphrase": "Frase secreta do backup",
+      "backupGo": "Baixar backup",
+      "advanced": "Avançado",
+      "advancedIntro": "Suas chaves em detalhe: impressões digitais, importação e exportação, e chaves com frase secreta própria.",
+      "protectionLogin": "Desbloqueada pela sua senha do Plimail",
+      "protectionOwn": "Protegida pela própria frase secreta",
+      "makeAutomatic": "Desbloquear automaticamente",
+      "makeAutomaticNote": "Digite a frase secreta desta chave. Ela passará a ser protegida pela senha do Plimail e será desbloqueada ao entrar.",
+      "makeAutomaticGo": "Proteger com minha senha do Plimail",
+      "importAutomatic": "Desbloquear esta chave automaticamente com minha senha do Plimail (em vez da própria frase secreta)",
+      "generateOwnTitle": "Criar uma chave com frase secreta própria",
+      "autoKeys": "Criar e publicar minhas chaves automaticamente",
+      "autoKeysHint": "Cada endereço recebe uma chave, e suas mensagens a levam (Autocrypt) para que outros possam escrever criptografado para você. Desativado: nenhuma chave é criada nem enviada.",
+      "securityNote": "Como suas chaves são protegidas: a frase secreta que as desbloqueia é derivada no navegador a partir da senha do Plimail e nunca é enviada ao servidor. Ela fica nesta aba (sessionStorage) até você sair ou bloquear a tela; um script injetado na página poderia lê-la ali. Quem tiver uma cópia do banco de dados ou dos backups pode tentar adivinhar offline sua senha do Plimail para abrir as chaves, a um custo menor que a verificação de login: escolha uma senha forte.",
+      "replaceAuto": "A chave importada agora é usada para {{email}}. Excluir a chave que o Plimail criou para ele? Os e-mails criptografados para ela não poderiam mais ser lidos.",
+      "replaceAutoDelete": "Excluí-la",
+      "replaceAutoKeep": "Mantê-la"
     },
     "source": {
       "manual": "adicionada por você",
@@ -2663,14 +2701,11 @@
       "sigPartial": "Só uma parte desta mensagem está assinada, então a assinatura não diz nada sobre o resto. Ela não é verificada.",
       "lookUpKey": "Procurar a chave do remetente",
       "notThisKey": "Essa chave não abre esta mensagem. Tente sua próxima chave.",
-      "showOriginal": "Mostrar como recebida"
+      "showOriginal": "Mostrar como recebida",
+      "unlockWithPassword": "Desbloqueie suas chaves com a senha do Plimail para ler esta mensagem.",
+      "unlock": "Desbloquear"
     },
     "compose": {
-      "protection": "Proteção",
-      "mode": "Como proteger esta mensagem",
-      "modePgp": "Criptografar com PGP",
-      "modePassword": "Link com senha",
-      "title": "Criptografada com OpenPGP",
       "explain": "A mensagem, sua assinatura, o texto citado e os anexos são criptografados aqui para a chave de cada destinatário e para a sua.",
       "recipients": "Chaves dos destinatários",
       "keyChecking": "procurando uma chave…",
@@ -2690,13 +2725,52 @@
       "plainWarning": "A mensagem irá para todos sem criptografia e poderá ser lida pelos provedores de e-mail deles.",
       "sendPlainConfirm": "Enviar sem criptografia",
       "subjectNote": "O assunto não é criptografado.",
-      "limits": "Os rascunhos são salvos sem criptografia enquanto você escreve. O envio programado não está disponível e anexos encaminhados não podem ser incluídos.",
       "stillChecking": "Ainda estamos procurando as chaves dos destinatários. Tente novamente em instantes.",
       "needPassphrase": "Digite a frase secreta da sua chave para assinar ou desative a assinatura.",
       "noSchedule": "Uma mensagem criptografada não pode ser programada. Envie agora ou desative a criptografia.",
       "errorForwarded": "Anexos de mensagens encaminhadas não podem ser criptografados. Remova-os, ou baixe e anexe novamente.",
       "errorTooLarge": "Os anexos criptografados são limitados a 24 MB no total.",
-      "errorEncrypt": "Não foi possível criptografar a mensagem. Nada foi enviado."
+      "errorEncrypt": "Não foi possível criptografar a mensagem. Nada foi enviado.",
+      "willEncrypt": "Esta mensagem será criptografada.",
+      "wontEncrypt": "Esta mensagem não será criptografada.",
+      "dontEncrypt": "Não criptografar",
+      "encryptAgain": "Criptografar",
+      "cancelProtection": "Cancelar",
+      "createKey": "Criar minha chave",
+      "autoChanged": "A chave de um destinatário não foi mais encontrada, então esta mensagem sairia sem criptografia. Verifique os destinatários e clique em Enviar novamente.",
+      "unlockCancelled": "Desbloqueie suas chaves para enviar esta mensagem criptografada ou escolha “Não criptografar”."
+    },
+    "unlock": {
+      "title": "Desbloquear a criptografia",
+      "body": "Digite sua senha do Plimail para desbloquear suas chaves de criptografia nesta aba.",
+      "bodySso": "Digite a senha que você escolheu para suas chaves de criptografia.",
+      "label": "Senha do Plimail",
+      "go": "Desbloquear",
+      "working": "Desbloqueando…",
+      "close": "Fechar",
+      "wrongPassword": "Senha incorreta.",
+      "wrongForKeys": "Esta senha não abre suas chaves.",
+      "previousTitle": "Sua senha mudou",
+      "previousBody": "Suas chaves ainda estão protegidas pela senha anterior do Plimail. Digite-a uma vez para passá-las para a senha atual.",
+      "previousLabel": "Senha anterior",
+      "wrongPrevious": "Esta senha também não abre suas chaves.",
+      "forgotPrevious": "Não me lembro",
+      "lostTitle": "Chaves bloqueadas por uma senha antiga",
+      "lostBody": "Sem a senha anterior, estas chaves não podem ser abertas e os e-mails criptografados para elas não podem ser lidos. Se você tem um backup, importe-o em Configurações → Criptografia → Avançado. Também é possível excluir estas chaves lá: novas chaves serão criadas.",
+      "createTitle": "Escolha uma senha de criptografia",
+      "createBody": "Você entra sem senha do Plimail, então escolha uma para suas chaves de criptografia. Ela é pedida uma vez por aba. Se você a perder, seus e-mails criptografados não poderão mais ser lidos.",
+      "createLabel": "Senha de criptografia",
+      "confirmLabel": "Repita a senha",
+      "createGo": "Criar minhas chaves",
+      "tooShort": "Pelo menos {{n}} caracteres.",
+      "mismatch": "As senhas não coincidem.",
+      "tooMany": "Tentativas demais. Tente novamente mais tarde.",
+      "staleBody": "Digite primeiro sua senha atual do Plimail. Depois, a anterior, que ainda protege suas chaves, as passa para a atual."
+    },
+    "stale": {
+      "body": "Sua chave para {{email}} está bloqueada por uma senha anterior do Plimail. Os e-mails criptografados para ela não podem ser lidos até recuperá-la, e ela não é mais publicada. Recupere-a com a senha antiga ou crie uma nova chave (a antiga é mantida para os e-mails que ainda abre).",
+      "recover": "Recuperar com a senha antiga",
+      "newKey": "Criar uma nova chave"
     }
   }
 }

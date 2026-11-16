@@ -12,7 +12,7 @@ export const SIGN_OUT_CLEARED_KEYS = [
   'mailflow_hover_quick_actions', 'mailflow_swipe_actions',
   'mailflow_expanded_accounts', 'mailflow_collapsed_folders',
   // Reading preferences the store seeds from localStorage before loadPreferences runs.
-  'mailflow_auto_open_reply_drafts', 'mailflow_after_remove', 'mailflow_dark_email_bodies',
+  'mailflow_auto_open_reply_drafts', 'mailflow_after_remove', 'mailflow_dark_email_bodies', 'mailflow_pgp_auto_encrypt', 'mailflow_pgp_auto_keys',
   // Folder shortcuts and the sender to use: they name the previous user's accounts and folders.
   'mailflow_favorite_folders', 'mailflow_recent_folders', 'mailflow_list_sort', 'mailflow_default_sender', 'mailflow_last_from_account',
 ];

@@ -160,13 +160,15 @@ describe('Send later on desktop', () => {
     const trigger = chevron();
     assert.equal(trigger.getAttribute('aria-haspopup'), 'menu');
     assert.equal(trigger.getAttribute('aria-expanded'), 'false');
-    assert.equal(trigger.getAttribute('aria-label'), 'compose.scheduleSend.title');
+    assert.equal(trigger.getAttribute('aria-label'), 'compose.sendOptions');
     await click(trigger);
     assert.equal(trigger.getAttribute('aria-expanded'), 'true');
     const menu = document.querySelector('[role="menu"]');
-    assert.equal(menu.getAttribute('aria-label'), 'compose.scheduleSend.title');
+    assert.equal(menu.getAttribute('aria-label'), 'compose.sendOptions');
     const items = menuItems();
-    assert.ok(items.length >= 3 && items.length <= 5, 'two to four presets and Pick');
+    // The other ways to send come first: encrypted, then with a password.
+    assert.deepEqual(items.slice(0, 2).map(i => i.dataset.preset), ['sendEncrypted', 'sendWithPassword']);
+    assert.ok(items.length >= 5 && items.length <= 7, 'the two ways to send, two to four presets and Pick');
     assert.equal(document.activeElement, items[0], 'focus starts on the first item');
     assert.ok(items.every(i => i.tabIndex === -1));
     await key(items[0], 'ArrowDown');
@@ -474,7 +476,7 @@ describe('Send later on a phone', () => {
   test('the clock button opens a sheet with the presets and one date and time input', async () => {
     const close = await mount({ ...NEW_MESSAGE }, { mobile: true });
     const clock = chevron();
-    assert.equal(clock.getAttribute('aria-label'), 'compose.scheduleSend.title');
+    assert.equal(clock.getAttribute('aria-label'), 'compose.sendOptions');
     assert.equal(clock.style.flexBasis, '44px');
     assert.equal(clock.style.height, '44px');
     // A narrow phone at 130%: the title, then this, then Cancel give way; Send never does.
@@ -494,8 +496,9 @@ describe('Send later on a phone', () => {
     await click(clock);
     const sheet = document.querySelector('[role="dialog"][aria-modal="true"]');
     assert.ok(sheet);
-    assert.equal(document.getElementById(sheet.getAttribute('aria-labelledby')).textContent, 'compose.scheduleSend.title');
+    assert.equal(document.getElementById(sheet.getAttribute('aria-labelledby')).textContent, 'compose.sendOptions');
     assert.equal(document.activeElement, sheet.querySelector('[data-preset]'), 'focus starts on the first choice');
+    assert.equal(sheet.querySelector('[data-preset]').dataset.preset, 'sendEncrypted');
     await click(sheet.querySelector('[data-preset="pick"]'));
     const input = sheet.querySelector('input[type="datetime-local"]');
     assert.equal(sheet.querySelector(`label[for="${input.id}"]`).textContent, 'compose.scheduleSend.dateTimeLabel');

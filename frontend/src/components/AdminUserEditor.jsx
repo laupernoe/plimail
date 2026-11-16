@@ -5,6 +5,10 @@ import { api } from '../utils/api.js';
 import PasswordInput from './PasswordInput.jsx';
 import { formatRelativeTime } from '../utils/relativeTime.js';
 import { htmlLang } from '../utils/browserLanguage.js';
+import { keysForNewPassword } from '../utils/pgpPasswordChange.js';
+import { loadOwnKeys, ownKeysChanged } from '../utils/pgpOwnKeys.js';
+import { announcePasswordChanged, setKeySecret } from '../utils/pgpSecret.js';
+import { ensureKeySecret } from '../utils/pgpUnlock.js';
 
 // Lets an admin change another user's sign-in name, recovery email and password: the way back
 // in for someone who forgot their password and never set a recovery email. It also lists the
@@ -72,8 +76,30 @@ export default function AdminUserEditor({ user, isSelf, onClose, onSaved, onChan
         updated = { ...user, username: changes.username ?? user.username, recoveryEmail: changes.recoveryEmail ?? user.recoveryEmail };
       }
       if (password) {
+        // An admin's own password: their OpenPGP keys move to it in the same request
+        // (utils/pgpPasswordChange.js). One that cannot be moved stops the change, keys intact.
+        let ownKeys = null;
+        if (isSelf) {
+          try {
+            ownKeys = await keysForNewPassword({
+              newPassword: password,
+              loadKeys: () => loadOwnKeys({ fresh: true }),
+              fetchSalt: () => api.pgp.kdf(),
+              currentSecret: async () => (await ensureKeySecret(user.id))?.secret,
+            });
+          } catch (err) {
+            setError(err?.code === 'unlockCancelled' ? t('admin.users.pgpUnlockNeeded') : t('admin.users.pgpRewrapFailed'));
+            return;
+          }
+        }
         try {
-          await api.admin.setUserPassword(user.id, password);
+          await api.admin.setUserPassword(user.id, password, ownKeys?.pgpKeys);
+          if (ownKeys) {
+            setKeySecret(user.id, ownKeys.secret, { verified: true });
+            // Other tabs hold the old password's secret: they forget it, and ask again.
+            announcePasswordChanged(user.id);
+            ownKeysChanged();
+          }
         } catch (err) {
           // The name and email are already saved. Show them in the list, and keep the dialog open
           // so the password can be tried again without sending those changes a second time.
@@ -152,6 +178,7 @@ export default function AdminUserEditor({ user, isSelf, onClose, onSaved, onChan
             </div>
           )}
           <div style={hint}>{isSelf ? t('admin.users.newPasswordHintSelf') : t('admin.users.newPasswordHint')}</div>
+          {!isSelf && password && <div role="note" style={{ ...hint, color: 'var(--amber)' }}>{t('admin.users.newPasswordPgpWarning')}</div>}
           {identities.length > 0 && <div style={hint}>{t('admin.users.newPasswordRemovesIdentities')}</div>}
         </div>
 

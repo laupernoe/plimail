@@ -8,6 +8,8 @@ import { resolveSelectedAccount, pruneFolders } from '../utils/accountScope.js';
 import { UNDO_COMMIT_DELAY_MS } from '../utils/undoableAction.js';
 import { aiRuns } from '../utils/aiRunRegistry.js';
 import { forgetAllUnlockedKeys } from '../utils/pgpSession.js';
+import { forgetOwnKeys } from '../utils/pgpOwnKeys.js';
+import { setKeySecretOwner } from '../utils/pgpSecret.js';
 import { applyTheme, applyCustomCss, getInitialTheme, normalizeTheme } from '../themes.js';
 import { applyLayout, normalizeLayout } from '../layouts.js';
 import { DEFAULT_AI_ACTIONS } from '../aiActions.js';
@@ -116,8 +118,11 @@ export const useStore = create((set, get) => ({
       // run that outlived a logout would finish and write the previous user's result into this
       // device's cache, under their message id, for whoever signs in next.
       aiRuns.abortAll();
-      // Private keys unlocked for this session belong to the leaving user.
-      forgetAllUnlockedKeys();
+      // Private keys unlocked for this session belong to the leaving user. A tab reloaded by the
+      // same user keeps the secret that unlocks theirs (utils/pgpSecret.js).
+      forgetAllUnlockedKeys({ keepSecretFor: user?.id || null });
+      setKeySecretOwner(user?.id || null);
+      forgetOwnKeys();
       // The message remembered for the lock screen is the leaving user's too.
       if (get().user) localStorage.removeItem('mailflow_locked_message');
     }
@@ -151,7 +156,7 @@ export const useStore = create((set, get) => ({
         autoLockMinutes: 0, blockRemoteImages: true,
         imageWhitelist: { addresses: [], domains: [] }, shortcuts: {}, aiActions: null,
         hiddenFolders: {}, categorizationEnabled: false,
-        autoOpenReplyDrafts: false, afterRemove: 'next', darkEmailBodies: true, undoSend: true,
+        autoOpenReplyDrafts: false, afterRemove: 'next', darkEmailBodies: true, undoSend: true, pgpAutoEncrypt: true, pgpAutoKeys: true,
         // Folder shortcuts name the previous user's accounts and folders. Left in place, the
         // next user's first favorite saved them into that user's own preferences.
         favoriteFolders: [], recentFolders: [], defaultSender: '', listSort: {},
@@ -560,6 +565,20 @@ export const useStore = create((set, get) => ({
     localStorage.setItem('mailflow_undo_send', String(Boolean(value)));
     set({ undoSend: Boolean(value) });
     schedulePrefSave({ undoSend: Boolean(value) });
+  },
+  // OpenPGP: send encrypted, with no extra step, when every recipient has a key.
+  pgpAutoEncrypt: localStorage.getItem('mailflow_pgp_auto_encrypt') !== 'false',
+  setPgpAutoEncrypt: value => {
+    localStorage.setItem('mailflow_pgp_auto_encrypt', String(Boolean(value)));
+    set({ pgpAutoEncrypt: Boolean(value) });
+    schedulePrefSave({ pgpAutoEncrypt: Boolean(value) });
+  },
+  // OpenPGP: make a key for each address and publish it (Autocrypt) without being asked.
+  pgpAutoKeys: localStorage.getItem('mailflow_pgp_auto_keys') !== 'false',
+  setPgpAutoKeys: value => {
+    localStorage.setItem('mailflow_pgp_auto_keys', String(Boolean(value)));
+    set({ pgpAutoKeys: Boolean(value) });
+    schedulePrefSave({ pgpAutoKeys: Boolean(value) });
   },
   composing: false,
   composeData: null,
@@ -1192,6 +1211,14 @@ export const useStore = create((set, get) => ({
       if (typeof prefs.undoSend === 'boolean') {
         localStorage.setItem('mailflow_undo_send', String(prefs.undoSend));
         set({ undoSend: prefs.undoSend });
+      }
+      if (typeof prefs.pgpAutoKeys === 'boolean') {
+        localStorage.setItem('mailflow_pgp_auto_keys', String(prefs.pgpAutoKeys));
+        set({ pgpAutoKeys: prefs.pgpAutoKeys });
+      }
+      if (typeof prefs.pgpAutoEncrypt === 'boolean') {
+        localStorage.setItem('mailflow_pgp_auto_encrypt', String(prefs.pgpAutoEncrypt));
+        set({ pgpAutoEncrypt: prefs.pgpAutoEncrypt });
       }
       if (prefs.notificationSound) {
         localStorage.setItem('mailflow_notification_sound', prefs.notificationSound);

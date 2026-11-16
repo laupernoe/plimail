@@ -92,7 +92,28 @@ describe('resolveIdentity', () => {
   it('is the account by default, with its signature and the plain-text preference', async () => {
     const id = await resolveIdentity('u1', valid());
     expect(findOwnedAccount).toHaveBeenCalledWith('u1', 'a1');
-    expect(id).toEqual({ account, plaintextEmail: true, fromName: 'Me', fromEmail: 'me@example.com', replyTo: null, signature: '<b>Sig</b>' });
+    expect(id).toEqual({ account, plaintextEmail: true, fromName: 'Me', fromEmail: 'me@example.com', replyTo: null, signature: '<b>Sig</b>', autocrypt: null });
+  });
+
+  it('carries the Autocrypt header of the From address\'s key, prefer-encrypt=mutual unless automatic encryption is off', async () => {
+    const { KEYS } = await import('./pgp.fixtures.js');
+    const keyFor = prefs => async (sql, params) => ({
+      rows: sql.includes('FROM pgp_keys')
+        ? (params[0] === 'u1' && params[1] === 'alice@example.org' ? [{ armored_public: KEYS.alicePublic }] : [])
+        : [{ preferences: prefs }],
+    });
+    findOwnedAccount.mockResolvedValue({ ...account, email_address: 'alice@example.org' });
+    query.mockImplementation(keyFor({}));
+    const id = await resolveIdentity('u1', valid());
+    expect(id.autocrypt).toMatch(/^addr=alice@example\.org; prefer-encrypt=mutual; keydata=\r\n /);
+    query.mockImplementation(keyFor({ pgpAutoEncrypt: false }));
+    expect((await resolveIdentity('u1', valid())).autocrypt).toMatch(/^addr=alice@example\.org; keydata=/);
+    // "Create and publish my keys automatically" off: no header.
+    query.mockImplementation(keyFor({ pgpAutoKeys: false }));
+    expect((await resolveIdentity('u1', valid())).autocrypt).toBeNull();
+    findOwnedAccount.mockResolvedValue(account);
+    query.mockImplementation(keyFor({}));
+    expect((await resolveIdentity('u1', valid())).autocrypt).toBeNull();
   });
 
   it('takes an alias of the account, which inherits the signature unless it has its own', async () => {

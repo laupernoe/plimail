@@ -179,9 +179,12 @@ const calendarIcon = (
 //
 // The Scheduled view's Reschedule uses the times alone, with its own `title` and `submitLabel`,
 // opening below its row (`placement` 'below').
+//
+// `sendOptions` ([{ key, label, icon, onClick }]): the composer's other ways to send (encrypted,
+// with a password), listed above the times, so the one chevron holds every way to send.
 export function SendLaterMenu({
   triggerRef, onClose, onPick, editing = false, onUnschedule, onSendNow, initialView = 'root', now: nowProp, busy = false,
-  title, submitLabel, placement = 'above',
+  title, submitLabel, placement = 'above', sendOptions = [],
 }) {
   const { t } = useTranslation();
   const now = useMemo(() => nowProp ?? new Date(), [nowProp]);
@@ -277,7 +280,9 @@ export function SendLaterMenu({
         </div>
       )}
       {view === 'times' && (
-        <div role="menu" aria-label={title || (editing ? t('compose.scheduleSend.changeTime') : t('compose.scheduleSend.title'))} onKeyDown={onMenuKeyDown}>
+        <div role="menu" aria-label={sendOptions.length ? t('compose.sendOptions') : title || (editing ? t('compose.scheduleSend.changeTime') : t('compose.scheduleSend.title'))} onKeyDown={onMenuKeyDown}>
+          {!editing && sendOptions.map(o => item(o.key, o.label, () => { close(); o.onClick(); }, { icon: o.icon }))}
+          {!editing && sendOptions.length > 0 && separator}
           {heading(title || (editing ? t('compose.scheduleSend.changeTime') : t('compose.scheduleSend.title')))}
           {items.map(p => item(p.id, t(PRESET_LABELS[p.id]), () => { close(); onPick(p.at); },
             { icon: clockIcon(), detail: formatSendAt(p.at, undefined, now) }))}
@@ -318,7 +323,7 @@ const sheetButton = {
 // first option and back to `returnFocusRef` when it closes.
 export function SendLaterSheet({
   onClose, onPick, editing = false, onUnschedule, onSendNow, initialView = 'root', returnFocusRef, now: nowProp, busy = false,
-  title, submitLabel,
+  title, submitLabel, sendOptions = [],
 }) {
   const { t } = useTranslation();
   const titleId = useId();
@@ -355,7 +360,7 @@ export function SendLaterSheet({
         }}
       >
         <div id={titleId} style={{ padding: '16px 20px 8px', fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', borderBottom: '1px solid var(--border-subtle)' }}>
-          {actions ? t('compose.scheduleSend.edit.options') : title || (editing ? t('compose.scheduleSend.changeTime') : t('compose.scheduleSend.title'))}
+          {actions ? t('compose.scheduleSend.edit.options') : !editing && sendOptions.length ? t('compose.sendOptions') : title || (editing ? t('compose.scheduleSend.changeTime') : t('compose.scheduleSend.title'))}
         </div>
         {picking ? (
           <SchedulePicker variant="single" now={nowProp} busy={busy}
@@ -363,6 +368,17 @@ export function SendLaterSheet({
             onSubmit={choose} />
         ) : (
           <>
+            {!editing && sendOptions.map(o => (
+              <button key={o.key} type="button" data-preset={o.key} disabled={busy} onClick={() => { onClose(); o.onClick(); }} onKeyDown={ignoreRepeat} style={sheetButton}>
+                {o.icon && <span style={{ color: 'var(--text-tertiary)', display: 'flex' }}>{o.icon}</span>}
+                <span style={{ flex: 1 }}>{o.label}</span>
+              </button>
+            ))}
+            {!editing && sendOptions.length > 0 && (
+              <div aria-hidden="true" style={{ padding: '12px 20px 4px', fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)' }}>
+                {t('compose.scheduleSend.title')}
+              </div>
+            )}
             {actions && (
               <>
                 <button type="button" data-preset="sendNow" disabled={busy} onClick={() => { onClose(); onSendNow?.(); }} onKeyDown={ignoreRepeat} style={sheetButton}>

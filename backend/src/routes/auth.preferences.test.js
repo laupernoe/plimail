@@ -313,3 +313,34 @@ describe('PATCH /auth/preferences undoSend (#769)', () => {
     expect(query).not.toHaveBeenCalled();
   });
 });
+
+describe('PATCH /auth/preferences pgpAutoEncrypt', () => {
+  const res = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn() });
+  for (const value of [true, false]) it(`persists explicit ${value}`, async () => {
+    await patchPreferences({ session: { userId: 'user-1' }, body: { pgpAutoEncrypt: value } }, res());
+    expect(query.mock.calls[0][0]).toContain("jsonb_build_object('pgpAutoEncrypt', $47::boolean)");
+    expect(query.mock.calls[0][1][46]).toBe(value);
+  });
+  it('rejects a nonboolean without a write, and leaves it alone when not sent', async () => {
+    const r = res();
+    await patchPreferences({ session: { userId: 'user-1' }, body: { pgpAutoEncrypt: 'no' } }, r);
+    expect(r.status).toHaveBeenCalledWith(400);
+    expect(query).not.toHaveBeenCalled();
+    await patchPreferences({ session: { userId: 'user-1' }, body: { pageSize: '50' } }, res());
+    expect(query.mock.calls[0][1][46]).toBeNull();
+  });
+});
+
+describe('PATCH /auth/preferences pgpAutoKeys', () => {
+  const res = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn() });
+  it('persists a boolean and refuses anything else', async () => {
+    await patchPreferences({ session: { userId: 'user-1' }, body: { pgpAutoKeys: false } }, res());
+    expect(query.mock.calls[0][0]).toContain("jsonb_build_object('pgpAutoKeys', $48::boolean)");
+    expect(query.mock.calls[0][1][47]).toBe(false);
+    query.mockClear();
+    const r = res();
+    await patchPreferences({ session: { userId: 'user-1' }, body: { pgpAutoKeys: 'off' } }, r);
+    expect(r.status).toHaveBeenCalledWith(400);
+    expect(query).not.toHaveBeenCalled();
+  });
+});

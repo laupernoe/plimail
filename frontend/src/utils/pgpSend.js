@@ -5,6 +5,11 @@
 //
 // The rule that matters most: with encryption asked for, nothing goes out unencrypted unless the
 // user says so for this message. A recipient without a usable key stops the send.
+//
+// Encryption is asked for in two ways. The user chooses "Send encrypted" (`pgp` in the composer,
+// required: a missing key stops the send). Or every recipient has a key and automatic encryption
+// is on (encryptionDecision): the message goes encrypted with no extra step, and when one
+// recipient has none it goes as ordinary mail without a word, as any other mail program's would.
 
 import { buildMimeEntity, entityBytes } from './mimeBuild.js';
 import { encryptMime, keyInfo, readArmoredKeys } from './pgp.js';
@@ -23,19 +28,55 @@ export class PgpSendError extends Error {
 
 // The composer's PGP settings when encryption is turned on. The passphrase is only ever held here,
 // in this composer, never in what is kept for a restore.
-export const pgpDefaults = () => ({ sign: true, passphrase: '', remember: true, confirmPlain: false });
+// `auto`: encryption that automatic encryption decided on and a restore kept (protectionForRestore).
+export const pgpDefaults = () => ({ sign: true, passphrase: '', remember: true, confirmPlain: false, auto: false });
 
-// The lock's mode as a restored composer must reopen with it: after an undone or failed send, a
-// send lost on the server, or the screen lock. Without it the message reopens unprotected, and
-// Send would deliver it in the clear. No passphrase or password is kept: the user gives it again.
-export function protectionForRestore({ pgp, secure }) {
-  if (pgp) return { mode: 'pgp', sign: pgp.sign !== false };
+// The protection a restored composer must reopen with: after an undone or failed send, a send lost
+// on the server, or the screen lock. Without it the message reopens unprotected, and Send would
+// deliver it in the clear. No passphrase or password is kept: the user gives it again.
+//   `pgp`         the user chose "Send encrypted"
+//   `autoEncrypt` automatic encryption would encrypt it (or did): it reopens encrypted all the
+//                 same, as required, so a recipient's key gone missing meanwhile stops it rather
+//                 than letting it out in the clear
+//   `optedOut`    the user said "Don't encrypt" for this message: it stays so
+//   `sent`        { auto }: the message went encrypted. That decides, whatever else the composer's
+//                 state still says (a password panel the send closed a moment before).
+export function protectionForRestore({ pgp, secure, autoEncrypt = false, optedOut = false, sent = null }) {
+  if (sent) return { mode: 'pgp', sign: pgp ? pgp.sign !== false : true, ...(sent.auto ? { auto: true } : {}) };
   if (secure) return { mode: 'password', expiresInDays: secure.expiresInDays };
+  if (pgp) return { mode: 'pgp', sign: pgp.sign !== false, ...(pgp.auto ? { auto: true } : {}) };
+  if (autoEncrypt) return { mode: 'pgp', sign: true, auto: true };
+  if (optedOut) return { mode: 'plain' };
   return null;
 }
 
 export function initialPgp(protection) {
-  return protection?.mode === 'pgp' ? { ...pgpDefaults(), sign: protection.sign !== false } : null;
+  return protection?.mode === 'pgp' ? { ...pgpDefaults(), sign: protection.sign !== false, auto: protection.auto === true } : null;
+}
+
+export const initialAutoOptOut = protection => protection?.mode === 'plain';
+
+// How the composer's message goes, decided again as recipients and keys change:
+//   { mode: 'password' }                       a password link (SecureSendPanel.jsx)
+//   { mode: 'pgp', auto: false }               the user chose "Send encrypted"
+//   { mode: 'pgp', auto: true }                automatic: every recipient has a usable key
+//   { mode: 'plain', checking? }               anything else, quietly
+// Automatic encryption needs the setting on and not turned off for this message, a key of the
+// user's own for the From address (the Sent copy must stay readable), every recipient's key
+// looked up and usable, and nothing the browser cannot encrypt (forwarded parts the server
+// fetches, attachments over the limit).
+export function encryptionDecision({
+  secure = false, explicit = false, autoSetting = true, optedOut = false,
+  recipients = [], statuses = [], checking = false, ownKey = null, forwardedCount = 0, attachmentBytes = 0,
+}) {
+  if (secure) return { mode: 'password' };
+  if (explicit) return { mode: 'pgp', auto: false };
+  if (!autoSetting || optedOut || !ownKey || !recipients.length) return { mode: 'plain' };
+  if (forwardedCount > 0 || attachmentBytes > PGP_MAX_ATTACHMENT_BYTES) return { mode: 'plain' };
+  if (checking) return { mode: 'plain', checking: true };
+  const byEmail = new Map((statuses || []).map(s => [s.email, s]));
+  if (!recipients.every(e => byEmail.get(e)?.status === 'ok')) return { mode: 'plain' };
+  return { mode: 'pgp', auto: true };
 }
 
 export function initialSecure(protection, secureDefaults) {
@@ -101,10 +142,38 @@ export function pgpSendProblem({ recipients, statuses, ownKey, sign = false, sig
   return null;
 }
 
-// The user's key for sending from `fromEmail`: the one with that address, else none.
+// The user's key for sending from `fromEmail` (signing, the Sent copy): never a stale one (the
+// current password does not open it, utils/pgpKeys.js), a key the user imported before one Plimail
+// made (it is the one correspondents know), then the newest. The server's Autocrypt header picks
+// the same way (services/autocrypt.js). Null when the address has no usable key.
 export function ownKeyFor(ownKeys, fromEmail) {
   const email = String(fromEmail || '').toLowerCase();
-  return (ownKeys || []).find(k => (k.emails || []).includes(email)) || null;
+  const mine = (ownKeys || []).filter(k => (k.emails || []).includes(email) && !k.stale);
+  const created = k => new Date(k.keyCreatedAt || k.createdAt || 0).getTime();
+  return mine.sort((a, b) => (Number(Boolean(a.auto)) - Number(Boolean(b.auto))) || (created(b) - created(a)))[0] || null;
+}
+
+// The address's key that the current password no longer opens, when it has no usable one.
+export function staleKeyFor(ownKeys, fromEmail) {
+  const email = String(fromEmail || '').toLowerCase();
+  if (ownKeyFor(ownKeys, email)) return null;
+  return (ownKeys || []).find(k => (k.emails || []).includes(email) && k.stale) || null;
+}
+
+// The composer's recipients: `recipients`, every one the message goes to (chips, and what is
+// still typed in a field), which encryption decides on; `lookup`, those to look keys up for while
+// writing: every chip, and a typed address only once it looks whole, so one half typed is not
+// asked of anyone's directory. A recipient not looked up has no key as far as the decision goes
+// (a typed one, plain until it is complete); the send itself looks up every recipient, unfiltered.
+const WHOLE_ADDRESS = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>.]{2,}$/u;
+export const recipientEmails = values => [...new Set((values || []).map(v => String(v || '').trim()).filter(Boolean).map(emailOfRecipient))];
+export function composerRecipients(chips, typed) {
+  const committed = recipientEmails(chips);
+  const typing = recipientEmails(typed);
+  return {
+    recipients: [...new Set([...committed, ...typing])],
+    lookup: [...new Set([...committed, ...typing.filter(e => WHOLE_ADDRESS.test(e))])],
+  };
 }
 
 // The /mail/send body for the encrypted message: `payload` is the composer's (buildSendPayload),
