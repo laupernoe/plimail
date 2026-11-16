@@ -1071,6 +1071,10 @@
       "title": "Bildtyp nicht unterstützt",
       "body": "Ein PNG-, JPEG-, GIF- oder WebP-Bild verwenden."
     },
+    "imageQuota": {
+      "title": "Zu viele Signaturbilder",
+      "body": "Sie können bis zu 50 Bilder (insgesamt 20 MB) behalten. Entfernen Sie nicht mehr benötigte Bilder aus Ihren Signaturen: Sie werden eine Woche später gelöscht."
+    },
     "imageUploadFailed": "Bild konnte nicht hochgeladen werden",
     "imageSize": "Größe",
     "imageSmall": "Klein",
@@ -1178,6 +1182,7 @@
       "presetCustom": "Benutzerdefiniert",
       "errorRequired": "E-Mail, Benutzername und IMAP-Host sind erforderlich",
       "errorPasswordRequired": "Für neue Konten ist ein Passwort erforderlich",
+      "errorPasswordForHost": "Geben Sie das Passwort erneut ein, um den Server zu ändern: Das gespeicherte wird nur an den Server gesendet, für den es eingegeben wurde.",
       "microsoftImapUnsupported": "Outlook.com / Hotmail erfordert OAuth2 (Modern Auth)",
       "microsoftImapNote": "Microsoft akzeptiert für Postfächer von Outlook.com, Hotmail, Live und MSN keine Passwörter mehr, und die Anmeldung mit Microsoft ist auf diesem Server nicht eingerichtet. Bitten Sie Ihren Administrator, sie unter E-Mail-Anbieter einzuschalten.",
       "microsoftImapNoteReady": "Microsoft akzeptiert für Postfächer von Outlook.com, Hotmail, Live und MSN keine Passwörter mehr. Fügen Sie dieses Postfach stattdessen unter Konto hinzufügen mit „Mit Microsoft anmelden“ hinzu.",
@@ -2485,7 +2490,8 @@
       "noCalendars": "Noch kein Kalender vorhanden. Verbinden Sie zuerst ein Kalenderkonto.",
       "goToAccounts": "Zu den Konten",
       "useMailPassword": "Passwort eines Mailkontos verwenden",
-      "typePassword": "Passwort eingeben"
+      "typePassword": "Passwort eingeben",
+      "mailPasswordHost": "Das Passwort des E-Mail-Kontos wird nur an dessen eigene Server gesendet. Geben Sie stattdessen das Passwort für diesen Server ein."
     },
     "reply": {
       "question": "Nehmen Sie teil?",

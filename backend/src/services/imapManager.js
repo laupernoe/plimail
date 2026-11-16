@@ -1964,9 +1964,6 @@ export async function ensureFreshToken(account) {
 // address set so DNS rebinding cannot change the target between validation and connect.
 // policy: result of getConnectionPolicy() — gates TLS verification override.
 export function makeClientCfg(account, resolved, { enableIdle = false, policy = {}, idleKeepaliveMs } = {}) {
-  if (!policy.allowInsecureTls && !account.imap_tls) {
-    throw new Error('Plain-text IMAP is not allowed: admin must enable "Allow insecure TLS"');
-  }
   const skipTls = policy.allowInsecureTls && !!account.imap_skip_tls_verify;
   const tlsOpts = { rejectUnauthorized: !skipTls };
   // Keep the original hostname for TLS authentication while Node connects only to the
@@ -1981,6 +1978,11 @@ export function makeClientCfg(account, resolved, { enableIdle = false, policy = 
     host: resolved.lookup && resolved.servername ? resolved.servername : resolved.host,
     port: account.imap_port,
     secure: account.imap_tls,
+    // Off implicit TLS, the upgrade is mandatory unless the admin allowed insecure connections:
+    // imapflow's default STARTTLS is opportunistic, so a server (or anyone in the path) that
+    // drops the STARTTLS capability would otherwise get the password in clear, as SMTP's
+    // requireTLS prevents for sending.
+    ...(!account.imap_tls && !policy.allowInsecureTls ? { doSTARTTLS: true } : {}),
     auth: { user: account.auth_user, pass: decrypt(account.auth_pass) },
     logger: false,
     tls: tlsOpts,

@@ -169,12 +169,19 @@ async function fetchAutoconfig(url, { fetchImpl, allowPrivate }) {
   }
 }
 
-// The first server of each kind Plimail can use, out of a parsed document.
+// The server of each kind Plimail can use, out of a parsed document: implicit TLS first (RFC
+// 8314), whatever the document's order, then the first STARTTLS one. A document often lists 143
+// before 993, and taking it would trade a connection that cannot be downgraded for one that
+// depends on the STARTTLS upgrade.
 function pickFromConfig(config, policy) {
   if (!config) return null;
-  const imap = config.imap.map(s => ({ s, ok: acceptServer('imap', s, policy) })).find(x => x.ok);
+  const pick = (kind, list) => {
+    const usable = list.map(s => ({ s, ok: acceptServer(kind, s, policy) })).filter(x => x.ok);
+    return usable.find(x => x.ok.tls === 'SSL') || usable[0];
+  };
+  const imap = pick('imap', config.imap);
   if (!imap) return null;
-  const smtp = config.smtp.map(s => ({ s, ok: acceptServer('smtp', s, policy) })).find(x => x.ok);
+  const smtp = pick('smtp', config.smtp);
   return {
     imap: imap.ok,
     smtp: smtp?.ok || null,

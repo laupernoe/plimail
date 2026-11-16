@@ -38,7 +38,7 @@ async function upload(req, res) {
     const image = await prepareSignatureImage(req.body);
     res.status(201).json(await saveSignatureImage(req.session.userId, image));
   } catch (err) {
-    if (err instanceof SignatureImageError) return res.status(err.status).json({ error: err.message });
+    if (err instanceof SignatureImageError) return res.status(err.status).json({ error: err.message, ...(err.code ? { code: err.code } : {}) });
     throw err;
   }
 }

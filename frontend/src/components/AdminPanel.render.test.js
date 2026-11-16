@@ -156,6 +156,60 @@ describe('account form: automatic Cc and Bcc (#491)', () => {
   });
 });
 
+// The stored password goes to whichever host the account names, so the server refuses a new
+// one without the password typed again; the form says so before sending anything.
+describe('account form: changing a server asks for the password', () => {
+  const sent = [];
+  let root;
+  before(() => {
+    api.admin.getSettings = async () => ({ settings: {} });
+    api.getUnreadCounts = async () => ({});
+    api.updateAccount = async (id, updates) => { sent.push({ id, updates }); return { ...ACCOUNT, ...updates }; };
+  });
+  afterEach(() => React.act(async () => root.unmount()));
+
+  const click = (el) => React.act(async () => { el.dispatchEvent(new window.MouseEvent('click', { bubbles: true })); });
+  const field = (placeholder) => document.querySelector(`input[placeholder="${placeholder}"]`);
+  async function type(input, text) {
+    const setValue = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    await React.act(async () => {
+      setValue.call(input, text);
+      input.dispatchEvent(new window.Event('input', { bubbles: true }));
+    });
+  }
+  const save = () => click([...document.querySelectorAll('button')].find(b => b.textContent === 'admin.accounts.saveChanges'));
+  async function openEdit() {
+    sent.length = 0;
+    useStore.setState({ user: { id: 'u1' }, accounts: [ACCOUNT], adminTab: 'accounts' });
+    root = createRoot(document.getElementById('root'));
+    await React.act(async () => { root.render(React.createElement(AdminPanel)); });
+    await click(document.querySelector('button[title="common.edit"]'));
+  }
+
+  for (const [label, placeholder] of [['IMAP', 'admin.accounts.imapHostPh'], ['SMTP', 'admin.accounts.smtpHostPh']]) {
+    test(`a new ${label} host is not sent without the password, and is with it`, async () => {
+      await openEdit();
+      await type(field(placeholder), 'mail.elsewhere.invalid');
+      await save();
+      assert.equal(sent.length, 0);
+      assert.ok(document.body.textContent.includes('admin.accounts.errorPasswordForHost'));
+
+      await type(field('••••••••'), 'typed-again');
+      await save();
+      assert.equal(sent.length, 1);
+      assert.equal(sent[0].updates.auth_pass, 'typed-again');
+    });
+  }
+
+  test('other changes save without the password', async () => {
+    await openEdit();
+    await type(field('admin.accounts.imapHostPh'), 'IMAP.example.invalid');
+    await save();
+    assert.equal(sent.length, 1);
+    assert.equal(sent[0].updates.auth_pass, undefined);
+  });
+});
+
 // #624: the icon picker changed the form, but Save left icon out of the update, so the server kept
 // the old value and the color dot came back.
 describe('account form: icon (#376, #624)', () => {

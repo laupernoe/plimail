@@ -201,6 +201,26 @@ describe('images in the signature editor', () => {
     }
   });
 
+  test('an upload past the per-user cap says so, rather than showing the server text', async () => {
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = async () => new Response(
+      JSON.stringify({ error: 'You have reached the limit', code: 'signature_image_quota' }),
+      { status: 409, headers: { 'Content-Type': 'application/json' } });
+    const { useStore } = await import('../store/index.js');
+    useStore.setState({ notifications: [] });
+    const { saved, root } = await mount();
+    try {
+      await chooseFile(new File([new Uint8Array([1])], 'logo.png', { type: 'image/png' }));
+      const [note] = useStore.getState().notifications;
+      assert.equal(note?.title, 'signatureEditor.imageQuota.title');
+      assert.equal(note?.body, 'signatureEditor.imageQuota.body');
+      assert.ok(saved.every(html => !html.includes('<img')));
+    } finally {
+      globalThis.fetch = realFetch;
+      await act(async () => root.unmount());
+    }
+  });
+
   test('a file that is not a PNG, JPEG, GIF or WebP image is not uploaded', async () => {
     const calls = [];
     const restore = stubUpload(calls);

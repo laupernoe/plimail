@@ -100,6 +100,7 @@ const GOOGLE_APP_PASSWORDS_URL = 'https://myaccount.google.com/apppasswords';
 // What a sign-in owns on the account; saving other settings never sends these for it.
 // The mailbox to open (auth_user) stays editable: it is how a shared or delegated mailbox is
 // reached with one's own sign-in.
+const normalizeHost = h => String(h ?? '').trim().toLowerCase().replace(/\.+$/, '');
 const OAUTH_OWNED_FIELDS = ['imap_host', 'imap_port', 'imap_tls', 'imap_skip_tls_verify', 'smtp_host', 'smtp_port', 'smtp_tls', 'auth_pass', 'smtp_auth_user', 'smtp_auth_pass'];
 function isMicrosoftImapHost(host) {
   const h = (host || '').toLowerCase();
@@ -243,6 +244,15 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
     if (!isEdit && !form.auth_pass) {
       setError(t('admin.accounts.errorPasswordRequired'));
       return;
+    }
+    // A new server gets the password only when it is typed again; the server refuses otherwise.
+    if (isEdit && !signedInWith) {
+      const moved = key => normalizeHost(form[key]) !== normalizeHost(initial[key]);
+      if ((moved('imap_host') && !form.auth_pass)
+        || (moved('smtp_host') && !(form.smtp_auth_user ? form.smtp_auth_pass : form.auth_pass))) {
+        setError(t('admin.accounts.errorPasswordForHost'));
+        return;
+      }
     }
     setSaving(true);
     setError('');

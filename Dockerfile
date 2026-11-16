@@ -2,8 +2,12 @@
 # 3000 and over HTTPS on 3443 with a self-signed certificate (kept in /certs). A trusted
 # certificate is left to the operator's reverse proxy or tunnel.
 
+# Every stage starts from the same node:22-alpine (Node 22.23.5), pinned by the digest of its
+# multi-platform index so a rebuild cannot pick up a different image under the same tag. Bump the
+# three together: docker buildx imagetools inspect node:22-alpine
+
 # ── Frontend build ─────────────────────────────────────────────────────────────
-FROM --platform=$BUILDPLATFORM node:22-alpine AS web
+FROM --platform=$BUILDPLATFORM node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a AS web
 WORKDIR /web
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund
@@ -14,7 +18,7 @@ ENV VITE_BUILD_SHA=$BUILD_SHA VITE_EMAIL_DIV_RENDER=$VITE_EMAIL_DIV_RENDER
 RUN npm run build
 
 # ── Backend dependencies ───────────────────────────────────────────────────────
-FROM --platform=$BUILDPLATFORM node:22-alpine AS deps
+FROM --platform=$BUILDPLATFORM node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a AS deps
 WORKDIR /app
 COPY backend/package.json backend/package-lock.json ./
 # This stage runs on the build machine, but sharp's prebuilt image library is native code: install
@@ -24,7 +28,7 @@ RUN npm ci --omit=dev --no-audit --no-fund --os=linux --libc=musl \
       --cpu="$([ "$TARGETARCH" = arm64 ] && echo arm64 || echo x64)"
 
 # ── Runtime ────────────────────────────────────────────────────────────────────
-FROM node:22-alpine
+FROM node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
 WORKDIR /app
 ARG BUILD_SHA=dev
 ARG APP_VERSION

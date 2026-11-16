@@ -267,17 +267,43 @@ router.post('/autodiscover', async (req, res) => {
   }
 });
 
+const sameHost = (a, b) => {
+  const norm = h => String(h ?? '').trim().toLowerCase().replace(/\.+$/, '');
+  return norm(a) === norm(b);
+};
+
+// A new IMAP or SMTP host gets the password the account logs in with there, so it has to be
+// in the request: otherwise a session alone, without the password, could move the stored one
+// to a server it controls and read it there. Returns 'imap' or 'smtp' for the one missing.
+export function passwordMissingForNewHost(stored, updates) {
+  const typed = key => typeof updates[key] === 'string' && updates[key] !== '';
+  if ('imap_host' in updates && !sameHost(updates.imap_host, stored.imap_host) && !typed('auth_pass')) return 'imap';
+  if ('smtp_host' in updates && !sameHost(updates.smtp_host, stored.smtp_host)) {
+    // SMTP logs in with its own password when one is set (and kept), else with the IMAP one.
+    const ownSmtpPassword = 'smtp_auth_pass' in updates ? typed('smtp_auth_pass') : !!stored.smtp_auth_pass;
+    if (!typed(ownSmtpPassword ? 'smtp_auth_pass' : 'auth_pass')) return ownSmtpPassword ? 'smtp' : 'imap';
+  }
+  return null;
+}
+
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const updates = { ...req.body };
 
   // Verify ownership.
-  const owned = await findOwnedAccount(req.session.userId, id, { columns: 'id, oauth_provider' });
+  const owned = await findOwnedAccount(req.session.userId, id, { columns: 'id, oauth_provider, imap_host, smtp_host, smtp_auth_pass' });
   if (!owned) return res.status(404).json({ error: 'Account not found' });
   if (owned.oauth_provider) {
     for (const field of OAUTH_OWNED_FIELDS) delete updates[field];
     // An empty mailbox is not a login: ignored, the stored one stays.
     if ('auth_user' in updates && !String(updates.auth_user ?? '').trim()) delete updates.auth_user;
+  }
+  const passwordMissing = passwordMissingForNewHost(owned, updates);
+  if (passwordMissing) {
+    return res.status(400).json({
+      error: `Type the ${passwordMissing === 'smtp' ? 'SMTP ' : ''}password again to change the server: the stored one is not sent to a new host`,
+      code: 'password_required_for_host',
+    });
   }
 
   if ('name' in updates && hasHeaderInjectionChars(updates.name)) {

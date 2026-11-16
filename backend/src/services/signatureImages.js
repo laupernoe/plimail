@@ -61,12 +61,28 @@ export async function prepareSignatureImage(bytes, { sharpImpl = sharp } = {}) {
   return out;
 }
 
+// What one user may keep. Images left out of every signature are deleted after a week
+// (deleteUnreferencedSignatureImages), so the cap is reached only by images still in use.
+export const MAX_IMAGES_PER_USER = 50;
+export const MAX_TOTAL_BYTES_PER_USER = 20 * 1024 * 1024;
+export const SIGNATURE_IMAGE_QUOTA_CODE = 'signature_image_quota';
+
+// Refused with 409 once the user's images would pass either cap. The check and the insert are
+// one statement, so a burst of uploads cannot each see room for itself.
 export async function saveSignatureImage(userId, image, { queryFn = query } = {}) {
   const { rows } = await queryFn(
     `INSERT INTO signature_images (user_id, content_type, data, width, height)
-     VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-    [userId, image.type, image.bytes, image.width, image.height],
+     SELECT $1, $2, $3, $4, $5
+      WHERE (SELECT COUNT(*) FROM signature_images WHERE user_id = $1) < $6
+        AND (SELECT COALESCE(SUM(octet_length(data)), 0) FROM signature_images WHERE user_id = $1) + octet_length($3::bytea) <= $7
+     RETURNING id`,
+    [userId, image.type, image.bytes, image.width, image.height, MAX_IMAGES_PER_USER, MAX_TOTAL_BYTES_PER_USER],
   );
+  if (!rows.length) {
+    throw Object.assign(new SignatureImageError(409,
+      `You have reached the limit of ${MAX_IMAGES_PER_USER} signature images or ${MAX_TOTAL_BYTES_PER_USER / 1024 / 1024} MB. `
+      + 'Images no signature uses any more are removed after a week.'), { code: SIGNATURE_IMAGE_QUOTA_CODE });
+  }
   const id = rows[0].id;
   return { id, url: SIGNATURE_IMAGE_PATH + id, width: image.width, height: image.height };
 }
@@ -112,4 +128,39 @@ export async function inlineSignatureImages(html, userId, { queryFn = query } = 
     }
     return tag.replace(SRC_ATTR_RE, `$1"${uri}"`);
   });
+}
+
+// An image is kept while any signature, of any account or alias, still names its id, and for a
+// week after upload, which covers one inserted in an editor and not saved yet. A user with a
+// scheduled send not yet settled keeps all theirs: its signature is in an encrypted payload,
+// put in only when it goes out, and losing an image from it would go unnoticed. Drafts on IMAP
+// already carry the bytes. Matching the bare id anywhere in the HTML errs towards keeping.
+export const UNREFERENCED_GRACE = '7 days';
+const CLEANUP_MS = 6 * 60 * 60 * 1000;
+let cleanupTimer = null;
+
+export async function deleteUnreferencedSignatureImages({ queryFn = query } = {}) {
+  const { rowCount } = await queryFn(
+    `DELETE FROM signature_images si
+      WHERE si.created_at < NOW() - $1::interval
+        AND NOT EXISTS (SELECT 1 FROM email_accounts a WHERE strpos(lower(a.signature), si.id::text) > 0)
+        AND NOT EXISTS (SELECT 1 FROM account_aliases al WHERE strpos(lower(al.signature), si.id::text) > 0)
+        AND NOT EXISTS (SELECT 1 FROM scheduled_messages sm
+                         WHERE sm.user_id = si.user_id AND sm.status NOT IN ('sent', 'cancelled'))`,
+    [UNREFERENCED_GRACE],
+  );
+  return rowCount || 0;
+}
+
+function cleanUp() {
+  deleteUnreferencedSignatureImages()
+    .then((n) => { if (n) console.log(`Signature images: deleted ${n} no signature uses`); })
+    .catch(err => console.warn('Signature images: cleanup failed:', err.message));
+}
+
+export function startSignatureImageCleanup() {
+  if (cleanupTimer) return;
+  cleanUp();
+  cleanupTimer = setInterval(cleanUp, CLEANUP_MS);
+  cleanupTimer.unref?.();
 }

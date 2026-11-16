@@ -211,7 +211,7 @@ describe('replacing a draft saved in another account', () => {
 const CONTACT_VIEW = `c.id, c.uid, c.display_name, c.first_name, c.last_name, c.primary_email, c.emails, c.phones, c.organization,
   c.notes, c.photo_data, c.is_auto, c.send_count, c.last_sent, c.etag, c.vcard, c.created_at, c.updated_at`;
 const LOOKUPS = {
-  'PUT /accounts/:id': ['findOwnedAccount', ACCOUNT_ID, { columns: 'id, oauth_provider' }],
+  'PUT /accounts/:id': ['findOwnedAccount', ACCOUNT_ID, { columns: 'id, oauth_provider, imap_host, smtp_host, smtp_auth_pass' }],
   'DELETE /accounts/:id': ['findOwnedAccount', ACCOUNT_ID, { columns: 'id' }],
   'POST /accounts/:id/reconnect': ['findOwnedAccount', ACCOUNT_ID],
   'GET /accounts/:id/aliases': ['findOwnedAccount', ACCOUNT_ID, { columns: 'id' }],

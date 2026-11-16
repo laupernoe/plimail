@@ -135,6 +135,10 @@ export default function SignatureEditor({ value, onChange }) {
         document.execCommand('insertHTML', false, `<img src="${url}" alt="" width="${shown}">`);
         emit();
       }).catch(err => {
+        if (err.code === 'signature_image_quota') {
+          addNotification({ type: 'error', title: t('signatureEditor.imageQuota.title'), body: t('signatureEditor.imageQuota.body') });
+          return;
+        }
         addNotification({ type: 'error', title: t('signatureEditor.imageUploadFailed'), body: err.message });
       }).finally(() => setUploading(n => n - 1));
     }

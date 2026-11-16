@@ -1071,6 +1071,10 @@
       "title": "Tipo de imagem não suportado",
       "body": "Use uma imagem PNG, JPEG, GIF ou WebP."
     },
+    "imageQuota": {
+      "title": "Imagens de assinatura demais",
+      "body": "Você pode manter até 50 imagens (20 MB no total). Remova das suas assinaturas as imagens que não usa mais: elas são excluídas uma semana depois."
+    },
     "imageUploadFailed": "Não foi possível enviar a imagem",
     "imageSize": "Tamanho",
     "imageSmall": "Pequena",
@@ -1253,6 +1257,7 @@
       "presetCustom": "Personalizado",
       "errorRequired": "E-mail, nome de usuário e servidor IMAP são obrigatórios",
       "errorPasswordRequired": "A senha é obrigatória para novas contas",
+      "errorPasswordForHost": "Digite a senha novamente para mudar de servidor: a salva só é enviada ao servidor para o qual foi digitada.",
       "microsoftImapUnsupported": "Outlook.com / Hotmail exige OAuth2 (Autenticação Moderna)",
       "microsoftImapNote": "A Microsoft não aceita mais senhas para caixas do Outlook.com, Hotmail, Live e MSN, e o login com a Microsoft não está configurado neste servidor. Peça ao administrador para ativá-lo em Provedores de e-mail.",
       "microsoftImapNoteReady": "A Microsoft não aceita mais senhas para caixas do Outlook.com, Hotmail, Live e MSN. Adicione esta caixa com \"Entrar com a Microsoft\" em Adicionar conta.",
@@ -2485,7 +2490,8 @@
       "noCalendars": "Nenhuma agenda ainda. Conecte primeiro uma conta de agenda.",
       "goToAccounts": "Ir para as contas",
       "useMailPassword": "Usar a senha de uma conta de e-mail",
-      "typePassword": "Digitar uma senha"
+      "typePassword": "Digitar uma senha",
+      "mailPasswordHost": "A senha da conta de e-mail só é enviada aos servidores dela. Digite a senha deste servidor."
     },
     "reply": {
       "question": "Vai participar?",

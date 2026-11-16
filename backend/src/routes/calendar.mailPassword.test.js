@@ -20,11 +20,14 @@ vi.mock('../services/connectionPolicy.js', () => ({ getConnectionPolicy: async (
 vi.mock('../services/hostValidation.js', () => ({ validateHost: async () => null }));
 vi.mock('../services/caldavSync.js', () => ({ syncAccount: vi.fn(async () => ({ ok: true })), credentialsFor: vi.fn(), isSyncing: vi.fn() }));
 vi.mock('../services/caldavClient.js', () => ({ discoverCalendars: vi.fn(async () => []), findCalDavServer: vi.fn() }));
+// What the address's own published settings name, looked up again on the server.
+vi.mock('../services/accountAutodiscover.js', () => ({ discoverAccountSettings: vi.fn() }));
 vi.mock('../services/calendarInvites.js', () => ({ forgetScheduling: vi.fn(), knownAddresses: vi.fn(async () => []), mailLabels: () => ({}) }));
 
 const express = (await import('express')).default;
 const router = (await import('./calendar.js')).default;
 const { discoverCalendars, findCalDavServer } = await import('../services/caldavClient.js');
+const { discoverAccountSettings } = await import('../services/accountAutodiscover.js');
 
 let server;
 let base;
@@ -41,8 +44,12 @@ beforeAll(async () => {
 });
 afterAll(() => new Promise(r => server.close(r)));
 beforeEach(() => {
-  state.mail = { id: MAIL_ID, user_id: 'u1', auth_user: 'noe@example.com', auth_pass: 'enc:s3cret-pass', oauth_provider: null };
+  state.mail = {
+    id: MAIL_ID, user_id: 'u1', email_address: 'noe@example.com', imap_host: 'imap.example.com', smtp_host: 'smtp.example.com',
+    auth_user: 'noe@example.com', auth_pass: 'enc:s3cret-pass', oauth_provider: null,
+  };
   discoverCalendars.mockClear();
+  discoverAccountSettings.mockReset().mockResolvedValue({ caldavUrl: 'https://dav.example.com/dav/' });
 });
 
 describe('adding a calendar account with a mail account password', () => {
@@ -91,6 +98,33 @@ describe('adding a calendar account with a mail account password', () => {
     expect(discoverCalendars).not.toHaveBeenCalled();
   });
 
+  // A session is not the password: without these checks it could send the stored one anywhere.
+  it("sends the stored password to the mail account's own hosts and the CalDAV host its address names", async () => {
+    for (const serverUrl of ['https://imap.example.com/dav/', 'https://SMTP.example.com/', 'https://dav.example.com/cal/']) {
+      expect((await post({ serverUrl, mailAccountId: MAIL_ID })).status).toBe(200);
+    }
+    expect(discoverAccountSettings).toHaveBeenCalledWith('noe@example.com', expect.anything());
+  });
+
+  it('refuses to send the stored password to any other server', async () => {
+    for (const serverUrl of ['https://attacker.example.net/', 'https://dav.example.com:8443/']) {
+      const r = await post({ serverUrl, mailAccountId: MAIL_ID });
+      expect(r.status).toBe(400);
+      expect(JSON.parse(r.text).code).toBe('mail_password_host');
+    }
+    discoverAccountSettings.mockResolvedValue(null);
+    expect((await post({ serverUrl: 'https://dav.example.com/dav/', mailAccountId: MAIL_ID })).status).toBe(400);
+    discoverAccountSettings.mockRejectedValue(new Error('dns down'));
+    expect((await post({ serverUrl: 'https://dav.example.com/dav/', mailAccountId: MAIL_ID })).status).toBe(400);
+    expect(discoverCalendars).not.toHaveBeenCalled();
+  });
+
+  it('still takes any server with a typed password', async () => {
+    const r = await post({ serverUrl: 'https://elsewhere.example.net/', username: 'u', password: 'typed' });
+    expect(r.status).toBe(200);
+    expect(discoverAccountSettings).not.toHaveBeenCalled();
+  });
+
   it('does not leak the password when the server rejects it', async () => {
     discoverCalendars.mockRejectedValueOnce(new Error('Login refused'));
     const r = await post({ serverUrl: 'https://dav.example.com/', mailAccountId: MAIL_ID });
@@ -105,7 +139,6 @@ describe('adding the calendars of a mail account', () => {
     return { status: r.status, text: await r.text() };
   };
   beforeEach(() => {
-    Object.assign(state.mail, { email_address: 'noe@example.com', imap_host: 'imap.example.com', smtp_host: 'smtp.example.com' });
     findCalDavServer.mockReset().mockResolvedValue({ serverUrl: 'https://imap.example.com/', calendars: [] });
   });
 
@@ -122,6 +155,14 @@ describe('adding the calendars of a mail account', () => {
     expect(discoverCalendars).toHaveBeenCalledWith(expect.objectContaining({ serverUrl: 'https://dav.example.com/cal/', password: 's3cret-pass' }));
     expect(findCalDavServer).not.toHaveBeenCalled();
     expect(JSON.parse(r.text)).toMatchObject({ serverUrl: 'https://dav.example.com/cal/' });
+  });
+
+  it('does not send the password to a server the address does not name, and tries the mail hosts', async () => {
+    const r = await fromMail({ accountId: MAIL_ID, serverUrl: 'https://attacker.example.net/' });
+    expect(r.status).toBe(200);
+    expect(discoverCalendars).not.toHaveBeenCalled();
+    expect(findCalDavServer).toHaveBeenCalledWith(['imap.example.com', 'smtp.example.com'], expect.anything());
+    expect(JSON.parse(r.text)).toMatchObject({ serverUrl: 'https://imap.example.com/' });
   });
 
   it('falls back to the mail hosts when that server has no calendars', async () => {

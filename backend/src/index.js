@@ -57,6 +57,7 @@ import { recordHttp } from './services/performanceMetrics.js';
 import { shutDown } from './services/sendShutdown.js';
 import { startScheduledSender } from './services/scheduledSend.js';
 import { startSecureMessageCleanup } from './services/secureMessages.js';
+import { startSignatureImageCleanup } from './services/signatureImages.js';
 
 const packageMeta = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'));
 let buildMeta = {};
@@ -262,6 +263,9 @@ startCaldavScheduler();
 
 // Delete password-protected messages, and their replies, once their link has expired.
 startSecureMessageCleanup();
+
+// Delete signature images no signature has used for a week.
+startSignatureImageCleanup();
 
 // Re-connect all enabled IMAP accounts on startup with bounded concurrency so a
 // large user base doesn't hammer IMAP servers and the DB connection pool at once.

@@ -1113,6 +1113,10 @@
       "title": "Nepodporovaný typ obrázku",
       "body": "Použijte obrázek PNG, JPEG, GIF nebo WebP."
     },
+    "imageQuota": {
+      "title": "Příliš mnoho obrázků v podpisech",
+      "body": "Můžete mít až 50 obrázků (celkem 20 MB). Odeberte z podpisů obrázky, které už nepoužíváte: smažou se o týden později."
+    },
     "imageUploadFailed": "Obrázek se nepodařilo nahrát",
     "imageSize": "Velikost",
     "imageSmall": "Malá",
@@ -1312,6 +1316,7 @@
       "presetCustom": "Vlastní",
       "errorRequired": "Je vyžadován e-mail, uživatelské jméno a server IMAP",
       "errorPasswordRequired": "U nových účtů je vyžadováno heslo",
+      "errorPasswordForHost": "Pro změnu serveru zadejte heslo znovu: uložené se posílá jen serveru, pro který bylo zadáno.",
       "microsoftImapUnsupported": "Outlook.com / Hotmail vyžaduje OAuth2 (moderní ověřování)",
       "microsoftImapNote": "Microsoft už nepřijímá hesla pro schránky Outlook.com, Hotmail, Live a MSN a přihlášení přes Microsoft není na tomto serveru nastavené. Požádejte správce, aby ho zapnul v sekci Poskytovatelé e-mailu.",
       "microsoftImapNoteReady": "Microsoft už nepřijímá hesla pro schránky Outlook.com, Hotmail, Live a MSN. Přidejte tuto schránku raději přes „Přihlásit se přes Microsoft“ v Přidat účet.",
@@ -2504,7 +2509,8 @@
       "noCalendars": "Zatím žádný kalendář. Nejprve připojte kalendářový účet.",
       "goToAccounts": "Přejít na účty",
       "useMailPassword": "Použít heslo poštovního účtu",
-      "typePassword": "Zadat heslo"
+      "typePassword": "Zadat heslo",
+      "mailPasswordHost": "Heslo poštovního účtu se posílá jen jeho vlastním serverům. Zadejte místo toho heslo pro tento server."
     },
     "reply": {
       "question": "Zúčastníte se?",

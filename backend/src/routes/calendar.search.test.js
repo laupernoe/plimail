@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const state = vi.hoisted(() => ({ rows: [] }));
+const state = vi.hoisted(() => ({ rows: [], limited: false }));
+vi.mock('../services/rateLimiter.js', () => ({ consume: vi.fn(async () => ({ limited: state.limited, resetMs: 30_000 })) }));
 vi.mock('../services/db.js', () => ({ query: vi.fn(async () => ({ rows: state.rows })) }));
 vi.mock('../middleware/auth.js', () => ({ requireAuth: (req, _r, n) => { req.session = { userId: 'u1' }; n(); } }));
 vi.mock('../services/caldavSync.js', () => ({
@@ -16,6 +17,7 @@ vi.mock('../services/calendarInvites.js', () => ({
 const express = (await import('express')).default;
 const router = (await import('./calendar.js')).default;
 const { query } = await import('../services/db.js');
+const { consume } = await import('../services/rateLimiter.js');
 const { resourceInfo } = await import('../services/icalEvents.js');
 
 const NOW = Date.parse('2026-11-16T12:00:00Z');
@@ -64,6 +66,7 @@ afterAll(() => { vi.useRealTimers(); return new Promise(r => server.close(r)); }
 beforeEach(() => {
   vi.clearAllMocks();
   state.rows = [DINNER, STANDUP, CLASS, OLD, FOLDED];
+  state.limited = false;
 });
 
 describe('GET /events/search', () => {
@@ -140,6 +143,33 @@ describe('GET /events/search', () => {
   it('folds accents in the SQL pattern too', async () => {
     await search({ q: 'Café' });
     expect(lastSql()[1][1]).toBe('%cafe%');
+  });
+
+  it('counts searches per user and refuses them past the limit, before any query', async () => {
+    await search({ q: 'standup' });
+    expect(consume).toHaveBeenCalledWith('calendar-search:u1', 60, 60_000);
+    vi.clearAllMocks();
+    state.limited = true;
+    const r = await fetch(`${base}/c/events/search?q=standup`);
+    expect(r.status).toBe(429);
+    expect(r.headers.get('retry-after')).toBe('30');
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('checks the time zone once: one Intl does not know is ignored, not failed on for every event', async () => {
+    const FLOATING = row('e-floating', ics('floating', ['DTSTART:20261201T190000', 'DTEND:20261201T200000', 'SUMMARY:Apéro flottant']));
+    state.rows = [FLOATING, FLOATING, FLOATING];
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const bad = await search({ q: 'apero', tz: 'Not/A_Zone' });
+      expect(bad.status).toBe(200);
+      expect(bad.body.events.map(e => e.start)).toEqual(['2026-12-01T19:00:00.000Z', '2026-12-01T19:00:00.000Z', '2026-12-01T19:00:00.000Z']);
+      expect(warn).not.toHaveBeenCalled();
+      const paris = await search({ q: 'apero', tz: 'Europe/Paris' });
+      expect(paris.body.events[0].start).toBe('2026-12-01T18:00:00.000Z');
+    } finally {
+      warn.mockRestore();
+    }
   });
 
   it('refuses a search too short or too long', async () => {

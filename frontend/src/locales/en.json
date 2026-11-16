@@ -1071,6 +1071,10 @@
       "title": "Image type not supported",
       "body": "Use a PNG, JPEG, GIF or WebP image."
     },
+    "imageQuota": {
+      "title": "Too many signature images",
+      "body": "You can keep up to 50 images (20 MB in all). Remove images you no longer use from your signatures: they are deleted a week later."
+    },
     "imageUploadFailed": "Could not upload the image",
     "imageSize": "Size",
     "imageSmall": "Small",
@@ -1253,6 +1257,7 @@
       "presetCustom": "Custom",
       "errorRequired": "Email, username, and IMAP host are required",
       "errorPasswordRequired": "Password is required for new accounts",
+      "errorPasswordForHost": "Type the password again to change the server: the saved one is only sent to the server it was entered for.",
       "microsoftImapUnsupported": "Outlook.com / Hotmail requires OAuth2 (Modern Auth)",
       "microsoftImapNote": "Microsoft no longer accepts passwords for Outlook.com, Hotmail, Live and MSN mailboxes, and sign-in with Microsoft is not set up on this server. Ask your administrator to turn it on under Email providers.",
       "microsoftImapNoteReady": "Microsoft no longer accepts passwords for Outlook.com, Hotmail, Live and MSN mailboxes. Add this mailbox with Sign in with Microsoft under Add account instead.",
@@ -2485,7 +2490,8 @@
       "noCalendars": "No calendar yet. Connect a calendar account first.",
       "goToAccounts": "Go to accounts",
       "useMailPassword": "Use the password of a mail account",
-      "typePassword": "Type a password"
+      "typePassword": "Type a password",
+      "mailPasswordHost": "The mail account's password is only sent to its own servers. Type the password for this server instead."
     },
     "reply": {
       "question": "Going?",
