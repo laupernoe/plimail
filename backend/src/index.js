@@ -154,7 +154,8 @@ app.use((req, res, next) => {
 
 app.use(securityHeaders);
 // Says so in the log when every client seems to share the proxy's address (clientAddressWatch.js).
-app.use('/api', createClientAddressWatch({ hops: trustProxyHops }));
+const clientAddressWatch = createClientAddressWatch({ hops: trustProxyHops });
+app.use(clientAddressWatch);
 app.use(compress);
 // Who a request is and whether it may go on: API tokens, the body parsers, the session, the CSRF
 // header check, the screen lock and the token guards, in that order (middleware/apiChain.js, so
