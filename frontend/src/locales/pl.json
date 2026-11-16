@@ -2627,6 +2627,33 @@
       "privateInKeyring": "To klucz prywatny. Tutaj trafiają tylko klucze publiczne; własny klucz prywatny zaimportuj powyżej.",
       "generic": "Nie udało się. Spróbuj ponownie.",
       "loadFailed": "Nie udało się wczytać Twoich kluczy."
+    },
+    "read": {
+      "listSnippet": "Zaszyfrowana wiadomość",
+      "encrypted": "Zaszyfrowana wiadomość. Tylko Twój klucz może ją otworzyć, tutaj w Twojej przeglądarce.",
+      "decrypted": "Odszyfrowano w Twojej przeglądarce. Nic z tego nie jest przechowywane na serwerze.",
+      "enterPassphrase": "Wpisz frazę hasła swojego klucza dla {{email}}.",
+      "passphrase": "Fraza hasła klucza",
+      "rememberSession": "Zostaw klucz odblokowany w tej karcie do wylogowania",
+      "decrypt": "Odszyfruj",
+      "decrypting": "Odszyfrowywanie…",
+      "noKeys": "Ta wiadomość jest zaszyfrowana, a nie masz tu jeszcze skonfigurowanego klucza.",
+      "openSettings": "Otwórz ustawienia szyfrowania",
+      "notForYou": "Ta wiadomość nie została zaszyfrowana dla żadnego z Twoich kluczy tutaj.",
+      "decryptFailed": "Nie udało się odszyfrować tej wiadomości. Może być uszkodzona.",
+      "loadFailed": "Nie udało się wczytać wiadomości. Spróbuj ponownie.",
+      "unreadable": "Nie znaleziono zaszyfrowanej części tej wiadomości.",
+      "protectedSubject": "Zaszyfrowany temat:",
+      "frameTitle": "Odszyfrowana wiadomość",
+      "attachments": "Zaszyfrowane załączniki",
+      "sigVerified": "Podpisano kluczem {{key}}, który zweryfikowano. Podpis jest prawidłowy.",
+      "sigGood": "Podpisano kluczem {{key}}. Podpis jest prawidłowy, ale ten klucz nie został przez Ciebie zweryfikowany.",
+      "sigUnknown": "Podpisano kluczem {{key}}, którego nie masz, więc podpisu nie można sprawdzić.",
+      "sigBad": "Podpis się nie zgadza: wiadomość została zmieniona po podpisaniu albo nie podpisał jej ten, za kogo się podaje.",
+      "keyOffer": "Ta wiadomość zawiera klucz publiczny dla {{email}}.",
+      "keyOfferDifferent": "Ta wiadomość zawiera dla {{email}} inny klucz publiczny niż ten, który masz.",
+      "importKey": "Importuj klucz",
+      "keyImported": "Klucz dodano do kluczy korespondentów."
     }
   }
 }

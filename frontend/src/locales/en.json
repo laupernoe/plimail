@@ -2608,6 +2608,33 @@
       "privateInKeyring": "This is a private key. Only public keys go here; import your own private key above.",
       "generic": "That did not work. Try again.",
       "loadFailed": "Your keys could not be loaded."
+    },
+    "read": {
+      "listSnippet": "Encrypted message",
+      "encrypted": "Encrypted message. Only your key can open it, here in your browser.",
+      "decrypted": "Decrypted in your browser. Nothing of it is stored on the server.",
+      "enterPassphrase": "Enter the passphrase of your key for {{email}}.",
+      "passphrase": "Key passphrase",
+      "rememberSession": "Keep the key unlocked in this tab until I sign out",
+      "decrypt": "Decrypt",
+      "decrypting": "Decrypting…",
+      "noKeys": "This message is encrypted, and you have no key set up here yet.",
+      "openSettings": "Open encryption settings",
+      "notForYou": "This message was not encrypted to any of your keys here.",
+      "decryptFailed": "This message could not be decrypted. It may be damaged.",
+      "loadFailed": "The message could not be loaded. Try again.",
+      "unreadable": "The encrypted part of this message could not be found.",
+      "protectedSubject": "Encrypted subject:",
+      "frameTitle": "Decrypted message",
+      "attachments": "Encrypted attachments",
+      "sigVerified": "Signed by key {{key}}, which you verified. The signature is valid.",
+      "sigGood": "Signed by key {{key}}. The signature is valid, but you have not verified this key.",
+      "sigUnknown": "Signed by key {{key}}, which you do not have, so the signature cannot be checked.",
+      "sigBad": "The signature does not match: this message was changed after it was signed, or was not signed by who it claims.",
+      "keyOffer": "This message includes a public key for {{email}}.",
+      "keyOfferDifferent": "This message includes a different public key for {{email}} than the one you have.",
+      "importKey": "Import key",
+      "keyImported": "Key added to your correspondents' keys."
     }
   }
 }

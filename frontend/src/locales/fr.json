@@ -2608,6 +2608,33 @@
       "privateInKeyring": "Ceci est une clé privée. Seules les clés publiques vont ici ; importez votre propre clé privée plus haut.",
       "generic": "Cela n'a pas fonctionné. Réessayez.",
       "loadFailed": "Impossible de charger vos clés."
+    },
+    "read": {
+      "listSnippet": "Message chiffré",
+      "encrypted": "Message chiffré. Seule votre clé peut l'ouvrir, ici dans votre navigateur.",
+      "decrypted": "Déchiffré dans votre navigateur. Rien n'en est conservé sur le serveur.",
+      "enterPassphrase": "Saisissez la phrase secrète de votre clé pour {{email}}.",
+      "passphrase": "Phrase secrète de la clé",
+      "rememberSession": "Garder la clé déverrouillée dans cet onglet jusqu'à ma déconnexion",
+      "decrypt": "Déchiffrer",
+      "decrypting": "Déchiffrement…",
+      "noKeys": "Ce message est chiffré et vous n'avez encore configuré aucune clé ici.",
+      "openSettings": "Ouvrir les réglages de chiffrement",
+      "notForYou": "Ce message n'a été chiffré pour aucune de vos clés présentes ici.",
+      "decryptFailed": "Impossible de déchiffrer ce message. Il est peut-être endommagé.",
+      "loadFailed": "Impossible de charger le message. Réessayez.",
+      "unreadable": "La partie chiffrée de ce message est introuvable.",
+      "protectedSubject": "Objet chiffré :",
+      "frameTitle": "Message déchiffré",
+      "attachments": "Pièces jointes chiffrées",
+      "sigVerified": "Signé par la clé {{key}}, que vous avez vérifiée. La signature est valide.",
+      "sigGood": "Signé par la clé {{key}}. La signature est valide, mais vous n'avez pas vérifié cette clé.",
+      "sigUnknown": "Signé par la clé {{key}}, que vous n'avez pas : la signature ne peut pas être vérifiée.",
+      "sigBad": "La signature ne correspond pas : ce message a été modifié après sa signature, ou n'a pas été signé par qui il prétend.",
+      "keyOffer": "Ce message contient une clé publique pour {{email}}.",
+      "keyOfferDifferent": "Ce message contient pour {{email}} une clé publique différente de celle que vous avez.",
+      "importKey": "Importer la clé",
+      "keyImported": "Clé ajoutée aux clés de vos correspondants."
     }
   }
 }

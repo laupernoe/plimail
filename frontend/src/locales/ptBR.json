@@ -2608,6 +2608,33 @@
       "privateInKeyring": "Esta é uma chave privada. Aqui só entram chaves públicas; importe sua própria chave privada acima.",
       "generic": "Não funcionou. Tente novamente.",
       "loadFailed": "Não foi possível carregar suas chaves."
+    },
+    "read": {
+      "listSnippet": "Mensagem criptografada",
+      "encrypted": "Mensagem criptografada. Só a sua chave pode abri-la, aqui no seu navegador.",
+      "decrypted": "Descriptografada no seu navegador. Nada dela é armazenado no servidor.",
+      "enterPassphrase": "Digite a frase secreta da sua chave para {{email}}.",
+      "passphrase": "Frase secreta da chave",
+      "rememberSession": "Manter a chave desbloqueada nesta aba até eu sair",
+      "decrypt": "Descriptografar",
+      "decrypting": "Descriptografando…",
+      "noKeys": "Esta mensagem está criptografada e você ainda não configurou nenhuma chave aqui.",
+      "openSettings": "Abrir configurações de criptografia",
+      "notForYou": "Esta mensagem não foi criptografada para nenhuma das suas chaves daqui.",
+      "decryptFailed": "Não foi possível descriptografar esta mensagem. Ela pode estar danificada.",
+      "loadFailed": "Não foi possível carregar a mensagem. Tente novamente.",
+      "unreadable": "A parte criptografada desta mensagem não foi encontrada.",
+      "protectedSubject": "Assunto criptografado:",
+      "frameTitle": "Mensagem descriptografada",
+      "attachments": "Anexos criptografados",
+      "sigVerified": "Assinada com a chave {{key}}, que você verificou. A assinatura é válida.",
+      "sigGood": "Assinada com a chave {{key}}. A assinatura é válida, mas você não verificou esta chave.",
+      "sigUnknown": "Assinada com a chave {{key}}, que você não tem, então a assinatura não pode ser conferida.",
+      "sigBad": "A assinatura não confere: esta mensagem foi alterada depois de assinada ou não foi assinada por quem diz ser.",
+      "keyOffer": "Esta mensagem inclui uma chave pública de {{email}}.",
+      "keyOfferDifferent": "Esta mensagem inclui uma chave pública de {{email}} diferente da que você tem.",
+      "importKey": "Importar chave",
+      "keyImported": "Chave adicionada às chaves dos seus contatos."
     }
   }
 }

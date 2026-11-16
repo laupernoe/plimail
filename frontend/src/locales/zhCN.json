@@ -2608,6 +2608,33 @@
       "privateInKeyring": "这是私钥。这里只能添加公钥；请在上方导入你自己的私钥。",
       "generic": "操作未成功。请重试。",
       "loadFailed": "无法加载你的密钥。"
+    },
+    "read": {
+      "listSnippet": "加密邮件",
+      "encrypted": "加密邮件。只有你的密钥能在此浏览器中打开它。",
+      "decrypted": "已在你的浏览器中解密。服务器上不会保存任何内容。",
+      "enterPassphrase": "请输入 {{email}} 对应密钥的口令。",
+      "passphrase": "密钥口令",
+      "rememberSession": "在此标签页中保持密钥解锁，直到我退出登录",
+      "decrypt": "解密",
+      "decrypting": "正在解密…",
+      "noKeys": "此邮件已加密，而你在这里还没有设置密钥。",
+      "openSettings": "打开加密设置",
+      "notForYou": "此邮件没有用你在此处的任何密钥加密。",
+      "decryptFailed": "无法解密此邮件。它可能已损坏。",
+      "loadFailed": "无法加载邮件。请重试。",
+      "unreadable": "找不到此邮件的加密部分。",
+      "protectedSubject": "加密的主题：",
+      "frameTitle": "已解密的邮件",
+      "attachments": "加密的附件",
+      "sigVerified": "由你已验证的密钥 {{key}} 签名。签名有效。",
+      "sigGood": "由密钥 {{key}} 签名。签名有效，但你尚未验证此密钥。",
+      "sigUnknown": "由你没有的密钥 {{key}} 签名，因此无法检查签名。",
+      "sigBad": "签名不匹配：此邮件在签名后被修改过，或并非由其声称的人签名。",
+      "keyOffer": "此邮件包含 {{email}} 的公钥。",
+      "keyOfferDifferent": "此邮件包含 {{email}} 的一个公钥，与你已有的不同。",
+      "importKey": "导入密钥",
+      "keyImported": "密钥已添加到联系人的密钥中。"
     }
   }
 }

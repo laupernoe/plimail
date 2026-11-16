@@ -2627,6 +2627,33 @@
       "privateInKeyring": "Toto je soukromý klíč. Sem patří jen veřejné klíče; vlastní soukromý klíč importujte výše.",
       "generic": "Nepovedlo se. Zkuste to znovu.",
       "loadFailed": "Vaše klíče se nepodařilo načíst."
+    },
+    "read": {
+      "listSnippet": "Šifrovaná zpráva",
+      "encrypted": "Šifrovaná zpráva. Otevřít ji může jen váš klíč, zde ve vašem prohlížeči.",
+      "decrypted": "Dešifrováno ve vašem prohlížeči. Na serveru se z toho nic neukládá.",
+      "enterPassphrase": "Zadejte heslovou frázi svého klíče pro {{email}}.",
+      "passphrase": "Heslová fráze klíče",
+      "rememberSession": "Nechat klíč v tomto panelu odemčený do odhlášení",
+      "decrypt": "Dešifrovat",
+      "decrypting": "Dešifruje se…",
+      "noKeys": "Tato zpráva je šifrovaná a zatím tu nemáte nastavený žádný klíč.",
+      "openSettings": "Otevřít nastavení šifrování",
+      "notForYou": "Tato zpráva nebyla zašifrována pro žádný z vašich zdejších klíčů.",
+      "decryptFailed": "Tuto zprávu se nepodařilo dešifrovat. Může být poškozená.",
+      "loadFailed": "Zprávu se nepodařilo načíst. Zkuste to znovu.",
+      "unreadable": "Šifrovaná část této zprávy nebyla nalezena.",
+      "protectedSubject": "Šifrovaný předmět:",
+      "frameTitle": "Dešifrovaná zpráva",
+      "attachments": "Šifrované přílohy",
+      "sigVerified": "Podepsáno klíčem {{key}}, který jste ověřili. Podpis je platný.",
+      "sigGood": "Podepsáno klíčem {{key}}. Podpis je platný, ale tento klíč jste neověřili.",
+      "sigUnknown": "Podepsáno klíčem {{key}}, který nemáte, takže podpis nelze zkontrolovat.",
+      "sigBad": "Podpis nesouhlasí: zpráva byla po podepsání změněna nebo ji nepodepsal ten, kdo se za odesílatele vydává.",
+      "keyOffer": "Tato zpráva obsahuje veřejný klíč pro {{email}}.",
+      "keyOfferDifferent": "Tato zpráva obsahuje pro {{email}} jiný veřejný klíč, než jaký máte.",
+      "importKey": "Importovat klíč",
+      "keyImported": "Klíč byl přidán mezi klíče korespondentů."
     }
   }
 }

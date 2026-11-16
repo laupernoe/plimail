@@ -2608,6 +2608,33 @@
       "privateInKeyring": "Esta es una clave privada. Aquí solo van claves públicas; importa tu propia clave privada arriba.",
       "generic": "No ha funcionado. Inténtalo de nuevo.",
       "loadFailed": "No se pudieron cargar tus claves."
+    },
+    "read": {
+      "listSnippet": "Mensaje cifrado",
+      "encrypted": "Mensaje cifrado. Solo tu clave puede abrirlo, aquí en tu navegador.",
+      "decrypted": "Descifrado en tu navegador. No se guarda nada en el servidor.",
+      "enterPassphrase": "Introduce la frase de contraseña de tu clave para {{email}}.",
+      "passphrase": "Frase de contraseña de la clave",
+      "rememberSession": "Mantener la clave desbloqueada en esta pestaña hasta que cierre sesión",
+      "decrypt": "Descifrar",
+      "decrypting": "Descifrando…",
+      "noKeys": "Este mensaje está cifrado y todavía no tienes ninguna clave configurada aquí.",
+      "openSettings": "Abrir ajustes de cifrado",
+      "notForYou": "Este mensaje no se cifró para ninguna de tus claves de aquí.",
+      "decryptFailed": "No se pudo descifrar este mensaje. Puede estar dañado.",
+      "loadFailed": "No se pudo cargar el mensaje. Inténtalo de nuevo.",
+      "unreadable": "No se encontró la parte cifrada de este mensaje.",
+      "protectedSubject": "Asunto cifrado:",
+      "frameTitle": "Mensaje descifrado",
+      "attachments": "Archivos adjuntos cifrados",
+      "sigVerified": "Firmado con la clave {{key}}, que verificaste. La firma es válida.",
+      "sigGood": "Firmado con la clave {{key}}. La firma es válida, pero no has verificado esta clave.",
+      "sigUnknown": "Firmado con la clave {{key}}, que no tienes, por lo que no se puede comprobar la firma.",
+      "sigBad": "La firma no coincide: este mensaje se modificó después de firmarse o no lo firmó quien dice.",
+      "keyOffer": "Este mensaje incluye una clave pública de {{email}}.",
+      "keyOfferDifferent": "Este mensaje incluye una clave pública de {{email}} distinta de la que tienes.",
+      "importKey": "Importar clave",
+      "keyImported": "Clave añadida a las claves de tus contactos."
     }
   }
 }

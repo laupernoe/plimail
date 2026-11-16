@@ -2608,6 +2608,33 @@
       "privateInKeyring": "Dies ist ein privater Schlüssel. Hier gehören nur öffentliche Schlüssel hin; importieren Sie Ihren eigenen privaten Schlüssel oben.",
       "generic": "Das hat nicht geklappt. Versuchen Sie es erneut.",
       "loadFailed": "Ihre Schlüssel konnten nicht geladen werden."
+    },
+    "read": {
+      "listSnippet": "Verschlüsselte Nachricht",
+      "encrypted": "Verschlüsselte Nachricht. Nur Ihr Schlüssel kann sie öffnen, hier in Ihrem Browser.",
+      "decrypted": "In Ihrem Browser entschlüsselt. Nichts davon wird auf dem Server gespeichert.",
+      "enterPassphrase": "Geben Sie das Passwort Ihres Schlüssels für {{email}} ein.",
+      "passphrase": "Passwort des Schlüssels",
+      "rememberSession": "Schlüssel in diesem Tab bis zur Abmeldung entsperrt lassen",
+      "decrypt": "Entschlüsseln",
+      "decrypting": "Wird entschlüsselt…",
+      "noKeys": "Diese Nachricht ist verschlüsselt, und Sie haben hier noch keinen Schlüssel eingerichtet.",
+      "openSettings": "Verschlüsselungseinstellungen öffnen",
+      "notForYou": "Diese Nachricht wurde für keinen Ihrer Schlüssel hier verschlüsselt.",
+      "decryptFailed": "Diese Nachricht konnte nicht entschlüsselt werden. Sie ist möglicherweise beschädigt.",
+      "loadFailed": "Die Nachricht konnte nicht geladen werden. Versuchen Sie es erneut.",
+      "unreadable": "Der verschlüsselte Teil dieser Nachricht wurde nicht gefunden.",
+      "protectedSubject": "Verschlüsselter Betreff:",
+      "frameTitle": "Entschlüsselte Nachricht",
+      "attachments": "Verschlüsselte Anhänge",
+      "sigVerified": "Signiert mit Schlüssel {{key}}, den Sie verifiziert haben. Die Signatur ist gültig.",
+      "sigGood": "Signiert mit Schlüssel {{key}}. Die Signatur ist gültig, aber Sie haben diesen Schlüssel nicht verifiziert.",
+      "sigUnknown": "Signiert mit Schlüssel {{key}}, den Sie nicht haben. Die Signatur kann daher nicht geprüft werden.",
+      "sigBad": "Die Signatur stimmt nicht überein: Diese Nachricht wurde nach dem Signieren geändert oder stammt nicht von der angegebenen Person.",
+      "keyOffer": "Diese Nachricht enthält einen öffentlichen Schlüssel für {{email}}.",
+      "keyOfferDifferent": "Diese Nachricht enthält einen anderen öffentlichen Schlüssel für {{email}} als den, den Sie haben.",
+      "importKey": "Schlüssel importieren",
+      "keyImported": "Schlüssel zu den Schlüsseln Ihrer Korrespondenten hinzugefügt."
     }
   }
 }

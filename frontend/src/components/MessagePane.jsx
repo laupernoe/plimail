@@ -34,6 +34,8 @@ import AiResultBox from './AiResultBox.jsx';
 import { useAiActions } from '../hooks/useAiActions.js';
 import { useMessageAiTools } from '../hooks/useMessageAiTools.js';
 import { MailAiPanels, withMailActions } from './MessageAiPanels.jsx';
+import PgpMessageView, { PgpSignatureBadge } from './PgpMessageView.jsx';
+import { pgpVisibleAttachments } from '../utils/pgpReader.js';
 import AttachmentStrip from './AttachmentStrip.jsx';
 import {
   ActionBtn, MessageTools, ReplySplitButton, RemoteImagesNotice, UnsubscribeNotice, TOUCH_MIN,
@@ -1297,7 +1299,9 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
   // The toolbar's tools, in order: buttons on a desktop, the More menu on a phone (MessageTools).
   // Reply with AI sits by Reply. A phone's toolbar only just fits its buttons at large font sizes,
   // so there it is in More.
-  const aiReplyShown = aiReplyAvailable(aiStatus, plaintextEmail);
+  // An encrypted message's plaintext exists only in this tab (PgpMessageView.jsx): no AI reads it.
+  const pgpEncrypted = body?.pgp === 'encrypted';
+  const aiReplyShown = !pgpEncrypted && aiReplyAvailable(aiStatus, plaintextEmail);
   const handleAiReply = () => handleReply(defaultReplyAll, { aiReply: true });
   const toolItems = message ? [
     aiReplyShown && isMobile && { key: 'aiReply', label: t('compose.toolbar.aiReply'), icon: <AiReplyIcon />, onClick: handleAiReply },
@@ -1310,7 +1314,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
     { key: 'print', label: t('message.print'), title: withShortcut(t('message.print'), 'printMessage'), icon: <PrintIcon />, onClick: handlePrint },
     darkToggleShown && { key: 'dark', label: darkToggleLabel, icon: <DarkToggleIcon shownDark={shownDark} />, onClick: toggleDark, pressed: shownDark, disabled: darkRefused },
   ].filter(Boolean) : [];
-  const aiTools = withMailActions(aiStatus?.enabled && aiStatus?.features?.summarize && body ? {
+  const aiTools = withMailActions(aiStatus?.enabled && aiStatus?.features?.summarize && body && !pgpEncrypted ? {
     items: [{ ...BUILTIN_SUMMARIZE, label: t('message.summarize') }, ...(aiActions || [])],
     results: aiResults,
     onRun: action => runAiAction(action),
@@ -1320,7 +1324,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
   // Only messages you sent (or drafts you saved) have a Bcc on record (#585).
   const bccList = Array.isArray(body?.bccAddresses) ? body.bccAddresses : [];
 
-  const attachments = body?.attachments || [];
+  const attachments = pgpVisibleAttachments(body);
 
   return (
     <div
@@ -1819,7 +1823,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
         )}
 
         {/* No content */}
-        {!loadingBody && !bodyError && body && !body.html && !body.text && (
+        {!loadingBody && !bodyError && body && !body.html && !body.text && !pgpEncrypted && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 12, padding: '20px 0' }}>
             <div style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>
               {t('message.noContent')}
@@ -1840,8 +1844,18 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
         )}
       </div>
 
+      {/* OpenPGP: an encrypted message is decrypted and shown here, a signed one gets its
+          signature checked above the body. */}
+      {!loadingBody && !bodyError && body?.pgp && (
+        <div style={{ padding: isMobile ? '0 0 8px' : '0 28px 8px' }}>
+          {pgpEncrypted
+            ? <PgpMessageView message={message} onOpenSettings={() => { setAdminTab('pgp'); setShowAdmin(true); }} />
+            : <PgpSignatureBadge message={message} />}
+        </div>
+      )}
+
       {/* HTML email — iframe sized to full content height; outer container scrolls */}
-      {!loadingBody && !bodyError && body?.html && (
+      {!loadingBody && !bodyError && body?.html && !pgpEncrypted && (
         <div style={{ padding: isMobile ? '0 0 16px' : '0 28px 24px' }}>
           {/* Unsubscribe banner — shown for newsletter messages that have a List-Unsubscribe header */}
           {message.list_unsubscribe && !message.unsubscribed_at && unsubscribeStatus !== 'done' && (
@@ -1942,7 +1956,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
       )}
 
       {/* Plain-text email — no internal scroll, outer container handles it */}
-      {!loadingBody && !bodyError && body?.text && !body?.html && (
+      {!loadingBody && !bodyError && body?.text && !body?.html && !pgpEncrypted && (
         <div style={{
           padding: isMobile ? '0 0px 16px' : '0 28px 24px',
         }}>

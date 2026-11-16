@@ -2608,6 +2608,33 @@
       "privateInKeyring": "Questa è una chiave privata. Qui vanno solo chiavi pubbliche; importa la tua chiave privata sopra.",
       "generic": "Non ha funzionato. Riprova.",
       "loadFailed": "Impossibile caricare le tue chiavi."
+    },
+    "read": {
+      "listSnippet": "Messaggio cifrato",
+      "encrypted": "Messaggio cifrato. Solo la tua chiave può aprirlo, qui nel tuo browser.",
+      "decrypted": "Decifrato nel tuo browser. Nulla viene conservato sul server.",
+      "enterPassphrase": "Inserisci la frase d'accesso della tua chiave per {{email}}.",
+      "passphrase": "Frase d'accesso della chiave",
+      "rememberSession": "Mantieni la chiave sbloccata in questa scheda fino alla disconnessione",
+      "decrypt": "Decifra",
+      "decrypting": "Decifratura…",
+      "noKeys": "Questo messaggio è cifrato e qui non hai ancora configurato alcuna chiave.",
+      "openSettings": "Apri le impostazioni di crittografia",
+      "notForYou": "Questo messaggio non è stato cifrato per nessuna delle tue chiavi qui.",
+      "decryptFailed": "Impossibile decifrare questo messaggio. Potrebbe essere danneggiato.",
+      "loadFailed": "Impossibile caricare il messaggio. Riprova.",
+      "unreadable": "La parte cifrata di questo messaggio non è stata trovata.",
+      "protectedSubject": "Oggetto cifrato:",
+      "frameTitle": "Messaggio decifrato",
+      "attachments": "Allegati cifrati",
+      "sigVerified": "Firmato con la chiave {{key}}, che hai verificato. La firma è valida.",
+      "sigGood": "Firmato con la chiave {{key}}. La firma è valida, ma non hai verificato questa chiave.",
+      "sigUnknown": "Firmato con la chiave {{key}}, che non possiedi, quindi la firma non può essere controllata.",
+      "sigBad": "La firma non corrisponde: questo messaggio è stato modificato dopo la firma oppure non è stato firmato da chi dichiara.",
+      "keyOffer": "Questo messaggio include una chiave pubblica per {{email}}.",
+      "keyOfferDifferent": "Questo messaggio include per {{email}} una chiave pubblica diversa da quella che hai.",
+      "importKey": "Importa chiave",
+      "keyImported": "Chiave aggiunta alle chiavi dei corrispondenti."
     }
   }
 }
