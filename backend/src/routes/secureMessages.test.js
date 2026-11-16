@@ -17,7 +17,7 @@ vi.mock('../services/db.js', () => {
     unread_reply_count: String(repliesOf(m.id).filter(r => !r.read_at).length),
   });
   const id = () => `00000000-0000-4000-8000-${String(++db.seq).padStart(12, '0')}`;
-  return {
+  const mock = {
     query: vi.fn(async (sql, p = []) => {
       db.sql.push(sql);
       const s = sql.replace(/\s+/g, ' ').trim();
@@ -78,12 +78,26 @@ vi.mock('../services/db.js', () => {
         const m = [...db.messages.values()].find(x => x.token === p[0]);
         return { rows: openable(m) ? [m] : [] };
       }
-      if (s.startsWith('UPDATE secure_messages SET failed_attempts')) {
-        const m = db.messages.get(p[0]);
-        if (!m || m.locked_at) return { rows: [] };
+      if (s.startsWith('UPDATE secure_messages SET failed_attempts = failed_attempts + 1 WHERE token = $1')) {
+        const m = [...db.messages.values()].find(x => x.token === p[0]);
+        if (!openable(m) || m.failed_attempts >= p[1]) return { rows: [] };
         m.failed_attempts += 1;
-        if (m.failed_attempts >= p[1]) m.locked_at = new Date();
+        return { rows: [m] };
+      }
+      if (s.startsWith('UPDATE secure_messages SET failed_attempts = GREATEST(failed_attempts - 1, 0)')) {
+        const m = db.messages.get(p[0]);
+        if (m) m.failed_attempts = Math.max(0, m.failed_attempts - 1);
+        return { rows: [] };
+      }
+      if (s.startsWith('UPDATE secure_messages SET locked_at = CASE')) {
+        const m = db.messages.get(p[0]);
+        if (!m) return { rows: [] };
+        if (m.failed_attempts >= p[1]) m.locked_at ??= new Date();
         return { rows: [{ failed_attempts: m.failed_attempts, locked_at: m.locked_at }] };
+      }
+      if (s.startsWith('SELECT id FROM secure_messages WHERE id = $1 AND')) {
+        const m = db.messages.get(p[0]);
+        return { rows: openable(m) ? [{ id: m.id }] : [] };
       }
       if (s.startsWith('UPDATE secure_messages SET open_count')) {
         const m = db.messages.get(p[0]);
@@ -101,7 +115,9 @@ vi.mock('../services/db.js', () => {
       }
       throw new Error(`unexpected SQL: ${s}`);
     }),
+    withTransaction: async fn => fn({ query: mock.query }),
   };
+  return mock;
 });
 vi.mock('../services/redis.js', () => ({
   redisClient: {
@@ -122,7 +138,7 @@ vi.mock('../middleware/auth.js', () => ({
 
 import express from 'express';
 import ownerRoutes from './secureMessages.js';
-import publicRoutes from './secureMessagesPublic.js';
+import publicRoutes, { ATTEMPTS_PER_IP } from './secureMessagesPublic.js';
 import { sendPushToUser } from '../services/pushNotifications.js';
 import {
   MAX_CIPHERTEXT_BYTES, MAX_FAILED_ATTEMPTS, MAX_REPLIES, MAX_REPLY_BYTES, authKeyMatches, decodeBase64,
@@ -372,6 +388,28 @@ describe('the recipient', () => {
     expect((await (await json(`/api/secure-messages/${id}`, { user: 'u1' })).json()).status).toBe('locked');
   });
 
+  it('compares no more keys at once than the message has tries left', async () => {
+    const { token, id } = await create();
+    rowOf(id).failed_attempts = MAX_FAILED_ATTEMPTS - 1;
+    const wrong = randomBytes(32).toString('hex');
+    const answers = await Promise.all(Array.from({ length: 15 }, (_, i) => open(token, wrong, `10.7.0.${i}`)));
+    const statuses = answers.map(r => r.status);
+    // One try was left: one comparison, which locks it; the rest never reach the key.
+    expect(statuses.filter(s => s === 401 || s === 403)).toEqual([403]);
+    expect(statuses.every(s => [403, 404, 429].includes(s))).toBe(true);
+    expect(rowOf(id)).toMatchObject({ failed_attempts: MAX_FAILED_ATTEMPTS });
+    expect(rowOf(id).locked_at).toBeTruthy();
+  });
+
+  it('hands a try back when the key is right, so a message opened often never locks', async () => {
+    const { token, id } = await create();
+    for (let i = 0; i < MAX_FAILED_ATTEMPTS + 5; i++) {
+      expect((await open(token, authKey, `10.6.0.${i}`)).status).toBe(200);
+      rs.store.clear();
+    }
+    expect(rowOf(id)).toMatchObject({ failed_attempts: 0, locked_at: null, open_count: MAX_FAILED_ATTEMPTS + 5 });
+  });
+
   it('cannot tell an unknown, expired, revoked or locked link apart', async () => {
     const expired = await create();
     rowOf(expired.id).expires_at = new Date(Date.now() - 1000);
@@ -391,10 +429,18 @@ describe('the recipient', () => {
   });
 
   it('is rate limited per address and per message', async () => {
+    // Spread over enough messages that none spends its own budget: only the address's can stop it.
+    const tokens = [];
+    for (let i = 0; i < Math.ceil((ATTEMPTS_PER_IP.max + 1) / 10); i++) tokens.push((await create()).token);
+    const statuses = [];
+    for (let i = 0; i <= ATTEMPTS_PER_IP.max; i++) statuses.push((await open(tokens[i % tokens.length], authKey, '10.9.9.9')).status);
+    expect(statuses.slice(0, -1).every(s => s === 200)).toBe(true);
+    expect(statuses.at(-1)).toBe(429);
+    // Every address of one IPv6 /64 shares a budget.
+    rs.store.clear();
+    for (let i = 0; i < ATTEMPTS_PER_IP.max; i++) await open(tokens[i % tokens.length], authKey, `2001:db8:5:6::${(i + 1).toString(16)}`);
+    expect((await open(tokens[0], authKey, '2001:db8:5:6:ffff::1')).status).toBe(429);
     const { token } = await create();
-    let status;
-    for (let i = 0; i < 30; i++) status = (await open(token, authKey, '10.9.9.9')).status;
-    expect(status).toBe(429);
     // Another address still reaches it, until the message's own budget runs out.
     rs.store.clear();
     for (let i = 0; i < 20; i++) expect((await open(token, authKey, `10.8.0.${i}`)).status).toBe(200);
