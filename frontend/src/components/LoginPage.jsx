@@ -4,6 +4,7 @@ import { useStore } from '../store/index.js';
 import { api } from '../utils/api.js';
 import LogoMark, { Wordmark } from './LogoMark.jsx';
 import PasswordInput from './PasswordInput.jsx';
+import { passwordFitsRule } from '../utils/passwordRule.js';
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -89,6 +90,10 @@ export default function LoginPage() {
   const submit = async (e) => {
     e.preventDefault();
     if (!username || !password) return;
+    if (mode === 'register' && !passwordFitsRule(password)) {
+      setError(t('login.passwordRule'));
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -230,6 +235,10 @@ export default function LoginPage() {
     }
     if (newPassword.length < 8) {
       setError(t('login.resetPassword.tooShort'));
+      return;
+    }
+    if (!passwordFitsRule(newPassword)) {
+      setError(t('login.passwordRule'));
       return;
     }
     setLoading(true);
@@ -884,6 +893,11 @@ export default function LoginPage() {
                 onFocus={e => e.target.style.borderColor = 'var(--accent)'}
                 onBlur={e => e.target.style.borderColor = 'var(--border)'}
               />
+              {mode === 'register' && (
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 6 }}>
+                  {t('login.passwordRule')}
+                </div>
+              )}
               {mode === 'login' && !internalAuthDisabled && (
                 <button
                   type="button"

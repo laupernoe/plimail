@@ -91,7 +91,8 @@
       "backToLogin": "← Retour à la connexion"
     },
     "showPassword": "Afficher le mot de passe",
-    "hidePassword": "Masquer le mot de passe"
+    "hidePassword": "Masquer le mot de passe",
+    "passwordRule": "Utilisez au moins 8 caractères, et pas plus de 72."
   },
   "compose": {
     "unsupportedDraftFrom": "Choisissez un expéditeur configuré avant d’enregistrer ou d’envoyer ce brouillon.",

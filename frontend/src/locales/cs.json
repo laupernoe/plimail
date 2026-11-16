@@ -91,7 +91,8 @@
       "backToLogin": "← Zpět k přihlášení"
     },
     "showPassword": "Zobrazit heslo",
-    "hidePassword": "Skrýt heslo"
+    "hidePassword": "Skrýt heslo",
+    "passwordRule": "Použijte alespoň 8 a nejvýše 72 znaků."
   },
   "lockScreen": {
     "subtitle": "Odemkněte zadáním PINu",

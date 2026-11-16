@@ -91,7 +91,8 @@
       "backToLogin": "← Zurück zur Anmeldung"
     },
     "showPassword": "Passwort anzeigen",
-    "hidePassword": "Passwort verbergen"
+    "hidePassword": "Passwort verbergen",
+    "passwordRule": "Verwenden Sie mindestens 8 und höchstens 72 Zeichen."
   },
   "compose": {
     "unsupportedDraftFrom": "Wähle einen eingerichteten Absender, bevor du diesen Entwurf speicherst oder sendest.",

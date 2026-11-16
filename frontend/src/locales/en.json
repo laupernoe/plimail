@@ -91,7 +91,8 @@
       "backToLogin": "← Back to login"
     },
     "showPassword": "Show password",
-    "hidePassword": "Hide password"
+    "hidePassword": "Hide password",
+    "passwordRule": "Use at least 8 characters, and no more than 72."
   },
   "compose": {
     "unsupportedDraftFrom": "Choose a configured sender before saving or sending this draft.",

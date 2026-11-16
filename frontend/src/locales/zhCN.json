@@ -91,7 +91,8 @@
       "backToLogin": "← 返回登录"
     },
     "showPassword": "显示密码",
-    "hidePassword": "隐藏密码"
+    "hidePassword": "隐藏密码",
+    "passwordRule": "请使用 8 到 72 个字符。"
   },
   "compose": {
     "unsupportedDraftFrom": "保存或发送此草稿前，请选择已配置的发件人。",

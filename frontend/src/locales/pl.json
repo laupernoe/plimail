@@ -91,7 +91,8 @@
       "backToLogin": "← Powrót do logowania"
     },
     "showPassword": "Pokaż hasło",
-    "hidePassword": "Ukryj hasło"
+    "hidePassword": "Ukryj hasło",
+    "passwordRule": "Użyj co najmniej 8 i najwyżej 72 znaków."
   },
   "compose": {
     "unsupportedDraftFrom": "Wybierz skonfigurowanego nadawcę przed zapisaniem lub wysłaniem tego szkicu.",

@@ -23,6 +23,7 @@ import { aiEnabledForNewUser } from '../services/aiNewUsers.js';
 import { consume as rlConsume, release as rlRelease, reset as rlReset } from '../services/rateLimiter.js';
 import { consumeLoginAttempt } from '../services/loginLimiter.js';
 import { rateLimitAddress } from '../utils/rateLimitAddress.js';
+import { passwordProblem } from '../utils/passwordPolicy.js';
 
 const router = Router();
 
@@ -94,8 +95,10 @@ function rateLimit(config) {
 const authLimiter = rateLimit(authLimiterConfig);
 
 router.post('/register', authLimiter, async (req, res) => {
-  const { username, password, inviteToken } = req.body;
-  if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+  const { username, password, inviteToken } = req.body ?? {};
+  if (!username || !password || typeof username !== 'string') return res.status(400).json({ error: 'Username and password required' });
+  const problem = passwordProblem(password);
+  if (problem) return res.status(400).json({ error: problem });
   const trimmedUsername = username.toLowerCase().trim();
   if (trimmedUsername.length < 1 || trimmedUsername.length > 120) {
     return res.status(400).json({ error: 'Username must be between 1 and 120 characters' });
@@ -1180,9 +1183,8 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
 router.post('/reset-password', authLimiter, async (req, res) => {
   const { token, password } = req.body;
   if (!token || typeof token !== 'string') return res.status(400).json({ error: 'Token required' });
-  if (!password || typeof password !== 'string' || password.length < 8) {
-    return res.status(400).json({ error: 'Password must be at least 8 characters' });
-  }
+  const problem = passwordProblem(password);
+  if (problem) return res.status(400).json({ error: problem });
 
   const tokenHash = crypto.createHash('sha256').update(token.trim()).digest('hex');
   try {
