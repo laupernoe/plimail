@@ -1122,7 +1122,8 @@
       "groupCalendar": "Calendário",
       "calendarAccounts": "Contas",
       "calendarList": "Calendários",
-      "secureMessages": "Mensagens protegidas"
+      "secureMessages": "Mensagens protegidas",
+      "pgp": "Criptografia (PGP)"
     },
     "rules": {
       "title": "Regras da caixa de entrada",
@@ -2546,5 +2547,67 @@
     "replyTooLarge": "A resposta é longa demais.",
     "replyFailed": "Não foi possível enviar a resposta. Tente de novo.",
     "repliesSent": "Respostas enviadas: {{count}}"
+  },
+  "pgp": {
+    "settings": {
+      "title": "Criptografia (PGP)",
+      "intro": "Suas chaves OpenPGP permitem que outras pessoas enviem e-mails criptografados para você e que você assine e criptografe o que envia. Sua chave privada fica armazenada aqui apenas bloqueada pela frase secreta, que nunca sai do seu navegador, então você pode usá-la em todos os dispositivos em que fizer login.",
+      "noKeys": "Você ainda não tem uma chave. Crie uma para um endereço ou importe uma chave que você já usa (do Proton, Thunderbird ou GnuPG, por exemplo).",
+      "generateTitle": "Criar uma chave",
+      "address": "Endereço",
+      "name": "Nome na chave",
+      "passphrase": "Frase secreta",
+      "passphraseConfirm": "Repita a frase secreta",
+      "passphraseNote": "Pelo menos {{n}} caracteres. Você precisa dela para ler e-mails criptografados e para assinar. Se você a perder, ninguém poderá recuperá-la e os e-mails criptografados para esta chave não poderão mais ser lidos.",
+      "alreadyHasKey": "Este endereço já tem uma chave. Ter uma segunda não é problema, mas as pessoas verão duas.",
+      "generate": "Criar chave",
+      "generating": "Criando…",
+      "importTitle": "Importar uma chave privada",
+      "importNote": "Cole ou escolha uma chave privada em formato armored exportada de outro aplicativo. Ela é verificada aqui, no seu navegador, com a frase secreta.",
+      "importPaste": "Chave em formato armored",
+      "importFile": "Ou um arquivo:",
+      "keyPassphrase": "Frase secreta da chave",
+      "newPassphrase": "Esta chave não tem frase secreta. Escolha uma para protegê-la aqui.",
+      "import": "Importar chave",
+      "importing": "Importando…",
+      "createdOn": "Criada em {{date}}",
+      "exportPublic": "Exportar chave pública",
+      "exportPrivate": "Exportar chave privada",
+      "exportPrivateWarning": "A chave privada exportada continua bloqueada pela sua frase secreta, mas guarde o arquivo em um lugar seguro: quem tiver o arquivo e adivinhar a frase secreta poderá ler seus e-mails criptografados.",
+      "exportPrivateConfirm": "Baixar chave privada",
+      "delete": "Excluir",
+      "deleteConfirm": "Excluir definitivamente",
+      "deleteWarning": "Depois de excluída, os e-mails criptografados para esta chave não poderão mais ser lidos aqui. Exporte a chave privada antes, se puder precisar dela.",
+      "unlockedCount": "Chaves desbloqueadas nesta aba: {{n}}.",
+      "lockAll": "Bloquear agora",
+      "keyringTitle": "Chaves dos contatos",
+      "keyringIntro": "Chaves públicas usadas para criptografar e-mails para outras pessoas. As chaves são encontradas em diretórios de chaves web (WKD), coletadas de e-mails recebidos (marcadas como não verificadas) ou adicionadas por você.",
+      "keyringEmpty": "Ainda não há chaves. Elas são adicionadas quando você escreve para pessoas que publicam uma, ou você pode adicionar uma.",
+      "addPublicTitle": "Adicionar uma chave pública",
+      "addPublic": "Adicionar chave",
+      "verified": "Verificada",
+      "unverified": "Não verificada",
+      "from": "Origem: {{source}}",
+      "markVerified": "Marcar como verificada",
+      "markUnverified": "Marcar como não verificada",
+      "export": "Exportar",
+      "verifyHint": "Compare esta impressão digital com a do proprietário, pessoalmente ou por telefone, antes de marcá-la como verificada."
+    },
+    "source": {
+      "manual": "adicionada por você",
+      "wkd": "diretório de chaves web (WKD)",
+      "autocrypt": "e-mail recebido (Autocrypt)",
+      "attachment": "uma chave anexada a uma mensagem"
+    },
+    "errors": {
+      "wrongPassphrase": "Frase secreta incorreta.",
+      "invalidKey": "Esta não é uma chave OpenPGP que o aplicativo consiga ler.",
+      "unprotectedKey": "Esta chave privada não tem frase secreta. Escolha uma para protegê-la.",
+      "duplicate": "Esta chave já está entre as suas chaves.",
+      "noEmail": "A chave não tem nenhum endereço de e-mail nos IDs de usuário.",
+      "privateInKeyring": "Esta é uma chave privada. Aqui só entram chaves públicas; importe sua própria chave privada acima.",
+      "generic": "Não funcionou. Tente novamente.",
+      "loadFailed": "Não foi possível carregar suas chaves."
+    }
   }
 }

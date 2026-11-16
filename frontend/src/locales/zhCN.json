@@ -1122,7 +1122,8 @@
       "groupCalendar": "日历",
       "calendarAccounts": "账户",
       "calendarList": "日历",
-      "secureMessages": "受保护的邮件"
+      "secureMessages": "受保护的邮件",
+      "pgp": "加密（PGP）"
     },
     "rules": {
       "title": "收件箱规则",
@@ -2546,5 +2547,67 @@
     "replyTooLarge": "回复过长。",
     "replyFailed": "无法发送回复，请重试。",
     "repliesSent": "已发送回复：{{count}}"
+  },
+  "pgp": {
+    "settings": {
+      "title": "加密（PGP）",
+      "intro": "你的 OpenPGP 密钥让别人可以向你发送加密邮件，也让你可以对发出的邮件签名和加密。你的私钥在这里仅以口令锁定的形式存储，口令绝不会离开你的浏览器，因此你可以在每台登录的设备上使用它。",
+      "noKeys": "你还没有密钥。可以为某个地址创建一个，或导入你已在使用的密钥（例如来自 Proton、Thunderbird 或 GnuPG）。",
+      "generateTitle": "创建密钥",
+      "address": "地址",
+      "name": "密钥上的姓名",
+      "passphrase": "口令",
+      "passphraseConfirm": "再次输入口令",
+      "passphraseNote": "至少 {{n}} 个字符。阅读加密邮件和签名都需要它。如果丢失，没有人能够找回，用此密钥加密的邮件将无法再读取。",
+      "alreadyHasKey": "此地址已有密钥。可以再创建第二个，但别人会看到两个。",
+      "generate": "创建密钥",
+      "generating": "正在创建…",
+      "importTitle": "导入私钥",
+      "importNote": "粘贴或选择从其他应用导出的 ASCII 装甲格式私钥。它会在此处的浏览器中使用其口令进行校验。",
+      "importPaste": "ASCII 装甲密钥",
+      "importFile": "或选择文件：",
+      "keyPassphrase": "密钥的口令",
+      "newPassphrase": "此密钥没有口令。请设置一个，以便在此处保护它。",
+      "import": "导入密钥",
+      "importing": "正在导入…",
+      "createdOn": "创建于 {{date}}",
+      "exportPublic": "导出公钥",
+      "exportPrivate": "导出私钥",
+      "exportPrivateWarning": "导出的私钥仍由你的口令锁定，但请将文件保存在安全的地方：任何拿到文件并猜出口令的人都能读取你的加密邮件。",
+      "exportPrivateConfirm": "下载私钥",
+      "delete": "删除",
+      "deleteConfirm": "永久删除",
+      "deleteWarning": "删除后，用此密钥加密的邮件将无法在这里读取。如果以后可能用到，请先导出私钥。",
+      "unlockedCount": "此标签页中已解锁的密钥：{{n}} 个。",
+      "lockAll": "立即锁定",
+      "keyringTitle": "联系人的密钥",
+      "keyringIntro": "用于加密发给他人邮件的公钥。密钥可从 Web 密钥目录（WKD）中找到、从收到的邮件中收集（标记为未验证），或由你手动添加。",
+      "keyringEmpty": "还没有密钥。向公开了密钥的人写邮件时会自动添加，你也可以手动添加。",
+      "addPublicTitle": "添加公钥",
+      "addPublic": "添加密钥",
+      "verified": "已验证",
+      "unverified": "未验证",
+      "from": "来源：{{source}}",
+      "markVerified": "标记为已验证",
+      "markUnverified": "标记为未验证",
+      "export": "导出",
+      "verifyHint": "标记为已验证之前，请当面或通过电话与密钥所有者核对此指纹。"
+    },
+    "source": {
+      "manual": "由你添加",
+      "wkd": "Web 密钥目录（WKD）",
+      "autocrypt": "收到的邮件（Autocrypt）",
+      "attachment": "邮件中附带的密钥"
+    },
+    "errors": {
+      "wrongPassphrase": "口令错误。",
+      "invalidKey": "这不是此应用可以读取的 OpenPGP 密钥。",
+      "unprotectedKey": "此私钥没有口令。请设置一个来保护它。",
+      "duplicate": "此密钥已在你的密钥中。",
+      "noEmail": "该密钥的用户 ID 中没有电子邮件地址。",
+      "privateInKeyring": "这是私钥。这里只能添加公钥；请在上方导入你自己的私钥。",
+      "generic": "操作未成功。请重试。",
+      "loadFailed": "无法加载你的密钥。"
+    }
   }
 }

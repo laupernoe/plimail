@@ -1138,7 +1138,8 @@
       "groupCalendar": "Kalendarz",
       "calendarAccounts": "Konta",
       "calendarList": "Kalendarze",
-      "secureMessages": "Chronione wiadomości"
+      "secureMessages": "Chronione wiadomości",
+      "pgp": "Szyfrowanie (PGP)"
     },
     "rules": {
       "title": "Reguły skrzynki odbiorczej",
@@ -2565,5 +2566,67 @@
     "replyTooLarge": "Odpowiedź jest za długa.",
     "replyFailed": "Nie udało się wysłać odpowiedzi. Spróbuj ponownie.",
     "repliesSent": "Wysłane odpowiedzi: {{count}}"
+  },
+  "pgp": {
+    "settings": {
+      "title": "Szyfrowanie (PGP)",
+      "intro": "Twoje klucze OpenPGP pozwalają innym wysyłać Ci zaszyfrowane wiadomości, a Tobie podpisywać i szyfrować to, co wysyłasz. Klucz prywatny jest tu przechowywany wyłącznie zablokowany frazą hasła, która nigdy nie opuszcza Twojej przeglądarki, więc możesz go używać na każdym urządzeniu, na którym się logujesz.",
+      "noKeys": "Nie masz jeszcze klucza. Utwórz go dla adresu albo zaimportuj klucz, którego już używasz (na przykład z Protona, Thunderbirda lub GnuPG).",
+      "generateTitle": "Utwórz klucz",
+      "address": "Adres",
+      "name": "Nazwa w kluczu",
+      "passphrase": "Fraza hasła",
+      "passphraseConfirm": "Powtórz frazę hasła",
+      "passphraseNote": "Co najmniej {{n}} znaków. Jest potrzebna do czytania zaszyfrowanych wiadomości i do podpisywania. Jeśli ją zgubisz, nikt jej nie odzyska, a wiadomości zaszyfrowane tym kluczem nie będzie można już odczytać.",
+      "alreadyHasKey": "Ten adres ma już klucz. Drugi klucz jest dozwolony, ale inni zobaczą dwa.",
+      "generate": "Utwórz klucz",
+      "generating": "Tworzenie…",
+      "importTitle": "Importuj klucz prywatny",
+      "importNote": "Wklej lub wybierz klucz prywatny w formacie ASCII armor wyeksportowany z innej aplikacji. Jest sprawdzany tutaj, w Twojej przeglądarce, za pomocą jego frazy hasła.",
+      "importPaste": "Klucz (ASCII armor)",
+      "importFile": "Lub plik:",
+      "keyPassphrase": "Fraza hasła klucza",
+      "newPassphrase": "Ten klucz nie ma frazy hasła. Wybierz ją, aby chronić klucz tutaj.",
+      "import": "Importuj klucz",
+      "importing": "Importowanie…",
+      "createdOn": "Utworzono {{date}}",
+      "exportPublic": "Eksportuj klucz publiczny",
+      "exportPrivate": "Eksportuj klucz prywatny",
+      "exportPrivateWarning": "Wyeksportowany klucz prywatny nadal jest zablokowany Twoją frazą hasła, ale przechowuj plik w bezpiecznym miejscu: każdy, kto go ma i odgadnie frazę hasła, przeczyta Twoje zaszyfrowane wiadomości.",
+      "exportPrivateConfirm": "Pobierz klucz prywatny",
+      "delete": "Usuń",
+      "deleteConfirm": "Usuń na stałe",
+      "deleteWarning": "Po usunięciu wiadomości zaszyfrowane tym kluczem nie będą już tu czytelne. Jeśli klucz może Ci się jeszcze przydać, najpierw wyeksportuj klucz prywatny.",
+      "unlockedCount": "Klucze odblokowane w tej karcie: {{n}}.",
+      "lockAll": "Zablokuj teraz",
+      "keyringTitle": "Klucze korespondentów",
+      "keyringIntro": "Klucze publiczne używane do szyfrowania wiadomości dla innych osób. Klucze są znajdowane w katalogach kluczy internetowych (WKD), zbierane z otrzymanych wiadomości (oznaczone jako niezweryfikowane) lub dodawane przez Ciebie.",
+      "keyringEmpty": "Brak kluczy. Są dodawane, gdy piszesz do osób, które je publikują, albo możesz dodać klucz samodzielnie.",
+      "addPublicTitle": "Dodaj klucz publiczny",
+      "addPublic": "Dodaj klucz",
+      "verified": "Zweryfikowany",
+      "unverified": "Niezweryfikowany",
+      "from": "Źródło: {{source}}",
+      "markVerified": "Oznacz jako zweryfikowany",
+      "markUnverified": "Oznacz jako niezweryfikowany",
+      "export": "Eksportuj",
+      "verifyHint": "Zanim oznaczysz klucz jako zweryfikowany, porównaj ten odcisk z jego właścicielem, osobiście lub przez telefon."
+    },
+    "source": {
+      "manual": "dodany przez Ciebie",
+      "wkd": "katalog kluczy internetowych (WKD)",
+      "autocrypt": "otrzymana wiadomość (Autocrypt)",
+      "attachment": "klucz załączony do wiadomości"
+    },
+    "errors": {
+      "wrongPassphrase": "Nieprawidłowa fraza hasła.",
+      "invalidKey": "To nie jest klucz OpenPGP, który ta aplikacja potrafi odczytać.",
+      "unprotectedKey": "Ten klucz prywatny nie ma frazy hasła. Wybierz ją, aby go chronić.",
+      "duplicate": "Ten klucz jest już wśród Twoich kluczy.",
+      "noEmail": "Klucz nie ma adresu e-mail w identyfikatorach użytkownika.",
+      "privateInKeyring": "To klucz prywatny. Tutaj trafiają tylko klucze publiczne; własny klucz prywatny zaimportuj powyżej.",
+      "generic": "Nie udało się. Spróbuj ponownie.",
+      "loadFailed": "Nie udało się wczytać Twoich kluczy."
+    }
   }
 }

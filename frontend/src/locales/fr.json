@@ -1122,7 +1122,8 @@
       "groupCalendar": "Calendrier",
       "calendarAccounts": "Comptes",
       "calendarList": "Agendas",
-      "secureMessages": "Messages protégés"
+      "secureMessages": "Messages protégés",
+      "pgp": "Chiffrement (PGP)"
     },
     "rules": {
       "title": "Règles de boîte de réception",
@@ -2546,5 +2547,67 @@
     "replyTooLarge": "La réponse est trop longue.",
     "replyFailed": "Impossible d’envoyer la réponse. Réessayez.",
     "repliesSent": "Réponses envoyées : {{count}}"
+  },
+  "pgp": {
+    "settings": {
+      "title": "Chiffrement (PGP)",
+      "intro": "Vos clés OpenPGP permettent de vous écrire des messages chiffrés, et à vous de signer et de chiffrer ce que vous envoyez. Votre clé privée n'est conservée ici que verrouillée par sa phrase secrète, qui ne quitte jamais votre navigateur : vous pouvez donc l'utiliser sur chaque appareil où vous vous connectez.",
+      "noKeys": "Vous n'avez pas encore de clé. Créez-en une pour une adresse, ou importez une clé que vous utilisez déjà (depuis Proton, Thunderbird ou GnuPG, par exemple).",
+      "generateTitle": "Créer une clé",
+      "address": "Adresse",
+      "name": "Nom sur la clé",
+      "passphrase": "Phrase secrète",
+      "passphraseConfirm": "Phrase secrète, encore une fois",
+      "passphraseNote": "Au moins {{n}} caractères. Elle sert à lire les messages chiffrés et à signer. Si vous la perdez, personne ne peut la retrouver et les messages chiffrés pour cette clé deviennent illisibles.",
+      "alreadyHasKey": "Cette adresse a déjà une clé. Une deuxième est possible, mais vos correspondants en verront deux.",
+      "generate": "Créer la clé",
+      "generating": "Création…",
+      "importTitle": "Importer une clé privée",
+      "importNote": "Collez ou choisissez une clé privée au format ASCII (armored) exportée d'une autre application. Elle est vérifiée avec sa phrase secrète ici, dans votre navigateur.",
+      "importPaste": "Clé au format texte",
+      "importFile": "Ou un fichier :",
+      "keyPassphrase": "Phrase secrète de la clé",
+      "newPassphrase": "Cette clé n'a pas de phrase secrète. Choisissez-en une pour la protéger ici.",
+      "import": "Importer la clé",
+      "importing": "Importation…",
+      "createdOn": "Créée le {{date}}",
+      "exportPublic": "Exporter la clé publique",
+      "exportPrivate": "Exporter la clé privée",
+      "exportPrivateWarning": "La clé privée exportée reste verrouillée par votre phrase secrète, mais gardez le fichier en lieu sûr : quiconque l'obtient et devine la phrase secrète peut lire vos messages chiffrés.",
+      "exportPrivateConfirm": "Télécharger la clé privée",
+      "delete": "Supprimer",
+      "deleteConfirm": "Supprimer définitivement",
+      "deleteWarning": "Une fois la clé supprimée, les messages chiffrés pour elle ne pourront plus être lus ici. Exportez d'abord la clé privée si vous pourriez en avoir besoin.",
+      "unlockedCount": "Clés déverrouillées dans cet onglet : {{n}}.",
+      "lockAll": "Les verrouiller maintenant",
+      "keyringTitle": "Clés de vos correspondants",
+      "keyringIntro": "Les clés publiques qui servent à chiffrer vos messages pour d'autres personnes. Elles sont trouvées dans les annuaires de clés (WKD), récupérées dans les messages reçus (marquées non vérifiées) ou ajoutées par vous.",
+      "keyringEmpty": "Aucune clé pour l'instant. Elles s'ajoutent quand vous écrivez à des personnes qui en publient une, ou vous pouvez en ajouter.",
+      "addPublicTitle": "Ajouter une clé publique",
+      "addPublic": "Ajouter la clé",
+      "verified": "Vérifiée",
+      "unverified": "Non vérifiée",
+      "from": "Provenance : {{source}}",
+      "markVerified": "Marquer comme vérifiée",
+      "markUnverified": "Marquer comme non vérifiée",
+      "export": "Exporter",
+      "verifyHint": "Comparez cette empreinte avec son propriétaire, en personne ou par téléphone, avant de la marquer comme vérifiée."
+    },
+    "source": {
+      "manual": "ajoutée par vous",
+      "wkd": "annuaire de clés (WKD)",
+      "autocrypt": "message reçu (Autocrypt)",
+      "attachment": "clé jointe à un message"
+    },
+    "errors": {
+      "wrongPassphrase": "Phrase secrète incorrecte.",
+      "invalidKey": "Ce n'est pas une clé OpenPGP que cette application sait lire.",
+      "unprotectedKey": "Cette clé privée n'a pas de phrase secrète. Choisissez-en une pour la protéger.",
+      "duplicate": "Cette clé fait déjà partie de vos clés.",
+      "noEmail": "La clé ne contient aucune adresse e-mail dans ses identités.",
+      "privateInKeyring": "Ceci est une clé privée. Seules les clés publiques vont ici ; importez votre propre clé privée plus haut.",
+      "generic": "Cela n'a pas fonctionné. Réessayez.",
+      "loadFailed": "Impossible de charger vos clés."
+    }
   }
 }

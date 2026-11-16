@@ -1198,7 +1198,8 @@
       "groupCalendar": "Kalendář",
       "calendarAccounts": "Účty",
       "calendarList": "Kalendáře",
-      "secureMessages": "Chráněné zprávy"
+      "secureMessages": "Chráněné zprávy",
+      "pgp": "Šifrování (PGP)"
     },
     "categories": {
       "title": "Kategorie e-mailů",
@@ -2565,5 +2566,67 @@
     "replyTooLarge": "Odpověď je příliš dlouhá.",
     "replyFailed": "Odpověď se nepodařilo odeslat. Zkuste to znovu.",
     "repliesSent": "Odeslané odpovědi: {{count}}"
+  },
+  "pgp": {
+    "settings": {
+      "title": "Šifrování (PGP)",
+      "intro": "Vaše klíče OpenPGP umožňují ostatním posílat vám šifrovanou poštu a vám podepisovat a šifrovat odesílané zprávy. Soukromý klíč je tu uložen jen zamčený svou heslovou frází, která váš prohlížeč nikdy neopustí, takže klíč můžete používat na každém zařízení, kde se přihlásíte.",
+      "noKeys": "Zatím nemáte žádný klíč. Vytvořte ho pro některou adresu nebo importujte klíč, který už používáte (například z Protonu, Thunderbirdu nebo GnuPG).",
+      "generateTitle": "Vytvořit klíč",
+      "address": "Adresa",
+      "name": "Jméno na klíči",
+      "passphrase": "Heslová fráze",
+      "passphraseConfirm": "Heslová fráze znovu",
+      "passphraseNote": "Alespoň {{n}} znaků. Potřebujete ji ke čtení šifrované pošty a k podepisování. Pokud ji ztratíte, nikdo ji nemůže obnovit a pošta zašifrovaná pro tento klíč už nepůjde přečíst.",
+      "alreadyHasKey": "Tato adresa už klíč má. Druhý klíč není problém, ale ostatní uvidí dva.",
+      "generate": "Vytvořit klíč",
+      "generating": "Vytváří se…",
+      "importTitle": "Importovat soukromý klíč",
+      "importNote": "Vložte nebo vyberte soukromý klíč ve formátu ASCII armor exportovaný z jiné aplikace. Ověří se zde, ve vašem prohlížeči, pomocí jeho heslové fráze.",
+      "importPaste": "Klíč (ASCII armor)",
+      "importFile": "Nebo soubor:",
+      "keyPassphrase": "Heslová fráze klíče",
+      "newPassphrase": "Tento klíč nemá heslovou frázi. Zvolte ji, aby byl tady chráněn.",
+      "import": "Importovat klíč",
+      "importing": "Importuje se…",
+      "createdOn": "Vytvořeno {{date}}",
+      "exportPublic": "Exportovat veřejný klíč",
+      "exportPrivate": "Exportovat soukromý klíč",
+      "exportPrivateWarning": "Exportovaný soukromý klíč je stále zamčený vaší heslovou frází, ale soubor uložte na bezpečné místo: kdo ho má a heslovou frázi uhodne, přečte vaši šifrovanou poštu.",
+      "exportPrivateConfirm": "Stáhnout soukromý klíč",
+      "delete": "Smazat",
+      "deleteConfirm": "Smazat natrvalo",
+      "deleteWarning": "Po smazání už tady nepůjde číst pošta zašifrovaná pro tento klíč. Pokud ho můžete ještě potřebovat, nejdřív exportujte soukromý klíč.",
+      "unlockedCount": "Klíče odemčené v tomto panelu: {{n}}.",
+      "lockAll": "Zamknout je teď",
+      "keyringTitle": "Klíče korespondentů",
+      "keyringIntro": "Veřejné klíče používané k šifrování pošty pro ostatní. Klíče se hledají v adresářích webových klíčů (WKD), přebírají z přijaté pošty (označené jako neověřené) nebo je přidáváte sami.",
+      "keyringEmpty": "Zatím žádné klíče. Přidají se, když píšete lidem, kteří nějaký zveřejňují, nebo můžete jeden přidat sami.",
+      "addPublicTitle": "Přidat veřejný klíč",
+      "addPublic": "Přidat klíč",
+      "verified": "Ověřený",
+      "unverified": "Neověřený",
+      "from": "Zdroj: {{source}}",
+      "markVerified": "Označit jako ověřený",
+      "markUnverified": "Označit jako neověřený",
+      "export": "Exportovat",
+      "verifyHint": "Než klíč označíte jako ověřený, porovnejte tento otisk s jeho majitelem, osobně nebo telefonicky."
+    },
+    "source": {
+      "manual": "přidáno vámi",
+      "wkd": "adresář webových klíčů (WKD)",
+      "autocrypt": "přijatá pošta (Autocrypt)",
+      "attachment": "klíč přiložený ke zprávě"
+    },
+    "errors": {
+      "wrongPassphrase": "Nesprávná heslová fráze.",
+      "invalidKey": "Toto není klíč OpenPGP, který tato aplikace umí přečíst.",
+      "unprotectedKey": "Tento soukromý klíč nemá heslovou frázi. Zvolte ji, aby byl chráněn.",
+      "duplicate": "Tento klíč už mezi svými klíči máte.",
+      "noEmail": "Klíč nemá v ID uživatele žádnou e-mailovou adresu.",
+      "privateInKeyring": "Toto je soukromý klíč. Sem patří jen veřejné klíče; vlastní soukromý klíč importujte výše.",
+      "generic": "Nepovedlo se. Zkuste to znovu.",
+      "loadFailed": "Vaše klíče se nepodařilo načíst."
+    }
   }
 }

@@ -222,6 +222,26 @@ export const api = {
     remove: (id) => request('DELETE', `/secure-messages/${id}`),
   },
 
+  // OpenPGP (routes/pgp.js). Private keys come and go only passphrase-protected.
+  pgp: {
+    keys: () => request('GET', '/pgp/keys'),
+    addKey: (data) => request('POST', '/pgp/keys', data),
+    removeKey: (id) => request('DELETE', `/pgp/keys/${id}`),
+    keyring: () => request('GET', '/pgp/keyring'),
+    addToKeyring: (data) => request('POST', '/pgp/keyring', data),
+    setVerified: (fingerprint, verified) => request('PATCH', `/pgp/keyring/${fingerprint}`, { verified }),
+    removeFromKeyring: (fingerprint) => request('DELETE', `/pgp/keyring/${fingerprint}`),
+    lookup: (emails) => request('POST', '/pgp/lookup', { emails }),
+    // The message's raw source (the same route as "Download .eml"), as bytes for the PGP reader.
+    rawMessage: async (messageId) => {
+      const res = await fetch(`${BASE}/mail/messages/${encodeURIComponent(messageId)}/raw.eml`, {
+        credentials: 'include', headers: { [CSRF_HEADER]: CSRF_VALUE }, cache: 'no-store',
+      });
+      if (!res.ok) throw Object.assign(new Error('Request failed'), { status: res.status });
+      return new Uint8Array(await res.arrayBuffer());
+    },
+  },
+
   // Auth
   login: (username, password) => request('POST', '/auth/login', { username, password }),
   register: (username, password, inviteToken) => request('POST', '/auth/register', { username, password, inviteToken }),

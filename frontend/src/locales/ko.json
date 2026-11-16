@@ -1121,7 +1121,8 @@
       "groupCalendar": "캘린더",
       "calendarAccounts": "계정",
       "calendarList": "캘린더",
-      "secureMessages": "보호된 메시지"
+      "secureMessages": "보호된 메시지",
+      "pgp": "암호화 (PGP)"
     },
     "close": "닫기",
     "rules": {
@@ -2546,5 +2547,67 @@
     "replyTooLarge": "답장이 너무 깁니다.",
     "replyFailed": "답장을 보내지 못했습니다. 다시 시도하세요.",
     "repliesSent": "보낸 답장: {{count}}"
+  },
+  "pgp": {
+    "settings": {
+      "title": "암호화 (PGP)",
+      "intro": "OpenPGP 키를 사용하면 다른 사람이 암호화된 메일을 보낼 수 있고, 보내는 메일에 서명하고 암호화할 수 있습니다. 개인 키는 암호 문구로 잠긴 상태로만 여기에 저장되며 암호 문구는 브라우저 밖으로 나가지 않으므로, 로그인하는 모든 기기에서 사용할 수 있습니다.",
+      "noKeys": "아직 키가 없습니다. 주소에 대한 키를 만들거나 이미 사용 중인 키(예: Proton, Thunderbird, GnuPG)를 가져오세요.",
+      "generateTitle": "키 만들기",
+      "address": "주소",
+      "name": "키에 표시할 이름",
+      "passphrase": "암호 문구",
+      "passphraseConfirm": "암호 문구 다시 입력",
+      "passphraseNote": "{{n}}자 이상. 암호화된 메일을 읽고 서명하는 데 필요합니다. 잃어버리면 아무도 복구할 수 없으며, 이 키로 암호화된 메일은 더 이상 읽을 수 없습니다.",
+      "alreadyHasKey": "이 주소에는 이미 키가 있습니다. 두 번째 키를 만들어도 되지만, 다른 사람에게는 키가 두 개로 보입니다.",
+      "generate": "키 만들기",
+      "generating": "만드는 중…",
+      "importTitle": "개인 키 가져오기",
+      "importNote": "다른 앱에서 내보낸 ASCII 아머 형식의 개인 키를 붙여넣거나 선택하세요. 이 브라우저에서 암호 문구로 확인합니다.",
+      "importPaste": "ASCII 아머 키",
+      "importFile": "또는 파일:",
+      "keyPassphrase": "키의 암호 문구",
+      "newPassphrase": "이 키에는 암호 문구가 없습니다. 여기서 보호하려면 암호 문구를 정하세요.",
+      "import": "키 가져오기",
+      "importing": "가져오는 중…",
+      "createdOn": "{{date}}에 생성됨",
+      "exportPublic": "공개 키 내보내기",
+      "exportPrivate": "개인 키 내보내기",
+      "exportPrivateWarning": "내보낸 개인 키는 여전히 암호 문구로 잠겨 있지만 파일은 안전한 곳에 보관하세요. 파일을 가진 사람이 암호 문구를 알아내면 암호화된 메일을 읽을 수 있습니다.",
+      "exportPrivateConfirm": "개인 키 다운로드",
+      "delete": "삭제",
+      "deleteConfirm": "완전히 삭제",
+      "deleteWarning": "삭제하면 이 키로 암호화된 메일을 여기서 더 이상 읽을 수 없습니다. 나중에 필요할 수 있다면 먼저 개인 키를 내보내세요.",
+      "unlockedCount": "이 탭에서 잠금 해제된 키: {{n}}개.",
+      "lockAll": "지금 잠그기",
+      "keyringTitle": "상대방 키",
+      "keyringIntro": "다른 사람에게 보내는 메일을 암호화하는 데 쓰는 공개 키입니다. 키는 웹 키 디렉터리(WKD)에서 찾거나, 받은 메일에서 수집하거나(미확인으로 표시), 직접 추가합니다.",
+      "keyringEmpty": "아직 키가 없습니다. 키를 공개한 사람에게 메일을 쓰면 추가되며, 직접 추가할 수도 있습니다.",
+      "addPublicTitle": "공개 키 추가",
+      "addPublic": "키 추가",
+      "verified": "확인됨",
+      "unverified": "확인되지 않음",
+      "from": "출처: {{source}}",
+      "markVerified": "확인됨으로 표시",
+      "markUnverified": "확인되지 않음으로 표시",
+      "export": "내보내기",
+      "verifyHint": "확인됨으로 표시하기 전에 직접 만나거나 전화로 키 소유자와 이 지문을 비교하세요."
+    },
+    "source": {
+      "manual": "직접 추가함",
+      "wkd": "웹 키 디렉터리(WKD)",
+      "autocrypt": "받은 메일(Autocrypt)",
+      "attachment": "메시지에 첨부된 키"
+    },
+    "errors": {
+      "wrongPassphrase": "암호 문구가 올바르지 않습니다.",
+      "invalidKey": "이 앱에서 읽을 수 있는 OpenPGP 키가 아닙니다.",
+      "unprotectedKey": "이 개인 키에는 암호 문구가 없습니다. 보호하려면 암호 문구를 정하세요.",
+      "duplicate": "이 키는 이미 내 키에 있습니다.",
+      "noEmail": "키의 사용자 ID에 이메일 주소가 없습니다.",
+      "privateInKeyring": "개인 키입니다. 여기에는 공개 키만 추가할 수 있습니다. 내 개인 키는 위에서 가져오세요.",
+      "generic": "작동하지 않았습니다. 다시 시도하세요.",
+      "loadFailed": "키를 불러올 수 없습니다."
+    }
   }
 }

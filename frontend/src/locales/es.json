@@ -1122,7 +1122,8 @@
       "groupCalendar": "Calendario",
       "calendarAccounts": "Cuentas",
       "calendarList": "Calendarios",
-      "secureMessages": "Mensajes protegidos"
+      "secureMessages": "Mensajes protegidos",
+      "pgp": "Cifrado (PGP)"
     },
     "rules": {
       "title": "Reglas de bandeja de entrada",
@@ -2546,5 +2547,67 @@
     "replyTooLarge": "La respuesta es demasiado larga.",
     "replyFailed": "No se pudo enviar la respuesta. Inténtalo de nuevo.",
     "repliesSent": "Respuestas enviadas: {{count}}"
+  },
+  "pgp": {
+    "settings": {
+      "title": "Cifrado (PGP)",
+      "intro": "Tus claves OpenPGP permiten que otras personas te envíen correo cifrado y que tú firmes y cifres lo que envías. Tu clave privada se guarda aquí solo bloqueada con su frase de contraseña, que nunca sale de tu navegador, así que puedes usarla en todos los dispositivos donde inicies sesión.",
+      "noKeys": "Todavía no tienes ninguna clave. Crea una para una dirección o importa una que ya uses (por ejemplo, de Proton, Thunderbird o GnuPG).",
+      "generateTitle": "Crear una clave",
+      "address": "Dirección",
+      "name": "Nombre en la clave",
+      "passphrase": "Frase de contraseña",
+      "passphraseConfirm": "Repite la frase de contraseña",
+      "passphraseNote": "Al menos {{n}} caracteres. La necesitas para leer correo cifrado y para firmar. Si la pierdes, nadie puede recuperarla y el correo cifrado para esta clave ya no se podrá leer.",
+      "alreadyHasKey": "Esta dirección ya tiene una clave. Puedes tener una segunda, pero los demás verán dos.",
+      "generate": "Crear clave",
+      "generating": "Creando…",
+      "importTitle": "Importar una clave privada",
+      "importNote": "Pega o elige una clave privada en formato armored exportada desde otra aplicación. Se comprueba aquí, en tu navegador, con su frase de contraseña.",
+      "importPaste": "Clave en formato armored",
+      "importFile": "O un archivo:",
+      "keyPassphrase": "Frase de contraseña de la clave",
+      "newPassphrase": "Esta clave no tiene frase de contraseña. Elige una para protegerla aquí.",
+      "import": "Importar clave",
+      "importing": "Importando…",
+      "createdOn": "Creada el {{date}}",
+      "exportPublic": "Exportar clave pública",
+      "exportPrivate": "Exportar clave privada",
+      "exportPrivateWarning": "La clave privada exportada sigue bloqueada con tu frase de contraseña, pero guarda el archivo en un lugar seguro: quien lo tenga y adivine la frase de contraseña podrá leer tu correo cifrado.",
+      "exportPrivateConfirm": "Descargar clave privada",
+      "delete": "Eliminar",
+      "deleteConfirm": "Eliminar definitivamente",
+      "deleteWarning": "Una vez eliminada, el correo cifrado para esta clave ya no se podrá leer aquí. Exporta antes la clave privada si puedes necesitarla.",
+      "unlockedCount": "Claves desbloqueadas en esta pestaña: {{n}}.",
+      "lockAll": "Bloquearlas ahora",
+      "keyringTitle": "Claves de tus contactos",
+      "keyringIntro": "Claves públicas usadas para cifrar el correo dirigido a otras personas. Las claves se encuentran en directorios de claves web (WKD), se recogen del correo recibido (marcadas como no verificadas) o las añades tú.",
+      "keyringEmpty": "Aún no hay claves. Se añaden cuando escribes a personas que publican una, o puedes añadir una tú.",
+      "addPublicTitle": "Añadir una clave pública",
+      "addPublic": "Añadir clave",
+      "verified": "Verificada",
+      "unverified": "No verificada",
+      "from": "Origen: {{source}}",
+      "markVerified": "Marcar como verificada",
+      "markUnverified": "Marcar como no verificada",
+      "export": "Exportar",
+      "verifyHint": "Compara esta huella digital con su propietario, en persona o por teléfono, antes de marcarla como verificada."
+    },
+    "source": {
+      "manual": "añadida por ti",
+      "wkd": "Directorio de claves web (WKD)",
+      "autocrypt": "correo recibido (Autocrypt)",
+      "attachment": "una clave adjunta a un mensaje"
+    },
+    "errors": {
+      "wrongPassphrase": "Frase de contraseña incorrecta.",
+      "invalidKey": "Esta no es una clave OpenPGP que la aplicación pueda leer.",
+      "unprotectedKey": "Esta clave privada no tiene frase de contraseña. Elige una para protegerla.",
+      "duplicate": "Esta clave ya está entre tus claves.",
+      "noEmail": "La clave no tiene ninguna dirección de correo en sus ID de usuario.",
+      "privateInKeyring": "Esta es una clave privada. Aquí solo van claves públicas; importa tu propia clave privada arriba.",
+      "generic": "No ha funcionado. Inténtalo de nuevo.",
+      "loadFailed": "No se pudieron cargar tus claves."
+    }
   }
 }

@@ -1122,7 +1122,8 @@
       "groupCalendar": "Kalender",
       "calendarAccounts": "Konten",
       "calendarList": "Kalender",
-      "secureMessages": "Geschützte Nachrichten"
+      "secureMessages": "Geschützte Nachrichten",
+      "pgp": "Verschlüsselung (PGP)"
     },
     "accounts": {
       "title": "E-Mail-Konten",
@@ -2546,5 +2547,67 @@
     "replyTooLarge": "Die Antwort ist zu lang.",
     "replyFailed": "Die Antwort konnte nicht gesendet werden. Versuchen Sie es erneut.",
     "repliesSent": "Gesendete Antworten: {{count}}"
+  },
+  "pgp": {
+    "settings": {
+      "title": "Verschlüsselung (PGP)",
+      "intro": "Mit Ihren OpenPGP-Schlüsseln können andere Ihnen verschlüsselte E-Mails senden, und Sie können gesendete Nachrichten signieren und verschlüsseln. Ihr privater Schlüssel wird hier nur durch seine Passphrase gesperrt gespeichert. Die Passphrase verlässt nie Ihren Browser, daher können Sie den Schlüssel auf jedem Gerät nutzen, auf dem Sie sich anmelden.",
+      "noKeys": "Sie haben noch keinen Schlüssel. Erstellen Sie einen für eine Adresse oder importieren Sie einen vorhandenen Schlüssel (zum Beispiel aus Proton, Thunderbird oder GnuPG).",
+      "generateTitle": "Schlüssel erstellen",
+      "address": "Adresse",
+      "name": "Name im Schlüssel",
+      "passphrase": "Passwort",
+      "passphraseConfirm": "Passwort wiederholen",
+      "passphraseNote": "Mindestens {{n}} Zeichen. Sie brauchen es, um verschlüsselte E-Mails zu lesen und zu signieren. Wenn Sie es verlieren, kann es niemand wiederherstellen, und für diesen Schlüssel verschlüsselte E-Mails sind nicht mehr lesbar.",
+      "alreadyHasKey": "Für diese Adresse gibt es bereits einen Schlüssel. Ein zweiter ist möglich, aber andere sehen dann zwei.",
+      "generate": "Schlüssel erstellen",
+      "generating": "Wird erstellt…",
+      "importTitle": "Privaten Schlüssel importieren",
+      "importNote": "Fügen Sie einen ASCII-Armor-Schlüssel aus einer anderen App ein oder wählen Sie die Datei aus. Er wird hier in Ihrem Browser mit seiner Passphrase geprüft.",
+      "importPaste": "Schlüssel (ASCII-Armor)",
+      "importFile": "Oder eine Datei:",
+      "keyPassphrase": "Passwort des Schlüssels",
+      "newPassphrase": "Dieser Schlüssel hat kein Passwort. Wählen Sie eines, um ihn hier zu schützen.",
+      "import": "Schlüssel importieren",
+      "importing": "Wird importiert…",
+      "createdOn": "Erstellt am {{date}}",
+      "exportPublic": "Öffentlichen Schlüssel exportieren",
+      "exportPrivate": "Privaten Schlüssel exportieren",
+      "exportPrivateWarning": "Der exportierte private Schlüssel ist weiterhin durch Ihr Passwort gesperrt. Bewahren Sie die Datei trotzdem sicher auf: Wer sie besitzt und das Passwort errät, kann Ihre verschlüsselten E-Mails lesen.",
+      "exportPrivateConfirm": "Privaten Schlüssel herunterladen",
+      "delete": "Löschen",
+      "deleteConfirm": "Endgültig löschen",
+      "deleteWarning": "Nach dem Löschen sind für diesen Schlüssel verschlüsselte E-Mails hier nicht mehr lesbar. Exportieren Sie zuerst den privaten Schlüssel, falls Sie ihn noch brauchen könnten.",
+      "unlockedCount": "In diesem Tab entsperrte Schlüssel: {{n}}.",
+      "lockAll": "Jetzt sperren",
+      "keyringTitle": "Schlüssel der Korrespondenten",
+      "keyringIntro": "Öffentliche Schlüssel zum Verschlüsseln von E-Mails an andere. Schlüssel werden in Web-Key-Verzeichnissen (WKD) gefunden, aus empfangenen E-Mails übernommen (als nicht verifiziert markiert) oder von Ihnen hinzugefügt.",
+      "keyringEmpty": "Noch keine Schlüssel. Sie werden hinzugefügt, wenn Sie Personen schreiben, die einen veröffentlichen, oder Sie fügen selbst einen hinzu.",
+      "addPublicTitle": "Öffentlichen Schlüssel hinzufügen",
+      "addPublic": "Schlüssel hinzufügen",
+      "verified": "Verifiziert",
+      "unverified": "Nicht verifiziert",
+      "from": "Quelle: {{source}}",
+      "markVerified": "Als verifiziert markieren",
+      "markUnverified": "Als nicht verifiziert markieren",
+      "export": "Exportieren",
+      "verifyHint": "Vergleichen Sie diesen Fingerabdruck persönlich oder telefonisch mit dem Inhaber, bevor Sie ihn als verifiziert markieren."
+    },
+    "source": {
+      "manual": "von Ihnen hinzugefügt",
+      "wkd": "Web-Key-Verzeichnis (WKD)",
+      "autocrypt": "empfangene E-Mail (Autocrypt)",
+      "attachment": "ein an eine Nachricht angehängter Schlüssel"
+    },
+    "errors": {
+      "wrongPassphrase": "Falsches Passwort.",
+      "invalidKey": "Dies ist kein OpenPGP-Schlüssel, den diese App lesen kann.",
+      "unprotectedKey": "Dieser private Schlüssel hat kein Passwort. Wählen Sie eines, um ihn zu schützen.",
+      "duplicate": "Dieser Schlüssel ist bereits in Ihren Schlüsseln vorhanden.",
+      "noEmail": "Der Schlüssel enthält keine E-Mail-Adresse in seinen Benutzer-IDs.",
+      "privateInKeyring": "Dies ist ein privater Schlüssel. Hier gehören nur öffentliche Schlüssel hin; importieren Sie Ihren eigenen privaten Schlüssel oben.",
+      "generic": "Das hat nicht geklappt. Versuchen Sie es erneut.",
+      "loadFailed": "Ihre Schlüssel konnten nicht geladen werden."
+    }
   }
 }

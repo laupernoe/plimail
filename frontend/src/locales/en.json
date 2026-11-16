@@ -1122,7 +1122,8 @@
       "groupCalendar": "Calendar",
       "calendarAccounts": "Accounts",
       "calendarList": "Calendars",
-      "secureMessages": "Protected messages"
+      "secureMessages": "Protected messages",
+      "pgp": "Encryption (PGP)"
     },
     "rules": {
       "title": "Inbox rules",
@@ -2546,5 +2547,67 @@
     "replyTooLarge": "The reply is too long.",
     "replyFailed": "The reply could not be sent. Try again.",
     "repliesSent": "Replies sent: {{count}}"
+  },
+  "pgp": {
+    "settings": {
+      "title": "Encryption (PGP)",
+      "intro": "Your OpenPGP keys let people send you encrypted mail and let you sign and encrypt what you send. Your private key is stored here only locked with its passphrase, which never leaves your browser, so you can use it on every device you sign in on.",
+      "noKeys": "You have no key yet. Create one for an address, or import a key you already use (from Proton, Thunderbird or GnuPG, for example).",
+      "generateTitle": "Create a key",
+      "address": "Address",
+      "name": "Name on the key",
+      "passphrase": "Passphrase",
+      "passphraseConfirm": "Passphrase again",
+      "passphraseNote": "At least {{n}} characters. You need it to read encrypted mail and to sign. If you lose it, nobody can recover it and mail encrypted to this key can no longer be read.",
+      "alreadyHasKey": "This address already has a key. A second one is fine, but people will see two.",
+      "generate": "Create key",
+      "generating": "Creating…",
+      "importTitle": "Import a private key",
+      "importNote": "Paste or choose an armored private key exported from another app. It is checked with its passphrase here, in your browser.",
+      "importPaste": "Armored key",
+      "importFile": "Or a file:",
+      "keyPassphrase": "The key's passphrase",
+      "newPassphrase": "This key has no passphrase. Choose one to protect it here.",
+      "import": "Import key",
+      "importing": "Importing…",
+      "createdOn": "Created {{date}}",
+      "exportPublic": "Export public key",
+      "exportPrivate": "Export private key",
+      "exportPrivateWarning": "The exported private key is still locked with your passphrase, but keep the file somewhere safe: anyone who has it and guesses the passphrase can read your encrypted mail.",
+      "exportPrivateConfirm": "Download private key",
+      "delete": "Delete",
+      "deleteConfirm": "Delete for good",
+      "deleteWarning": "Mail encrypted to this key can no longer be read here once it is deleted. Export the private key first if you may need it.",
+      "unlockedCount": "Keys unlocked in this tab: {{n}}.",
+      "lockAll": "Lock them now",
+      "keyringTitle": "Correspondents' keys",
+      "keyringIntro": "Public keys used to encrypt mail to other people. Keys are found in Web Key Directories, collected from received mail (marked unverified) or added by you.",
+      "keyringEmpty": "No keys yet. They are added as you write to people who publish one, or you can add one.",
+      "addPublicTitle": "Add a public key",
+      "addPublic": "Add key",
+      "verified": "Verified",
+      "unverified": "Not verified",
+      "from": "Source: {{source}}",
+      "markVerified": "Mark as verified",
+      "markUnverified": "Mark as not verified",
+      "export": "Export",
+      "verifyHint": "Compare this fingerprint with its owner, in person or by phone, before marking it verified."
+    },
+    "source": {
+      "manual": "added by you",
+      "wkd": "Web Key Directory",
+      "autocrypt": "received mail (Autocrypt)",
+      "attachment": "a key attached to a message"
+    },
+    "errors": {
+      "wrongPassphrase": "Wrong passphrase.",
+      "invalidKey": "This is not an OpenPGP key this app can read.",
+      "unprotectedKey": "This private key has no passphrase. Choose one to protect it.",
+      "duplicate": "This key is already in your keys.",
+      "noEmail": "The key has no email address in its user IDs.",
+      "privateInKeyring": "This is a private key. Only public keys go here; import your own private key above.",
+      "generic": "That did not work. Try again.",
+      "loadFailed": "Your keys could not be loaded."
+    }
   }
 }
