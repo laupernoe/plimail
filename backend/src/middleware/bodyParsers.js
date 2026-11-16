@@ -18,6 +18,10 @@ export function mountBodyParsers(app, sessionMiddleware) {
   app.use('/api/mail/draft', signedIn, largeUnlessToken(express.json({ limit: '35mb' })), reloadSession);
   // A scheduled message carries what a send does (#543); this covers /api/mail/scheduled/:id too.
   app.use('/api/mail/scheduled', signedIn, express.json({ limit: '35mb' }), reloadSession);
+  // A password-protected message is up to 26 MB of ciphertext (services/secureMessages.js), sent
+  // as base64. API tokens cannot reach these routes (apiTokenAllowlist.js); apiTokenAuth refuses
+  // them before this parser.
+  app.use('/api/secure-messages', signedIn, express.json({ limit: '36mb' }), reloadSession);
   app.use(express.json({ limit: '1mb' }));
   // Return a clean JSON error when the body parser rejects an oversized payload.
   app.use((err, req, res, next) => {

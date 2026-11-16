@@ -52,7 +52,12 @@ export const MAIL_CACHE_TABLES = ['folders', 'messages', 'unfetchable_uids'];
 // Short-lived tokens that are worthless minutes later, and API tokens: a restore must never
 // bring back a token revoked after the backup was taken. A restore also truncates users with
 // CASCADE, so it deletes every API token there is, and their owners have to create new ones.
-export const TRANSIENT_TABLES = ['ai_codex_device_flows', 'api_tokens', 'email_otp_tokens', 'password_reset_tokens'];
+// Password-protected messages are links that expire within 30 days, and one revoked after the
+// backup was taken must not open again after a restore, so they are not kept either.
+export const TRANSIENT_TABLES = [
+  'ai_codex_device_flows', 'api_tokens', 'email_otp_tokens', 'password_reset_tokens',
+  'secure_message_replies', 'secure_messages',
+];
 // The record of which migrations shaped the schema the rows are written back into.
 export const SCHEMA_TABLES = ['schema_migrations'];
 
