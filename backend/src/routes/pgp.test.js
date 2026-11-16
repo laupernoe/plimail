@@ -15,9 +15,9 @@ vi.mock('../services/db.js', () => {
         u.pgp_kdf_salt = u.pgp_kdf_salt ?? p[1];
         return { rows: [{ pgp_kdf_salt: u.pgp_kdf_salt }] };
       }
-      if (s.startsWith('SELECT password_hash FROM users')) {
+      if (s.startsWith('SELECT username, password_hash FROM users')) {
         const u = db.users.get(p[0]);
-        return { rows: u ? [{ password_hash: u.password_hash ?? null }] : [] };
+        return { rows: u ? [{ username: u.username ?? p[0], password_hash: u.password_hash ?? null }] : [] };
       }
       if (s.startsWith('UPDATE pgp_keys SET auto_email = NULL')) {
         for (const k of db.own) if (k.user_id === p[0] && k.auto_email === p[1] && k.stale_at) k.auto_email = null;
@@ -125,7 +125,7 @@ vi.mock('../services/ownership.js', () => ({
     return a && a.user_id === userId ? { id: a.id } : null;
   }),
 }));
-vi.mock('../services/rateLimiter.js', () => ({ consume: vi.fn(async () => ({ limited: false, resetMs: 0 })), release: vi.fn(async () => {}) }));
+vi.mock('../services/rateLimiter.js', () => ({ consume: vi.fn(async () => ({ limited: false, resetMs: 0 })), release: vi.fn(async () => {}), reset: vi.fn(async () => {}) }));
 vi.mock('bcryptjs', () => ({ default: { compare: vi.fn(async (password, hash) => hash === `hash:${password}`) } }));
 vi.mock('../services/wkd.js', async () => {
   const { parsePublicKeys } = await import('../services/pgpPackets.js');
@@ -150,8 +150,8 @@ import express from 'express';
 import pgpRoutes from './pgp.js';
 import { KEYS } from '../services/pgp.fixtures.js';
 import { matchApiTokenRoute } from '../services/apiTokenAllowlist.js';
-import { consume, release } from '../services/rateLimiter.js';
-import { authLimiterConfig } from '../services/authLimiter.js';
+import { consume, release, reset } from '../services/rateLimiter.js';
+import { consumeLoginAttempt } from '../services/loginLimiter.js';
 
 const ACCOUNT = '11111111-1111-4111-8111-111111111111';
 const OTHER_ACCOUNT = '22222222-2222-4222-8222-222222222222';
@@ -332,21 +332,39 @@ describe('keys the current password no longer opens', () => {
 });
 
 describe('verify-password budget', () => {
-  it('counts wrong passwords against the sign-in limit, per user, and hands a right one back', async () => {
+  // The sign-in form's own buckets for this username: what a wrong password here must count in.
+  const loginKeys = async () => {
     consume.mockClear();
+    await consumeLoginAttempt('ann', '127.0.0.1');
+    const keys = consume.mock.calls.map(c => c[0]);
+    consume.mockClear();
+    return keys;
+  };
+
+  it('counts a wrong password as a failed sign-in at the account, and hands a right one back', async () => {
+    db.users.get('u1').username = 'Ann';
+    const expected = await loginKeys();
     release.mockClear();
-    authLimiterConfig.maxRequests = 4;
+    reset.mockClear();
     const check = password => call('/verify-password', { method: 'POST', user: 'u1', body: { password } });
     await check('wrong');
-    expect(consume).toHaveBeenLastCalledWith('pgp-verify:u1', 4, authLimiterConfig.windowMs);
+    expect(consume.mock.calls.map(c => c[0])).toEqual(expected);
+    expect(consume.mock.calls.every(c => !String(c[0]).startsWith('pgp-verify'))).toBe(true);
     expect(release).not.toHaveBeenCalled();
+    expect(reset).not.toHaveBeenCalled();
     await check('secret pw');
-    expect(release).toHaveBeenCalledWith('pgp-verify:u1');
+    expect(reset).toHaveBeenCalledWith(expected[0]);
+    expect(release).toHaveBeenCalledWith(expected[1]);
     consume.mockResolvedValueOnce({ limited: true, resetMs: 5000 });
     const limited = await check('secret pw');
     expect(limited.status).toBe(429);
     expect(limited.headers.get('retry-after')).toBe('5');
-    authLimiterConfig.maxRequests = 10;
+  });
+
+  it('counts nothing for an SSO-only user, who has no password to guess', async () => {
+    consume.mockClear();
+    expect(await (await call('/verify-password', { method: 'POST', user: 'u2', body: { password: 'x' } })).json()).toEqual({ ok: false, hasPassword: false });
+    expect(consume).not.toHaveBeenCalled();
   });
 });
 

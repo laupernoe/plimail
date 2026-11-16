@@ -2,8 +2,8 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { requireAuth } from '../middleware/auth.js';
 import { query } from '../services/db.js';
-import { authLimiterConfig } from '../services/authLimiter.js';
-import { consume, release } from '../services/rateLimiter.js';
+import { consumeLoginAttempt } from '../services/loginLimiter.js';
+import { consume } from '../services/rateLimiter.js';
 import { UUID_RE } from '../utils/uuid.js';
 import {
   PgpRequestError, addOwnKey, addToKeyring, deleteFromKeyring, deleteOwnKey, isFingerprint, kdfSalt, listKeyring,
@@ -65,22 +65,22 @@ router.get('/kdf', async (req, res) => {
 // open was protected by an earlier one (the password was reset or changed), rather than that the
 // password was mistyped. The password is what signing in sends anyway; what the browser derives
 // from it never leaves the browser. { ok, hasPassword }; an SSO-only user has none to check.
-// Wrong passwords count against the same budget as sign-in attempts (the admin's "attempts per
-// window" setting, authLimiter.js), per user; a right one hands its count back.
+// A wrong password counts as a failed sign-in at the account (services/loginLimiter.js: the
+// username's own budget, shared with the login form), so a stolen session cannot guess the
+// password here faster than at the login page; a right one is handed back as a sign-in's is.
 router.post('/verify-password', async (req, res) => {
   const password = req.body?.password;
   if (typeof password !== 'string' || !password || password.length > 1024) return res.status(400).json({ error: 'password is required' });
-  const key = `pgp-verify:${req.session.userId}`;
-  const limit = await consume(key, authLimiterConfig.maxRequests, authLimiterConfig.windowMs);
-  if (limit.limited) {
-    res.set('Retry-After', String(Math.max(1, Math.ceil((limit.resetMs || 1000) / 1000))));
+  const { rows } = await query('SELECT username, password_hash FROM users WHERE id = $1', [req.session.userId]);
+  const user = rows[0];
+  if (!user?.password_hash) return res.json({ ok: false, hasPassword: false });
+  const attempt = await consumeLoginAttempt(String(user.username).toLowerCase().trim(), req.ip);
+  if (attempt.limited) {
+    res.set('Retry-After', String(Math.max(1, Math.ceil((attempt.resetMs || 1000) / 1000))));
     return res.status(429).json({ error: 'Too many attempts. Try again later.', code: 'rate_limited' });
   }
-  const { rows } = await query('SELECT password_hash FROM users WHERE id = $1', [req.session.userId]);
-  const hash = rows[0]?.password_hash;
-  if (!hash) { await release(key); return res.json({ ok: false, hasPassword: false }); }
-  const ok = await bcrypt.compare(password, hash);
-  if (ok) await release(key);
+  const ok = await bcrypt.compare(password, user.password_hash);
+  if (ok) await attempt.succeeded();
   res.json({ ok, hasPassword: true });
 });
 
