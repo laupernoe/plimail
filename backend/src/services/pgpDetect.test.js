@@ -22,7 +22,11 @@ describe('pgpKindOfStructure', () => {
   it('recognizes PGP/MIME encrypted and signed messages', () => {
     expect(pgpKindOfStructure(encrypted)).toBe('encrypted');
     expect(pgpKindOfStructure(signed)).toBe('signed');
-    expect(pgpKindOfStructure({ type: 'multipart/mixed', childNodes: [signed, { type: 'text/plain' }] })).toBe('signed');
+  });
+
+  it('only at the root: an encrypted or signed part inside ordinary mail is that mail\'s content', () => {
+    expect(pgpKindOfStructure({ type: 'multipart/mixed', childNodes: [signed, { type: 'text/plain' }] })).toBe(null);
+    expect(pgpKindOfStructure({ type: 'multipart/mixed', childNodes: [encrypted, { type: 'text/plain' }] })).toBe(null);
   });
 
   it('does not take S/MIME or ordinary mail for OpenPGP', () => {
@@ -35,11 +39,19 @@ describe('pgpKindOfStructure', () => {
 describe('pgpKindOfBody', () => {
   it('reads the stored marks of an encrypted or signed message', () => {
     expect(pgpKindOfBody({ snippet: PGP_ENCRYPTED_SNIPPET })).toBe('encrypted');
-    expect(pgpKindOfBody({ text: `Hi\n${inlineArmor}` })).toBe('encrypted');
+    expect(pgpKindOfBody({ text: `\n  ${inlineArmor}` })).toBe('encrypted');
     expect(pgpKindOfBody({ text: '-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA256\n\nhi\n-----BEGIN PGP SIGNATURE-----\nx\n-----END PGP SIGNATURE-----' })).toBe('signed');
     expect(pgpKindOfBody({ attachments: '[{"type":"application/pgp-signature"}]' })).toBe('signed');
     expect(pgpKindOfBody({ structureKind: 'encrypted', text: 'whatever' })).toBe('encrypted');
     expect(pgpKindOfBody({ text: 'An email that mentions -----BEGIN PGP MESSAGE----- in passing.' })).toBe(null);
+  });
+
+  it('does not take ordinary mail for encrypted: a quoted or pasted block, a .pgp file', () => {
+    // Its body and attachments would be hidden behind a lock that opens nothing.
+    expect(pgpKindOfBody({ text: `Here is what you sent:\n${inlineArmor}` })).toBe(null);
+    expect(pgpKindOfBody({ text: inlineArmor.split('\n').map(l => `> ${l}`).join('\n') })).toBe(null);
+    expect(pgpKindOfBody({ attachments: [{ type: 'application/pgp-encrypted', filename: 'backup.pgp' }] })).toBe(null);
+    expect(pgpKindOfBody({ attachments: '[{"type":"application/pgp-encrypted","filename":"backup.pgp"}]' })).toBe(null);
   });
 });
 

@@ -10,33 +10,31 @@ export const PGP_ENCRYPTED_SNIPPET = '-----BEGIN PGP MESSAGE-----';
 const lower = v => String(v || '').toLowerCase();
 
 // 'encrypted' (RFC 3156 multipart/encrypted), 'signed' (multipart/signed with an OpenPGP signature)
-// or null, from an IMAP BODYSTRUCTURE. A signed or encrypted message forwarded as the first part of
-// a multipart/mixed (some mailing lists add a footer that way) counts too.
+// or null, from an IMAP BODYSTRUCTURE. Only the root counts: an encrypted or signed part inside an
+// ordinary message (a forwarded one, a part a list wrapped with a footer) is that message's
+// content, shown as such, and the reader would otherwise hide everything around it.
 export function pgpKindOfStructure(structure) {
-  const kind = (node) => {
-    const type = lower(node?.type);
-    const protocol = lower(node?.parameters?.protocol);
-    if (type === 'multipart/encrypted' && protocol === 'application/pgp-encrypted') return 'encrypted';
-    if (type === 'multipart/signed' && protocol === 'application/pgp-signature') return 'signed';
-    return null;
-  };
   if (!structure) return null;
-  const own = kind(structure);
-  if (own) return own;
-  if (lower(structure.type) === 'multipart/mixed' && structure.childNodes?.length) return kind(structure.childNodes[0]);
+  const type = lower(structure.type);
+  const protocol = lower(structure.parameters?.protocol);
+  if (type === 'multipart/encrypted' && protocol === 'application/pgp-encrypted') return 'encrypted';
+  if (type === 'multipart/signed' && protocol === 'application/pgp-signature') return 'signed';
   return null;
 }
 
-// Inline PGP: an armored block in a plain-text body.
+// Inline PGP: a text body that is an armored block, from its first line. A block quoted in a reply
+// ("> -----BEGIN PGP MESSAGE-----") or pasted in the middle of a message is just text.
 export function pgpKindOfText(text) {
-  const s = String(text || '');
-  if (s.includes('-----BEGIN PGP MESSAGE-----') && s.includes('-----END PGP MESSAGE-----')) return 'encrypted';
-  if (s.includes('-----BEGIN PGP SIGNED MESSAGE-----') && s.includes('-----END PGP SIGNATURE-----')) return 'signed';
+  const s = String(text || '').trimStart();
+  if (s.startsWith('-----BEGIN PGP MESSAGE-----') && s.includes('-----END PGP MESSAGE-----')) return 'encrypted';
+  if (s.startsWith('-----BEGIN PGP SIGNED MESSAGE-----') && s.includes('-----END PGP SIGNATURE-----')) return 'signed';
   return null;
 }
 
 // What the body route says about a message it serves: the structure's verdict when the body was
-// just fetched, otherwise what the stored row and body show.
+// just fetched, otherwise what the stored row and body show. An attachment's type never makes a
+// message encrypted (an ordinary message can carry a .pgp file); the marker snippet, which only
+// sync's reading of the structure or an inline body writes, does.
 export function pgpKindOfBody({ structureKind = null, snippet = null, text = null, attachments = [] } = {}) {
   if (structureKind) return structureKind;
   if (typeof attachments === 'string') {
@@ -46,8 +44,8 @@ export function pgpKindOfBody({ structureKind = null, snippet = null, text = nul
   if (snippet === PGP_ENCRYPTED_SNIPPET) return 'encrypted';
   const inline = pgpKindOfText(text);
   if (inline) return inline;
-  if ((attachments || []).some(a => lower(a?.type) === 'application/pgp-encrypted')) return 'encrypted';
-  if ((attachments || []).some(a => lower(a?.type) === 'application/pgp-signature')) return 'signed';
+  // A signature file adds a line under the message, checked by the browser against the source.
+  if (attachments.some(a => lower(a?.type) === 'application/pgp-signature')) return 'signed';
   return null;
 }
 

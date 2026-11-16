@@ -600,8 +600,9 @@ router.get('/messages/:id/body', async (req, res) => {
   const serveFetched = async ({ sanitized, safeText, attachments, pgp: structureKind = null }) => {
     const pgp = pgpKindOfBody({ structureKind, snippet: message.snippet, text: safeText, attachments });
     // A message synced before encrypted mail was recognized keeps its ciphertext or "Version: 1"
-    // as its snippet; it gets the marker the list shows as "Encrypted message".
-    if (pgp === 'encrypted' && message.snippet !== PGP_ENCRYPTED_SNIPPET) {
+    // as its snippet; it gets the marker the list shows as "Encrypted message". Only on the
+    // structure's word: the marker is what makes a stored message read as encrypted from then on.
+    if (structureKind === 'encrypted' && message.snippet !== PGP_ENCRYPTED_SNIPPET) {
       query('UPDATE messages SET snippet = $1 WHERE id = $2', [PGP_ENCRYPTED_SNIPPET, id]).catch(() => {});
     }
     // Apply remote-image blocking at response time — safeHtml (unblocked) is what
