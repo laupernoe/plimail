@@ -2,12 +2,14 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 
 // POST /categories/ai-classify/:messageId sends the message to the instance's AI provider, so it
 // is refused when AI is off for the instance or for the user (#644), before the message is read.
-const mocks = vi.hoisted(() => ({ query: vi.fn(), getAiStatus: vi.fn(), aiClassifyMessage: vi.fn() }));
+const mocks = vi.hoisted(() => ({ query: vi.fn(), getAiStatus: vi.fn(), aiClassifyMessage: vi.fn(), consume: vi.fn() }));
 vi.mock('../services/db.js', () => ({ query: mocks.query }));
 vi.mock('../middleware/auth.js', () => ({
   requireAuth: (req, _res, next) => { req.session = { userId: req.get('x-test-user') }; next(); },
+  requireAdmin: (_req, res) => res.status(403).end(),
 }));
 vi.mock('../services/aiProvider.js', () => ({ getAiStatus: mocks.getAiStatus }));
+vi.mock('../services/rateLimiter.js', () => ({ consume: mocks.consume }));
 vi.mock('../services/categorizer.js', () => ({
   aiClassifyMessage: mocks.aiClassifyMessage,
   backfillCategories: vi.fn(),
@@ -42,6 +44,7 @@ beforeEach(() => {
   aiEnabled = true;
   mocks.getAiStatus.mockReset().mockResolvedValue({ enabled: true, provider: 'api-key', features: { compose: true, summarize: true } });
   mocks.aiClassifyMessage.mockReset().mockResolvedValue('newsletter');
+  mocks.consume.mockReset().mockResolvedValue({ limited: false });
   mocks.query.mockReset().mockImplementation(async (sql, params) => {
     if (/SELECT ai_enabled, is_admin FROM users/.test(sql)) {
       return { rows: params[0] === 'u1' ? [{ ai_enabled: aiEnabled, is_admin: false }] : [] };
@@ -75,7 +78,26 @@ describe('POST /categories/ai-classify/:messageId', () => {
   it('refuses when AI is off for the instance', async () => {
     mocks.getAiStatus.mockResolvedValue({ enabled: false, provider: 'api-key', features: {} });
     const response = await classify();
+    expect(response.status).toBe(503);
+    expect(mocks.aiClassifyMessage).not.toHaveBeenCalled();
+  });
+
+  // Classifying sends the message to the provider, so it is one of the "summaries and actions"
+  // the admin can turn off for everyone.
+  it('refuses when the admin turned summaries and actions off', async () => {
+    mocks.getAiStatus.mockResolvedValue({ enabled: true, provider: 'api-key', features: { compose: true, summarize: false } });
+    const response = await classify();
     expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ code: 'ai_feature_disabled', feature: 'summarize' });
+    expect(messageReads()).toHaveLength(0);
+    expect(mocks.aiClassifyMessage).not.toHaveBeenCalled();
+  });
+
+  it('counts against the AI mail action limit', async () => {
+    mocks.consume.mockResolvedValue({ limited: true });
+    const response = await classify();
+    expect(response.status).toBe(429);
+    expect(mocks.consume).toHaveBeenCalledWith('ai_mail_action:u1', 20, 60_000);
     expect(mocks.aiClassifyMessage).not.toHaveBeenCalled();
   });
 

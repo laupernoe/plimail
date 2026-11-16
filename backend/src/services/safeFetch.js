@@ -14,9 +14,9 @@
 // (or a name that resolves to one) still needs HTTPS when the admin allows private hosts.
 //
 // Use for outbound fetches to attacker-influenced or user-configured URLs
-// (one-click unsubscribe, category list sources, CardDAV discovery). Admin-configured
-// provider URLs that intentionally point at internal hosts (the AI base URL)
-// deliberately keep using plain fetch.
+// (one-click unsubscribe, category list sources, CardDAV discovery, the AI provider).
+// An admin-configured URL that points at an internal host on purpose (a local AI model
+// server) passes allowPrivate from the connection policy rather than skipping the guard.
 
 import net from 'node:net';
 import dns from 'node:dns';

@@ -432,6 +432,14 @@ export default function ComposeModal() {
     ? { action: 'reply', status: 'input', instruction: '', text: '' }
     : null));
   const aiAbortRef = useRef(null);
+  // A protected message (PGP or a password link) must not reach the AI provider in the clear, so
+  // the AI actions are off while the lock is on, and an open suggestion is dropped.
+  const aiBlocked = protectionMode != null;
+  useEffect(() => {
+    if (!aiBlocked) return;
+    aiAbortRef.current?.abort();
+    setAiPanel(null);
+  }, [aiBlocked]);
   // The conversation "Reply with AI" writes from, loaded once and reused when the user rewords
   // the instruction.
   const aiReplyConversationRef = useRef(null);
@@ -963,6 +971,7 @@ export default function ComposeModal() {
   };
 
   const handleAiAction = async (action) => {
+    if (aiBlocked) return;
     aiAbortRef.current?.abort();
     // "Reply with AI" waits for the user's instruction before it asks for anything.
     if (action === 'reply') {
@@ -1049,6 +1058,7 @@ export default function ComposeModal() {
   // Writes the reply from the conversation and the user's instruction. The conversation is read
   // first (the panel says so meanwhile); then the text streams in like the other actions.
   const generateReply = async (instruction) => {
+    if (aiBlocked) return;
     aiAbortRef.current?.abort();
     const controller = new AbortController();
     aiAbortRef.current = controller;
@@ -2828,6 +2838,7 @@ export default function ComposeModal() {
                 aiEnabled={!htmlMode && aiStatus?.enabled && aiStatus?.features?.compose}
                 aiReplyEnabled={aiReplyEnabled}
                 onAiAction={handleAiAction}
+                aiBlockedReason={aiBlocked ? t('compose.toolbar.aiProtected') : null}
                 aiPanelOpen={!!aiPanel}
               />
               {aiPanel && !htmlMode && (
@@ -3436,6 +3447,7 @@ export default function ComposeModal() {
         aiEnabled={!htmlMode && aiStatus?.enabled && aiStatus?.features?.compose}
         aiReplyEnabled={aiReplyEnabled}
         onAiAction={handleAiAction}
+        aiBlockedReason={aiBlocked ? t('compose.toolbar.aiProtected') : null}
         aiPanelOpen={!!aiPanel}
       />}
       {aiPanel && !plaintextEmail && !htmlMode && (
@@ -4077,7 +4089,7 @@ function ComposeAiPanel({ panel, mobile = false, onInstructionChange, onGenerate
   );
 }
 
-function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMode, onToggleHtml, isMobile, aiEnabled, aiReplyEnabled, onAiAction, aiPanelOpen }) {
+function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMode, onToggleHtml, isMobile, aiEnabled, aiReplyEnabled, onAiAction, aiPanelOpen, aiBlockedReason }) {
   const { t } = useTranslation();
   const uiScale = useUiScale();
   const savedSelectionRef = useRef(null);
@@ -4299,15 +4311,16 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
             </button>
             {signatureControl}
             {aiEnabled && (
-              <button ref={aiBtnRef} title={t('compose.toolbar.aiAssist')} onMouseDown={e => {
+              <button ref={aiBtnRef} title={aiBlockedReason || t('compose.toolbar.aiAssist')} aria-disabled={aiBlockedReason ? 'true' : undefined} onMouseDown={e => {
                 e.preventDefault();
+                if (aiBlockedReason) return;
                 if (aiMenuPos) { setAiMenuPos(null); return; }
                 const r = aiBtnRef.current.getBoundingClientRect();
                 const left = Math.max(4, Math.min(r.left, window.innerWidth - 160));
                 setAiMenuPos({ top: r.bottom + 4, left });
               }} style={{
                 background: (aiMenuPos || aiPanelOpen) ? 'var(--accent-dim)' : 'none', border: 'none', borderRadius: 4,
-                padding: '6px 4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                padding: '6px 4px', cursor: aiBlockedReason ? 'not-allowed' : 'pointer', opacity: aiBlockedReason ? 0.4 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 flex: 1, color: (aiMenuPos || aiPanelOpen) ? 'var(--accent)' : 'var(--text-secondary)', WebkitTapHighlightColor: 'transparent',
               }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -4316,7 +4329,7 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
                 </svg>
               </button>
             )}
-            {aiEnabled && (
+            {aiEnabled && !aiBlockedReason && (
               <button title={t('compose.toolbar.aiFixGrammar')} aria-label={t('compose.toolbar.aiFixGrammar')} onMouseDown={e => {
                 e.preventDefault();
                 setAiMenuPos(null);
@@ -4441,15 +4454,16 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
         {aiEnabled && (
           <>
             <Sep />
-            <button ref={aiBtnRef} title={t('compose.toolbar.aiAssist')} onMouseDown={e => {
+            <button ref={aiBtnRef} title={aiBlockedReason || t('compose.toolbar.aiAssist')} aria-disabled={aiBlockedReason ? 'true' : undefined} onMouseDown={e => {
               e.preventDefault();
+              if (aiBlockedReason) return;
               if (aiMenuPos) { setAiMenuPos(null); return; }
               const r = aiBtnRef.current.getBoundingClientRect();
               const left = Math.max(4, Math.min(r.left, window.innerWidth - 160));
               setAiMenuPos({ top: r.bottom + 4, left });
             }} style={{
               background: (aiMenuPos || aiPanelOpen) ? 'var(--accent-dim)' : 'none', border: 'none', borderRadius: 4,
-              padding: '3px 6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center',
+              padding: '3px 6px', cursor: aiBlockedReason ? 'not-allowed' : 'pointer', opacity: aiBlockedReason ? 0.4 : 1, display: 'inline-flex', alignItems: 'center',
               color: (aiMenuPos || aiPanelOpen) ? 'var(--accent)' : 'var(--text-secondary)',
             }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -4457,7 +4471,7 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
                 <path d="M5 3v4M19 17v4M3 5h4M17 19h4"/>
               </svg>
             </button>
-            <button title={t('compose.toolbar.aiFixGrammar')} aria-label={t('compose.toolbar.aiFixGrammar')} data-testid="ai-spellcheck" onMouseDown={e => {
+            {!aiBlockedReason && <button title={t('compose.toolbar.aiFixGrammar')} aria-label={t('compose.toolbar.aiFixGrammar')} data-testid="ai-spellcheck" onMouseDown={e => {
               e.preventDefault();
               setAiMenuPos(null);
               onAiAction('grammar');
@@ -4467,7 +4481,7 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
               color: 'var(--text-secondary)',
             }}>
               <SpellCheckIcon size={13} />
-            </button>
+            </button>}
           </>
         )}
 

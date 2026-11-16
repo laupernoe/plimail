@@ -1,6 +1,7 @@
 import { Parser } from 'htmlparser2';
 import { BLOCK, DECOY, NOTICE, WARN } from './attachmentExtensions.js';
 import { decodeMimeWords, parseMailboxList, parseRawHeaders } from './messageParser.js';
+import { INVISIBLE_RE } from './aiUntrusted.js';
 
 // What the AI mail actions (translate, "is this a scam?") send to the model about a received
 // message, built from what is already stored plus the raw header block. Nothing here sends a byte
@@ -18,8 +19,6 @@ const MAX_FIELD = 300;
 const SKIP_TAGS = new Set(['script', 'style', 'head', 'title', 'noscript', 'template']);
 const BLOCK_TAGS = new Set(['p', 'div', 'br', 'tr', 'li', 'ul', 'ol', 'table', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
   'blockquote', 'pre', 'hr', 'section', 'article', 'header', 'footer']);
-// Zero-width and other invisible characters senders pad text with.
-const INVISIBLE_RE = /[\u00ad\u061c\u115f\u1160\u180e\u200b-\u200f\u202a-\u202e\u2060-\u2064\u206a-\u206f\ufeff]/g;
 
 function oneLine(value, max = MAX_FIELD) {
   // eslint-disable-next-line no-control-regex -- control characters are what this removes

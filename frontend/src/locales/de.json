@@ -187,6 +187,7 @@
       "aiImprove": "Verbessern",
       "aiShorten": "Kürzen",
       "aiFixGrammar": "Rechtschreibung korrigieren",
+      "aiProtected": "KI ist aus, solange diese Nachricht geschützt ist: Ihr Text würde unverschlüsselt an den KI-Anbieter gehen.",
       "aiMakeClearer": "Klarer formulieren",
       "aiToneHeading": "Ton ändern",
       "toneProfessional": "Professionell",

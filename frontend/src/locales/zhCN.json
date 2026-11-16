@@ -187,6 +187,7 @@
       "aiImprove": "改进",
       "aiShorten": "精简",
       "aiFixGrammar": "纠正拼写",
+      "aiProtected": "此邮件受保护期间无法使用 AI：其内容会以未加密的形式发送给 AI 服务提供商。",
       "aiMakeClearer": "让表达更清晰",
       "aiToneHeading": "更改语气",
       "toneProfessional": "专业",

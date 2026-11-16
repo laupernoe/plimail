@@ -187,6 +187,7 @@
       "aiImprove": "Improve",
       "aiShorten": "Shorten",
       "aiFixGrammar": "Fix spelling and grammar",
+      "aiProtected": "AI is off while this message is protected: its text would reach the AI provider unencrypted.",
       "aiMakeClearer": "Make clearer",
       "aiToneHeading": "Change the tone",
       "toneProfessional": "Professional",

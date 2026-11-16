@@ -3,6 +3,7 @@ import { decrypt, encrypt } from './encryption.js';
 import { query } from './db.js';
 import { getConnectionPolicy } from './connectionPolicy.js';
 import { validateHost } from './hostValidation.js';
+import { safeFetch } from './safeFetch.js';
 import { createRequestSignal, parseJson, readLimited, readSseData, sanitizeText } from './aiHttp.js';
 import { completeCodexText, streamCodexResponses } from './openaiCodexResponses.js';
 import { getCodexAccess, getCodexStatus } from './openaiCodexAuth.js';
@@ -95,6 +96,14 @@ export function normalizeAiConfig(raw = {}) {
   };
 }
 
+function sameOrigin(a, b) {
+  try {
+    return new URL(normalizeBaseUrl(a)).origin === new URL(normalizeBaseUrl(b)).origin;
+  } catch {
+    return false;
+  }
+}
+
 function publicConfig(config) {
   if (!config) return null;
   return {
@@ -135,25 +144,30 @@ function providerError(status, text, secrets = []) {
   return new AiProviderError(`AI provider error (${status})${detail ? `: ${detail}` : ''}`, { status: 502, expose: true });
 }
 
+const GUARD_REFUSALS = new Set(['ERR_BLOCKED_PRIVATE_IP', 'ERR_INSECURE_TRANSPORT']);
+
 function providerRequestError(error, request, callerSignal) {
   if (request.timedOut()) return new AiProviderError('AI provider request timed out', { status: 504, expose: true });
   if (callerSignal?.aborted) return new AiProviderError('AI provider request was aborted', { status: 499, expose: true });
   if (error instanceof AiProviderError) return error;
+  // fetch says only "fetch failed"; a refusal by safeFetch's connection check is in the cause.
+  const reason = GUARD_REFUSALS.has(error?.cause?.code) ? error.cause.message : error?.message;
   return new AiProviderError(
-    `AI provider request failed: ${sanitizeText(error?.message) || 'network error'}`,
+    `AI provider request failed: ${sanitizeText(reason) || 'network error'}`,
     { status: 502, expose: true },
   );
 }
 
 // Redirects are not followed. The base URL's host is checked against the private-host policy when
-// it is saved (saveConfig); a redirect would send the request, with a 307 its body (the email text
-// being summarized or drafted) too, to a host that was never checked, one the policy forbids among
-// them. fetch drops the API key on a redirect to another origin.
-async function openProviderRequest(fetchFn, url, init, { signal, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
+// it is saved (saveConfig) and again on each request; a redirect would send the request, with a
+// 307 its body (the email text being summarized or drafted) too, to a host that was never checked,
+// one the policy forbids among them. fetch drops the API key on a redirect to another origin.
+// `guard` is safeFetch's: the socket goes only to an address checked at connection time.
+async function openProviderRequest(fetchFn, url, init, { signal, timeoutMs = DEFAULT_TIMEOUT_MS, guard } = {}) {
   const request = createRequestSignal(signal, timeoutMs, 'AI request timed out');
   let response;
   try {
-    response = await fetchFn(url, { ...init, redirect: 'manual', signal: request.signal });
+    response = await fetchFn(url, { ...init, redirect: 'manual', signal: request.signal }, guard);
   } catch (error) {
     request.cleanup();
     throw providerRequestError(error, request, signal);
@@ -288,7 +302,7 @@ export function createAiProvider({
   decryptFn = decrypt,
   validateHostFn = validateHost,
   getConnectionPolicyFn = getConnectionPolicy,
-  fetchFn = (...args) => fetch(...args),
+  fetchFn = safeFetch,
   getCodexAccessFn = getCodexAccess,
   getCodexStatusFn = getCodexStatus,
   streamCodexResponsesFn = streamCodexResponses,
@@ -325,9 +339,12 @@ export function createAiProvider({
     const existing = await loadAiConfig();
     const incomingApi = input.apiKeyConfig || {};
     const incomingKey = incomingApi.apiKey;
+    // The masked key keeps the stored one only for the address it was entered for: sent with a base
+    // URL on another origin, it would hand the key to that server.
+    const keepKey = sameOrigin(existing?.apiKeyConfig.baseUrl, incomingApi.baseUrl);
     const storedKey = typeof incomingKey === 'string' && incomingKey && incomingKey !== MASKED_API_KEY
       ? encryptFn(incomingKey)
-      : (existing?.apiKeyConfig.apiKey || null);
+      : (keepKey ? existing?.apiKeyConfig.apiKey || null : null);
     const incomingRouter = input.openrouterConfig || {};
     const routerKey = incomingRouter.apiKey;
     const storedRouterKey = typeof routerKey === 'string' && routerKey.trim() && routerKey !== MASKED_API_KEY
@@ -426,6 +443,26 @@ export function createAiProvider({
     };
   }
 
+  // Where a request may connect. OpenRouter is a fixed public HTTPS address. The admin's own base
+  // URL was checked when it was saved, but its DNS and the private-host setting can change since:
+  // both are checked again here, for every request, and safeFetch then connects only to an address
+  // it checked, so the name cannot resolve to one address for the check and another for the socket.
+  async function connectionGuard(config, baseUrl) {
+    if (config.provider === AI_PROVIDER_OPENROUTER) return { allowPrivate: false, requireHttps: true };
+    let hostname;
+    try {
+      hostname = new URL(baseUrl).hostname;
+    } catch {
+      throw new AiProviderError('Invalid API base URL', { status: 503, expose: true });
+    }
+    const policy = await getConnectionPolicyFn();
+    const allowPrivate = policy?.allowPrivateHosts === true;
+    const hostError = await validateHostFn(hostname, { allowPrivate });
+    if (hostError) throw new AiProviderError(`API base URL: ${hostError}`, { status: 503, expose: true });
+    // Plain HTTP stays allowed, as it is when the URL is saved: a local model server often has no TLS.
+    return { allowPrivate, requireHttps: false };
+  }
+
   function apiKeyHeaders(apiKey, extraHeaders = {}) {
     const headers = { 'Content-Type': 'application/json', ...extraHeaders };
     if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
@@ -440,11 +477,12 @@ export function createAiProvider({
       ...(Number.isFinite(maxTokens) ? { max_tokens: maxTokens } : {}),
       stream: false,
     };
+    const guard = await connectionGuard(config, baseUrl);
     const request = await openProviderRequest(fetchFn, `${baseUrl}/chat/completions`, {
       method: 'POST',
       headers: apiKeyHeaders(apiKey, extraHeaders),
       body: JSON.stringify(body),
-    }, { signal });
+    }, { signal, guard });
     try {
       const { response } = request;
       const text = await readLimited(response, response.ok ? JSON_BODY_LIMIT_BYTES : ERROR_BODY_LIMIT_BYTES);
@@ -477,11 +515,12 @@ export function createAiProvider({
 
   async function* streamApiKey(config, messages, { signal } = {}) {
     const { apiKey, baseUrl, model, extraHeaders } = apiEndpoint(config);
+    const guard = await connectionGuard(config, baseUrl);
     const request = await openProviderRequest(fetchFn, `${baseUrl}/chat/completions`, {
       method: 'POST',
       headers: apiKeyHeaders(apiKey, extraHeaders),
       body: JSON.stringify({ model, messages, stream: true }),
-    }, { signal, timeoutMs: 120_000 });
+    }, { signal, timeoutMs: 120_000, guard });
     try {
       const { response } = request;
       if (!response.ok) {
@@ -644,7 +683,7 @@ export function createAiProvider({
     const request = await openProviderRequest(fetchFn, `${OPENROUTER_BASE_URL}/models`, {
       method: 'GET',
       headers: { Accept: 'application/json', ...openRouterAttributionHeaders() },
-    }, { signal, timeoutMs: 20_000 });
+    }, { signal, timeoutMs: 20_000, guard: { allowPrivate: false, requireHttps: true } });
     try {
       const { response } = request;
       const text = await readLimited(response, response.ok ? 8 * 1024 * 1024 : ERROR_BODY_LIMIT_BYTES);
