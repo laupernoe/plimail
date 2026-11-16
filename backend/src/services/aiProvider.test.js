@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import http from 'node:http';
 import {
   AI_PROVIDER_API_KEY,
   AI_PROVIDER_CHATGPT,
@@ -259,6 +260,73 @@ describe('configuration persistence', () => {
     })).resolves.toMatchObject({ provider: AI_PROVIDER_CHATGPT });
     expect(getConnectionPolicyFn).not.toHaveBeenCalled();
     expect(validateHostFn).not.toHaveBeenCalled();
+  });
+});
+
+// The base URL is checked when it is saved, but DNS and the admin's private-host setting can change
+// later: each request checks again, and connects only to an address it checked.
+describe('API-key base URL at request time', () => {
+  const saved = {
+    enabled: true,
+    provider: AI_PROVIDER_API_KEY,
+    apiKeyConfig: { baseUrl: 'http://models.internal:11434/v1', apiKey: null, model: 'llama' },
+  };
+
+  it('re-checks the host against the current policy before each request', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({ choices: [{ message: { content: 'ok' } }] }));
+    const getConnectionPolicyFn = vi.fn().mockResolvedValue({ allowPrivateHosts: true });
+    const validateHostFn = vi.fn(async (_host, { allowPrivate }) => (allowPrivate ? null : 'Host resolves to a private or reserved IP address'));
+    const { provider } = factory({ initial: saved, fetchFn, getConnectionPolicyFn, validateHostFn });
+
+    await expect(provider.completeText([{ role: 'user', content: 'Hi' }])).resolves.toBe('ok');
+    expect(validateHostFn).toHaveBeenLastCalledWith('models.internal', { allowPrivate: true });
+    expect(fetchFn.mock.calls[0][2]).toEqual({ allowPrivate: true, requireHttps: false });
+
+    // The admin turns private hosts off after the URL was saved.
+    getConnectionPolicyFn.mockResolvedValue({ allowPrivateHosts: false });
+    await expect(provider.completeText([{ role: 'user', content: 'Hi' }])).rejects.toThrow(/private or reserved/);
+    await expect(collect(provider.streamChat([{ role: 'user', content: 'Hi' }]))).rejects.toThrow(/private or reserved/);
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('pins the connection: a name that passed the check still cannot reach a private address', async () => {
+    let hits = 0;
+    const server = http.createServer((_req, res) => {
+      hits++;
+      res.setHeader('content-type', 'application/json');
+      res.end(JSON.stringify({ choices: [{ message: { content: 'reached' } }] }));
+    });
+    await new Promise(resolve => server.listen(0, resolve));
+    try {
+      const baseUrl = `http://localhost:${server.address().port}/v1`;
+      const getConnectionPolicyFn = vi.fn().mockResolvedValue({ allowPrivateHosts: false });
+      // As if DNS answered with a public address for the check and loopback for the connection.
+      const { deps } = factory({
+        initial: { ...saved, apiKeyConfig: { ...saved.apiKeyConfig, baseUrl } },
+        getConnectionPolicyFn,
+      });
+      delete deps.fetchFn;
+      const provider = createAiProvider(deps);
+      await expect(provider.completeText([{ role: 'user', content: 'Hi' }])).rejects.toThrow(/private or reserved/);
+      expect(hits).toBe(0);
+
+      getConnectionPolicyFn.mockResolvedValue({ allowPrivateHosts: true });
+      await expect(provider.completeText([{ role: 'user', content: 'Hi' }])).resolves.toBe('reached');
+      expect(hits).toBe(1);
+    } finally {
+      await new Promise(resolve => server.close(resolve));
+    }
+  });
+
+  it('connects to OpenRouter only over HTTPS to a public address', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({ choices: [{ message: { content: 'ok' } }] }));
+    const { provider, deps } = factory({
+      initial: { enabled: true, provider: AI_PROVIDER_OPENROUTER, openrouterConfig: { apiKey: 'encrypted:k', model: 'm' } },
+      fetchFn,
+    });
+    await provider.completeText([{ role: 'user', content: 'Hi' }]);
+    expect(fetchFn.mock.calls[0][2]).toEqual({ allowPrivate: false, requireHttps: true });
+    expect(deps.validateHostFn).not.toHaveBeenCalled();
   });
 });
 
