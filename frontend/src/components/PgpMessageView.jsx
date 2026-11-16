@@ -124,9 +124,10 @@ function KeyOffer({ offer, onDone }) {
   );
 }
 
-// What the message's Autocrypt header offers, for the user to import or not. Never taken without
-// asking: who sent a message is only what its headers claim, and an Authentication-Results header
-// may be the sender's own, so a key collected by itself could be anyone's key for the address.
+// What the message's Autocrypt header offers, for the user to import or not. The server already
+// keeps such a key by itself when it is safe to (backend services/autocryptCollect.js: the address
+// matches, DKIM and DMARC did not fail, nothing the user holds for the address is touched). What is
+// left to offer here is a key it held back, for the user to take on their say-so.
 export async function autocryptOffer(analyzed, fromEmail, senderKeys) {
   const ac = analyzed?.autocrypt;
   if (!ac || !fromEmail || ac.addr !== fromEmail.toLowerCase()) return null;

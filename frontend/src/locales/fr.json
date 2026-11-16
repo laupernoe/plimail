@@ -2660,6 +2660,7 @@
       "manual": "ajoutée par vous",
       "wkd": "annuaire de clés (WKD)",
       "autocrypt": "message reçu (Autocrypt)",
+      "autocryptAuto": "message reçu (Autocrypt, ajoutée automatiquement)",
       "attachment": "clé jointe à un message"
     },
     "errors": {

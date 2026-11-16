@@ -2660,6 +2660,7 @@
       "manual": "adicionada por você",
       "wkd": "diretório de chaves web (WKD)",
       "autocrypt": "e-mail recebido (Autocrypt)",
+      "autocryptAuto": "e-mail recebido (Autocrypt, adicionada automaticamente)",
       "attachment": "uma chave anexada a uma mensagem"
     },
     "errors": {

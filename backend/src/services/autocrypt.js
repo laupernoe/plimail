@@ -51,18 +51,26 @@ export function signatureInfo(body) {
   const issuers = new Set();
   let flags = null;
   let created = 0;
-  for (const sp of [...subpackets(hashed), ...subpackets(unhashed)]) {
+  // Seconds after the key's creation until it expires, 0 or null for never. Only the hashed area
+  // counts: the unhashed one is not covered by the signature.
+  let keyExpires = null;
+  const hashedSubpackets = subpackets(hashed);
+  for (const sp of hashedSubpackets) {
+    if (sp.type === 9 && sp.data.length === 4) keyExpires = sp.data.readUInt32BE(0);
+  }
+  for (const sp of [...hashedSubpackets, ...subpackets(unhashed)]) {
     if (sp.type === 16 && sp.data.length === 8) issuers.add(sp.data.toString('hex'));
     if (sp.type === 33 && sp.data.length > 1) issuers.add(sp.data.subarray(1).toString('hex'));
     if (sp.type === 27 && sp.data.length && flags === null) flags = sp.data[0];
     if (sp.type === 2 && sp.data.length === 4) created = sp.data.readUInt32BE(0);
   }
-  return { type, issuers, flags, created };
+  return { type, issuers, flags, created, keyExpires };
 }
 
 // The public key `armoredPublic` reduced for an Autocrypt header sent from `email`: the bytes,
-// or null when the key has no user ID for the address or no subkey to encrypt to.
-export function minimalAutocryptKey(armoredPublic, email) {
+// or null when the key has no user ID for the address or no subkey to encrypt to (one that has
+// not expired and was not revoked).
+export function minimalAutocryptKey(armoredPublic, email, { now = new Date() } = {}) {
   const block = dearmor(armoredPublic);
   if (block.type !== 'PGP PUBLIC KEY BLOCK') throw new PgpFormatError('Not a public key');
   const packets = readPackets(block.bytes);
@@ -107,6 +115,7 @@ export function minimalAutocryptKey(armoredPublic, email) {
     try { sub = parseKeyPacket(g.packet); } catch { continue; }
     const canEncrypt = binding.flags !== null ? (binding.flags & 0x0C) !== 0 : ENCRYPTION_ALGORITHMS.has(sub.algorithm);
     if (!canEncrypt) continue;
+    if (binding.keyExpires && sub.created.getTime() + binding.keyExpires * 1000 <= now.getTime()) continue;
     if (!best || sub.created > best.created) best = { created: sub.created, packet: g.packet, sigs: sigs.filter((_, i) => infos[i].type === SIG_SUBKEY_BINDING) };
   }
   if (!best) return null;

@@ -2660,6 +2660,7 @@
       "manual": "由你添加",
       "wkd": "Web 密钥目录（WKD）",
       "autocrypt": "收到的邮件（Autocrypt）",
+      "autocryptAuto": "收到的邮件（Autocrypt，自动添加）",
       "attachment": "邮件中附带的密钥"
     },
     "errors": {

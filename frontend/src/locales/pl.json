@@ -2679,6 +2679,7 @@
       "manual": "dodany przez Ciebie",
       "wkd": "katalog kluczy internetowych (WKD)",
       "autocrypt": "otrzymana wiadomość (Autocrypt)",
+      "autocryptAuto": "otrzymana wiadomość (Autocrypt, dodany automatycznie)",
       "attachment": "klucz załączony do wiadomości"
     },
     "errors": {
