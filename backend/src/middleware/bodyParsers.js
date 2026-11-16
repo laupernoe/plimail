@@ -5,6 +5,8 @@ import { answerInvalidToken, tokenStillValid } from '../services/apiTokens.js';
 // API token requests are plain JSON without attachments, drafts included (#617).
 export const TOKEN_BODY_LIMIT_BYTES = 1024 * 1024;
 export const TOKEN_BODY_TOO_LARGE = 'Request too large. API token requests must not exceed 1 MB.';
+// JSON sent to /api/s, which anyone can reach.
+export const PUBLIC_SECURE_BODY_LIMIT = '2kb';
 
 // The routers behind the larger limits below require auth, but only once the body has been
 // parsed, so without a check in front of these parsers anyone could make the server read,
@@ -22,11 +24,16 @@ export function mountBodyParsers(app, sessionMiddleware) {
   // as base64. API tokens cannot reach these routes (apiTokenAllowlist.js); apiTokenAuth refuses
   // them before this parser.
   app.use('/api/secure-messages', signedIn, express.json({ limit: '36mb' }), reloadSession);
+  // The recipient of a password-protected message has no account, so these are open to anyone,
+  // and what they send in JSON is a key of 64 hex characters. A reply's ciphertext comes as
+  // application/octet-stream, which its route reads itself (secureMessagesPublic.js).
+  app.use('/api/s', express.json({ limit: PUBLIC_SECURE_BODY_LIMIT }));
   app.use(express.json({ limit: '1mb' }));
   // Return a clean JSON error when the body parser rejects an oversized payload.
   app.use((err, req, res, next) => {
     if (err.type === 'entity.too.large') {
       if (req.apiToken) return res.status(413).json({ error: TOKEN_BODY_TOO_LARGE });
+      if (req.originalUrl.startsWith('/api/s/')) return res.status(413).json({ error: 'Request too large.', code: 'too_large' });
       return res.status(413).json({ error: 'Request too large. Total attachment size must not exceed 25 MB.' });
     }
     next(err);
