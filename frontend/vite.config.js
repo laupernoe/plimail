@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // pdf.js fetches these at run time by URL rather than importing them, so Vite cannot see them:
 // the pure-JavaScript JBIG2 / JPEG 2000 decoders scanned PDFs need (the WebAssembly builds are not
@@ -39,8 +40,46 @@ function pdfjsRuntimeAssets() {
   };
 }
 
+// The page a password-protected message's recipient opens (/s/<token>, secure.html) is its own
+// small entry, without the mail app. Its strings live with the app's, under securePage in each
+// locale file, so they are translated and checked with the rest; this hands the page only that
+// part of each file, rather than eleven whole locales.
+function securePageStrings() {
+  const id = 'virtual:secure-page-strings';
+  const dir = new URL('./src/locales/', import.meta.url);
+  return {
+    name: 'secure-page-strings',
+    resolveId(source) { return source === id ? `\0${id}` : null; },
+    load(resolved) {
+      if (resolved !== `\0${id}`) return null;
+      const strings = {};
+      for (const file of readdirSync(dir).filter(f => f.endsWith('.json'))) {
+        const path = new URL(file, dir);
+        this.addWatchFile(fileURLToPath(path));
+        strings[file.replace(/\.json$/, '')] = JSON.parse(readFileSync(path, 'utf8')).securePage || {};
+      }
+      return `export default ${JSON.stringify(strings)};`;
+    },
+    // In development, /s/<token> is that page too, as the backend serves it in the image.
+    configureServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        if (/^\/s\/[^/?]+\/?(?:\?|$)/.test(req.url || '')) req.url = '/secure.html';
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), pdfjsRuntimeAssets()],
+  plugins: [react(), pdfjsRuntimeAssets(), securePageStrings()],
+  build: {
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        secure: fileURLToPath(new URL('./secure.html', import.meta.url)),
+      },
+    },
+  },
   // Module workers, so the pdf.js worker (an ES module) keeps its dynamic imports of the decoders.
   worker: { format: 'es' },
   // The backend the dev server forwards to: `npm run dev` in backend/ by default.

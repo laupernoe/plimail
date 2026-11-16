@@ -65,7 +65,35 @@ const IMMUTABLE ='public, max-age=31536000, immutable';
 const FINGERPRINTED = /^\/(?:assets|pdfjs\/[^/]+)\//;
 // Never cached: index.html names the current bundle, sw.js must update as soon as it is deployed
 // (it delivers push notifications), and the manifest follows the app.
-const NEVER_CACHED = new Set(['/index.html', '/sw.js', '/manifest.json']);
+const NEVER_CACHED = new Set(['/index.html', '/secure.html', '/sw.js', '/manifest.json']);
+
+// The page a password-protected message's recipient opens (frontend/secure.html), at /s/<token>.
+const SECURE_PAGE = /^\/s\/[A-Za-z0-9_-]+\/?$/;
+
+// Stricter than the app's: the decrypted message is shown in a sandboxed srcdoc frame, which
+// inherits this policy, so a remote image cannot tell anyone the message was opened. Nothing
+// frames the page, and the token in its address goes nowhere as a referrer.
+const SECURE_PAGE_CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self' data:",
+  "img-src 'self' data: blob:",
+  "connect-src 'self'",
+  "frame-src 'self'",
+  "object-src 'none'",
+  "base-uri 'none'",
+  "form-action 'none'",
+  "frame-ancestors 'none'",
+].join('; ') + ';';
+
+function securePageHeaders(res) {
+  res.setHeader('Content-Security-Policy', SECURE_PAGE_CSP);
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  res.setHeader('Cache-Control', 'no-store');
+}
 
 function cacheControlFor(urlPath) {
   if (NEVER_CACHED.has(urlPath)) return 'no-store';
@@ -95,6 +123,13 @@ export function mountWebApp(app, dir) {
       appHeaders(res, cacheControlFor(urlPath));
     },
   }));
+
+  const secureFile = path.join(dir, 'secure.html');
+  app.get(SECURE_PAGE, (req, res, next) => {
+    if (!existsSync(secureFile)) return next();
+    securePageHeaders(res);
+    res.sendFile(secureFile);
+  });
 
   app.get('*', (req, res, next) => {
     if (BACKEND_PATH.test(req.path)) return next();
