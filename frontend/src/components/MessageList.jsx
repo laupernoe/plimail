@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useCallback, useMemo, useState } from 'react';
+import { snippetText } from '../utils/pgpSnippet.js';
 import AccountMark from './AccountMark.jsx';
 import { useTranslation } from 'react-i18next';
 import { useStore, selectSelectedMessageMid, selectSelectedMessageAccountId } from '../store/index.js';
@@ -4696,7 +4697,7 @@ function ThreadRow({ message, isExpanded, threadMsgs, isLoadingThread, selectedM
               fontSize: 12, color: 'var(--text-tertiary)',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
-              {message.snippet || ''}
+              {snippetText(message.snippet, t) || ''}
             </div>
           )}
         </div>
@@ -4770,7 +4771,7 @@ function ThreadRow({ message, isExpanded, threadMsgs, isLoadingThread, selectedM
                   fontSize: 11, color: 'var(--text-tertiary)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 1,
                 }}>
-                  {msg.snippet || ''}
+                  {snippetText(msg.snippet, t) || ''}
                 </div>)}
               </div>
             </div>
@@ -5026,7 +5027,7 @@ function MessageRow({ message, selected, lastViewed, isChecked, selectionMode, s
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               flex: 1,
             }}>
-              {message.snippet || '\u00a0'}
+              {snippetText(message.snippet, t) || '\u00a0'}
             </span>
           </div>
         )}

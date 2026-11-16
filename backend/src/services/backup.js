@@ -36,6 +36,9 @@ export const SETUP_TABLES = [
   'integration_config',
   'invites',
   'oidc_providers',
+  // The user's OpenPGP keys (passphrase-protected) and keyring: losing them loses encrypted mail.
+  'pgp_keys',
+  'pgp_public_keys',
   'push_subscriptions',
   // User content that exists nowhere else, so even a setup-only backup carries it.
   'scheduled_message_attachments',

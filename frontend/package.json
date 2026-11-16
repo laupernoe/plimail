@@ -48,6 +48,7 @@
     "dompurify": "^3.4.17",
     "i18next": "^26.0.8",
     "marked": "^18.0.6",
+    "openpgp": "^6.3.2",
     "pdfjs-dist": "^6.3.289",
     "postcss": "^8.4.35",
     "react": "^18.2.0",

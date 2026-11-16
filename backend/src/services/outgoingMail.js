@@ -15,6 +15,7 @@ import { providerProfile, PROVIDERS } from './imapManager.js';
 import { deleteSentDraft } from './draftCopies.js';
 import { truncateFilename, safeFilename } from '../utils/contentDisposition.js';
 import { SMTP_AUTH_DISABLED, isSmtpAuthDisabled } from './smtpRefusals.js';
+import { PGP_ENCRYPTED_SNIPPET } from './pgpDetect.js';
 
 // The outgoing message pipeline: validate what the composer sent, resolve the From identity and
 // any forwarded content, build the message, deliver it over SMTP and record it (Sent copy, Sent
@@ -27,6 +28,32 @@ export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f
 const MAX_ATTACHMENT_BYTES = 26_214_400;
 
 const VALID_PRIORITIES = new Set(['high', 'normal', 'low']);
+
+// An OpenPGP-encrypted message (RFC 3156) arrives as the armored ciphertext of the whole MIME
+// entity the browser built and encrypted: body, signature, quoted text and attachments. Its size
+// is bounded by the send route's 35 MB parser; this is the same bound, checked on its own.
+export const MAX_PGP_ARMORED_CHARS = 35 * 1024 * 1024;
+const PGP_ARMOR_RE = /^-----BEGIN PGP MESSAGE-----\r?\n[\s\S]+\r?\n-----END PGP MESSAGE-----\s*$/;
+const PRINTABLE_LINES_RE = /^[\x20-\x7e\r\n]*$/;
+
+// The checked `pgp` field of a send body: { encrypted } with CRLF line ends, or null.
+function validatePgp(pgp, body) {
+  if (pgp === undefined || pgp === null) return null;
+  if (typeof pgp !== 'object' || Array.isArray(pgp) || typeof pgp.encrypted !== 'string') {
+    throw new SendError(400, 'pgp.encrypted must be an armored OpenPGP message');
+  }
+  const armored = pgp.encrypted.trim();
+  if (armored.length > MAX_PGP_ARMORED_CHARS) throw new SendError(400, 'Total attachment size exceeds 25 MB');
+  if (!PGP_ARMOR_RE.test(armored) || !PRINTABLE_LINES_RE.test(armored)) {
+    throw new SendError(400, 'pgp.encrypted must be an armored OpenPGP message');
+  }
+  // Everything goes inside the encryption. Anything the server would add in the clear next to it
+  // (files, forwarded parts) is refused rather than sent unencrypted or dropped.
+  if ((body.attachments || []).length || (body.forwardedAttachments || []).length || (body.forwardedMessages || []).length) {
+    throw new SendError(400, 'An encrypted message carries its attachments inside the encryption');
+  }
+  return { encrypted: `${armored.replace(/\r?\n/g, '\r\n')}\r\n` };
+}
 
 // How long a send waits for its Sent copy's APPEND. It stays short: without Undo send the browser
 // waits on it, and the proxy gives the request 60 s.
@@ -175,6 +202,7 @@ export function validateSendInput(body) {
   const { accountId, aliasId, to, cc = [], bcc = [], subject, body: text, bodyIsHtml = false, quotedBody, quotedBodyHtml, inReplyTo, references, attachments, editedSignature, forwardedAttachments, forwardedMessages, priority } = body || {};
   const missing = missingSendFields(body);
   if (missing) throw new SendError(400, missing);
+  const pgp = validatePgp(body.pgp, body);
 
   if (attachments !== undefined) {
     if (!Array.isArray(attachments)) throw new SendError(400, 'attachments must be an array');
@@ -223,6 +251,7 @@ export function validateSendInput(body) {
     forwardedAttachments,
     forwardedMessages,
     priority: VALID_PRIORITIES.has(priority) ? priority : 'normal',
+    ...(pgp ? { pgp } : {}),
   };
 }
 
@@ -417,13 +446,17 @@ export function buildMailOptions(input, identity, forwarded = { attachments: [],
     bcc: input.bcc.join(', ') || undefined,
     subject: input.subject,
     ...(priority !== 'normal' ? { priority } : {}),
-    text: signature
-      ? bodyToPlain(body, bodyIsHtml) + '\n\n-- \n' + sigToPlainText(signature) + (quotedBody || '')
-      : bodyToPlain(body, bodyIsHtml) + (quotedBody || ''),
   };
+  // An encrypted message has no body of the server's making: its content, signature included,
+  // is the ciphertext, which prepareDelivery puts in place (renderPgpMime).
+  if (!input.pgp) {
+    mailOptions.text = signature
+      ? bodyToPlain(body, bodyIsHtml) + '\n\n-- \n' + sigToPlainText(signature) + (quotedBody || '')
+      : bodyToPlain(body, bodyIsHtml) + (quotedBody || '');
+  }
 
   let inlineImageAttachments = [];
-  if (!plaintextEmail) {
+  if (!plaintextEmail && !input.pgp) {
     const rawHtml = bodyToHtml(body, bodyIsHtml) +
       (signature
         ? '<div style="margin-top:16px;color:#555;font-size:13px">' + signature + '</div>'
@@ -441,6 +474,7 @@ export function buildMailOptions(input, identity, forwarded = { attachments: [],
   } else if (references) {
     mailOptions.references = sanitizeHeaderValue(references);
   }
+  if (input.pgp) return mailOptions;
   const allAttachments = [
     ...inlineImageAttachments,
     ...(attachments?.length ? attachments.map(a => ({
@@ -516,6 +550,53 @@ export async function renderRawMessage(mailOptions) {
   return Buffer.concat(chunks);
 }
 
+// RFC 3156 section 4: the message's own headers (as nodemailer writes them, encoded the same way
+// as any message's) over a multipart/encrypted body of two parts, the version and the ciphertext.
+// Returns { smtpRaw, sentRaw }: the copy recipients get, without Bcc, and the Sent copy, with it.
+// The subject stays in the clear in the outer headers; the browser puts it, with From, To and Cc,
+// in the encrypted entity as protected headers too.
+export async function renderPgpMime(mailOptions, armored) {
+  const headerOnly = await renderRawMessage({ ...mailOptions, text: '', html: undefined, attachments: undefined, raw: undefined });
+  const text = headerOnly.toString('latin1');
+  const end = text.indexOf('\r\n\r\n');
+  if (end < 0) throw new Error('Could not render the message headers');
+  // Header fields, each with its folded continuation lines.
+  const fields = text.slice(0, end).split(/\r\n(?![ \t])/);
+  const kept = fields.filter(f => !/^(content-type|content-transfer-encoding):/i.test(f));
+  const boundary = `----=_pgp_${randomBytes(12).toString('hex')}`;
+  const body = [
+    'This is an OpenPGP/MIME encrypted message (RFC 4880 and 3156)',
+    `--${boundary}`,
+    'Content-Type: application/pgp-encrypted',
+    'Content-Description: PGP/MIME version identification',
+    '',
+    'Version: 1',
+    '',
+    `--${boundary}`,
+    'Content-Type: application/octet-stream; name="encrypted.asc"',
+    'Content-Description: OpenPGP encrypted message',
+    'Content-Disposition: inline; filename="encrypted.asc"',
+    '',
+    armored.replace(/\r\n$/, ''),
+    `--${boundary}--`,
+    '',
+  ].join('\r\n');
+  const contentType = `Content-Type: multipart/encrypted; protocol="application/pgp-encrypted";\r\n boundary="${boundary}"`;
+  const build = headers => Buffer.from(`${[...headers, contentType].join('\r\n')}\r\n\r\n${body}`, 'latin1');
+  return {
+    smtpRaw: build(kept.filter(f => !/^bcc:/i.test(f))),
+    sentRaw: build(kept),
+  };
+}
+
+// The SMTP envelope of a message sent as raw MIME, which carries no addresses nodemailer reads.
+function envelopeOf(input, identity) {
+  return {
+    from: identity.fromEmail,
+    to: [...input.to, ...input.cc, ...input.bcc].map(addr => parseAddress(addr).email),
+  };
+}
+
 // Everything delivery needs, decided before anything is sent: the SMTP transport (which may
 // refresh the account's OAuth token, hence the account it returns), the message, whether the
 // server saves the Sent copy itself and, if not, the raw copy to APPEND. Throws SendError for an
@@ -530,6 +611,15 @@ export async function prepareDelivery(input, identity, forwarded, options = {}) 
   const account = smtp.account;
   const mailOptions = buildMailOptions(input, identity, forwarded, options);
   const serverAutoSaves = serverAutoSavesSent(account);
+  if (input.pgp) {
+    const { smtpRaw, sentRaw } = await renderPgpMime(mailOptions, input.pgp.encrypted);
+    return {
+      account, transport: smtp.transport, serverAutoSaves,
+      // The fields stay for the Sent row (Message-ID, date, threading); `raw` is what goes out.
+      mailOptions: { ...mailOptions, raw: smtpRaw, envelope: envelopeOf(input, identity) },
+      rawMessage: serverAutoSaves ? null : sentRaw,
+    };
+  }
   // For servers that don't auto-save, generate the raw MIME now so we can APPEND it.
   const rawMessage = serverAutoSaves ? null : await renderRawMessage(mailOptions);
   return { account, transport: smtp.transport, mailOptions, serverAutoSaves, rawMessage };
@@ -681,7 +771,8 @@ export async function deliverAndRecord(
       // The Sent copy carries a Bcc header, but the row did not, so the reading pane had no
       // Bcc to show for a message you sent (#585).
       bcc: mapRecipientList(input.bcc),
-      snippet: buildSentSnippet(input.body, input.bodyIsHtml),
+      // The server never had an encrypted message's text.
+      snippet: input.pgp ? PGP_ENCRYPTED_SNIPPET : buildSentSnippet(input.body, input.bodyIsHtml),
       date: mailOptions.date,
       // Carried so the Sent row threads into its conversation via the References chain
       // rather than orphaning at its own Message-ID (#378).

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { snippetText } from '../utils/pgpSnippet.js';
 import { api } from '../utils/api.js';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/index.js';
@@ -17,6 +18,8 @@ import AiResultBox from './AiResultBox.jsx';
 import { useAiActions } from '../hooks/useAiActions.js';
 import { useMessageAiTools } from '../hooks/useMessageAiTools.js';
 import { MailAiPanels, withMailActions } from './MessageAiPanels.jsx';
+import PgpMessageView, { PgpSignatureBadge } from './PgpMessageView.jsx';
+import { pgpVisibleAttachments } from '../utils/pgpReader.js';
 import { BUILTIN_SUMMARIZE } from '../aiActions.js';
 import { formatDateTime } from '../utils/formatDate.js';
 import { bodyCache } from '../utils/bodyCache.js';
@@ -50,6 +53,8 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
   const addToImageWhitelist = useStore(s => s.addToImageWhitelist);
   const isMobile = useMobile();
   const [showHeaderModal, setShowHeaderModal] = useState(false);
+  // The encrypted message shown as it was received (PgpMessageView onShowOriginal).
+  const [pgpOriginal, setPgpOriginal] = useState(false);
   const [savingAllow, setSavingAllow] = useState(false);
   // null | 'loading' | 'done' | 'error', as the reading pane's unsubscribe notice.
   const [unsubscribeStatus, setUnsubscribeStatus] = useState(null);
@@ -287,16 +292,19 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
   // (spam, archive, move, delete: ConversationPane).
   const darkLabel = darkRefused ? t('message.cannotShowDark') : shownDark ? t('message.showOriginal') : t('message.showDark');
   // By Reply, or in More on a phone, as in the reading pane.
+  // An encrypted message's plaintext exists only in this tab (PgpMessageView.jsx): no AI reads it.
+  const pgpCiphertext = body?.pgp === 'encrypted';
+  const pgpEncrypted = pgpCiphertext && !pgpOriginal;
   const aiReply = () => openReplyFromMessage(message, { accounts, folders: useStore.getState().folders, openCompose, getMessageBody: loadedBody, replyAll: replyDefault === 'replyAll', aiReply: true });
   const toolItems = [
-    aiReplyEnabled && isMobile && { key: 'aiReply', label: t('compose.toolbar.aiReply'), icon: <AiReplyIcon />, onClick: aiReply },
+    aiReplyEnabled && !pgpCiphertext && isMobile && { key: 'aiReply', label: t('compose.toolbar.aiReply'), icon: <AiReplyIcon />, onClick: aiReply },
     { key: 'read', label: message.is_read ? t('contextMenu.markUnread') : t('contextMenu.markRead'), icon: <ReadStateIcon isRead={message.is_read} />, onClick: handleToggleRead },
     { key: 'headers', label: t('contextMenu.viewHeaders'), icon: <HeadersIcon />, onClick: () => setShowHeaderModal(true) },
     { key: 'eml', label: t('message.downloadEml'), icon: <DownloadIcon />, onClick: () => downloadEml(message.id) },
     { key: 'print', label: t('message.print'), icon: <PrintIcon />, onClick: handlePrint },
     darkToggleShown && { key: 'dark', label: darkLabel, icon: <DarkToggleIcon shownDark={shownDark} />, onClick: () => setDarkChoice(bodyDark ? 'original' : 'dark'), pressed: shownDark, disabled: darkRefused },
   ].filter(Boolean);
-  const aiTools = withMailActions(aiEnabled && body ? {
+  const aiTools = withMailActions(aiEnabled && body && !pgpCiphertext ? {
     items: [{ ...BUILTIN_SUMMARIZE, label: t('message.summarize') }, ...(ai.aiActions || [])],
     results: ai.results,
     onRun: action => ai.run(action),
@@ -327,7 +335,7 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
         <span style={{ fontWeight: message.is_read ? 400 : 600, flex: '0 1 auto' }}>{who}</span>
         {!expanded && (
           <span style={{ color: 'var(--text-secondary)', fontSize: 13, flex: '1 1 auto', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {message.snippet || ''}
+            {snippetText(message.snippet, t) || ''}
           </span>
         )}
         <span style={{ color: 'var(--text-secondary)', fontSize: 12, marginLeft: 'auto', flex: '0 0 auto' }}>{when}</span>
@@ -351,7 +359,7 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
               onReply={replyAll => openReplyFromMessage(message, { accounts, folders: useStore.getState().folders, openCompose, getMessageBody: loadedBody, replyAll })}
               touch={isMobile}
             />
-            {aiReplyEnabled && !isMobile && (
+            {aiReplyEnabled && !pgpCiphertext && !isMobile && (
               <ActionBtn onClick={aiReply} label={t('compose.toolbar.aiReply')}>
                 <AiReplyIcon />
               </ActionBtn>
@@ -375,7 +383,10 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
           {error && <div style={{ color: 'var(--red, #e03131)', fontSize: 13 }}>{error}</div>}
           {/* Attachments, the reading pane's strip (#634), where the reading pane has it: above the
               message. The body response already carries them. */}
-          <AttachmentStrip messageId={message.id} attachments={body?.attachments} style={{ marginBottom: 12 }} />
+          <AttachmentStrip messageId={message.id} attachments={body ? pgpVisibleAttachments(body, { original: pgpCiphertext && pgpOriginal }) : undefined} style={{ marginBottom: 12 }} />
+          {body?.pgp && !(pgpCiphertext && pgpOriginal) && (pgpEncrypted
+            ? <PgpMessageView message={message} onShowOriginal={() => setPgpOriginal(true)} />
+            : <PgpSignatureBadge message={message} />)}
           {/* AI results pinned above the message, as in the reading pane (#204). */}
           {(Object.keys(ai.results).length > 0 || mailAi.translation || mailAi.scam) && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, margin: '4px 0 12px' }}>
@@ -408,7 +419,7 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
               saving={savingAllow}
             />
           )}
-          {body?.html && (
+          {body?.html && !pgpEncrypted && (
             // The same white padded card the reading pane wraps its body in. The frame's
             // stylesheet zeroes body margin and padding, so the only gutter an email has
             // is what the surrounding card provides: the reading pane gives every body
@@ -436,7 +447,7 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
               />
             </div>
           )}
-          {!body?.html && body?.text && (
+          {!body?.html && body?.text && !pgpEncrypted && (
             // translate="yes" undoes <body>'s translate="no" for the message itself; React writes
             // it as the element's whole text, so a translator has no React text node to break.
             <div translate="yes" style={{

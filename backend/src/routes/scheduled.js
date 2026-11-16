@@ -136,6 +136,9 @@ function snippetOf(input) {
 // parts and messages fetched now (open question 12) and the Message-ID fixed (design 4.1).
 // `messageId` keeps an existing one unless From moved to another domain.
 async function buildSpec(userId, body, { messageId } = {}) {
+  // What a scheduled message stores is its plain content, so an encrypted one cannot be kept for
+  // later: refused, rather than sent later without its encryption.
+  if (body?.pgp != null) throw new SendError(400, 'An encrypted message cannot be scheduled');
   const input = validateSendInput(body);
   if (!UUID_RE.test(String(input.accountId))) throw new SendError(400, 'accountId is invalid');
   if (input.aliasId && !UUID_RE.test(String(input.aliasId))) throw new SendError(400, 'aliasId is invalid');

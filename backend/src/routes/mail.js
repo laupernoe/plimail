@@ -16,6 +16,7 @@ import { shrinkImage } from '../services/imageShrink.js';
 import { fitInlineImages } from '../services/inlineImageFit.js';
 import { needsCidRefetch, needsImageRefetch, settleCids, settledEarlier, withoutCidMarker } from '../utils/cidRefs.js';
 import { sanitizeDbText, storeFetchedBody } from '../services/messageBodyStore.js';
+import { PGP_ENCRYPTED_SNIPPET, pgpKindOfBody } from '../services/pgpDetect.js';
 import { snippetFromBody, decodeMimeWords, parseRawHeaders, parseMailboxList, buildHeadersFromMessage } from '../services/messageParser.js';
 import { draftMessageSql, trashMessageSql, resolveTrashFolder, resolveAllTrashPaths, resolveAllDraftsPaths, resolveArchiveFolder, isAllMailFolder, resolveSpamFolder, resolveAllSpamPaths, getDeleteStrategy, adjustFolderCounts } from '../utils/mailUtils.js';
 import { listMessages, LIST_SORTS, LIST_SORT_DIRS, NOT_PLACEHOLDER_SQL } from '../services/messageService.js';
@@ -593,10 +594,17 @@ router.get('/messages/:id/body', async (req, res) => {
     const imageStats = {};
     if (remoteImagesProxied && shown) responseHtml = proxyRemoteImages(shown, (raw, width) => imageProxyPath(id, raw, width), imageStats);
     const inline = req.query.original === '1' ? { html: responseHtml, count: 0 } : await fitInlineImages(responseHtml, req.session.userId);
-    return res.json({ ...splitDarkScheme(inline.html), inlineImagesFitted: inline.count > 0, text: message.body_text, attachments: cachedAttachments, hasBlockedRemoteImages, remoteImagesBlocked, remoteImagesProxied, trackersBlocked: imageStats.trackers ?? 0, senderEmail: message.sender_email, senderName: message.sender_name, forwardedFromEmail: message.forwarded_from_email, forwardedFromName: message.forwarded_from_name, forwardedVia: message.forwarded_via, bccAddresses: bccOf(message) });
+    return res.json({ ...splitDarkScheme(inline.html), inlineImagesFitted: inline.count > 0, text: message.body_text, attachments: cachedAttachments, pgp: pgpKindOfBody({ snippet: message.snippet, text: message.body_text, html: message.body_html, attachments: cachedAttachments }), hasBlockedRemoteImages, remoteImagesBlocked, remoteImagesProxied, trackersBlocked: imageStats.trackers ?? 0, senderEmail: message.sender_email, senderName: message.sender_name, forwardedFromEmail: message.forwarded_from_email, forwardedFromName: message.forwarded_from_name, forwardedVia: message.forwarded_via, bccAddresses: bccOf(message) });
   };
   // A body fetched from the mail server and stored (storeFetchedBody), as the response gives it.
-  const serveFetched = async ({ sanitized, safeText, attachments }) => {
+  const serveFetched = async ({ sanitized, safeText, attachments, pgp: structureKind = null }) => {
+    const pgp = pgpKindOfBody({ structureKind, snippet: message.snippet, text: safeText, html: sanitized, attachments });
+    // A message synced before encrypted mail was recognized keeps its ciphertext or "Version: 1"
+    // as its snippet; it gets the marker the list shows as "Encrypted message". Only on the
+    // structure's word: the marker is what makes a stored message read as encrypted from then on.
+    if (structureKind === 'encrypted' && message.snippet !== PGP_ENCRYPTED_SNIPPET) {
+      query('UPDATE messages SET snippet = $1 WHERE id = $2', [PGP_ENCRYPTED_SNIPPET, id]).catch(() => {});
+    }
     // Apply remote-image blocking at response time — safeHtml (unblocked) is what
     // was written to the DB cache above, preserving the canonical body; the response is it
     // without the settled marker.
@@ -615,7 +623,7 @@ router.get('/messages/:id/body', async (req, res) => {
     const imageStats = {};
     if (remoteImagesProxied && sanitized) responseHtml = proxyRemoteImages(sanitized, (raw, width) => imageProxyPath(id, raw, width), imageStats);
     const inline = req.query.original === '1' ? { html: responseHtml, count: 0 } : await fitInlineImages(responseHtml, req.session.userId);
-    return res.json({ ...splitDarkScheme(inline.html), inlineImagesFitted: inline.count > 0, text: safeText, attachments: attachments || [], hasBlockedRemoteImages, remoteImagesBlocked, remoteImagesProxied, trackersBlocked: imageStats.trackers ?? 0, senderEmail: message.sender_email, senderName: message.sender_name, forwardedFromEmail: message.forwarded_from_email, forwardedFromName: message.forwarded_from_name, forwardedVia: message.forwarded_via, bccAddresses: bccOf(message) });
+    return res.json({ ...splitDarkScheme(inline.html), inlineImagesFitted: inline.count > 0, text: safeText, attachments: attachments || [], pgp, hasBlockedRemoteImages, remoteImagesBlocked, remoteImagesProxied, trackersBlocked: imageStats.trackers ?? 0, senderEmail: message.sender_email, senderName: message.sender_name, forwardedFromEmail: message.forwarded_from_email, forwardedFromName: message.forwarded_from_name, forwardedVia: message.forwarded_via, bccAddresses: bccOf(message) });
   };
   // A prefetch (?prefetch=1): the client loading a row the pointer rests on, ahead of a click that
   // may never come (#677). It gets a stored body as any view does, and fetches from the mail server
@@ -655,11 +663,11 @@ router.get('/messages/:id/body', async (req, res) => {
       imapManager.noteUserActivity(account.id);
     }
 
-    const { html, text, attachments, cidsComplete } = await fetchWithTimeout(
+    const { html, text, attachments, cidsComplete, pgp } = await fetchWithTimeout(
       imapManager.fetchMessageBody(account, message.uid, message.folder, { background: Boolean(prefetch) }),
       BODY_FETCH_TIMEOUT_MS
     );
-    return await serveFetched({ ...await storeFetchedBody(id, { html, text, attachments, cidsComplete }), attachments });
+    return await serveFetched({ ...await storeFetchedBody(id, { html, text, attachments, cidsComplete }), attachments, pgp });
   } catch (err) {
     const msg = err.message || 'Unknown error';
     console.error('Body fetch error:', msg);

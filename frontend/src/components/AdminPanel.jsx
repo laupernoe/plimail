@@ -52,6 +52,7 @@ import PasswordInput from './PasswordInput.jsx';
 import ApiTokensSection from './ApiTokensSection.jsx';
 import WritingStyleSection from './WritingStyleSection.jsx';
 import SecureMessagesSection from './SecureMessagesSection.jsx';
+import PgpSettingsSection from './PgpSettingsSection.jsx';
 import { CalendarAccountsTab, CalendarListTab } from './calendar/AccountsModal.jsx';
 import CalendarOffer from './calendar/CalendarOffer.jsx';
 
@@ -6365,7 +6366,7 @@ function RulesAndBlockListTab({ initialSubTab }) {
 }
 
 const TAB_GROUPS = [
-  { id: 'mail', labelKey: 'admin.tabs.groupMail', tabIds: ['accounts', 'rules', 'categories', 'secure-messages'] },
+  { id: 'mail', labelKey: 'admin.tabs.groupMail', tabIds: ['accounts', 'rules', 'categories', 'secure-messages', 'pgp'] },
   { id: 'calendar', labelKey: 'admin.tabs.groupCalendar', tabIds: ['calendar-accounts', 'calendar-list'] },
   { id: 'preferences', labelKey: 'admin.tabs.groupPreferences', tabIds: ['appearance', 'behavior', 'notifications', 'shortcuts', 'security'] },
   { id: 'ai', labelKey: 'admin.tabs.groupAi', tabIds: ['ai-actions', 'ai'] },
@@ -6389,6 +6390,10 @@ const TABS = [
   {
     id: 'secure-messages', labelKey: 'admin.tabs.secureMessages',
     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>,
+  },
+  {
+    id: 'pgp', labelKey: 'admin.tabs.pgp',
+    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3M16 7l3 3M14 9l2 2"/></svg>,
   },
   // Calendar
   {
@@ -8045,6 +8050,7 @@ function makeSearchIndex(t) {
     { label: t('admin.accounts.signatureSection'), keywords: ['signature', 'sign off', 'footer', 'alias', 'send as'], tab: 'accounts', breadcrumb: tabLabel('accounts') },
     { label: t('admin.accounts.autoRecipientsSection'), keywords: ['cc', 'bcc', 'copy', 'carbon copy', 'blind copy', 'always bcc', 'automatic', 'copy to myself'], tab: 'accounts', breadcrumb: tabLabel('accounts') },
     { label: t('admin.secureMessages.title'), keywords: ['password', 'protected', 'secure', 'encrypted', 'link', 'revoke', 'reply'], tab: 'secure-messages', breadcrumb: tabLabel('secureMessages') },
+    { label: t('pgp.settings.title'), keywords: ['pgp', 'gpg', 'openpgp', 'encryption', 'encrypt', 'key', 'public key', 'private key', 'keyring', 'sign', 'signature', 'wkd', 'proton'], tab: 'pgp', breadcrumb: tabLabel('pgp') },
     // Rules
     { label: t('admin.rules.title'), keywords: ['rule', 'filter', 'condition', 'action', 'move', 'auto', 'automate', 'inbox rule', 'sort'], tab: 'rules', subtab: 'rules', breadcrumb: `${tabLabel('rules')} › ${t('admin.rules.subTabRules')}` },
     { label: t('admin.rules.subTabBlockList'), keywords: ['block', 'blocked', 'sender', 'blacklist', 'spam', 'domain'], tab: 'rules', subtab: 'block-list', breadcrumb: `${tabLabel('rules')} › ${t('admin.rules.subTabBlockList')}` },
@@ -8223,6 +8229,7 @@ export default function AdminPanel() {
       {adminTab === 'rules' && <RulesAndBlockListTab initialSubTab={pendingSubTab} />}
       {adminTab === 'categories' && <CategoriesSection />}
       {adminTab === 'secure-messages' && <SecureMessagesSection />}
+      {adminTab === 'pgp' && <PgpSettingsSection />}
       {adminTab === 'appearance' && <AppearanceTab initialSubTab={pendingSubTab} />}
       {adminTab === 'mail-signin' && user?.isAdmin && <MailSignInTab />}
       {adminTab === 'users' && <UsersTab />}

@@ -296,6 +296,13 @@ const SAME_VALUE_ALLOWED = {
   'admin.systemEmail.password':      [['en', 'it']],
   'login.password':                  [['en', 'it']],
   'compose.secure.password':         [['en', 'it']], // "Password" is the Italian word too
+  // OpenPGP: the same word in both languages.
+  'pgp.settings.address':            [['de', 'fr']],
+  'pgp.settings.export':             [['es', 'ptBR']],
+  'pgp.settings.importing':          [['es', 'ptBR']],
+  'pgp.settings.verified':           [['es', 'ptBR']],
+  'pgp.settings.markVerified':       [['es', 'ptBR']],
+  'pgp.compose.protection':          [['en', 'fr']],
 
   // "Tema" — "Theme" translates identically in es and it
   'admin.tabs.theme': [['es', 'it', 'ptBR']],

@@ -7,6 +7,7 @@ import { mergeCountSnapshots, adjustCountPending, expireCountPending, settleCoun
 import { resolveSelectedAccount, pruneFolders } from '../utils/accountScope.js';
 import { UNDO_COMMIT_DELAY_MS } from '../utils/undoableAction.js';
 import { aiRuns } from '../utils/aiRunRegistry.js';
+import { forgetAllUnlockedKeys } from '../utils/pgpSession.js';
 import { applyTheme, applyCustomCss, getInitialTheme, normalizeTheme } from '../themes.js';
 import { applyLayout, normalizeLayout } from '../layouts.js';
 import { DEFAULT_AI_ACTIONS } from '../aiActions.js';
@@ -115,6 +116,8 @@ export const useStore = create((set, get) => ({
       // run that outlived a logout would finish and write the previous user's result into this
       // device's cache, under their message id, for whoever signs in next.
       aiRuns.abortAll();
+      // Private keys unlocked for this session belong to the leaving user.
+      forgetAllUnlockedKeys();
       // The message remembered for the lock screen is the leaving user's too.
       if (get().user) localStorage.removeItem('mailflow_locked_message');
     }
@@ -179,6 +182,8 @@ export const useStore = create((set, get) => ({
   // Lock screen
   isLocked: localStorage.getItem('mailflow_locked') === '1',
   setLocked: (locked) => {
+    // The screen lock stands between this tab and the mail, so no unlocked key outlives it.
+    if (locked) forgetAllUnlockedKeys();
     if (locked) {
       // The lock screen replaces the mail view, and with it an open composer: this lets the
       // composer hand what it holds to keepComposeForLock first, so it reopens with it on unlock.
