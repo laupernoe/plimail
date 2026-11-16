@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../utils/api.js';
 import { shortFingerprint } from '../utils/pgp.js';
 import { isUnlocked } from '../utils/pgpSession.js';
-import { classifyRecipients } from '../utils/pgpSend.js';
+import { classifyRecipients, pgpDefaults } from '../utils/pgpSend.js';
+
+export { pgpDefaults };
 
 // The composer's OpenPGP side of the lock: which mode the lock is in (PGP or a password link,
 // SecureSendPanel.jsx), each recipient's key, signing, and what to do when a recipient has none.
@@ -42,7 +44,6 @@ export function usePgpRecipients(enabled, emails) {
   return state;
 }
 
-export const pgpDefaults = () => ({ sign: true, passphrase: '', remember: true, confirmPlain: false });
 
 const chip = status => ({
   display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 8px', borderRadius: 999, fontSize: 12,

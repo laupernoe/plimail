@@ -21,6 +21,29 @@ export class PgpSendError extends Error {
   }
 }
 
+// The composer's PGP settings when encryption is turned on. The passphrase is only ever held here,
+// in this composer, never in what is kept for a restore.
+export const pgpDefaults = () => ({ sign: true, passphrase: '', remember: true, confirmPlain: false });
+
+// The lock's mode as a restored composer must reopen with it: after an undone or failed send, a
+// send lost on the server, or the screen lock. Without it the message reopens unprotected, and
+// Send would deliver it in the clear. No passphrase or password is kept: the user gives it again.
+export function protectionForRestore({ pgp, secure }) {
+  if (pgp) return { mode: 'pgp', sign: pgp.sign !== false };
+  if (secure) return { mode: 'password', expiresInDays: secure.expiresInDays };
+  return null;
+}
+
+export function initialPgp(protection) {
+  return protection?.mode === 'pgp' ? { ...pgpDefaults(), sign: protection.sign !== false } : null;
+}
+
+export function initialSecure(protection, secureDefaults) {
+  if (protection?.mode !== 'password') return null;
+  const defaults = secureDefaults();
+  return { ...defaults, expiresInDays: protection.expiresInDays || defaults.expiresInDays };
+}
+
 export function emailOfRecipient(value) {
   const s = String(value || '').trim();
   const m = /<([^<>\s]+@[^<>\s]+)>/.exec(s);
@@ -115,7 +138,9 @@ export async function encryptedSendPayload({ payload, attachments = [], forwarde
     ...recipients.flatMap(e => byEmail.get(e).keys.map(k => k.armored)),
     ownKey.armoredPublic,
   ])];
-  const armored = await encrypt(entityBytes(entity), { recipientArmored, signingKey });
+  // With Bcc, no recipient may learn whose keys it was encrypted to: the key IDs are hidden.
+  const hidden = (payload.bcc || []).length > 0;
+  const armored = await encrypt(entityBytes(entity), { recipientArmored, signingKey, hidden });
 
   // What the server needs and nothing more: no body, signature, quote or files in the clear.
   const rest = { ...payload };

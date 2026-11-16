@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as openpgp from 'openpgp';
-import { decryptArmored, generateKeyPair, unlockPrivateKey } from './pgp.js';
+import { decryptArmored, encryptionKeyIds, generateKeyPair, unlockPrivateKey } from './pgp.js';
 import { extractContent, parseMime } from './mimeParse.js';
 import { PgpSendError, classifyRecipients, emailOfRecipient, encryptedSendPayload, ownKeyFor, pgpSendProblem } from './pgpSend.js';
 
@@ -87,4 +87,30 @@ test('never encrypts past a recipient without a key, forwarded parts or the size
   // Bcc counts as much as To.
   await assert.rejects(encryptedSendPayload({ ...base, payload: { to: ['bob@example.net'], cc: [], bcc: ['nobody@example.org'], body: '' } }), e => e.code === 'missingKeys');
   assert.equal(encrypted, false);
+});
+
+test('hides every recipient key ID when the message has Bcc, so no one learns who else got it', async () => {
+  const carol = await generateKeyPair({ email: 'carol@example.org', passphrase: 'c-pass-123' });
+  const results = { ...lookup, 'carol@example.org': { source: 'keyring', keys: [{ fingerprint: carol.fingerprint, armored: carol.armoredPublic, verified: false }] } };
+  const statuses = await classifyRecipients(['bob@example.net', 'carol@example.org'], results);
+  const payload = { to: ['bob@example.net'], cc: [], bcc: ['carol@example.org'], subject: 'x', body: 'hi', bodyIsHtml: false };
+  const body = await encryptedSendPayload({ payload, statuses, ownKey, fromEmail: 'me@example.com' });
+  assert.deepEqual([...new Set(await encryptionKeyIds(body.pgp.encrypted))], ['0000000000000000']);
+  // Bob, the Bcc recipient and the sender's Sent copy all still open it.
+  for (const [k, p] of [[bob.armoredPrivate, 'bob-pass-123'], [carol.armoredPrivate, 'c-pass-123'], [me.armoredPrivate, 'me-pass-123']]) {
+    await decryptArmored(body.pgp.encrypted, { decryptionKey: await unlockPrivateKey(k, p) });
+  }
+  // Without Bcc the recipients are named, as usual.
+  const plain = await encryptedSendPayload({ payload: { ...payload, bcc: [], cc: ['carol@example.org'] }, statuses, ownKey, fromEmail: 'me@example.com' });
+  assert.ok((await encryptionKeyIds(plain.pgp.encrypted)).every(id => id !== '0000000000000000'));
+});
+
+test('keeps the lock\'s mode for a restore, without any passphrase or password', async () => {
+  const { protectionForRestore, initialPgp, initialSecure, pgpDefaults } = await import('./pgpSend.js');
+  assert.deepEqual(protectionForRestore({ pgp: { ...pgpDefaults(), sign: false, passphrase: 'secret' } }), { mode: 'pgp', sign: false });
+  assert.deepEqual(protectionForRestore({ secure: { password: 'pw', confirm: 'pw', expiresInDays: 30 } }), { mode: 'password', expiresInDays: 30 });
+  assert.equal(protectionForRestore({}), null);
+  assert.deepEqual(initialPgp({ mode: 'pgp', sign: false }), { ...pgpDefaults(), sign: false });
+  assert.equal(initialPgp(null), null);
+  assert.deepEqual(initialSecure({ mode: 'password', expiresInDays: 30 }, () => ({ password: '', confirm: '', expiresInDays: 7 })), { password: '', confirm: '', expiresInDays: 30 });
 });

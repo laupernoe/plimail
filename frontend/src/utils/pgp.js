@@ -70,15 +70,48 @@ export async function readArmoredKeys(armored) {
 export async function generateKeyPair({ name, email, passphrase }) {
   if (!passphrase) throw new PgpError('passphraseRequired');
   const openpgp = await loadOpenpgp();
-  const { privateKey, publicKey } = await openpgp.generateKey({
+  const { privateKey } = await openpgp.generateKey({
     type: 'ecc',
     curve: 'curve25519Legacy',
     userIDs: [{ ...(name ? { name } : {}), email }],
-    passphrase,
-    format: 'armored',
+    format: 'object',
   });
-  const key = await openpgp.readKey({ armoredKey: publicKey });
-  return { armoredPrivate: privateKey, armoredPublic: publicKey, fingerprint: key.getFingerprint() };
+  await setConservativePreferences(openpgp, privateKey);
+  const locked = await openpgp.encryptKey({ privateKey, passphrase });
+  return { armoredPrivate: locked.armor(), armoredPublic: locked.toPublic().armor(), fingerprint: locked.getFingerprint() };
+}
+
+// The algorithm preferences a new key states in its self-signatures, chosen for what every
+// current implementation has: AES-256 and AES-128, SHA-512 and SHA-256, ZLIB, ZIP or none, and
+// the MDC feature only. OpenPGP.js also lists SHA3-512 and SHA3-256, which GnuPG 2.4 does not
+// implement and warns about on import ("update your preferences and re-distribute this key"),
+// so each user ID is certified again with this list before the key is locked and stored.
+export const KEY_PREFERENCES = Object.freeze({
+  symmetric: ['aes256', 'aes128'],
+  hash: ['sha512', 'sha256'],
+  compression: ['zlib', 'zip', 'uncompressed'],
+});
+
+async function setConservativePreferences(openpgp, key) {
+  const { enums, SignaturePacket } = openpgp;
+  const primary = key.keyPacket;
+  for (const user of key.users) {
+    const previous = user.selfCertifications[user.selfCertifications.length - 1];
+    const sig = new SignaturePacket();
+    sig.signatureType = enums.signature.certGeneric;
+    sig.publicKeyAlgorithm = primary.algorithm;
+    sig.hashAlgorithm = enums.hash.sha512;
+    sig.keyFlags = previous.keyFlags;
+    sig.isPrimaryUserID = previous.isPrimaryUserID;
+    sig.keyNeverExpires = previous.keyNeverExpires;
+    sig.keyExpirationTime = previous.keyExpirationTime;
+    sig.preferredSymmetricAlgorithms = KEY_PREFERENCES.symmetric.map(a => enums.symmetric[a]);
+    sig.preferredHashAlgorithms = KEY_PREFERENCES.hash.map(a => enums.hash[a]);
+    sig.preferredCompressionAlgorithms = KEY_PREFERENCES.compression.map(a => enums.compression[a]);
+    sig.features = [enums.features.modificationDetection];
+    await sig.sign(primary, { userID: user.userID, key: primary }, previous.created, false, openpgp.config);
+    user.selfCertifications = [sig];
+  }
 }
 
 // A private key brought from elsewhere (Proton, Thunderbird, GnuPG). It must open with
@@ -120,14 +153,19 @@ export async function unlockPrivateKey(armoredPrivate, passphrase) {
 // `data` (the MIME entity, bytes) encrypted to every key in `recipientArmored` (the sender's own
 // public key included by the caller, so the Sent copy stays readable), signed with `signingKey`
 // when given. Armored, as PGP/MIME carries it.
-export async function encryptMime(data, { recipientArmored, signingKey = null }) {
+// `hidden`: the recipients' key IDs are left out of the message (wildcard key IDs), so no recipient
+// learns who else it was encrypted to. Used when the message has Bcc recipients; readers then try
+// their keys in turn, as GnuPG does for an "anonymous recipient".
+export async function encryptMime(data, { recipientArmored, signingKey = null, hidden = false }) {
   const openpgp = await loadOpenpgp();
   const encryptionKeys = [];
   for (const armored of recipientArmored) encryptionKeys.push(...await openpgp.readKeys({ armoredKeys: armored }));
   if (!encryptionKeys.length) throw new PgpError('noRecipientKeys');
   const message = await openpgp.createMessage({ binary: data });
   try {
-    return await openpgp.encrypt({ message, encryptionKeys, ...(signingKey ? { signingKeys: signingKey } : {}), format: 'armored' });
+    return await openpgp.encrypt({
+      message, encryptionKeys, ...(signingKey ? { signingKeys: signingKey } : {}), ...(hidden ? { wildcard: true } : {}), format: 'armored',
+    });
   } catch (err) {
     throw new PgpError('encryptFailed', err?.message);
   }
@@ -146,9 +184,14 @@ export async function encryptionKeyIds(armoredMessage) {
 }
 
 // Which of `keys` (readArmoredKeys results, or { armored } rows read through it) a message is for.
+// A key ID of zeros: the message does not say whose key this is (a hidden recipient).
+export const WILDCARD_KEY_ID = '0000000000000000';
+
+// Whether the message names `key` (any of its subkeys) as a recipient. A hidden recipient names
+// no key; findDecryptionKeys (pgpReader.js) handles those.
 export function keyMatches(key, keyIdsHex) {
   const own = key.getKeyIDs().map(id => id.toHex());
-  return keyIdsHex.some(id => id === '0000000000000000' || own.includes(id));
+  return keyIdsHex.some(id => id !== WILDCARD_KEY_ID && own.includes(id));
 }
 
 // Signature results from OpenPGP.js as { state, keyId, fingerprint }: 'good' when a key in

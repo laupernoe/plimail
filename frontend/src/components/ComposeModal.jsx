@@ -54,7 +54,9 @@ import {
 import { ComposeQuestion, ScheduledStrip, SendLaterIcon, SendLaterMenu, SendLaterSheet } from './SendLater.jsx';
 import SecureSendPanel, { SecureSendToggle, secureDefaults } from './SecureSendPanel.jsx';
 import PgpSendPanel, { ProtectionPanel, loadOwnKeys, pgpDefaults, usePgpRecipients } from './PgpSendPanel.jsx';
-import { PgpSendError, emailOfRecipient, encryptedSendPayload, ownKeyFor, pgpSendProblem } from '../utils/pgpSend.js';
+import {
+  PgpSendError, emailOfRecipient, encryptedSendPayload, initialPgp, initialSecure, ownKeyFor, pgpSendProblem, protectionForRestore,
+} from '../utils/pgpSend.js';
 import { PgpError, unlockPrivateKey } from '../utils/pgp.js';
 import { isUnlocked, rememberUnlockedKey, unlockedKey } from '../utils/pgpSession.js';
 import { SecureSendError, secureSettingsProblem, sendProtected } from '../utils/secureSend.js';
@@ -385,12 +387,16 @@ export default function ComposeModal() {
   const [error, setError] = useState(() => composeData?.sendError || (composeData?.unsupportedFrom ? t('compose.unsupportedDraftFrom', { defaultValue: 'Choose a configured sender before saving or sending this draft.' }) : ''));
   const [priority, setPriority] = useState(() => composeData?.priority || 'normal');
   // Password protection (SecureSendPanel.jsx): null while off.
-  const [secure, setSecure] = useState(null);
+  // A restored composer (undone or failed send, the screen lock) reopens with its protection.
+  const [secure, setSecure] = useState(() => initialSecure(composeData?.protection, secureDefaults));
   // OpenPGP encryption (PgpSendPanel.jsx, utils/pgpSend.js): null while off. The lock is in one
   // mode at a time, PGP or a password link. pgpProblem is why Send was refused, for the panel.
-  const [pgp, setPgp] = useState(null);
+  const [pgp, setPgp] = useState(() => initialPgp(composeData?.protection));
   const [pgpProblem, setPgpProblem] = useState(null);
   const [ownPgpKeys, setOwnPgpKeys] = useState(null);
+  useEffect(() => {
+    if (composeData?.protection?.mode === 'pgp') loadOwnKeys().then(setOwnPgpKeys).catch(() => setOwnPgpKeys([]));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- the keys of a restored PGP composer, once
   // The lock's mode, and for PGP every recipient's key (looked up as they change) and the key of
   // the address the message goes from.
   const protectionMode = pgp ? 'pgp' : secure ? 'password' : null;
@@ -1242,6 +1248,8 @@ export default function ComposeModal() {
     sendError: undefined,
     // A message put back this way is the user's own text, not a request for another reply.
     aiReply: undefined,
+    // Encrypted or password-protected, it reopens so: never back as a plain message.
+    protection: protectionForRestore({ pgp, secure }),
   });
 
   // Locking replaces the mail view, and this composer with it, so hand what it holds to the store

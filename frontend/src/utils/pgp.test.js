@@ -116,3 +116,33 @@ test('verifies inline cleartext signatures', async () => {
   const forged = cleartext.replace('Bonjour', 'Bonsoir');
   assert.equal((await verifyCleartext(forged, [alice.armoredPublic])).signature.state, 'bad');
 });
+
+test('states only algorithms GnuPG 2.4 has: no SHA-3, no AEAD, MDC only', async () => {
+  const key = await openpgp.readKey({ armoredKey: alice.armoredPublic });
+  const { enums } = openpgp;
+  for (const user of key.users) {
+    for (const sig of user.selfCertifications) {
+      assert.deepEqual(sig.preferredHashAlgorithms, [enums.hash.sha512, enums.hash.sha256]);
+      assert.deepEqual(sig.preferredSymmetricAlgorithms, [enums.symmetric.aes256, enums.symmetric.aes128]);
+      assert.deepEqual(sig.preferredCompressionAlgorithms, [enums.compression.zlib, enums.compression.zip, enums.compression.uncompressed]);
+      assert.deepEqual(sig.features, [enums.features.modificationDetection]);
+      assert.equal(sig.preferredCipherSuites, null);
+    }
+  }
+  // The re-certified user ID is a valid one, and the key still works for both purposes.
+  assert.equal((await keyInfo(key)).canEncrypt, true);
+  await key.verifyPrimaryKey();
+  assert.equal((await key.getPrimaryUser()).user.userID.email, 'alice@example.org');
+});
+
+test('hides recipient key IDs on request, and every recipient still decrypts', async () => {
+  const armored = await encryptMime(new TextEncoder().encode('bcc'), { recipientArmored: [bob.armoredPublic, alice.armoredPublic], hidden: true });
+  const ids = await encryptionKeyIds(armored);
+  assert.deepEqual([...new Set(ids)], ['0000000000000000']);
+  const [bobKey] = await readArmoredKeys(bob.armoredPublic);
+  assert.equal(keyMatches(bobKey, ids), false);
+  for (const [k, p] of [[bob.armoredPrivate, 'bob pass'], [alice.armoredPrivate, 'alice pass']]) {
+    const { data } = await decryptArmored(armored, { decryptionKey: await unlockPrivateKey(k, p) });
+    assert.equal(new TextDecoder().decode(data), 'bcc');
+  }
+});
