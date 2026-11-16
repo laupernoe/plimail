@@ -2502,7 +2502,18 @@
       "when": "Wann",
       "where": "Wo"
     },
-    "syncAll": "Kalender synchronisieren"
+    "syncAll": "Kalender synchronisieren",
+    "search": {
+      "label": "Termine durchsuchen",
+      "placeholder": "Suchen",
+      "clear": "Suche löschen",
+      "results": "Suchergebnisse",
+      "searching": "Suche läuft…",
+      "empty": "Kein Termin passt zu „{{query}}“",
+      "error": "Suche fehlgeschlagen: {{message}}",
+      "past": "Vergangen",
+      "truncated": "Nur die ersten Ergebnisse werden angezeigt. Verfeinern Sie die Suche, um mehr zu sehen."
+    }
   },
   "calendarOffer": {
     "prompt": "Auch die Kalender dieses Kontos hinzufügen",

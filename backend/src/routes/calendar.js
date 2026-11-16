@@ -13,6 +13,7 @@ import { discoverCalendars, findCalDavServer, getEvent, putEvent, deleteEvent, m
 import { syncAccount, credentialsFor, isSyncing, forgetDiscovery, noteRemoved } from '../services/caldavSync.js';
 import { applyEdit, buildEvent, eventLoopYielder, eventTimes, expandResourceAsync, inviteContent, inviteInfo, occurrenceOnly, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
 import { forgetScheduling, knownAddresses, mailItip, mailLabels, planInvites } from '../services/calendarInvites.js';
+import { SQL_SEARCHABLE, TRANSLATE_FROM, TRANSLATE_TO, bySearchOrder, fold, likePattern, mayMatch, searchOccurrence } from '../services/calendarSearch.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -290,6 +291,45 @@ router.get('/events', async (req, res) => {
     }
   }
   res.json({ events });
+});
+
+const SEARCH_CANDIDATES = 500;
+const SEARCH_RESULTS = 50;
+
+// Each matching event once: its next occurrence, else its latest past one.
+router.get('/events/search', async (req, res) => {
+  const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+  if (q.length < 2 || q.length > 200) return badRequest(res, 'Invalid search');
+  const needle = fold(q);
+  const floatingTz = typeof req.query.tz === 'string' && req.query.tz.length < 100 ? req.query.tz : null;
+  const r = await query(
+    `SELECT e.id, e.calendar_id, e.ical, e.range_start, e.range_end, c.read_only
+     FROM calendar_events e JOIN calendars c ON c.id = e.calendar_id
+     WHERE e.user_id = $1 AND c.user_id = $1 AND c.visible AND NOT c.ignored
+       AND ${SQL_SEARCHABLE} ILIKE $2 ESCAPE '\\'
+     ORDER BY e.range_end DESC NULLS FIRST LIMIT ${SEARCH_CANDIDATES}`,
+    [req.session.userId, likePattern(q), TRANSLATE_FROM, TRANSLATE_TO],
+  );
+  const mine = new Set(await knownAddresses(req.session.userId));
+  const nowMs = Date.now();
+  const found = [];
+  const pause = eventLoopYielder();
+  for (const row of r.rows) {
+    await pause();
+    if (!mayMatch(row.ical, needle)) continue;
+    try {
+      const hit = await searchOccurrence(row, needle, nowMs, { floatingTz }, pause);
+      if (hit) found.push({ ...hit, row });
+    } catch (err) {
+      console.warn(`Calendar: could not search event ${row.id}: ${err.message}`);
+    }
+  }
+  found.sort(bySearchOrder);
+  const events = found.slice(0, SEARCH_RESULTS).map(({ occ, upcoming, row }) => ({
+    ...occ, id: `${row.id}:${occ.recurrenceId || ''}`, eventId: row.id,
+    calendarId: row.calendar_id, readOnly: row.read_only, upcoming, ...roleOf(occ, mine),
+  }));
+  res.json({ events, truncated: found.length > SEARCH_RESULTS || r.rows.length >= SEARCH_CANDIDATES });
 });
 
 // A zone by the name Intl gives it, or null for anything Intl does not know (a CRLF included):

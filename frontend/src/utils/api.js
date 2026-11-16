@@ -542,6 +542,7 @@ export const api = {
     allCalendars:  ()           => request('GET',    '/calendar/calendars?all=1'),
     updateCalendar: (id, data)  => request('PATCH',  `/calendar/calendars/${encodeURIComponent(id)}`, data),
     events:        (from, to)   => request('GET',    `/calendar/events?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&tz=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`),
+    searchEvents:  (q)          => request('GET',    `/calendar/events/search?q=${encodeURIComponent(q)}&tz=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`),
     createEvent:   (data)       => request('POST',   '/calendar/events', data),
     updateEvent:   (id, data)   => request('PATCH',  `/calendar/events/${encodeURIComponent(id)}`, data),
     // scope 'this' names one occurrence of a series by its recurrenceId.

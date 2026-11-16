@@ -2521,7 +2521,18 @@
       "when": "Kiedy",
       "where": "Gdzie"
     },
-    "syncAll": "Synchronizuj kalendarze"
+    "syncAll": "Synchronizuj kalendarze",
+    "search": {
+      "label": "Szukaj wydarzeń",
+      "placeholder": "Szukaj",
+      "clear": "Wyczyść wyszukiwanie",
+      "results": "Wyniki wyszukiwania",
+      "searching": "Wyszukiwanie…",
+      "empty": "Żadne wydarzenie nie pasuje do „{{query}}”",
+      "error": "Wyszukiwanie nie powiodło się: {{message}}",
+      "past": "Minione",
+      "truncated": "Wyświetlane są tylko pierwsze wyniki. Zawęź wyszukiwanie, aby zobaczyć więcej."
+    }
   },
   "calendarOffer": {
     "prompt": "Dodaj też kalendarze tego konta",

@@ -2521,7 +2521,18 @@
       "when": "Kdy",
       "where": "Kde"
     },
-    "syncAll": "Synchronizovat kalendáře"
+    "syncAll": "Synchronizovat kalendáře",
+    "search": {
+      "label": "Hledat události",
+      "placeholder": "Hledat",
+      "clear": "Vymazat hledání",
+      "results": "Výsledky hledání",
+      "searching": "Hledá se…",
+      "empty": "Žádná událost neodpovídá „{{query}}“",
+      "error": "Hledání selhalo: {{message}}",
+      "past": "Minulé",
+      "truncated": "Zobrazují se jen první výsledky. Upřesněte hledání, abyste viděli další."
+    }
   },
   "calendarOffer": {
     "prompt": "Přidat také kalendáře tohoto účtu",
