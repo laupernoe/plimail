@@ -36,6 +36,7 @@ vi.mock('../services/redis.js', () => ({ redisClient: mocks.redis }));
 vi.mock('../services/rateLimiter.js', () => ({
   consume: vi.fn(async () => ({ limited: false })),
   reset: vi.fn(),
+  release: vi.fn(),
 }));
 // Password hashing is not under test, and bcrypt at cost 12 is slow enough to matter under load.
 vi.mock('bcryptjs', () => ({

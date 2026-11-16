@@ -20,7 +20,9 @@ import { destroyUserSessions } from '../services/userSessions.js';
 import { touchLastSeen } from '../services/lastSeen.js';
 import { removeIdentitiesForPasswordReset } from '../services/userIdentities.js';
 import { aiEnabledForNewUser } from '../services/aiNewUsers.js';
-import { consume as rlConsume, reset as rlReset } from '../services/rateLimiter.js';
+import { consume as rlConsume, release as rlRelease, reset as rlReset } from '../services/rateLimiter.js';
+import { consumeLoginAttempt } from '../services/loginLimiter.js';
+import { rateLimitAddress } from '../utils/rateLimitAddress.js';
 
 const router = Router();
 
@@ -74,16 +76,18 @@ async function createTrustedDevice(userId, req, res) {
   });
 }
 
+// Every attempt counts against the address's budget; one that succeeds hands its own hit back,
+// never the whole bucket, which would wipe out the failures before it (loginLimiter.js).
 function rateLimit(config) {
   return async (req, res, next) => {
     const { maxRequests, windowMs } = config;
-    const key = `auth:${req.ip}`;
+    const key = `auth:${rateLimitAddress(req.ip)}`;
     const { limited, resetMs } = await rlConsume(key, maxRequests, windowMs);
     if (limited) {
       res.setHeader('Retry-After', Math.ceil(resetMs / 1000));
       return res.status(429).json({ error: 'Too many attempts. Please try again later.' });
     }
-    res.locals.resetRateLimit = () => rlReset(key);
+    res.locals.releaseRateLimit = () => rlRelease(key);
     next();
   };
 }
@@ -209,8 +213,10 @@ router.post('/register', authLimiter, async (req, res) => {
 });
 
 router.post('/login', authLimiter, async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+  const { username, password } = req.body ?? {};
+  if (!username || !password || typeof username !== 'string' || typeof password !== 'string') {
+    return res.status(400).json({ error: 'Username and password required' });
+  }
 
   try {
     const authSetting = await query(
@@ -218,6 +224,12 @@ router.post('/login', authLimiter, async (req, res) => {
     );
     if (authSetting.rows[0]?.value === 'true') {
       return res.status(403).json({ error: 'Password login is disabled. Please sign in with your SSO provider.' });
+    }
+
+    const attempt = await consumeLoginAttempt(username.toLowerCase().trim(), req.ip);
+    if (attempt.limited) {
+      res.setHeader('Retry-After', Math.ceil(attempt.resetMs / 1000));
+      return res.status(429).json({ error: 'Too many attempts. Please try again later.' });
     }
 
     const result = await query('SELECT * FROM users WHERE username = $1', [username.toLowerCase().trim()]);
@@ -240,6 +252,9 @@ router.post('/login', authLimiter, async (req, res) => {
       logAuthEvent('login_fail', { username: user.username, userId: user.id, ip: req.ip, success: false });
       return res.status(401).json({ error: 'Invalid credentials' });
     }
+    // The password is right, whether or not a second factor follows.
+    await attempt.succeeded();
+    await res.locals.releaseRateLimit?.();
 
     // Regenerate session ID before storing any auth state to prevent session fixation
     await new Promise((resolve, reject) => req.session.regenerate(err => err ? reject(err) : resolve()));
@@ -262,7 +277,6 @@ router.post('/login', authLimiter, async (req, res) => {
         req.session.isAdmin = user.is_admin;
         imapManager.connectAllForUser(user.id);
         logAuthEvent('login_success', { username: user.username, userId: user.id, ip: req.ip, success: true });
-        res.locals.resetRateLimit?.();
         return res.json({ user: { id: user.id, username: user.username, displayName: user.display_name, avatar: user.avatar, isAdmin: user.is_admin, totpEnabled: user.totp_enabled } });
       }
     }
@@ -310,7 +324,6 @@ router.post('/login', authLimiter, async (req, res) => {
     imapManager.connectAllForUser(user.id);
 
     logAuthEvent('login_success', { username: user.username, userId: user.id, ip: req.ip, success: true });
-    res.locals.resetRateLimit?.();
     res.json({ user: { id: user.id, username: user.username, displayName: user.display_name, avatar: user.avatar, isAdmin: user.is_admin, totpEnabled: user.totp_enabled } });
   } catch {
     res.status(500).json({ error: 'Login failed' });
@@ -375,7 +388,7 @@ router.post('/2fa/challenge', authLimiter, async (req, res) => {
 
   imapManager.connectAllForUser(user.id);
   logAuthEvent('totp_success', { username: user.username, userId: user.id, ip: req.ip, success: true });
-  res.locals.resetRateLimit?.();
+  res.locals.releaseRateLimit?.();
   rlReset(`totp:${uid}`);
   res.json({ user: { id: user.id, username: user.username, displayName: user.display_name, avatar: user.avatar, isAdmin: user.is_admin, totpEnabled: user.totp_enabled } });
 });
@@ -491,7 +504,7 @@ router.post('/2fa/verify-email-otp', authLimiter, async (req, res) => {
 
   imapManager.connectAllForUser(user.id);
   logAuthEvent('totp_success', { username: user.username, userId: user.id, ip: req.ip, success: true });
-  res.locals.resetRateLimit?.();
+  res.locals.releaseRateLimit?.();
   rlReset(`totp:${uid}`);
   res.json({ user: { id: user.id, username: user.username, displayName: user.display_name, avatar: user.avatar, isAdmin: user.is_admin, totpEnabled: user.totp_enabled } });
 });
@@ -561,7 +574,7 @@ router.post('/2fa/enrollment/enable', authLimiter, async (req, res) => {
 
   imapManager.connectAllForUser(user.id);
   logAuthEvent('totp_success', { username: user.username, userId: user.id, ip: req.ip, success: true });
-  res.locals.resetRateLimit?.();
+  res.locals.releaseRateLimit?.();
   rlReset(`totp:${uid}`);
   res.json({ user: { id: user.id, username: user.username, displayName: user.display_name, avatar: user.avatar, isAdmin: user.is_admin, totpEnabled: true } });
 });
@@ -1206,7 +1219,7 @@ router.post('/reset-password', authLimiter, async (req, res) => {
     if (removed.length) console.log(`[auth] password reset for ${username} removed ${removed.length} linked identity(s): ${removed.map(i => i.provider_name).join(', ')}`);
     removed.forEach(() => logAuthEvent('identity_unlinked', { userId, username, ip: req.ip, success: true }));
 
-    res.locals.resetRateLimit?.();
+    res.locals.releaseRateLimit?.();
     res.json({ ok: true });
   } catch (err) {
     console.error('reset-password error:', err.message);

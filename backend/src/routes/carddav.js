@@ -17,6 +17,7 @@ import { findOwnedAddressBook } from '../services/ownership.js';
 import { parseVCard } from '../utils/vcard.js';
 import { authLimiterConfig } from '../services/authLimiter.js';
 import { consume as rlConsume, release as rlRelease } from '../services/rateLimiter.js';
+import { rateLimitAddress } from '../utils/rateLimitAddress.js';
 import { logAuthEvent } from '../services/authEvents.js';
 
 const router = Router();
@@ -107,7 +108,7 @@ async function cardavAuth(req, res, next) {
     // Take a slot from the login routes' per-IP budget before checking the password, so
     // concurrent guesses can't overshoot it and no password is checked once it is spent.
     // Only a wrong password keeps its slot, so a syncing client never uses the budget up.
-    const limitKey = `auth:${req.ip}`;
+    const limitKey = `auth:${rateLimitAddress(req.ip)}`;
     const { limited, resetMs } = await rlConsume(limitKey, authLimiterConfig.maxRequests, authLimiterConfig.windowMs);
     if (limited) {
       // A refused request keeps its slot only in the window's last seconds, where handing

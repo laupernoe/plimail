@@ -7,6 +7,7 @@ import { consume, release, reset } from './rateLimiter.js';
 import { authLimiterConfig } from './authLimiter.js';
 import { logAuthEvent } from './authEvents.js';
 import { EXPIRY_CHOICES, normalizeIp } from './apiTokens.js';
+import { rateLimitAddress } from '../utils/rateLimitAddress.js';
 import { clearOidcConfirmation, freshOidcConfirmation, OIDC_CONFIRMATION_MS } from './oidcConfirmation.js';
 
 // Confirming who is at the browser before an API token is created (#617). A token can do what its
@@ -120,7 +121,7 @@ async function confirmTotp(req, user, totpCode) {
 }
 
 async function confirmPassword(req, user, password) {
-  const limitKey = `auth:${req.ip}`;
+  const limitKey = `auth:${rateLimitAddress(req.ip)}`;
   const limit = await consume(limitKey, authLimiterConfig.maxRequests, authLimiterConfig.windowMs);
   if (limit.limited) return { refusal: tooManyAttempts('password', limit.resetMs) };
   const wrong = { refusal: { status: 400, body: { error: 'Incorrect password', reauth: 'password' } } };
