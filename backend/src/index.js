@@ -48,6 +48,7 @@ import carddavRouter from './routes/carddav.js';
 import calendarRoutes from './routes/calendar.js';
 import { startCaldavScheduler } from './services/caldavSync.js';
 import { encryptExistingCredentials, query } from './services/db.js';
+import { isValidEncryptionKey } from './services/encryption.js';
 import { runMigrations } from './services/migrations.js';
 import { parseVCard } from './utils/vcard.js';
 import { reloadAuthSettings } from './services/authLimiter.js';
@@ -69,6 +70,7 @@ try {
 export const APP_VERSION = (process.env.APP_VERSION || buildMeta.version || packageMeta.version).replace(/^v[.]?/, '');
 
 const app = express();
+app.disable('x-powered-by');
 // Trust the operator's reverse proxy so req.secure reflects HTTPS correctly: behind a
 // TLS-terminating proxy the connection itself is plain HTTP, and without this express-session
 // would never mark the session cookie Secure. The hop count also decides req.ip, which keys the
@@ -110,7 +112,7 @@ if (!process.env.DB_PASSWORD) {
   console.error('FATAL: DB_PASSWORD must be set. Exiting.');
   process.exit(1);
 }
-if (!process.env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY.length !== 64) {
+if (!isValidEncryptionKey(process.env.ENCRYPTION_KEY)) {
   console.error('FATAL: ENCRYPTION_KEY must be set and exactly 64 hex characters (32 bytes). Generate one with: openssl rand -hex 32');
   process.exit(1);
 }

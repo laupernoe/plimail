@@ -8,11 +8,15 @@ const PREFIX = 'enc:v1:';
 // Only cached when valid — null is not cached so a late-set env var is still picked up.
 let _cachedKey = null;
 
+// 32 bytes as 64 hex digits. Buffer.from(hex, 'hex') stops at the first character that is not
+// hex, so a key of the right length with a typo in it would quietly be shorter, or empty.
+export const isValidEncryptionKey = hex => typeof hex === 'string' && /^[0-9a-f]{64}$/i.test(hex);
+
 function getKey() {
   if (_cachedKey) return _cachedKey;
   const hex = process.env.ENCRYPTION_KEY;
   if (!hex) return null;
-  if (hex.length !== 64) {
+  if (!isValidEncryptionKey(hex)) {
     console.error('ENCRYPTION_KEY must be 64 hex characters (32 bytes). Credential encryption disabled.');
     return null;
   }
@@ -22,8 +26,8 @@ function getKey() {
 
 // A key for one purpose, derived from ENCRYPTION_KEY with HKDF, so a value keyed with it never
 // uses the key that encrypts credentials, and each purpose gets an unrelated key. Null unless
-// ENCRYPTION_KEY is 32 bytes of hex: index.js checks only its length, and 64 characters that
-// are not hex parse to an empty key, which would make every derived value public.
+// ENCRYPTION_KEY is 32 bytes of hex: 64 characters that are not hex parse to an empty key,
+// which would make every derived value public.
 const _derivedKeys = new Map();
 
 export function deriveKey(purpose) {
