@@ -369,22 +369,31 @@ describe('makeClientCfg — auto-IDLE arming', () => {
 // ── makeClientCfg — TLS enforcement ──────────────────────────────────────────
 
 describe('makeClientCfg — TLS enforcement', () => {
-  it('throws for plain-text IMAP when allowInsecureTls is false', () => {
-    expect(() =>
-      makeClientCfg({ ...baseAccount, imap_tls: false }, resolved, { policy: { allowInsecureTls: false } })
-    ).toThrow(/plain-text IMAP/i);
+  // Off implicit TLS (143, Bridge's 1143), imapflow's default STARTTLS is opportunistic: a
+  // server that stops advertising it, or anyone stripping it on the way, gets LOGIN in clear.
+  it('makes STARTTLS mandatory off port 993 when allowInsecureTls is false', () => {
+    const cfg = makeClientCfg({ ...baseAccount, imap_port: 143, imap_tls: false }, resolved, { policy: { allowInsecureTls: false } });
+    expect(cfg.secure).toBe(false);
+    expect(cfg.doSTARTTLS).toBe(true);
   });
 
-  it('throws for plain-text IMAP when policy is empty (default)', () => {
-    expect(() =>
-      makeClientCfg({ ...baseAccount, imap_tls: false }, resolved)
-    ).toThrow(/plain-text IMAP/i);
+  it('makes STARTTLS mandatory off port 993 when policy is empty (default)', () => {
+    const cfg = makeClientCfg({ ...baseAccount, imap_port: 143, imap_tls: false }, resolved);
+    expect(cfg.doSTARTTLS).toBe(true);
   });
 
-  it('does not throw for plain-text IMAP when allowInsecureTls is true', () => {
-    expect(() =>
-      makeClientCfg({ ...baseAccount, imap_tls: false }, resolved, { policy: { allowInsecureTls: true } })
-    ).not.toThrow();
+  it('leaves STARTTLS opportunistic only when the admin allowed insecure connections', () => {
+    const cfg = makeClientCfg({ ...baseAccount, imap_port: 143, imap_tls: false }, resolved, { policy: { allowInsecureTls: true } });
+    expect(cfg.secure).toBe(false);
+    expect(cfg.doSTARTTLS).toBeUndefined();
+  });
+
+  it('never sets doSTARTTLS on implicit TLS, which imapflow rejects as a misconfiguration', () => {
+    for (const allowInsecureTls of [false, true]) {
+      const cfg = makeClientCfg({ ...baseAccount, imap_tls: true }, resolved, { policy: { allowInsecureTls } });
+      expect(cfg.secure).toBe(true);
+      expect(cfg.doSTARTTLS).toBeUndefined();
+    }
   });
 
   it('does not throw for TLS IMAP regardless of allowInsecureTls', () => {
