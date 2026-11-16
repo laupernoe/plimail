@@ -1273,6 +1273,7 @@
       "presetCustom": "Niestandardowe",
       "errorRequired": "Adres e-mail, nazwa użytkownika i serwer IMAP są wymagane",
       "errorPasswordRequired": "Hasło jest wymagane dla nowych kont",
+      "errorPasswordForHost": "Wpisz hasło ponownie, aby zmienić serwer: zapisane jest wysyłane tylko do serwera, dla którego zostało wpisane.",
       "microsoftImapUnsupported": "Outlook.com / Hotmail wymaga OAuth2 (Modern Auth)",
       "microsoftImapNote": "Microsoft nie przyjmuje już haseł do skrzynek Outlook.com, Hotmail, Live i MSN, a logowanie przez Microsoft nie jest skonfigurowane na tym serwerze. Poproś administratora o włączenie go w sekcji Dostawcy poczty.",
       "microsoftImapNoteReady": "Microsoft nie przyjmuje już haseł do skrzynek Outlook.com, Hotmail, Live i MSN. Dodaj tę skrzynkę przez „Zaloguj się przez Microsoft” w sekcji Dodaj konto.",
@@ -2508,7 +2509,8 @@
       "noCalendars": "Nie ma jeszcze kalendarza. Najpierw połącz konto kalendarza.",
       "goToAccounts": "Przejdź do kont",
       "useMailPassword": "Użyj hasła konta pocztowego",
-      "typePassword": "Wpisz hasło"
+      "typePassword": "Wpisz hasło",
+      "mailPasswordHost": "Hasło konta pocztowego jest wysyłane tylko do jego własnych serwerów. Wpisz zamiast tego hasło do tego serwera."
     },
     "reply": {
       "question": "Weźmiesz udział?",

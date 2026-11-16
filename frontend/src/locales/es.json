@@ -1255,6 +1255,7 @@
       "presetCustom": "Personalizado",
       "errorRequired": "El correo, el usuario y el servidor IMAP son obligatorios",
       "errorPasswordRequired": "La contraseña es obligatoria para cuentas nuevas",
+      "errorPasswordForHost": "Vuelva a escribir la contraseña para cambiar de servidor: la guardada solo se envía al servidor para el que se introdujo.",
       "microsoftImapUnsupported": "Outlook.com / Hotmail requiere OAuth2 (Modern Auth)",
       "microsoftImapNote": "Microsoft ya no acepta contraseñas para los buzones de Outlook.com, Hotmail, Live y MSN, y el inicio de sesión con Microsoft no está configurado en este servidor. Pide a tu administrador que lo active en Proveedores de correo.",
       "microsoftImapNoteReady": "Microsoft ya no acepta contraseñas para los buzones de Outlook.com, Hotmail, Live y MSN. Añade este buzón con «Iniciar sesión con Microsoft» en Añadir cuenta.",
@@ -2489,7 +2490,8 @@
       "noCalendars": "Aún no hay ningún calendario. Conecta primero una cuenta de calendario.",
       "goToAccounts": "Ir a las cuentas",
       "useMailPassword": "Usar la contraseña de una cuenta de correo",
-      "typePassword": "Escribir una contraseña"
+      "typePassword": "Escribir una contraseña",
+      "mailPasswordHost": "La contraseña de la cuenta de correo solo se envía a sus propios servidores. Escriba en su lugar la contraseña de este servidor."
     },
     "reply": {
       "question": "¿Asistirás?",

@@ -9,6 +9,7 @@ import { decrypt, encrypt } from '../services/encryption.js';
 import { findOwnedAccount } from '../services/ownership.js';
 import { validateHost } from '../services/hostValidation.js';
 import { getConnectionPolicy } from '../services/connectionPolicy.js';
+import { discoverAccountSettings } from '../services/accountAutodiscover.js';
 import { discoverCalendars, findCalDavServer, getEvent, putEvent, deleteEvent, moveEvent } from '../services/caldavClient.js';
 import { syncAccount, credentialsFor, isSyncing, forgetDiscovery, noteRemoved } from '../services/caldavSync.js';
 import { applyEdit, buildEvent, eventLoopYielder, eventTimes, expandResourceAsync, inviteContent, inviteInfo, occurrenceOnly, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
@@ -99,19 +100,39 @@ router.get('/accounts', async (req, res) => {
 // the server. It goes only to the server URL the user gave, as a typed password would.
 async function mailPassword(userId, mailAccountId) {
   if (typeof mailAccountId !== 'string' || !UUID_RE.test(mailAccountId)) return { status: 404, error: 'Not found' };
-  const mail = await findOwnedAccount(userId, mailAccountId, { columns: 'auth_user, auth_pass, oauth_provider' });
+  const mail = await findOwnedAccount(userId, mailAccountId, {
+    columns: 'email_address, imap_host, smtp_host, auth_user, auth_pass, oauth_provider',
+  });
   if (!mail) return { status: 404, error: 'Not found' };
   if (mail.oauth_provider || !mail.auth_pass) return { status: 400, error: 'This mail account has no password to connect with' };
-  return { username: mail.auth_user, password: decrypt(mail.auth_pass) };
+  return { mail, username: mail.auth_user, password: decrypt(mail.auth_pass) };
+}
+
+// Whether a mail account's stored password may be sent to serverUrl without the user typing it:
+// only to the account's own IMAP or SMTP host, or to the CalDAV host the address's own published
+// settings name, looked up here rather than taken from the client. Otherwise a session alone,
+// without the password, could send it to any server and read it there.
+async function mailPasswordMayGoTo(mail, serverUrl, policy) {
+  let target;
+  try { target = new URL(serverUrl); } catch { return false; }
+  const host = target.hostname.toLowerCase();
+  if ([mail.imap_host, mail.smtp_host].some(h => typeof h === 'string' && h.toLowerCase() === host)) return true;
+  const found = await discoverAccountSettings(mail.email_address, {
+    allowPrivate: policy.allowPrivateHosts, allowNonstandardPorts: policy.allowNonstandardPorts,
+  }).catch(() => null);
+  if (!found?.caldavUrl) return false;
+  try { return new URL(found.caldavUrl).host === target.host; } catch { return false; }
 }
 
 router.post('/accounts', async (req, res) => {
   const { name, serverUrl, intervalMin, mailAccountId } = req.body || {};
   let { username, password } = req.body || {};
+  let fromMail = null;
   if (mailAccountId != null) {
     if (password != null) return badRequest(res, 'Send either a password or a mail account, not both');
     const mail = await mailPassword(req.session.userId, mailAccountId);
     if (mail.error) return res.status(mail.status).json({ error: mail.error });
+    fromMail = mail.mail;
     password = mail.password;
     if (username == null || username === '') username = mail.username;
   }
@@ -122,6 +143,12 @@ router.post('/accounts', async (req, res) => {
   const policy = await getConnectionPolicy();
   const urlErr = await serverUrlError(serverUrl, policy);
   if (urlErr) return badRequest(res, urlErr);
+  if (fromMail && !(await mailPasswordMayGoTo(fromMail, serverUrl, policy))) {
+    return res.status(400).json({
+      error: "The mail account's password is only sent to its own servers; type the password for this one",
+      code: 'mail_password_host',
+    });
+  }
   try {
     await discoverCalendars({ serverUrl, username, password, allowPrivate: policy.allowPrivateHosts });
   } catch (err) {
@@ -148,7 +175,8 @@ router.get('/mail-accounts', async (req, res) => {
 // serverUrl (optional): a CalDAV server Add account found for the address (autoconfig or DNS),
 // tried first. The user chose it as they could have typed it, so it is checked like a typed one.
 router.post('/accounts/from-mail', async (req, res) => {
-  const { accountId, serverUrl } = req.body || {};
+  const { accountId } = req.body || {};
+  let { serverUrl } = req.body || {};
   if (!UUID_RE.test(accountId || '')) return res.status(404).json({ error: 'Not found' });
   if (serverUrl != null && (typeof serverUrl !== 'string' || !serverUrl)) return badRequest(res, 'Invalid server URL');
   const mail = await findOwnedAccount(req.session.userId, accountId, {
@@ -162,6 +190,12 @@ router.post('/accounts/from-mail', async (req, res) => {
   if (serverUrl != null) {
     const urlErr = await serverUrlError(serverUrl, policy);
     if (urlErr) return badRequest(res, urlErr);
+  }
+  // The URL comes from the client, which says it is what Add account found: the password goes
+  // there only if a lookup here finds the same host. Otherwise the mail hosts are still tried.
+  if (serverUrl != null && !(await mailPasswordMayGoTo(mail, serverUrl, policy))) {
+    console.warn('Calendar from mail: the offered CalDAV server is not one the address names; trying the mail hosts');
+    serverUrl = null;
   }
   let found;
   try {

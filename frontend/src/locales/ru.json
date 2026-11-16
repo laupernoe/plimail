@@ -1255,6 +1255,7 @@
       "presetCustom": "Другое",
       "errorRequired": "Требуются адрес электронной почты, имя пользователя и IMAP-сервер",
       "errorPasswordRequired": "Для новых аккаунтов требуется пароль",
+      "errorPasswordForHost": "Чтобы сменить сервер, введите пароль ещё раз: сохранённый отправляется только на сервер, для которого он был введён.",
       "microsoftImapUnsupported": "Для Outlook.com / Hotmail нужен OAuth2 (Modern Auth)",
       "microsoftImapNote": "Microsoft больше не принимает пароли для ящиков Outlook.com, Hotmail, Live и MSN, а вход через Microsoft на этом сервере не настроен. Попросите администратора включить его в разделе Почтовые провайдеры.",
       "microsoftImapNoteReady": "Microsoft больше не принимает пароли для ящиков Outlook.com, Hotmail, Live и MSN. Добавьте этот ящик через «Войти через Microsoft» в разделе Добавить аккаунт.",
@@ -2489,7 +2490,8 @@
       "noCalendars": "Календарей пока нет. Сначала подключите аккаунт календаря.",
       "goToAccounts": "Перейти к аккаунтам",
       "useMailPassword": "Использовать пароль почтового аккаунта",
-      "typePassword": "Ввести пароль"
+      "typePassword": "Ввести пароль",
+      "mailPasswordHost": "Пароль почтового аккаунта отправляется только на его собственные серверы. Введите пароль для этого сервера."
     },
     "reply": {
       "question": "Вы придёте?",

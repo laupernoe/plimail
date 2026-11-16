@@ -1255,6 +1255,7 @@
       "presetCustom": "Personnalisé",
       "errorRequired": "L'e-mail, le nom d'utilisateur et le serveur IMAP sont requis",
       "errorPasswordRequired": "Le mot de passe est requis pour les nouveaux comptes",
+      "errorPasswordForHost": "Saisissez à nouveau le mot de passe pour changer de serveur : celui enregistré n'est envoyé qu'au serveur pour lequel il a été saisi.",
       "microsoftImapUnsupported": "Outlook.com / Hotmail nécessite OAuth2 (Modern Auth)",
       "microsoftImapNote": "Microsoft n'accepte plus les mots de passe pour les boîtes Outlook.com, Hotmail, Live et MSN, et la connexion avec Microsoft n'est pas configurée sur ce serveur. Demandez à votre administrateur de l'activer dans Fournisseurs de messagerie.",
       "microsoftImapNoteReady": "Microsoft n'accepte plus les mots de passe pour les boîtes Outlook.com, Hotmail, Live et MSN. Ajoutez plutôt cette boîte avec « Se connecter avec Microsoft » dans Ajouter un compte.",
@@ -2489,7 +2490,8 @@
       "noCalendars": "Aucun agenda pour le moment. Connectez d'abord un compte d'agenda.",
       "goToAccounts": "Aller aux comptes",
       "useMailPassword": "Utiliser le mot de passe d'un compte mail",
-      "typePassword": "Saisir un mot de passe"
+      "typePassword": "Saisir un mot de passe",
+      "mailPasswordHost": "Le mot de passe du compte mail n'est envoyé qu'à ses propres serveurs. Saisissez plutôt le mot de passe de ce serveur."
     },
     "reply": {
       "question": "Vous participez ?",

@@ -1255,6 +1255,7 @@
       "presetCustom": "Personalizzato",
       "errorRequired": "Email, nome utente e host IMAP sono obbligatori",
       "errorPasswordRequired": "La password è richiesta per i nuovi account",
+      "errorPasswordForHost": "Digita di nuovo la password per cambiare server: quella salvata viene inviata solo al server per cui è stata inserita.",
       "microsoftImapUnsupported": "Outlook.com / Hotmail richiede OAuth2 (Modern Auth)",
       "microsoftImapNote": "Microsoft non accetta più password per le caselle Outlook.com, Hotmail, Live e MSN, e l'accesso con Microsoft non è configurato su questo server. Chiedi al tuo amministratore di attivarlo in Provider di posta.",
       "microsoftImapNoteReady": "Microsoft non accetta più password per le caselle Outlook.com, Hotmail, Live e MSN. Aggiungi invece questa casella con «Accedi con Microsoft» in Aggiungi account.",
@@ -2489,7 +2490,8 @@
       "noCalendars": "Ancora nessun calendario. Collega prima un account di calendario.",
       "goToAccounts": "Vai agli account",
       "useMailPassword": "Usa la password di un account di posta",
-      "typePassword": "Digita una password"
+      "typePassword": "Digita una password",
+      "mailPasswordHost": "La password dell'account di posta viene inviata solo ai suoi server. Digita invece la password di questo server."
     },
     "reply": {
       "question": "Partecipi?",

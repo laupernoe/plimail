@@ -1257,6 +1257,7 @@
       "presetCustom": "自定义",
       "errorRequired": "邮箱地址、用户名和 IMAP 服务器为必填项",
       "errorPasswordRequired": "添加新账户时必须填写密码",
+      "errorPasswordForHost": "要更换服务器，请重新输入密码：已保存的密码只会发送到当初输入它时对应的服务器。",
       "microsoftImapUnsupported": "Outlook.com / Hotmail 需要使用 OAuth2（新式验证）",
       "microsoftImapNote": "Microsoft 不再接受 Outlook.com、Hotmail、Live 和 MSN 邮箱的密码，而此服务器尚未设置 Microsoft 登录。请让管理员在“邮件服务商”中开启。",
       "microsoftImapNoteReady": "Microsoft 不再接受 Outlook.com、Hotmail、Live 和 MSN 邮箱的密码。请改为在“添加帐户”中使用“使用 Microsoft 登录”添加此邮箱。",
@@ -2489,7 +2490,8 @@
       "noCalendars": "还没有日历。请先连接日历账户。",
       "goToAccounts": "前往账户",
       "useMailPassword": "使用邮件账户的密码",
-      "typePassword": "输入密码"
+      "typePassword": "输入密码",
+      "mailPasswordHost": "邮件账户的密码只会发送到它自己的服务器。请改为输入此服务器的密码。"
     },
     "reply": {
       "question": "是否参加？",

@@ -33,7 +33,7 @@ describe('PUT /api/accounts/:id for an OAuth account', () => {
   afterAll(async () => { await new Promise(resolve => server.close(resolve)); });
   beforeEach(() => {
     query.mockReset().mockImplementation(async (sql) => {
-      if (/^SELECT id, oauth_provider FROM email_accounts/.test(sql)) return { rows: [{ id: ID, oauth_provider: provider }] };
+      if (/^SELECT id, oauth_provider, imap_host, smtp_host, smtp_auth_pass FROM email_accounts/.test(sql)) return { rows: [{ id: ID, oauth_provider: provider, imap_host: 'imap.example.com', smtp_host: 'smtp.example.com', smtp_auth_pass: null }] };
       if (/^UPDATE email_accounts/.test(sql)) return { rows: [{ id: ID }] };
       return { rows: [] };
     });

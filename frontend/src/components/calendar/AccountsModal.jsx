@@ -199,7 +199,7 @@ function AddForm({ onAdded, first }) {
       setForm({ name: '', serverUrl: '', username: '', password: '', mailAccountId: '' });
       await onAdded();
     } catch (err) {
-      setError(err.message);
+      setError(err.code === 'mail_password_host' ? t('calendar.accounts.mailPasswordHost') : err.message);
     } finally {
       setBusy(false);
     }
