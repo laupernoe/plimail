@@ -290,7 +290,35 @@
       "undoFailedOpen": "撤销失败。请在“定时”中打开。"
     },
     "selectAccount": "请选择用于发送的账户",
-    "smtpAuthDisabled": "Microsoft 已为此账户关闭从邮件应用（SMTP）发送。你仍可以在网页版 Outlook 中发送。如果是工作或学校账户，管理员可以重新开启。"
+    "smtpAuthDisabled": "Microsoft 已为此账户关闭从邮件应用（SMTP）发送。你仍可以在网页版 Outlook 中发送。如果是工作或学校账户，管理员可以重新开启。",
+    "secure": {
+      "toggle": "用密码保护",
+      "title": "密码保护邮件",
+      "explain": "收件人收到的是一个链接而不是邮件本身，需用此密码打开。主题也不会以明文发送。",
+      "password": "密码",
+      "confirm": "确认密码",
+      "expiry": "链接有效期",
+      "expiry1": "1 天",
+      "expiry7": "7 天",
+      "expiry30": "30 天",
+      "strengthTooShort": "至少使用 8 个字符",
+      "strengthWeak": "密码强度弱",
+      "strengthFair": "密码强度中等",
+      "strengthStrong": "密码强度高",
+      "mismatch": "两次输入的密码不一致",
+      "shareNote": "请通过其他方式（如短信或电话）把密码告诉收件人，切勿通过邮件发送。",
+      "limits": "邮件会立即发出，无法撤销或定时发送，且不能包含转发邮件的附件。撰写期间，草稿会以未加密形式保存在“草稿”文件夹中。",
+      "noSchedule": "密码保护邮件无法定时发送。如需稍后发送，请关闭密码保护。",
+      "sent": "密码保护邮件已发送",
+      "errorForwarded": "转发邮件的附件无法用密码保护。请移除它们，或下载文件后重新添加为附件。",
+      "errorTooLarge": "密码保护邮件的附件总计不能超过 25 MB。",
+      "errorInsecure": "密码保护需要安全连接（HTTPS）。",
+      "noticeSubject": "来自 {{name}} 的安全邮件",
+      "noticeIntro": "{{name}} 给您发送了一封密码保护邮件。",
+      "noticeOpen": "点此打开：",
+      "noticeExpires": "链接将于 {{date}} 失效。",
+      "noticePassword": "阅读时需要 {{name}} 另行告知您的密码。"
+    }
   },
   "message": {
     "find": {
@@ -1093,7 +1121,8 @@
       "mailSignIn": "邮件服务商",
       "groupCalendar": "日历",
       "calendarAccounts": "账户",
-      "calendarList": "日历"
+      "calendarList": "日历",
+      "secureMessages": "受保护的邮件"
     },
     "rules": {
       "title": "收件箱规则",
@@ -2007,6 +2036,34 @@
       "notEnoughMail": "已发送邮件还不够，至少需要 3 封。",
       "rateLimited": "尝试次数过多，请几分钟后再试。",
       "loadFailed": "无法加载你的写作风格。"
+    },
+    "secureMessages": {
+      "title": "密码保护邮件",
+      "intro": "您用密码发送的邮件。服务器只以加密形式保存，链接失效时会将其删除。撤销链接可使其无法再打开；删除邮件会立即将其连同回复一并移除。",
+      "empty": "还没有密码保护邮件。在写邮件窗口中打开锁形按钮即可发送。",
+      "loadFailed": "无法加载受保护的邮件。",
+      "statusActive": "有效",
+      "statusExpired": "已过期",
+      "statusRevoked": "已撤销",
+      "statusLocked": "已锁定",
+      "sentOn": "发送于 {{date}}，链接于 {{expiry}} 失效",
+      "opened": "首次打开于 {{date}}，共打开 {{n}} 次",
+      "notOpened": "尚未打开",
+      "replies": "回复：{{n}}",
+      "repliesNew": "回复：{{n}}，其中 {{unread}} 条未读",
+      "readReplies": "阅读回复",
+      "hideReplies": "隐藏回复",
+      "revoke": "撤销链接",
+      "delete": "删除",
+      "confirmDelete": "删除邮件及回复",
+      "actionFailed": "操作失败，请重试。",
+      "passwordPh": "此邮件的密码",
+      "showReplies": "显示回复",
+      "decrypting": "正在解密…",
+      "wrongPassword": "此密码无法打开回复。",
+      "replyReceived": "回复收到于 {{date}}",
+      "replyToast": "密码保护邮件有新回复",
+      "replyToastAction": "打开"
     }
   },
   "blockList": {
@@ -2453,5 +2510,41 @@
     "adding": "正在添加…",
     "added": "日历已添加。同步后将显示在日历中。",
     "none": "在 {{host}} 上未找到日历服务器。"
+  },
+  "securePage": {
+    "title": "密码保护邮件",
+    "loading": "正在加载邮件…",
+    "sentYou": "{{name}} 给您发送了一封密码保护邮件",
+    "passwordHint": "请输入 {{name}} 给您的密码。密码是另行告知的，例如通过短信或电话。",
+    "passwordLabel": "密码",
+    "open": "打开邮件",
+    "opening": "正在解密邮件…",
+    "wrongPassword": "密码错误。",
+    "wrongPasswordLeft": "密码错误。剩余尝试次数：{{count}}",
+    "rateLimited": "尝试次数过多。请等待几分钟后再试。",
+    "loadFailed": "无法加载邮件。请检查网络连接后重试。",
+    "decryptFailed": "无法解密邮件。",
+    "retry": "重试",
+    "insecure": "此页面需要安全连接（HTTPS）才能解密邮件。",
+    "neverAsks": "Plimail 绝不会询问您自己邮箱的密码。请只输入此邮件的密码。",
+    "expires": "链接将于 {{date}} 失效。",
+    "unavailableTitle": "此邮件不可用",
+    "unavailableBody": "邮件已过期、已被发件人撤回，或因密码错误次数过多而被锁定。请让发件人重新发送。",
+    "lockedTitle": "此邮件已被锁定",
+    "lockedBody": "输入错误密码的次数过多，邮件已无法打开。请让发件人重新发送。",
+    "noSubject": "（无主题）",
+    "attachments": "附件",
+    "download": "下载",
+    "decryptedHere": "已在您的浏览器中解密。服务器只保存加密后的内容。",
+    "replyTitle": "回复",
+    "replyHint": "您的回复会用同一密码加密，只有 {{name}} 能阅读。",
+    "replyPlaceholder": "撰写回复",
+    "sendReply": "发送回复",
+    "sendingReply": "正在发送…",
+    "replySent": "回复已发送",
+    "replyLimit": "此邮件无法再接收更多回复。",
+    "replyTooLarge": "回复过长。",
+    "replyFailed": "无法发送回复，请重试。",
+    "repliesSent": "已发送回复：{{count}}"
   }
 }

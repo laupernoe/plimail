@@ -290,7 +290,35 @@
       "undoFailedOpen": "Nie udało się cofnąć. Otwórz ją w Zaplanowanych."
     },
     "selectAccount": "Wybierz konto do wysyłki",
-    "smtpAuthDisabled": "Microsoft wyłączył wysyłanie z aplikacji pocztowych (SMTP) dla tego konta. Nadal możesz wysyłać z Outlooka w przeglądarce. W przypadku konta służbowego lub szkolnego administrator może je ponownie włączyć."
+    "smtpAuthDisabled": "Microsoft wyłączył wysyłanie z aplikacji pocztowych (SMTP) dla tego konta. Nadal możesz wysyłać z Outlooka w przeglądarce. W przypadku konta służbowego lub szkolnego administrator może je ponownie włączyć.",
+    "secure": {
+      "toggle": "Chroń hasłem",
+      "title": "Wiadomość chroniona hasłem",
+      "explain": "Odbiorcy dostają link zamiast wiadomości i otwierają go tym hasłem. Temat również nie jest wysyłany jawnym tekstem.",
+      "password": "Hasło",
+      "confirm": "Potwierdź hasło",
+      "expiry": "Link wygasa po",
+      "expiry1": "1 dniu",
+      "expiry7": "7 dniach",
+      "expiry30": "30 dniach",
+      "strengthTooShort": "Użyj co najmniej 8 znaków",
+      "strengthWeak": "Słabe hasło",
+      "strengthFair": "Przeciętne hasło",
+      "strengthStrong": "Silne hasło",
+      "mismatch": "Hasła się nie zgadzają",
+      "shareNote": "Przekaż hasło odbiorcom inną drogą, np. SMS-em lub telefonicznie, nigdy e-mailem.",
+      "limits": "Wiadomość wychodzi od razu, bez cofania i wysyłki później, a załączników przekazywanych wiadomości nie można dołączyć. Podczas pisania wersja robocza zapisuje się bez szyfrowania w folderze Wersje robocze.",
+      "noSchedule": "Wiadomości chronionej hasłem nie można zaplanować. Wyłącz hasło, aby wysłać ją później.",
+      "sent": "Wysłano wiadomość chronioną hasłem",
+      "errorForwarded": "Załączników przekazywanych wiadomości nie można chronić hasłem. Usuń je albo pobierz pliki i załącz je ponownie.",
+      "errorTooLarge": "Załączniki wiadomości chronionej hasłem mogą mieć łącznie najwyżej 25 MB.",
+      "errorInsecure": "Ochrona hasłem wymaga bezpiecznego połączenia (HTTPS).",
+      "noticeSubject": "Bezpieczna wiadomość od {{name}}",
+      "noticeIntro": "{{name}} wysyła Ci wiadomość chronioną hasłem.",
+      "noticeOpen": "Otwórz ją tutaj:",
+      "noticeExpires": "Link wygasa {{date}}.",
+      "noticePassword": "Aby ją przeczytać, potrzebujesz hasła, które {{name}} przekazuje Ci osobno."
+    }
   },
   "message": {
     "find": {
@@ -1109,7 +1137,8 @@
       "mailSignIn": "Dostawcy poczty",
       "groupCalendar": "Kalendarz",
       "calendarAccounts": "Konta",
-      "calendarList": "Kalendarze"
+      "calendarList": "Kalendarze",
+      "secureMessages": "Chronione wiadomości"
     },
     "rules": {
       "title": "Reguły skrzynki odbiorczej",
@@ -2026,6 +2055,34 @@
       "notEnoughMail": "Za mało wysłanych wiadomości do nauki. Potrzebne są co najmniej 3.",
       "rateLimited": "Zbyt wiele prób. Spróbuj ponownie za kilka minut.",
       "loadFailed": "Nie udało się wczytać Twojego stylu pisania."
+    },
+    "secureMessages": {
+      "title": "Wiadomości chronione hasłem",
+      "intro": "Wiadomości wysłane przez Ciebie z hasłem. Serwer przechowuje je zaszyfrowane i usuwa po wygaśnięciu linku. Unieważnij link, aby nie dało się go już otworzyć; usuń wiadomość, aby od razu skasować ją razem z odpowiedziami.",
+      "empty": "Brak wiadomości chronionych hasłem. Włącz kłódkę w oknie tworzenia wiadomości, aby wysłać taką wiadomość.",
+      "loadFailed": "Nie udało się wczytać chronionych wiadomości.",
+      "statusActive": "Aktywna",
+      "statusExpired": "Wygasła",
+      "statusRevoked": "Unieważniona",
+      "statusLocked": "Zablokowana",
+      "sentOn": "Wysłano {{date}}, link wygasa {{expiry}}",
+      "opened": "Pierwsze otwarcie {{date}}, łącznie otwarć: {{n}}",
+      "notOpened": "Jeszcze nieotwarta",
+      "replies": "Odpowiedzi: {{n}}",
+      "repliesNew": "Odpowiedzi: {{n}}, nowe: {{unread}}",
+      "readReplies": "Czytaj odpowiedzi",
+      "hideReplies": "Ukryj odpowiedzi",
+      "revoke": "Unieważnij link",
+      "delete": "Usuń",
+      "confirmDelete": "Usuń wiadomość i odpowiedzi",
+      "actionFailed": "Nie udało się. Spróbuj ponownie.",
+      "passwordPh": "Hasło tej wiadomości",
+      "showReplies": "Pokaż odpowiedzi",
+      "decrypting": "Odszyfrowywanie…",
+      "wrongPassword": "To hasło nie otwiera odpowiedzi.",
+      "replyReceived": "Odpowiedź otrzymana {{date}}",
+      "replyToast": "Nowa odpowiedź na wiadomość chronioną hasłem",
+      "replyToastAction": "Otwórz"
     }
   },
   "blockList": {
@@ -2472,5 +2529,41 @@
     "adding": "Dodawanie…",
     "added": "Kalendarze dodane. Pojawią się w Kalendarzu po synchronizacji.",
     "none": "Nie znaleziono serwera kalendarza na {{host}}."
+  },
+  "securePage": {
+    "title": "Wiadomość chroniona hasłem",
+    "loading": "Wczytywanie wiadomości…",
+    "sentYou": "{{name}} wysyła Ci wiadomość chronioną hasłem",
+    "passwordHint": "Wpisz hasło, które przekazuje Ci {{name}}. Zostało przekazane osobno, np. SMS-em lub telefonicznie.",
+    "passwordLabel": "Hasło",
+    "open": "Otwórz wiadomość",
+    "opening": "Odszyfrowywanie wiadomości…",
+    "wrongPassword": "Nieprawidłowe hasło.",
+    "wrongPasswordLeft": "Nieprawidłowe hasło. Pozostałe próby: {{count}}",
+    "rateLimited": "Zbyt wiele prób. Odczekaj kilka minut i spróbuj ponownie.",
+    "loadFailed": "Nie udało się wczytać wiadomości. Sprawdź połączenie i spróbuj ponownie.",
+    "decryptFailed": "Nie udało się odszyfrować wiadomości.",
+    "retry": "Spróbuj ponownie",
+    "insecure": "Ta strona potrzebuje bezpiecznego połączenia (HTTPS), aby odszyfrować wiadomość.",
+    "neverAsks": "Plimail nigdy nie prosi o hasło do Twojej własnej skrzynki pocztowej. Wpisz tylko hasło do tej wiadomości.",
+    "expires": "Link wygasa {{date}}.",
+    "unavailableTitle": "Ta wiadomość jest niedostępna",
+    "unavailableBody": "Wygasła, nadawca ją wycofał albo została zablokowana po zbyt wielu błędnych hasłach. Poproś nadawcę o ponowne wysłanie.",
+    "lockedTitle": "Ta wiadomość jest zablokowana",
+    "lockedBody": "Wpisano zbyt wiele błędnych haseł, więc nie można jej już otworzyć. Poproś nadawcę o ponowne wysłanie.",
+    "noSubject": "(bez tematu)",
+    "attachments": "Załączniki",
+    "download": "Pobierz",
+    "decryptedHere": "Odszyfrowano w Twojej przeglądarce. Serwer przechowuje ją wyłącznie zaszyfrowaną.",
+    "replyTitle": "Odpowiedz",
+    "replyHint": "Twoja odpowiedź jest szyfrowana tym samym hasłem. Tylko {{name}} może ją przeczytać.",
+    "replyPlaceholder": "Napisz odpowiedź",
+    "sendReply": "Wyślij odpowiedź",
+    "sendingReply": "Wysyłanie…",
+    "replySent": "Odpowiedź wysłana",
+    "replyLimit": "Na tę wiadomość nie można już wysłać kolejnych odpowiedzi.",
+    "replyTooLarge": "Odpowiedź jest za długa.",
+    "replyFailed": "Nie udało się wysłać odpowiedzi. Spróbuj ponownie.",
+    "repliesSent": "Wysłane odpowiedzi: {{count}}"
   }
 }

@@ -110,6 +110,13 @@ function buildApp() {
   accounts.use(requireAuth);
   accounts.get('/', who);
   app.use('/api/accounts', accounts);
+  // Stand-ins for the password-protected message routes: the owner's, behind requireAuth and the
+  // large parser, and the recipient's, for anyone.
+  const secure = express.Router();
+  secure.use(requireAuth);
+  secure.post('/', (req, res) => res.json({ userId: req.session.userId, received: req.body.ciphertext.length }));
+  app.use('/api/secure-messages', secure);
+  app.post('/api/s/:token/open', (req, res) => res.json({ authKey: req.body?.authKey ?? null }));
   // POST /api/auth/login: public, and parses a JSON body from a signed-out client.
   app.post('/api/auth/login', (req, res) => { req.session.userId = req.body.username; res.json({ signedIn: req.body.username }); });
   app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
@@ -500,6 +507,54 @@ describe('refused bodies are read off only up to 1 MB', () => {
     expect(res.status).toBe(403);
     expect(res.headers.get('connection')).not.toBe('close');
     expect(answered.at(-1)).toMatchObject({ status: 403, bodyReceived: true });
+  });
+});
+
+describe('password-protected messages', () => {
+  const TOKEN = 'A'.repeat(43);
+
+  it('the recipient\'s routes need no session, but still the X-Requested-With header', async () => {
+    expect((await post(`/api/s/${TOKEN}/open`, { authKey: 'k' })).status).toBe(403);
+    const res = await post(`/api/s/${TOKEN}/open`, { authKey: 'k' }, { 'X-Requested-With': 'XMLHttpRequest' });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ authKey: 'k' });
+    // Nor does answering one make a session.
+    expect(res.headers.get('set-cookie')).toBe(null);
+  });
+
+  it('the recipient\'s routes are not held by a screen lock in the same browser; the rest still are', async () => {
+    const cookie = await signIn('u1');
+    await fetchFully('/lock', { headers: { cookie } });
+    const headers = { cookie, 'X-Requested-With': 'XMLHttpRequest' };
+    expect((await post(`/api/s/${TOKEN}/open`, { authKey: 'k' }, headers)).status).toBe(200);
+    expect((await post('/api/secure-messages', { ciphertext: 'x' }, headers)).status).toBe(423);
+    // A path that only starts the same way is not let through.
+    expect((await post(`/api/s/${TOKEN}/open/../../mail/send`, {}, headers)).status).not.toBe(200);
+    expect((await get('/api/accounts', { cookie })).status).toBe(423);
+  });
+
+  it('the recipient\'s routes are not reachable with an API token', async () => {
+    const res = await post(`/api/s/${TOKEN}/open`, { authKey: 'k' }, bearer('all'));
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: 'This API token cannot be used for this request' });
+  });
+
+  it('creating one takes a body over 1 MB, for a signed-in user only', async () => {
+    const big = { ciphertext: 'x'.repeat(3 * ONE_MB) };
+    const signedOut = await post('/api/secure-messages', big, { 'X-Requested-With': 'XMLHttpRequest' });
+    expect(signedOut.status).toBe(401);
+    const cookie = await signIn('u1');
+    const res = await post('/api/secure-messages', big, { cookie, 'X-Requested-With': 'XMLHttpRequest' });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ userId: 'u1', received: 3 * ONE_MB });
+    // The recipient's routes keep the global 1 MB limit.
+    const open = await post(`/api/s/${TOKEN}/open`, big, { 'X-Requested-With': 'XMLHttpRequest' });
+    expect(open.status).toBe(413);
+  });
+
+  it('creating one is closed to API tokens', async () => {
+    const res = await post('/api/secure-messages', { ciphertext: 'x' }, bearer('all'));
+    expect(res.status).toBe(403);
   });
 });
 

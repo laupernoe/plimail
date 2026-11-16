@@ -37,6 +37,8 @@ import aiWritingStyleRoutes from './routes/aiWritingStyle.js';
 import categoriesRoutes from './routes/categories.js';
 import senderFaviconsRoutes from './routes/senderFavicons.js';
 import signatureImagesRoutes from './routes/signatureImages.js';
+import secureMessageRoutes from './routes/secureMessages.js';
+import secureMessagePublicRoutes from './routes/secureMessagesPublic.js';
 import diagnosticsRoutes from './routes/diagnostics.js';
 import backupRoutes from './routes/backup.js';
 import apiTokenRoutes from './routes/apiTokens.js';
@@ -53,6 +55,7 @@ import { getUpdateStatus } from './services/updateCheck.js';
 import { recordHttp } from './services/performanceMetrics.js';
 import { shutDown } from './services/sendShutdown.js';
 import { startScheduledSender } from './services/scheduledSend.js';
+import { startSecureMessageCleanup } from './services/secureMessages.js';
 
 const packageMeta = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'));
 let buildMeta = {};
@@ -177,6 +180,9 @@ app.use('/api', aiWritingStyleRoutes);
 app.use('/api', categoriesRoutes);
 app.use('/api/sender-favicons', senderFaviconsRoutes);
 app.use('/api/signature-images', signatureImagesRoutes);
+app.use('/api/secure-messages', secureMessageRoutes);
+// The recipient of a password-protected message, who has no account: no session involved.
+app.use('/api/s', secureMessagePublicRoutes);
 app.use('/api/diagnostics', diagnosticsRoutes);
 
 // CardDAV server — body is read lazily inside each handler via rawBody()
@@ -251,6 +257,9 @@ startScheduledSender();
 
 // Sync CalDAV calendars as they fall due.
 startCaldavScheduler();
+
+// Delete password-protected messages, and their replies, once their link has expired.
+startSecureMessageCleanup();
 
 // Re-connect all enabled IMAP accounts on startup with bounded concurrency so a
 // large user base doesn't hammer IMAP servers and the DB connection pool at once.

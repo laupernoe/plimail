@@ -290,7 +290,35 @@
       "undoFailedOpen": "Não foi possível desfazer. Abra-a em Agendados."
     },
     "selectAccount": "Escolha uma conta para enviar",
-    "smtpAuthDisabled": "A Microsoft desativou o envio por apps de e-mail (SMTP) nesta conta. Você ainda pode enviar pelo Outlook na web. Em uma conta corporativa ou de estudante, o administrador pode reativá-lo."
+    "smtpAuthDisabled": "A Microsoft desativou o envio por apps de e-mail (SMTP) nesta conta. Você ainda pode enviar pelo Outlook na web. Em uma conta corporativa ou de estudante, o administrador pode reativá-lo.",
+    "secure": {
+      "toggle": "Proteger com senha",
+      "title": "Mensagem protegida por senha",
+      "explain": "Os destinatários recebem um link no lugar da mensagem e o abrem com esta senha. O assunto também não é enviado às claras.",
+      "password": "Senha",
+      "confirm": "Confirmar senha",
+      "expiry": "O link expira após",
+      "expiry1": "1 dia",
+      "expiry7": "7 dias",
+      "expiry30": "30 dias",
+      "strengthTooShort": "Use pelo menos 8 caracteres",
+      "strengthWeak": "Senha fraca",
+      "strengthFair": "Senha razoável",
+      "strengthStrong": "Senha forte",
+      "mismatch": "As senhas não coincidem",
+      "shareNote": "Passe a senha aos destinatários por outro meio, como SMS ou telefone, nunca por e-mail.",
+      "limits": "Ela é enviada na hora, sem Desfazer nem Enviar mais tarde, e anexos de mensagens encaminhadas não podem ser incluídos. Enquanto você escreve, o rascunho é salvo sem criptografia na pasta Rascunhos.",
+      "noSchedule": "Uma mensagem protegida por senha não pode ser agendada. Desative a senha para enviá-la mais tarde.",
+      "sent": "Mensagem protegida enviada",
+      "errorForwarded": "Anexos de mensagens encaminhadas não podem ser protegidos por senha. Remova-os, ou baixe os arquivos e anexe-os de novo.",
+      "errorTooLarge": "Os anexos de uma mensagem protegida podem somar no máximo 25 MB.",
+      "errorInsecure": "A proteção por senha precisa de uma conexão segura (HTTPS).",
+      "noticeSubject": "Mensagem segura de {{name}}",
+      "noticeIntro": "{{name}} enviou a você uma mensagem protegida por senha.",
+      "noticeOpen": "Abra aqui:",
+      "noticeExpires": "O link expira em {{date}}.",
+      "noticePassword": "Para lê-la, você precisa da senha que {{name}} passou separadamente."
+    }
   },
   "message": {
     "find": {
@@ -1093,7 +1121,8 @@
       "mailSignIn": "Provedores de e-mail",
       "groupCalendar": "Calendário",
       "calendarAccounts": "Contas",
-      "calendarList": "Calendários"
+      "calendarList": "Calendários",
+      "secureMessages": "Mensagens protegidas"
     },
     "rules": {
       "title": "Regras da caixa de entrada",
@@ -2007,6 +2036,34 @@
       "notEnoughMail": "Ainda não há e-mails enviados suficientes para aprender. São necessários pelo menos 3.",
       "rateLimited": "Muitas tentativas. Tente novamente em alguns minutos.",
       "loadFailed": "Não foi possível carregar seu estilo de escrita."
+    },
+    "secureMessages": {
+      "title": "Mensagens protegidas por senha",
+      "intro": "As mensagens que você enviou com senha. O servidor as guarda criptografadas e as exclui quando o link expira. Revogue um link para que ele não abra mais; exclua uma mensagem para apagá-la na hora com as respostas.",
+      "empty": "Nenhuma mensagem protegida ainda. Ative o cadeado na janela de escrita para enviar uma.",
+      "loadFailed": "Não foi possível carregar as mensagens protegidas.",
+      "statusActive": "Ativa",
+      "statusExpired": "Expirada",
+      "statusRevoked": "Revogada",
+      "statusLocked": "Travada",
+      "sentOn": "Enviada em {{date}}, o link expira em {{expiry}}",
+      "opened": "Aberta pela primeira vez em {{date}}, {{n}} aberturas no total",
+      "notOpened": "Ainda não aberta",
+      "replies": "Respostas: {{n}}",
+      "repliesNew": "Respostas: {{n}}, {{unread}} novas",
+      "readReplies": "Ler respostas",
+      "hideReplies": "Ocultar respostas",
+      "revoke": "Revogar link",
+      "delete": "Excluir",
+      "confirmDelete": "Excluir mensagem e respostas",
+      "actionFailed": "Não deu certo. Tente de novo.",
+      "passwordPh": "Senha desta mensagem",
+      "showReplies": "Mostrar respostas",
+      "decrypting": "Descriptografando…",
+      "wrongPassword": "Esta senha não abre as respostas.",
+      "replyReceived": "Resposta recebida em {{date}}",
+      "replyToast": "Nova resposta a uma mensagem protegida",
+      "replyToastAction": "Abrir mensagem"
     }
   },
   "blockList": {
@@ -2453,5 +2510,41 @@
     "adding": "Adicionando…",
     "added": "Calendários adicionados. Eles aparecem em Calendário após a sincronização.",
     "none": "Nenhum servidor de calendário encontrado em {{host}}."
+  },
+  "securePage": {
+    "title": "Mensagem protegida por senha",
+    "loading": "Carregando a mensagem…",
+    "sentYou": "{{name}} enviou a você uma mensagem protegida por senha",
+    "passwordHint": "Digite a senha que {{name}} passou a você. Ela foi compartilhada separadamente, por exemplo por SMS ou telefone.",
+    "passwordLabel": "Senha",
+    "open": "Abrir mensagem",
+    "opening": "Descriptografando…",
+    "wrongPassword": "Senha incorreta.",
+    "wrongPasswordLeft": "Senha incorreta. Tentativas restantes: {{count}}",
+    "rateLimited": "Tentativas demais. Aguarde alguns minutos e tente de novo.",
+    "loadFailed": "Não foi possível carregar a mensagem. Verifique sua conexão e tente de novo.",
+    "decryptFailed": "Não foi possível descriptografar a mensagem.",
+    "retry": "Tentar de novo",
+    "insecure": "Esta página precisa de uma conexão segura (HTTPS) para descriptografar a mensagem.",
+    "neverAsks": "O Plimail nunca pede a senha da sua própria caixa de correio. Digite apenas a senha desta mensagem.",
+    "expires": "O link expira em {{date}}.",
+    "unavailableTitle": "Esta mensagem não está disponível",
+    "unavailableBody": "Ela expirou, o remetente a retirou ou foi travada após senhas incorretas demais. Peça ao remetente que a envie de novo.",
+    "lockedTitle": "Esta mensagem está travada",
+    "lockedBody": "Foram digitadas senhas incorretas demais e ela não pode mais ser aberta. Peça ao remetente que a envie de novo.",
+    "noSubject": "(sem assunto)",
+    "attachments": "Anexos",
+    "download": "Baixar",
+    "decryptedHere": "Descriptografada no seu navegador. O servidor só a guarda criptografada.",
+    "replyTitle": "Responder à mensagem",
+    "replyHint": "Sua resposta é criptografada com a mesma senha. Só {{name}} pode lê-la.",
+    "replyPlaceholder": "Escreva sua resposta",
+    "sendReply": "Enviar resposta",
+    "sendingReply": "Enviando a resposta…",
+    "replySent": "Resposta enviada",
+    "replyLimit": "Não é possível enviar mais respostas a esta mensagem.",
+    "replyTooLarge": "A resposta é longa demais.",
+    "replyFailed": "Não foi possível enviar a resposta. Tente de novo.",
+    "repliesSent": "Respostas enviadas: {{count}}"
   }
 }

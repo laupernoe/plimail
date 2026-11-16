@@ -52,6 +52,9 @@ import {
   openScheduledView, scheduleErrorText, sendNowUndoMs, undoSchedule, undoSendNow, withScheduledAttachments,
 } from '../utils/scheduledCompose.js';
 import { ComposeQuestion, ScheduledStrip, SendLaterIcon, SendLaterMenu, SendLaterSheet } from './SendLater.jsx';
+import SecureSendPanel, { SecureSendToggle } from './SecureSendPanel.jsx';
+import { SecureSendError, secureSettingsProblem, sendProtected } from '../utils/secureSend.js';
+import { htmlLang } from '../utils/browserLanguage.js';
 
 // Resize an image blob/file to max maxW pixels wide, preserving aspect ratio.
 // Returns a Promise<string> of a base64 data URL.
@@ -376,6 +379,8 @@ export default function ComposeModal() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(() => composeData?.sendError || (composeData?.unsupportedFrom ? t('compose.unsupportedDraftFrom', { defaultValue: 'Choose a configured sender before saving or sending this draft.' }) : ''));
   const [priority, setPriority] = useState(() => composeData?.priority || 'normal');
+  // Password protection (SecureSendPanel.jsx): null while off.
+  const [secure, setSecure] = useState(null);
   const [minimized, setMinimized] = useState(false);
   const [maximized, setMaximized] = useState(false);
   const [pos, setPos] = useState(null);
@@ -1240,6 +1245,11 @@ export default function ComposeModal() {
   const handleSend = async (opts = {}) => {
     // A scheduled message being edited is saved, not sent (Ctrl+Enter is Update there).
     if (scheduledEdit) return updateRef.current(opts);
+    const secureProblem = secure && secureSettingsProblem(secure);
+    if (secureProblem) {
+      setError(secureProblem === 'tooShort' ? t('compose.secure.strengthTooShort') : t('compose.secure.mismatch'));
+      return;
+    }
     const from = await readyToSubmit(opts, o => sendRef.current(o));
     if (!from) return;
     const { accountId, aliasId } = from;
@@ -1254,6 +1264,7 @@ export default function ComposeModal() {
     }
     const built = buildSendPayload(accountId, aliasId);
     const { savedDraft, hasDraft, payload } = built;
+    if (secure) return sendSecure(built);
     try {
       const sendResult = await api.post('/mail/send', {
         ...payload,
@@ -1364,6 +1375,35 @@ export default function ComposeModal() {
   const sendRef = useRef(null);
   sendRef.current = handleSend;
 
+  // Send with a password (utils/secureSend.js): the message is encrypted here and only a notice
+  // with its link goes out, at once, with no undo window.
+  const sendSecure = async (built) => {
+    const { savedDraft, hasDraft } = built;
+    const expiryFormat = new Intl.DateTimeFormat(htmlLang(i18n.language || 'en'), { dateStyle: 'long', timeStyle: 'short' });
+    try {
+      await sendProtected({
+        built, attachments, forwardedCount: fwdAttachments.length, settings: secure, t, api,
+        formatDate: iso => expiryFormat.format(new Date(iso)),
+        idempotencyKey: idempotencyKeyRef.current,
+      });
+      idempotencyKeyRef.current = null;
+      if (hasDraft) api.deleteDraft(savedDraft.accountId, savedDraft.uid, savedDraft.folder).catch(() => {});
+      const active = useStore.getState();
+      if (active.user?.id !== composeOwner) return;
+      if (active.composing && active.composeSession === composeSession) closeCompose();
+      addNotification({ title: t('compose.secure.sent'), body: subject || t('common.noSubject') });
+    } catch (err) {
+      const known = err instanceof SecureSendError ? {
+        forwarded: t('compose.secure.errorForwarded'),
+        tooLarge: t('compose.secure.errorTooLarge'),
+        insecure: t('compose.secure.errorInsecure'),
+      }[err.code] : null;
+      setError(known || (err?.message === 'secure_context_required' ? t('compose.secure.errorInsecure') : sendErrorText(err, t)));
+      sendingRef.current = false;
+      setSending(false);
+    }
+  };
+
   // What the composer was, kept with a scheduled message (the spec's `compose`), so the Scheduled
   // view can open it the same way again.
   const composeContext = () => ({
@@ -1415,6 +1455,7 @@ export default function ComposeModal() {
   // draft it was written in. The create key makes a retry find the message the first try made.
   const handleSchedule = async (sendAt, opts = {}) => {
     if (scheduledEdit) return updateRef.current({ ...opts, sendAt });
+    if (secure) { setError(t('compose.secure.noSchedule')); return; }
     const from = await readyToSubmit(opts, o => scheduleRef.current(sendAt, o), { scheduling: true });
     if (!from) return;
     const { accountId, aliasId } = from;
@@ -2165,6 +2206,8 @@ export default function ComposeModal() {
   // Send later and Update: what can go now, and what scheduling shows over the composer.
   const noRecipients = toChips.length === 0 && !toInput.trim();
   const sendDisabled = sending || noRecipients || Boolean(scheduledEdit && !holdReady);
+  // A protected message goes at once (utils/secureSend.js), so it cannot be scheduled.
+  const sendLaterDisabled = sendDisabled || secure != null;
   const sendLabel = scheduledEdit ? t('compose.scheduleSend.edit.update') : t('compose.send');
   const closeQuestion = () => setScheduleQuestion(null);
   // The server's question about a message that may already have gone out (confirm_uncertain) or
@@ -2410,11 +2453,12 @@ export default function ComposeModal() {
                 <line x1="4" y1="22" x2="4" y2="15" stroke="currentColor" strokeWidth="2" fill="none"/>
               </svg>
             </button>
+            {!scheduledEdit && <SecureSendToggle value={secure} onChange={setSecure} disabled={sending} mobile />}
             <button
               ref={sendLaterBtnRef}
               type="button"
               onClick={() => { setSendLaterView('root'); setSendLaterOpen(true); }}
-              disabled={sendDisabled}
+              disabled={sendLaterDisabled}
               aria-label={scheduledEdit ? t('compose.scheduleSend.edit.options') : t('compose.scheduleSend.title')}
               aria-haspopup="dialog"
               aria-expanded={sendLaterOpen}
@@ -2423,8 +2467,8 @@ export default function ComposeModal() {
                 // A basis, not a width: a set width would count in full in the group's minimum.
                 background: 'none', border: 'none', padding: 0, flex: '0 1 44px', height: 44, minWidth: 28,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: sendDisabled ? 'var(--text-tertiary)' : 'var(--accent)',
-                cursor: sendDisabled ? 'default' : 'pointer',
+                color: sendLaterDisabled ? 'var(--text-tertiary)' : 'var(--accent)',
+                cursor: sendLaterDisabled ? 'default' : 'pointer',
                 WebkitTapHighlightColor: 'transparent',
               }}
             >
@@ -2595,6 +2639,7 @@ export default function ComposeModal() {
           </div>
 
           {/* Body */}
+          <SecureSendPanel value={secure} onChange={setSecure} disabled={sending} mobile />
           {/* Plain text has no toolbar on a phone: a strip for attaching and the signature toggle. */}
           {plaintextEmail && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: '4px 10px', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -3352,6 +3397,7 @@ export default function ComposeModal() {
         ) : null}
       </div>
 
+      <SecureSendPanel value={secure} onChange={setSecure} disabled={sending} />
       {/* Footer */}
       <div style={{
         padding: '10px 14px', borderTop: '1px solid var(--border-subtle)',
@@ -3380,7 +3426,7 @@ export default function ComposeModal() {
             ref={sendLaterBtnRef}
             type="button"
             onClick={() => { setSendLaterView('root'); setSendLaterOpen(open => !open); }}
-            disabled={sendDisabled}
+            disabled={sendLaterDisabled}
             aria-label={scheduledEdit ? t('compose.scheduleSend.edit.options') : t('compose.scheduleSend.title')}
             title={scheduledEdit ? t('compose.scheduleSend.edit.options') : t('compose.scheduleSend.tooltip')}
             aria-haspopup="menu"
@@ -3390,8 +3436,8 @@ export default function ComposeModal() {
               padding: '8px 8px', background: 'var(--accent)',
               border: 'none', borderLeft: '1px solid color-mix(in srgb, var(--accent-text) 28%, transparent)', borderRadius: '0 7px 7px 0',
               color: 'var(--accent-text)', display: 'flex', alignItems: 'center',
-              cursor: sendDisabled ? 'not-allowed' : 'pointer',
-              opacity: sendDisabled ? 0.6 : 1,
+              cursor: sendLaterDisabled ? 'not-allowed' : 'pointer',
+              opacity: sendLaterDisabled ? 0.6 : 1,
               transition: 'opacity 0.15s',
             }}
           >
@@ -3429,6 +3475,7 @@ export default function ComposeModal() {
           </button>
         )}
         {plaintextEmail && renderSignatureToggle()}
+        {!scheduledEdit && <SecureSendToggle value={secure} onChange={setSecure} disabled={sending} />}
 
         {error && <span style={{ fontSize: 12, color: 'var(--red)', flex: 1 }}>{error}</span>}
 

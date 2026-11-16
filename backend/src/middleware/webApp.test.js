@@ -18,6 +18,7 @@ beforeAll(async () => {
   writeFileSync(path.join(dir, 'pdfjs', '6.3.289', 'wasm', 'jbig2_nowasm_fallback.js'), '//');
   writeFileSync(path.join(dir, 'sw.js'), 'self.addEventListener("push", () => {});');
   writeFileSync(path.join(dir, 'favicon.svg'), '<svg/>');
+  writeFileSync(path.join(dir, 'secure.html'), '<!doctype html><div id="root" data-page="secure"></div>');
 
   const app = express();
   app.set('trust proxy', 1);
@@ -63,6 +64,23 @@ describe('the built web app', () => {
     expect(await res.text()).toContain('id="root"');
     expect(res.headers.get('cache-control')).toBe('no-store');
     expect(res.headers.get('x-frame-options')).toBe('SAMEORIGIN');
+  });
+
+  it('answers /s/<token> with the recipient\'s page, under its own stricter headers', async () => {
+    const res = await get(`/s/${'A'.repeat(43)}`);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain('data-page="secure"');
+    expect(res.headers.get('cache-control')).toBe('no-store');
+    expect(res.headers.get('referrer-policy')).toBe('no-referrer');
+    expect(res.headers.get('x-frame-options')).toBe('DENY');
+    expect(res.headers.get('x-robots-tag')).toContain('noindex');
+    const csp = res.headers.get('content-security-policy');
+    expect(csp).toContain("script-src 'self';");
+    expect(csp).toContain("img-src 'self' data: blob:;");
+    expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).not.toContain('https:');
+    // Anything deeper under /s/ is the app's, as before.
+    expect(await (await get('/s/x/y')).text()).not.toContain('data-page="secure"');
   });
 
   it('caches fingerprinted files for a year and gzips them', async () => {

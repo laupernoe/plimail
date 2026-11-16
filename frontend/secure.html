@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html translate="no" lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Plimail</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <!--
+    The page a password-protected message's recipient opens, at /s/<token>, without the mail app.
+    Its own palette, in the variables the app uses, light or dark with the system.
+  -->
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg-primary: #f5f6f8;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #eef0f3;
+      --border: #d9dde3;
+      --text-primary: #1b222c;
+      --text-secondary: #566070;
+      --accent: #1f5f8b;
+      --accent-text: #ffffff;
+      --red: #b42318;
+      --green: #1a7f4b;
+      --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #0e1217;
+        --bg-secondary: #151a21;
+        --bg-tertiary: #1c222b;
+        --border: #2a313b;
+        --text-primary: #e7eaee;
+        --text-secondary: #9aa3af;
+        --accent: #86b8dc;
+        --accent-text: #0e1217;
+        --red: #ff7a6e;
+        --green: #4cc38a;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg-primary); color: var(--text-primary); }
+    body { font-family: var(--font-sans); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    button, input, textarea { font: inherit; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  </style>
+</head>
+<body class="notranslate">
+  <div id="root"></div>
+  <script type="module" src="/src/secure/main.jsx"></script>
+</body>
+</html>

@@ -290,7 +290,35 @@
       "undoFailedOpen": "L'annulation a échoué. Ouvrez-le depuis Programmés."
     },
     "selectAccount": "Choisissez un compte d'envoi",
-    "smtpAuthDisabled": "Microsoft a désactivé l'envoi depuis les applications de messagerie (SMTP) pour ce compte. Vous pouvez toujours envoyer depuis Outlook sur le web. Pour un compte professionnel ou scolaire, votre administrateur peut le réactiver."
+    "smtpAuthDisabled": "Microsoft a désactivé l'envoi depuis les applications de messagerie (SMTP) pour ce compte. Vous pouvez toujours envoyer depuis Outlook sur le web. Pour un compte professionnel ou scolaire, votre administrateur peut le réactiver.",
+    "secure": {
+      "toggle": "Protéger par mot de passe",
+      "title": "Message protégé par mot de passe",
+      "explain": "Les destinataires reçoivent un lien à la place du message et l’ouvrent avec ce mot de passe. L’objet n’est pas non plus envoyé en clair.",
+      "password": "Mot de passe",
+      "confirm": "Confirmer le mot de passe",
+      "expiry": "Le lien expire après",
+      "expiry1": "1 jour",
+      "expiry7": "7 jours",
+      "expiry30": "30 jours",
+      "strengthTooShort": "Utilisez au moins 8 caractères",
+      "strengthWeak": "Mot de passe faible",
+      "strengthFair": "Mot de passe moyen",
+      "strengthStrong": "Mot de passe robuste",
+      "mismatch": "Les mots de passe ne correspondent pas",
+      "shareNote": "Transmettez le mot de passe aux destinataires par un autre moyen, par SMS ou par téléphone, jamais par e-mail.",
+      "limits": "Il part immédiatement, sans annulation ni envoi programmé, et les pièces jointes de messages transférés ne peuvent pas être incluses. Pendant la rédaction, le brouillon est enregistré non chiffré dans votre dossier Brouillons.",
+      "noSchedule": "Un message protégé par mot de passe ne peut pas être programmé. Désactivez le mot de passe pour l’envoyer plus tard.",
+      "sent": "Message protégé envoyé",
+      "errorForwarded": "Les pièces jointes de messages transférés ne peuvent pas être protégées. Retirez-les, ou téléchargez les fichiers et joignez-les à nouveau.",
+      "errorTooLarge": "Les pièces jointes d’un message protégé ne peuvent pas dépasser 25 Mo au total.",
+      "errorInsecure": "La protection par mot de passe nécessite une connexion sécurisée (HTTPS).",
+      "noticeSubject": "Message sécurisé de {{name}}",
+      "noticeIntro": "{{name}} vous a envoyé un message protégé par mot de passe.",
+      "noticeOpen": "Ouvrez-le ici :",
+      "noticeExpires": "Le lien expire le {{date}}.",
+      "noticePassword": "Pour le lire, il vous faut le mot de passe que {{name}} vous a donné séparément."
+    }
   },
   "message": {
     "find": {
@@ -1093,7 +1121,8 @@
       "mailSignIn": "Fournisseurs de messagerie",
       "groupCalendar": "Calendrier",
       "calendarAccounts": "Comptes",
-      "calendarList": "Agendas"
+      "calendarList": "Agendas",
+      "secureMessages": "Messages protégés"
     },
     "rules": {
       "title": "Règles de boîte de réception",
@@ -2007,6 +2036,34 @@
       "notEnoughMail": "Pas encore assez d'e-mails envoyés pour apprendre. Il en faut au moins 3.",
       "rateLimited": "Trop de tentatives. Réessayez dans quelques minutes.",
       "loadFailed": "Impossible de charger votre style d'écriture."
+    },
+    "secureMessages": {
+      "title": "Messages protégés par mot de passe",
+      "intro": "Les messages que vous avez envoyés avec un mot de passe. Le serveur les conserve chiffrés et les supprime à l’expiration de leur lien. Révoquez un lien pour qu’il ne s’ouvre plus ; supprimez un message pour l’effacer tout de suite avec ses réponses.",
+      "empty": "Aucun message protégé pour l’instant. Activez le cadenas dans la fenêtre de rédaction pour en envoyer un.",
+      "loadFailed": "Impossible de charger les messages protégés.",
+      "statusActive": "Actif",
+      "statusExpired": "Expiré",
+      "statusRevoked": "Révoqué",
+      "statusLocked": "Bloqué",
+      "sentOn": "Envoyé le {{date}}, le lien expire le {{expiry}}",
+      "opened": "Ouvert pour la première fois le {{date}}, {{n}} ouverture(s) en tout",
+      "notOpened": "Pas encore ouvert",
+      "replies": "Réponses : {{n}}",
+      "repliesNew": "Réponses : {{n}}, dont {{unread}} nouvelle(s)",
+      "readReplies": "Lire les réponses",
+      "hideReplies": "Masquer les réponses",
+      "revoke": "Révoquer le lien",
+      "delete": "Supprimer",
+      "confirmDelete": "Supprimer le message et les réponses",
+      "actionFailed": "L’opération a échoué. Réessayez.",
+      "passwordPh": "Mot de passe de ce message",
+      "showReplies": "Afficher les réponses",
+      "decrypting": "Déchiffrement…",
+      "wrongPassword": "Ce mot de passe n’ouvre pas les réponses.",
+      "replyReceived": "Réponse reçue le {{date}}",
+      "replyToast": "Nouvelle réponse à un message protégé",
+      "replyToastAction": "Ouvrir"
     }
   },
   "blockList": {
@@ -2453,5 +2510,41 @@
     "adding": "Ajout…",
     "added": "Agendas ajoutés. Ils apparaissent dans Agenda après la synchronisation.",
     "none": "Aucun serveur d'agenda trouvé sur {{host}}."
+  },
+  "securePage": {
+    "title": "Message protégé par mot de passe",
+    "loading": "Chargement du message…",
+    "sentYou": "{{name}} vous a envoyé un message protégé par mot de passe",
+    "passwordHint": "Saisissez le mot de passe que {{name}} vous a donné. Il vous a été transmis séparément, par exemple par SMS ou par téléphone.",
+    "passwordLabel": "Mot de passe",
+    "open": "Ouvrir le message",
+    "opening": "Déchiffrement…",
+    "wrongPassword": "Mot de passe incorrect.",
+    "wrongPasswordLeft": "Mot de passe incorrect. Essais restants : {{count}}",
+    "rateLimited": "Trop de tentatives. Patientez quelques minutes puis réessayez.",
+    "loadFailed": "Impossible de charger le message. Vérifiez votre connexion et réessayez.",
+    "decryptFailed": "Impossible de déchiffrer le message.",
+    "retry": "Réessayer",
+    "insecure": "Cette page a besoin d’une connexion sécurisée (HTTPS) pour déchiffrer le message.",
+    "neverAsks": "Plimail ne vous demande jamais le mot de passe de votre propre messagerie. Saisissez uniquement le mot de passe de ce message.",
+    "expires": "Le lien expire le {{date}}.",
+    "unavailableTitle": "Ce message n’est pas disponible",
+    "unavailableBody": "Il a expiré, l’expéditeur l’a retiré, ou il a été bloqué après trop de mots de passe erronés. Demandez à l’expéditeur de vous le renvoyer.",
+    "lockedTitle": "Ce message est bloqué",
+    "lockedBody": "Trop de mots de passe erronés ont été saisis : il ne peut plus être ouvert. Demandez à l’expéditeur de vous le renvoyer.",
+    "noSubject": "(sans objet)",
+    "attachments": "Pièces jointes",
+    "download": "Télécharger",
+    "decryptedHere": "Déchiffré dans votre navigateur. Le serveur ne le conserve que chiffré.",
+    "replyTitle": "Répondre",
+    "replyHint": "Votre réponse est chiffrée avec le même mot de passe. Seul(e) {{name}} peut la lire.",
+    "replyPlaceholder": "Écrivez votre réponse",
+    "sendReply": "Envoyer la réponse",
+    "sendingReply": "Envoi…",
+    "replySent": "Réponse envoyée",
+    "replyLimit": "Ce message ne peut plus recevoir de réponse.",
+    "replyTooLarge": "La réponse est trop longue.",
+    "replyFailed": "Impossible d’envoyer la réponse. Réessayez.",
+    "repliesSent": "Réponses envoyées : {{count}}"
   }
 }

@@ -290,7 +290,35 @@
       "undoFailedOpen": "Undo failed. Open it from Scheduled."
     },
     "selectAccount": "Choose an account to send from",
-    "smtpAuthDisabled": "Microsoft has turned off sending from mail apps (SMTP) for this account. You can still send from Outlook on the web. For a work or school account, your admin can turn it back on."
+    "smtpAuthDisabled": "Microsoft has turned off sending from mail apps (SMTP) for this account. You can still send from Outlook on the web. For a work or school account, your admin can turn it back on.",
+    "secure": {
+      "toggle": "Protect with a password",
+      "title": "Password-protected message",
+      "explain": "Recipients get a link instead of the message and open it with this password. The subject is not sent in the clear either.",
+      "password": "Password",
+      "confirm": "Confirm password",
+      "expiry": "Link expires after",
+      "expiry1": "1 day",
+      "expiry7": "7 days",
+      "expiry30": "30 days",
+      "strengthTooShort": "Use at least 8 characters",
+      "strengthWeak": "Weak password",
+      "strengthFair": "Fair password",
+      "strengthStrong": "Strong password",
+      "mismatch": "The passwords do not match",
+      "shareNote": "Give the password to the recipients another way, such as by SMS or phone, never in an email.",
+      "limits": "It is sent at once, without Undo or Send later, and attachments of forwarded messages cannot be included. While you write, the draft is saved unencrypted in your Drafts folder.",
+      "noSchedule": "A password-protected message cannot be scheduled. Turn off the password to send it later.",
+      "sent": "Password-protected message sent",
+      "errorForwarded": "Attachments of forwarded messages cannot be password protected. Remove them, or download and attach the files again.",
+      "errorTooLarge": "Attachments of a password-protected message may total at most 25 MB.",
+      "errorInsecure": "Password protection needs a secure connection (HTTPS).",
+      "noticeSubject": "Secure message from {{name}}",
+      "noticeIntro": "{{name}} sent you a password-protected message.",
+      "noticeOpen": "Open it here:",
+      "noticeExpires": "The link expires on {{date}}.",
+      "noticePassword": "To read it, you need the password {{name}} gave you separately."
+    }
   },
   "message": {
     "find": {
@@ -1093,7 +1121,8 @@
       "mailSignIn": "Email providers",
       "groupCalendar": "Calendar",
       "calendarAccounts": "Accounts",
-      "calendarList": "Calendars"
+      "calendarList": "Calendars",
+      "secureMessages": "Protected messages"
     },
     "rules": {
       "title": "Inbox rules",
@@ -2007,6 +2036,34 @@
       "notEnoughMail": "Not enough sent mail to learn from yet. At least 3 sent emails are needed.",
       "rateLimited": "Too many attempts. Try again in a few minutes.",
       "loadFailed": "Your writing style could not be loaded."
+    },
+    "secureMessages": {
+      "title": "Password-protected messages",
+      "intro": "Messages you sent with a password. The server keeps them encrypted and deletes them when their link expires. Revoke a link to stop it from opening; delete a message to remove it and its replies at once.",
+      "empty": "No password-protected messages yet. Turn on the lock in the composer to send one.",
+      "loadFailed": "Protected messages could not be loaded.",
+      "statusActive": "Active",
+      "statusExpired": "Expired",
+      "statusRevoked": "Revoked",
+      "statusLocked": "Locked",
+      "sentOn": "Sent {{date}}, link expires {{expiry}}",
+      "opened": "First opened {{date}}, opened {{n}} times in all",
+      "notOpened": "Not opened yet",
+      "replies": "Replies: {{n}}",
+      "repliesNew": "Replies: {{n}}, {{unread}} new",
+      "readReplies": "Read replies",
+      "hideReplies": "Hide replies",
+      "revoke": "Revoke link",
+      "delete": "Delete",
+      "confirmDelete": "Delete message and replies",
+      "actionFailed": "That did not work. Try again.",
+      "passwordPh": "Password of this message",
+      "showReplies": "Show replies",
+      "decrypting": "Decrypting…",
+      "wrongPassword": "This password does not open the replies.",
+      "replyReceived": "Reply received {{date}}",
+      "replyToast": "New reply to a password-protected message",
+      "replyToastAction": "Open"
     }
   },
   "blockList": {
@@ -2453,5 +2510,41 @@
     "adding": "Adding…",
     "added": "Calendars added. They appear in Calendar once synced.",
     "none": "No calendar server found on {{host}}."
+  },
+  "securePage": {
+    "title": "Password-protected message",
+    "loading": "Loading the message…",
+    "sentYou": "{{name}} sent you a password-protected message",
+    "passwordHint": "Enter the password {{name}} gave you. It was shared separately, for example by SMS or phone.",
+    "passwordLabel": "Password",
+    "open": "Open message",
+    "opening": "Decrypting…",
+    "wrongPassword": "Wrong password.",
+    "wrongPasswordLeft": "Wrong password. Attempts left: {{count}}",
+    "rateLimited": "Too many attempts. Wait a few minutes and try again.",
+    "loadFailed": "The message could not be loaded. Check your connection and try again.",
+    "decryptFailed": "The message could not be decrypted.",
+    "retry": "Try again",
+    "insecure": "This page needs a secure connection (HTTPS) to decrypt the message.",
+    "neverAsks": "Plimail never asks for the password of your own mailbox. Enter only the password for this message.",
+    "expires": "The link expires on {{date}}.",
+    "unavailableTitle": "This message is not available",
+    "unavailableBody": "It has expired, the sender withdrew it, or it was locked after too many wrong passwords. Ask the sender to send it again.",
+    "lockedTitle": "This message is locked",
+    "lockedBody": "Too many wrong passwords were entered, so it can no longer be opened. Ask the sender to send it again.",
+    "noSubject": "(no subject)",
+    "attachments": "Attachments",
+    "download": "Download",
+    "decryptedHere": "Decrypted in your browser. The server only ever stores it encrypted.",
+    "replyTitle": "Reply",
+    "replyHint": "Your reply is encrypted with the same password. Only {{name}} can read it.",
+    "replyPlaceholder": "Write your reply",
+    "sendReply": "Send reply",
+    "sendingReply": "Sending…",
+    "replySent": "Reply sent",
+    "replyLimit": "No more replies can be sent to this message.",
+    "replyTooLarge": "The reply is too long.",
+    "replyFailed": "The reply could not be sent. Try again.",
+    "repliesSent": "Replies sent: {{count}}"
   }
 }

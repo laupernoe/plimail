@@ -857,7 +857,35 @@
       "undoFailedOpen": "Vrácení se nepodařilo. Otevřete ji v Naplánovaných."
     },
     "selectAccount": "Vyberte účet, ze kterého odeslat",
-    "smtpAuthDisabled": "Microsoft pro tento účet vypnul odesílání z poštovních aplikací (SMTP). Z Outlooku na webu můžete odesílat dál. U pracovního nebo školního účtu ho může znovu zapnout váš správce."
+    "smtpAuthDisabled": "Microsoft pro tento účet vypnul odesílání z poštovních aplikací (SMTP). Z Outlooku na webu můžete odesílat dál. U pracovního nebo školního účtu ho může znovu zapnout váš správce.",
+    "secure": {
+      "toggle": "Chránit heslem",
+      "title": "Zpráva chráněná heslem",
+      "explain": "Příjemci dostanou místo zprávy odkaz a otevřou ho tímto heslem. Ani předmět se neodesílá jako čitelný text.",
+      "password": "Heslo",
+      "confirm": "Potvrzení hesla",
+      "expiry": "Platnost odkazu vyprší za",
+      "expiry1": "1 den",
+      "expiry7": "7 dní",
+      "expiry30": "30 dní",
+      "strengthTooShort": "Použijte alespoň 8 znaků",
+      "strengthWeak": "Slabé heslo",
+      "strengthFair": "Průměrné heslo",
+      "strengthStrong": "Silné heslo",
+      "mismatch": "Hesla se neshodují",
+      "shareNote": "Heslo předejte příjemcům jinou cestou, třeba SMS nebo telefonicky, nikdy e-mailem.",
+      "limits": "Odešle se hned, bez možnosti vrátit nebo odeslat později, a přílohy přeposílaných zpráv nelze přiložit. Během psaní se koncept ukládá nešifrovaný do složky Koncepty.",
+      "noSchedule": "Zprávu chráněnou heslem nelze naplánovat. Chcete-li ji odeslat později, heslo vypněte.",
+      "sent": "Zpráva chráněná heslem odeslána",
+      "errorForwarded": "Přílohy přeposílaných zpráv nelze chránit heslem. Odeberte je, nebo soubory stáhněte a přiložte znovu.",
+      "errorTooLarge": "Přílohy zprávy chráněné heslem mohou mít dohromady nejvýše 25 MB.",
+      "errorInsecure": "Ochrana heslem vyžaduje zabezpečené připojení (HTTPS).",
+      "noticeSubject": "Zabezpečená zpráva od {{name}}",
+      "noticeIntro": "{{name}} vám poslal(a) zprávu chráněnou heslem.",
+      "noticeOpen": "Otevřete ji zde:",
+      "noticeExpires": "Platnost odkazu vyprší {{date}}.",
+      "noticePassword": "Ke čtení potřebujete heslo, které vám {{name}} předal(a) zvlášť."
+    }
   },
   "notifications": {
     "newMessage": "Nová zpráva"
@@ -1169,7 +1197,8 @@
       "mailSignIn": "Poskytovatelé e-mailu",
       "groupCalendar": "Kalendář",
       "calendarAccounts": "Účty",
-      "calendarList": "Kalendáře"
+      "calendarList": "Kalendáře",
+      "secureMessages": "Chráněné zprávy"
     },
     "categories": {
       "title": "Kategorie e-mailů",
@@ -2086,6 +2115,34 @@
       "notEnoughMail": "Zatím není dost odeslaných e-mailů. Jsou potřeba alespoň 3.",
       "rateLimited": "Příliš mnoho pokusů. Zkuste to znovu za několik minut.",
       "loadFailed": "Styl psaní se nepodařilo načíst."
+    },
+    "secureMessages": {
+      "title": "Zprávy chráněné heslem",
+      "intro": "Zprávy, které jste odeslali s heslem. Server je uchovává zašifrované a smaže je, když vyprší platnost odkazu. Zrušte odkaz, aby už nešel otevřít; smažte zprávu, abyste ji hned odstranili i s odpověďmi.",
+      "empty": "Zatím žádné zprávy chráněné heslem. Jednu odešlete zapnutím zámku v okně psaní.",
+      "loadFailed": "Chráněné zprávy se nepodařilo načíst.",
+      "statusActive": "Aktivní",
+      "statusExpired": "Vypršela",
+      "statusRevoked": "Zrušena",
+      "statusLocked": "Zamčena",
+      "sentOn": "Odesláno {{date}}, odkaz vyprší {{expiry}}",
+      "opened": "Poprvé otevřeno {{date}}, celkem otevřeno {{n}}×",
+      "notOpened": "Zatím neotevřeno",
+      "replies": "Odpovědi: {{n}}",
+      "repliesNew": "Odpovědi: {{n}}, nové: {{unread}}",
+      "readReplies": "Číst odpovědi",
+      "hideReplies": "Skrýt odpovědi",
+      "revoke": "Zrušit odkaz",
+      "delete": "Smazat",
+      "confirmDelete": "Smazat zprávu i odpovědi",
+      "actionFailed": "Nepodařilo se. Zkuste to znovu.",
+      "passwordPh": "Heslo této zprávy",
+      "showReplies": "Zobrazit odpovědi",
+      "decrypting": "Dešifrování…",
+      "wrongPassword": "Toto heslo odpovědi neotevře.",
+      "replyReceived": "Odpověď přijata {{date}}",
+      "replyToast": "Nová odpověď na zprávu chráněnou heslem",
+      "replyToastAction": "Otevřít"
     }
   },
   "diagnostics": {
@@ -2472,5 +2529,41 @@
     "adding": "Přidávání…",
     "added": "Kalendáře přidány. Po synchronizaci se objeví v Kalendáři.",
     "none": "Na {{host}} nebyl nalezen žádný kalendářový server."
+  },
+  "securePage": {
+    "title": "Zpráva chráněná heslem",
+    "loading": "Načítání zprávy…",
+    "sentYou": "{{name}} vám poslal(a) zprávu chráněnou heslem",
+    "passwordHint": "Zadejte heslo, které vám dal(a) {{name}}. Bylo předáno zvlášť, například SMS nebo telefonicky.",
+    "passwordLabel": "Heslo",
+    "open": "Otevřít zprávu",
+    "opening": "Dešifrování zprávy…",
+    "wrongPassword": "Nesprávné heslo.",
+    "wrongPasswordLeft": "Nesprávné heslo. Zbývající pokusy: {{count}}",
+    "rateLimited": "Příliš mnoho pokusů. Počkejte několik minut a zkuste to znovu.",
+    "loadFailed": "Zprávu se nepodařilo načíst. Zkontrolujte připojení a zkuste to znovu.",
+    "decryptFailed": "Zprávu se nepodařilo dešifrovat.",
+    "retry": "Zkusit znovu",
+    "insecure": "Tato stránka potřebuje k dešifrování zprávy zabezpečené připojení (HTTPS).",
+    "neverAsks": "Plimail se nikdy neptá na heslo k vaší vlastní poštovní schránce. Zadejte jen heslo k této zprávě.",
+    "expires": "Platnost odkazu vyprší {{date}}.",
+    "unavailableTitle": "Tato zpráva není k dispozici",
+    "unavailableBody": "Vypršela, odesílatel ji stáhl, nebo byla zamčena po příliš mnoha chybných heslech. Požádejte odesílatele, ať ji pošle znovu.",
+    "lockedTitle": "Tato zpráva je zamčená",
+    "lockedBody": "Bylo zadáno příliš mnoho chybných hesel, proto ji už nelze otevřít. Požádejte odesílatele, ať ji pošle znovu.",
+    "noSubject": "(bez předmětu)",
+    "attachments": "Přílohy",
+    "download": "Stáhnout",
+    "decryptedHere": "Dešifrováno ve vašem prohlížeči. Server ji uchovává jen zašifrovanou.",
+    "replyTitle": "Odpovědět",
+    "replyHint": "Vaše odpověď je zašifrována stejným heslem. Přečíst ji může jen {{name}}.",
+    "replyPlaceholder": "Napište odpověď",
+    "sendReply": "Odeslat odpověď",
+    "sendingReply": "Odesílání…",
+    "replySent": "Odpověď odeslána",
+    "replyLimit": "Na tuto zprávu už nelze posílat další odpovědi.",
+    "replyTooLarge": "Odpověď je příliš dlouhá.",
+    "replyFailed": "Odpověď se nepodařilo odeslat. Zkuste to znovu.",
+    "repliesSent": "Odeslané odpovědi: {{count}}"
   }
 }

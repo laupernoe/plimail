@@ -290,7 +290,35 @@
       "undoFailedOpen": "Annullamento non riuscito. Aprilo da Programmati."
     },
     "selectAccount": "Scegli un account da cui inviare",
-    "smtpAuthDisabled": "Microsoft ha disattivato l'invio dalle app di posta (SMTP) per questo account. Puoi comunque inviare da Outlook sul web. Per un account aziendale o scolastico, l'amministratore può riattivarlo."
+    "smtpAuthDisabled": "Microsoft ha disattivato l'invio dalle app di posta (SMTP) per questo account. Puoi comunque inviare da Outlook sul web. Per un account aziendale o scolastico, l'amministratore può riattivarlo.",
+    "secure": {
+      "toggle": "Proteggi con password",
+      "title": "Messaggio protetto da password",
+      "explain": "I destinatari ricevono un link al posto del messaggio e lo aprono con questa password. Nemmeno l’oggetto viene inviato in chiaro.",
+      "password": "Password",
+      "confirm": "Conferma password",
+      "expiry": "Il link scade dopo",
+      "expiry1": "1 giorno",
+      "expiry7": "7 giorni",
+      "expiry30": "30 giorni",
+      "strengthTooShort": "Usa almeno 8 caratteri",
+      "strengthWeak": "Password debole",
+      "strengthFair": "Password discreta",
+      "strengthStrong": "Password robusta",
+      "mismatch": "Le password non coincidono",
+      "shareNote": "Comunica la password ai destinatari in un altro modo, per SMS o telefono, mai via email.",
+      "limits": "Viene inviato subito, senza Annulla né Invia più tardi, e gli allegati dei messaggi inoltrati non possono essere inclusi. Mentre scrivi, la bozza viene salvata non cifrata nella cartella Bozze.",
+      "noSchedule": "Un messaggio protetto da password non può essere programmato. Disattiva la password per inviarlo più tardi.",
+      "sent": "Messaggio protetto inviato",
+      "errorForwarded": "Gli allegati dei messaggi inoltrati non possono essere protetti da password. Rimuovili, oppure scarica i file e allegali di nuovo.",
+      "errorTooLarge": "Gli allegati di un messaggio protetto possono arrivare al massimo a 25 MB in tutto.",
+      "errorInsecure": "La protezione con password richiede una connessione sicura (HTTPS).",
+      "noticeSubject": "Messaggio sicuro da {{name}}",
+      "noticeIntro": "{{name}} ti ha inviato un messaggio protetto da password.",
+      "noticeOpen": "Aprilo qui:",
+      "noticeExpires": "Il link scade il {{date}}.",
+      "noticePassword": "Per leggerlo ti serve la password che {{name}} ti ha dato a parte."
+    }
   },
   "message": {
     "find": {
@@ -1093,7 +1121,8 @@
       "mailSignIn": "Provider di posta",
       "groupCalendar": "Calendario",
       "calendarAccounts": "Account",
-      "calendarList": "Calendari"
+      "calendarList": "Calendari",
+      "secureMessages": "Messaggi protetti"
     },
     "rules": {
       "title": "Regole posta in arrivo",
@@ -2007,6 +2036,34 @@
       "notEnoughMail": "Non ci sono ancora abbastanza email inviate da cui imparare. Ne servono almeno 3.",
       "rateLimited": "Troppi tentativi. Riprova tra qualche minuto.",
       "loadFailed": "Impossibile caricare il tuo stile di scrittura."
+    },
+    "secureMessages": {
+      "title": "Messaggi protetti da password",
+      "intro": "I messaggi che hai inviato con una password. Il server li conserva cifrati e li elimina alla scadenza del link. Revoca un link per impedirne l’apertura; elimina un messaggio per cancellarlo subito insieme alle risposte.",
+      "empty": "Nessun messaggio protetto per ora. Attiva il lucchetto nella finestra di composizione per inviarne uno.",
+      "loadFailed": "Impossibile caricare i messaggi protetti.",
+      "statusActive": "Attivo",
+      "statusExpired": "Scaduto",
+      "statusRevoked": "Revocato",
+      "statusLocked": "Bloccato",
+      "sentOn": "Inviato il {{date}}, il link scade il {{expiry}}",
+      "opened": "Aperto la prima volta il {{date}}, {{n}} aperture in tutto",
+      "notOpened": "Non ancora aperto",
+      "replies": "Risposte: {{n}}",
+      "repliesNew": "Risposte: {{n}}, {{unread}} nuove",
+      "readReplies": "Leggi le risposte",
+      "hideReplies": "Nascondi le risposte",
+      "revoke": "Revoca link",
+      "delete": "Elimina",
+      "confirmDelete": "Elimina messaggio e risposte",
+      "actionFailed": "Non ha funzionato. Riprova.",
+      "passwordPh": "Password di questo messaggio",
+      "showReplies": "Mostra le risposte",
+      "decrypting": "Decifratura…",
+      "wrongPassword": "Questa password non apre le risposte.",
+      "replyReceived": "Risposta ricevuta il {{date}}",
+      "replyToast": "Nuova risposta a un messaggio protetto",
+      "replyToastAction": "Apri"
     }
   },
   "blockList": {
@@ -2453,5 +2510,41 @@
     "adding": "Aggiunta in corso…",
     "added": "Calendari aggiunti. Compariranno in Calendario dopo la sincronizzazione.",
     "none": "Nessun server di calendario trovato su {{host}}."
+  },
+  "securePage": {
+    "title": "Messaggio protetto da password",
+    "loading": "Caricamento del messaggio…",
+    "sentYou": "{{name}} ti ha inviato un messaggio protetto da password",
+    "passwordHint": "Inserisci la password che ti ha dato {{name}}. È stata condivisa a parte, ad esempio per SMS o telefono.",
+    "passwordLabel": "Password del messaggio",
+    "open": "Apri il messaggio",
+    "opening": "Decifratura in corso…",
+    "wrongPassword": "Password errata.",
+    "wrongPasswordLeft": "Password errata. Tentativi rimasti: {{count}}",
+    "rateLimited": "Troppi tentativi. Attendi qualche minuto e riprova.",
+    "loadFailed": "Impossibile caricare il messaggio. Controlla la connessione e riprova.",
+    "decryptFailed": "Impossibile decifrare il messaggio.",
+    "retry": "Riprova",
+    "insecure": "Questa pagina richiede una connessione sicura (HTTPS) per decifrare il messaggio.",
+    "neverAsks": "Plimail non chiede mai la password della tua casella di posta. Inserisci solo la password di questo messaggio.",
+    "expires": "Il link scade il {{date}}.",
+    "unavailableTitle": "Questo messaggio non è disponibile",
+    "unavailableBody": "È scaduto, il mittente lo ha ritirato oppure è stato bloccato dopo troppe password errate. Chiedi al mittente di inviarlo di nuovo.",
+    "lockedTitle": "Questo messaggio è bloccato",
+    "lockedBody": "Sono state inserite troppe password errate e non può più essere aperto. Chiedi al mittente di inviarlo di nuovo.",
+    "noSubject": "(nessun oggetto)",
+    "attachments": "Allegati",
+    "download": "Scarica",
+    "decryptedHere": "Decifrato nel tuo browser. Il server lo conserva solo cifrato.",
+    "replyTitle": "Rispondi",
+    "replyHint": "La tua risposta è cifrata con la stessa password. Solo {{name}} può leggerla.",
+    "replyPlaceholder": "Scrivi la tua risposta",
+    "sendReply": "Invia risposta",
+    "sendingReply": "Invio in corso…",
+    "replySent": "Risposta inviata",
+    "replyLimit": "Non è possibile inviare altre risposte a questo messaggio.",
+    "replyTooLarge": "La risposta è troppo lunga.",
+    "replyFailed": "Impossibile inviare la risposta. Riprova.",
+    "repliesSent": "Risposte inviate: {{count}}"
   }
 }

@@ -212,6 +212,16 @@ export const api = {
   // Resolves with { id, url, width, height }; url is what the signature's <img src> names.
   uploadSignatureImage: (file) => request('POST', '/signature-images', file),
 
+  // Password-protected messages (routes/secureMessages.js). The server holds only ciphertext.
+  secureMessages: {
+    list: () => request('GET', '/secure-messages'),
+    get: (id) => request('GET', `/secure-messages/${id}`),
+    create: (data) => request('POST', '/secure-messages', data),
+    markRead: (id) => request('POST', `/secure-messages/${id}/read`),
+    revoke: (id) => request('POST', `/secure-messages/${id}/revoke`),
+    remove: (id) => request('DELETE', `/secure-messages/${id}`),
+  },
+
   // Auth
   login: (username, password) => request('POST', '/auth/login', { username, password }),
   register: (username, password, inviteToken) => request('POST', '/auth/register', { username, password, inviteToken }),
