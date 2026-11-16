@@ -19,12 +19,13 @@ export function setPageClosing(closing) {
   pageClosing = Boolean(closing);
 }
 
-async function request(method, path, body, extraHeaders) {
+async function request(method, path, body, extraHeaders, { signal } = {}) {
   const opts = {
     method,
     credentials: 'include',
     headers: { [CSRF_HEADER]: CSRF_VALUE, ...(extraHeaders || {}) },
     ...(pageClosing ? { keepalive: true } : {}),
+    ...(signal ? { signal } : {}),
   };
   if (typeof Blob !== 'undefined' && body instanceof Blob) {
     // A file goes up as itself, with its own type (an image uploaded into a signature).
@@ -563,7 +564,7 @@ export const api = {
     allCalendars:  ()           => request('GET',    '/calendar/calendars?all=1'),
     updateCalendar: (id, data)  => request('PATCH',  `/calendar/calendars/${encodeURIComponent(id)}`, data),
     events:        (from, to)   => request('GET',    `/calendar/events?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&tz=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`),
-    searchEvents:  (q)          => request('GET',    `/calendar/events/search?q=${encodeURIComponent(q)}&tz=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`),
+    searchEvents:  (q, { signal } = {}) => request('GET', `/calendar/events/search?q=${encodeURIComponent(q)}&tz=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`, undefined, undefined, { signal }),
     createEvent:   (data)       => request('POST',   '/calendar/events', data),
     updateEvent:   (id, data)   => request('PATCH',  `/calendar/events/${encodeURIComponent(id)}`, data),
     // scope 'this' names one occurrence of a series by its recurrenceId.

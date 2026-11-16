@@ -67,19 +67,22 @@ const occ = (over) => ({
 });
 
 let searches;
+let signals;
 let answer;
 before(() => {
   api.calendar.accounts = async () => [{ id: 'a1', name: 'Fastmail', lastSyncAt: '2026-01-01T00:00:00Z' }];
   api.calendar.calendars = async () => CALS;
   api.calendar.events = async () => ({ events: [] });
-  api.calendar.searchEvents = async (q) => {
+  api.calendar.searchEvents = async (q, opts) => {
     searches.push(q);
-    const v = typeof answer === 'function' ? answer(q) : answer;
+    signals.push(opts?.signal);
+    const v = typeof answer === 'function' ? answer(q, opts) : answer;
     return v instanceof Error ? Promise.reject(v) : v;
   };
 });
 beforeEach(() => {
   searches = [];
+  signals = [];
   answer = { events: [] };
   localStorage.clear();
   localStorage.setItem('mailflow:calendar:view', 'month');
@@ -134,6 +137,30 @@ describe('calendar search', () => {
     assert.ok(text.includes(String(NEXT)), 'a date in another year shows its year');
     const dot = [...region.querySelectorAll('span[aria-hidden]')].find(s => /#4f8df7|rgb\(79, 141, 247\)/.test(s.style.background));
     assert.ok(dot, 'a dot in the calendar colour');
+  });
+
+  test('a search still running when the query changes is aborted, and its answer never shows', async () => {
+    let release;
+    answer = (q, { signal }) => (q === 'den'
+      ? new Promise((resolve, reject) => {
+        release = () => resolve({ events: [occ({ summary: 'Stale' })] });
+        signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })));
+      })
+      : { events: [occ({ summary: 'Dentist' })] });
+    await mount();
+    await type('den');
+    await wait(300);
+    assert.equal(signals.length, 1);
+    assert.equal(signals[0].aborted, false);
+    await type('dentist');
+    assert.equal(signals[0].aborted, true, 'the older request is aborted as soon as the query changes');
+    await wait(300);
+    release();
+    await wait(5);
+    assert.deepEqual(searches, ['den', 'dentist']);
+    assert.ok(results().textContent.includes('Dentist'));
+    assert.ok(!results().textContent.includes('Stale'));
+    assert.ok(!results().textContent.includes('aborted'));
   });
 
   test('a single character does not search', async () => {

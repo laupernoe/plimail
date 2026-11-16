@@ -9,6 +9,7 @@ import { decrypt, encrypt } from '../services/encryption.js';
 import { findOwnedAccount } from '../services/ownership.js';
 import { validateHost } from '../services/hostValidation.js';
 import { getConnectionPolicy } from '../services/connectionPolicy.js';
+import { consume } from '../services/rateLimiter.js';
 import { discoverAccountSettings } from '../services/accountAutodiscover.js';
 import { discoverCalendars, findCalDavServer, getEvent, putEvent, deleteEvent, moveEvent } from '../services/caldavClient.js';
 import { syncAccount, credentialsFor, isSyncing, forgetDiscovery, noteRemoved } from '../services/caldavSync.js';
@@ -329,13 +330,22 @@ router.get('/events', async (req, res) => {
 
 const SEARCH_CANDIDATES = 500;
 const SEARCH_RESULTS = 50;
+// Each search parses and expands up to SEARCH_CANDIDATES events; the box searches as one types.
+const SEARCHES_PER_MINUTE = 60;
 
 // Each matching event once: its next occurrence, else its latest past one.
 router.get('/events/search', async (req, res) => {
   const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
   if (q.length < 2 || q.length > 200) return badRequest(res, 'Invalid search');
+  const rate = await consume(`calendar-search:${req.session.userId}`, SEARCHES_PER_MINUTE, 60_000);
+  if (rate.limited) {
+    res.set('Retry-After', String(Math.max(1, Math.ceil(rate.resetMs / 1000))));
+    return res.status(429).json({ error: 'Too many searches, try again in a minute' });
+  }
   const needle = fold(q);
-  const floatingTz = typeof req.query.tz === 'string' && req.query.tz.length < 100 ? req.query.tz : null;
+  // Checked once here: a zone Intl does not know would otherwise fail, and log, for every
+  // floating event searched. Such a zone is ignored, as a missing one is.
+  const floatingTz = zoneName(req.query.tz);
   const r = await query(
     `SELECT e.id, e.calendar_id, e.ical, e.range_start, e.range_end, c.read_only
      FROM calendar_events e JOIN calendars c ON c.id = e.calendar_id
