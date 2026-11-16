@@ -98,3 +98,13 @@ test('a sign-out while it derives leaves nothing behind', async () => {
   await derived;
   assert.equal(keySecret('u1'), null);
 });
+
+test('a password changed in another tab makes this one forget the old secret', async () => {
+  const thisTab = await secretModule();
+  const otherTab = await secretModule();
+  thisTab.setKeySecret('u1', 'v1.old-password');
+  assert.equal(thisTab.keySecret('u1'), 'v1.old-password');
+  otherTab.announcePasswordChanged('u1');
+  for (let i = 0; i < 50 && thisTab.keySecret('u1'); i++) await new Promise(r => setTimeout(r, 10));
+  assert.equal(thisTab.keySecret('u1'), null);
+});

@@ -228,6 +228,7 @@ export const api = {
     keys: () => request('GET', '/pgp/keys'),
     addKey: (data) => request('POST', '/pgp/keys', data),
     removeKey: (id) => request('DELETE', `/pgp/keys/${id}`),
+    markStale: (id, stale) => request('PATCH', `/pgp/keys/${id}`, { stale }),
     // The same keys encrypted another way, all or none: [{ id, armoredPrivate, protection }].
     setProtection: (keys) => request('PUT', '/pgp/keys/protection', { keys }),
     kdf: () => request('GET', '/pgp/kdf'),

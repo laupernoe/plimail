@@ -44,3 +44,17 @@ test('without keys protected by the password, nothing is sent and nothing is ask
   assert.equal(result.pgpKeys, undefined);
   assert.equal(asked, false);
 });
+
+test('a key another tab made while re-encrypting is not left behind: it starts over with it', async () => {
+  const newer = await generateKeyPair({ email: 'alias@example.com', passphrase: OLD });
+  const second = { ...key, id: 'k2', fingerprint: newer.fingerprint, armoredPublic: newer.armoredPublic, armoredPrivate: newer.armoredPrivate };
+  let reads = 0;
+  // First read: one key; from the second on, the other tab's key is there too.
+  const loadKeys = async () => { reads += 1; return reads === 1 ? [key] : [key, second]; };
+  const { pgpKeys } = await keysForNewPassword({ newPassword: 'new password', loadKeys, fetchSalt, derive, currentSecret: async () => OLD });
+  assert.deepEqual(pgpKeys.map(k => k.id), ['k1', 'k2']);
+  // A stale key (an even older password's) neither blocks the change nor is sent.
+  const stale = { ...second, stale: true, armoredPrivate: (await generateKeyPair({ email: 'z@example.com', passphrase: 'older' })).armoredPrivate };
+  const result = await keysForNewPassword({ newPassword: 'n', loadKeys: async () => [key, stale], fetchSalt, derive, currentSecret: async () => OLD });
+  assert.deepEqual(result.pgpKeys.map(k => k.id), ['k1']);
+});

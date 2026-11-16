@@ -2640,7 +2640,13 @@
       "makeAutomaticNote": "Enter this key's passphrase. It will then be protected by your Plimail password instead, and unlock when you sign in.",
       "makeAutomaticGo": "Protect with my Plimail password",
       "importAutomatic": "Unlock this key automatically with my Plimail password (instead of its own passphrase)",
-      "generateOwnTitle": "Create a key with its own passphrase"
+      "generateOwnTitle": "Create a key with its own passphrase",
+      "autoKeys": "Create and publish my keys automatically",
+      "autoKeysHint": "Each address gets a key, and your messages carry it (Autocrypt) so correspondents can write to you encrypted. Off: no key is made and none is sent.",
+      "securityNote": "How your keys are protected: the passphrase that unlocks them is derived in your browser from your Plimail password and is never sent to the server. It is kept in this tab (sessionStorage) until you sign out or lock the screen, where a script injected into the page could read it. Anyone with a copy of the database or its backups can try to guess your Plimail password offline to open your keys, at a cost lower than for the sign-in password check: choose a strong password.",
+      "replaceAuto": "The imported key is now used for {{email}}. Delete the key Plimail made for it? Mail encrypted to that key could then no longer be read.",
+      "replaceAutoDelete": "Delete it",
+      "replaceAutoKeep": "Keep it"
     },
     "source": {
       "manual": "added by you",
@@ -2750,7 +2756,13 @@
       "createGo": "Create my keys",
       "tooShort": "At least {{n}} characters.",
       "mismatch": "The passwords do not match.",
-      "tooMany": "Too many attempts. Try again later."
+      "tooMany": "Too many attempts. Try again later.",
+      "staleBody": "First enter your current Plimail password. Then the previous one, which still protects your keys, moves them to it."
+    },
+    "stale": {
+      "body": "Your key for {{email}} is locked by a previous Plimail password. Mail encrypted to it cannot be read until it is recovered, and it is no longer published. Recover it with the old password, or create a new key (the old one is kept for the mail it can still open).",
+      "recover": "Recover with the old password",
+      "newKey": "Create a new key"
     }
   }
 }

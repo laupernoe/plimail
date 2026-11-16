@@ -2640,7 +2640,13 @@
       "makeAutomaticNote": "Geben Sie die Passphrase dieses Schlüssels ein. Er wird dann stattdessen mit Ihrem Plimail-Passwort geschützt und bei der Anmeldung entsperrt.",
       "makeAutomaticGo": "Mit meinem Plimail-Passwort schützen",
       "importAutomatic": "Diesen Schlüssel automatisch mit meinem Plimail-Passwort entsperren (statt mit seiner eigenen Passphrase)",
-      "generateOwnTitle": "Schlüssel mit eigener Passphrase erstellen"
+      "generateOwnTitle": "Schlüssel mit eigener Passphrase erstellen",
+      "autoKeys": "Meine Schlüssel automatisch erstellen und veröffentlichen",
+      "autoKeysHint": "Jede Adresse erhält einen Schlüssel, und Ihre Nachrichten tragen ihn mit (Autocrypt), damit Ihnen andere verschlüsselt schreiben können. Aus: Es wird kein Schlüssel erstellt und keiner gesendet.",
+      "securityNote": "So sind Ihre Schlüssel geschützt: Die Passphrase, die sie entsperrt, wird in Ihrem Browser aus Ihrem Plimail-Passwort abgeleitet und nie an den Server gesendet. Sie bleibt in diesem Tab (sessionStorage) bis zur Abmeldung oder Bildschirmsperre; ein in die Seite eingeschleustes Skript könnte sie dort lesen. Wer eine Kopie der Datenbank oder ihrer Sicherungen hat, kann offline versuchen, Ihr Plimail-Passwort zu erraten, um Ihre Schlüssel zu öffnen, zu geringeren Kosten als bei der Anmeldeprüfung: Wählen Sie ein starkes Passwort.",
+      "replaceAuto": "Der importierte Schlüssel wird jetzt für {{email}} verwendet. Den Schlüssel löschen, den Plimail dafür erstellt hat? An ihn verschlüsselte Nachrichten könnten dann nicht mehr gelesen werden.",
+      "replaceAutoDelete": "Löschen",
+      "replaceAutoKeep": "Behalten"
     },
     "source": {
       "manual": "von Ihnen hinzugefügt",
@@ -2750,7 +2756,13 @@
       "createGo": "Meine Schlüssel erstellen",
       "tooShort": "Mindestens {{n}} Zeichen.",
       "mismatch": "Die Passwörter stimmen nicht überein.",
-      "tooMany": "Zu viele Versuche. Versuchen Sie es später erneut."
+      "tooMany": "Zu viele Versuche. Versuchen Sie es später erneut.",
+      "staleBody": "Geben Sie zuerst Ihr aktuelles Plimail-Passwort ein. Danach stellt das frühere, das Ihre Schlüssel noch schützt, sie darauf um."
+    },
+    "stale": {
+      "body": "Ihr Schlüssel für {{email}} ist mit einem früheren Plimail-Passwort gesperrt. An ihn verschlüsselte Nachrichten können erst nach der Wiederherstellung gelesen werden, und er wird nicht mehr veröffentlicht. Stellen Sie ihn mit dem alten Passwort wieder her oder erstellen Sie einen neuen Schlüssel (der alte bleibt für die Nachrichten, die er noch öffnen kann).",
+      "recover": "Mit dem alten Passwort wiederherstellen",
+      "newKey": "Neuen Schlüssel erstellen"
     }
   }
 }

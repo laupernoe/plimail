@@ -156,7 +156,7 @@ export const useStore = create((set, get) => ({
         autoLockMinutes: 0, blockRemoteImages: true,
         imageWhitelist: { addresses: [], domains: [] }, shortcuts: {}, aiActions: null,
         hiddenFolders: {}, categorizationEnabled: false,
-        autoOpenReplyDrafts: false, afterRemove: 'next', darkEmailBodies: true, undoSend: true, pgpAutoEncrypt: true,
+        autoOpenReplyDrafts: false, afterRemove: 'next', darkEmailBodies: true, undoSend: true, pgpAutoEncrypt: true, pgpAutoKeys: true,
         // Folder shortcuts name the previous user's accounts and folders. Left in place, the
         // next user's first favorite saved them into that user's own preferences.
         favoriteFolders: [], recentFolders: [], defaultSender: '', listSort: {},
@@ -572,6 +572,13 @@ export const useStore = create((set, get) => ({
     localStorage.setItem('mailflow_pgp_auto_encrypt', String(Boolean(value)));
     set({ pgpAutoEncrypt: Boolean(value) });
     schedulePrefSave({ pgpAutoEncrypt: Boolean(value) });
+  },
+  // OpenPGP: make a key for each address and publish it (Autocrypt) without being asked.
+  pgpAutoKeys: localStorage.getItem('mailflow_pgp_auto_keys') !== 'false',
+  setPgpAutoKeys: value => {
+    localStorage.setItem('mailflow_pgp_auto_keys', String(Boolean(value)));
+    set({ pgpAutoKeys: Boolean(value) });
+    schedulePrefSave({ pgpAutoKeys: Boolean(value) });
   },
   composing: false,
   composeData: null,
@@ -1204,6 +1211,10 @@ export const useStore = create((set, get) => ({
       if (typeof prefs.undoSend === 'boolean') {
         localStorage.setItem('mailflow_undo_send', String(prefs.undoSend));
         set({ undoSend: prefs.undoSend });
+      }
+      if (typeof prefs.pgpAutoKeys === 'boolean') {
+        localStorage.setItem('mailflow_pgp_auto_keys', String(prefs.pgpAutoKeys));
+        set({ pgpAutoKeys: prefs.pgpAutoKeys });
       }
       if (typeof prefs.pgpAutoEncrypt === 'boolean') {
         localStorage.setItem('mailflow_pgp_auto_encrypt', String(prefs.pgpAutoEncrypt));

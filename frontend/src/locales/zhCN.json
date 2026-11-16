@@ -2640,7 +2640,13 @@
       "makeAutomaticNote": "输入此密钥的口令。之后它将改由您的 Plimail 密码保护，并在登录时解锁。",
       "makeAutomaticGo": "用我的 Plimail 密码保护",
       "importAutomatic": "使用我的 Plimail 密码自动解锁此密钥（而非其自身口令）",
-      "generateOwnTitle": "创建带自身口令的密钥"
+      "generateOwnTitle": "创建带自身口令的密钥",
+      "autoKeys": "自动创建并公开我的密钥",
+      "autoKeysHint": "每个地址都会获得一把密钥，您的邮件会附带它（Autocrypt），方便对方给您发送加密邮件。关闭后不会创建也不会发送密钥。",
+      "securityNote": "密钥的保护方式：解锁密钥的口令在浏览器中由您的 Plimail 密码派生，绝不会发送到服务器。它保存在此标签页（sessionStorage）中，直到您退出或锁定屏幕；注入页面的脚本可能读取它。拥有数据库或其备份副本的人可以离线猜测您的 Plimail 密码来打开密钥，成本低于登录校验：请使用强密码。",
+      "replaceAuto": "导入的密钥现已用于 {{email}}。要删除 Plimail 为其创建的密钥吗？用该密钥加密的邮件将无法再阅读。",
+      "replaceAutoDelete": "删除",
+      "replaceAutoKeep": "保留"
     },
     "source": {
       "manual": "由你添加",
@@ -2750,7 +2756,13 @@
       "createGo": "创建我的密钥",
       "tooShort": "至少 {{n}} 个字符。",
       "mismatch": "两次输入的密码不一致。",
-      "tooMany": "尝试次数过多，请稍后再试。"
+      "tooMany": "尝试次数过多，请稍后再试。",
+      "staleBody": "请先输入当前的 Plimail 密码。然后输入仍保护密钥的旧密码，将密钥转到当前密码。"
+    },
+    "stale": {
+      "body": "您用于 {{email}} 的密钥被之前的 Plimail 密码锁定。恢复之前，用它加密的邮件无法阅读，且它已不再公开。请用旧密码恢复，或创建新密钥（旧密钥会保留，用于它仍能打开的邮件）。",
+      "recover": "用旧密码恢复",
+      "newKey": "创建新密钥"
     }
   }
 }

@@ -2640,7 +2640,13 @@
       "makeAutomaticNote": "Saisissez la phrase secrète de cette clé. Elle sera ensuite protégée par votre mot de passe Plimail et se déverrouillera à la connexion.",
       "makeAutomaticGo": "Protéger par mon mot de passe Plimail",
       "importAutomatic": "Déverrouiller cette clé automatiquement avec mon mot de passe Plimail (au lieu de sa propre phrase secrète)",
-      "generateOwnTitle": "Créer une clé avec sa propre phrase secrète"
+      "generateOwnTitle": "Créer une clé avec sa propre phrase secrète",
+      "autoKeys": "Créer et publier automatiquement mes clés",
+      "autoKeysHint": "Chaque adresse reçoit une clé, et vos messages la transmettent (Autocrypt) pour que vos correspondants puissent vous écrire chiffré. Désactivé : aucune clé n’est créée ni envoyée.",
+      "securityNote": "Comment vos clés sont protégées : la phrase secrète qui les déverrouille est dérivée dans votre navigateur à partir de votre mot de passe Plimail et n’est jamais envoyée au serveur. Elle est gardée dans cet onglet (sessionStorage) jusqu’à la déconnexion ou au verrouillage de l’écran ; un script injecté dans la page pourrait l’y lire. Quiconque possède une copie de la base de données ou de ses sauvegardes peut tenter de deviner hors ligne votre mot de passe Plimail pour ouvrir vos clés, à un coût moindre que pour la vérification de connexion : choisissez un mot de passe solide.",
+      "replaceAuto": "La clé importée est maintenant utilisée pour {{email}}. Supprimer la clé que Plimail avait créée pour cette adresse ? Les messages chiffrés pour elle ne pourraient alors plus être lus.",
+      "replaceAutoDelete": "La supprimer",
+      "replaceAutoKeep": "La garder"
     },
     "source": {
       "manual": "ajoutée par vous",
@@ -2750,7 +2756,13 @@
       "createGo": "Créer mes clés",
       "tooShort": "Au moins {{n}} caractères.",
       "mismatch": "Les mots de passe ne correspondent pas.",
-      "tooMany": "Trop de tentatives. Réessayez plus tard."
+      "tooMany": "Trop de tentatives. Réessayez plus tard.",
+      "staleBody": "Saisissez d’abord votre mot de passe Plimail actuel. Ensuite, l’ancien, qui protège encore vos clés, permettra de les y transférer."
+    },
+    "stale": {
+      "body": "Votre clé pour {{email}} est verrouillée par un ancien mot de passe Plimail. Les messages chiffrés pour elle ne peuvent pas être lus tant qu’elle n’est pas récupérée, et elle n’est plus publiée. Récupérez-la avec l’ancien mot de passe, ou créez une nouvelle clé (l’ancienne est gardée pour les messages qu’elle peut encore ouvrir).",
+      "recover": "Récupérer avec l’ancien mot de passe",
+      "newKey": "Créer une nouvelle clé"
     }
   }
 }

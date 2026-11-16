@@ -5,7 +5,7 @@ import { api } from '../utils/api.js';
 import { unlockPrivateKey } from '../utils/pgp.js';
 import { isLoginKey, rewrapLoginKeys } from '../utils/pgpKeys.js';
 import { loadOwnKeys, ownKeysChanged } from '../utils/pgpOwnKeys.js';
-import { deriveKeySecret, keySecret, setKeySecret } from '../utils/pgpSecret.js';
+import { deriveKeySecret, setKeySecret } from '../utils/pgpSecret.js';
 import { rememberUnlockedKey } from '../utils/pgpSession.js';
 import { cancelUnlock, currentUnlockRequest, finishUnlock, subscribeUnlock } from '../utils/pgpUnlock.js';
 import { trapTab } from './SendLater.jsx';
@@ -15,7 +15,10 @@ import { button } from './pgpStyles.js';
 // protected by it is needed and this tab does not have the secret yet (utils/pgpUnlock.js).
 //   'password'  the Plimail password; checked with the server, then against the keys
 //   'previous'  the keys were protected under an earlier password (it was reset or changed):
-//               that one opens them, and they are encrypted again for the current one
+//               that one opens them, and they are encrypted again for the current one. Only ever
+//               after 'password' in this same dialog: the keys are encrypted for a password the
+//               server has just confirmed, never for a secret the tab held (another tab may have
+//               changed the password since, and that secret would be the old one's).
 //   'lost'      the earlier password is gone too: what that means, and what to do
 //   'create'    an SSO user without a Plimail password and without keys chooses a password for
 //               their keys, the fallback when there is no sign-in password to derive from
@@ -37,7 +40,9 @@ function UnlockDialog({ stale }) {
   const user = useStore(s => s.user);
   const titleId = useId();
   const boxRef = useRef(null);
-  const [step, setStep] = useState(stale ? 'previous' : null);
+  const [step, setStep] = useState(null);
+  // The secret of the password the server confirmed in the 'password' step: what 'previous' moves to.
+  const [confirmed, setConfirmed] = useState(null);
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [busy, setBusy] = useState(false);
@@ -58,7 +63,6 @@ function UnlockDialog({ stale }) {
     );
     return () => { live = false; };
   }, [hasPassword]);
-  useEffect(() => { if (stale) setStep('previous'); }, [stale]);
   useEffect(() => { boxRef.current?.querySelector('input')?.focus(); }, [step]);
 
   const derive = async (pw) => deriveKeySecret(pw, (await api.pgp.kdf()).salt);
@@ -72,7 +76,8 @@ function UnlockDialog({ stale }) {
       verified = check.hasPassword === true;
     }
     const secret = await derive(password);
-    const first = (keys || [])[0];
+    // Recovering, the key to check is the stale one: a newer key may open while it does not.
+    const first = (stale && (keys || []).find(k => k.stale)) || (keys || [])[0];
     if (first) {
       try {
         rememberUnlockedKey(first.fingerprint, await unlockPrivateKey(first.armoredPrivate, secret));
@@ -80,6 +85,7 @@ function UnlockDialog({ stale }) {
         if (!verified) return fail(t('pgp.unlock.wrongForKeys'));
         // The password is right, and the keys do not open with it: an earlier one protects them.
         setKeySecret(user.id, secret, { verified: true });
+        setConfirmed(secret);
         setPassword('');
         setBusy(false);
         setStep('previous');
@@ -91,7 +97,7 @@ function UnlockDialog({ stale }) {
   };
 
   const submitPrevious = async () => {
-    const to = keySecret(user.id);
+    const to = confirmed;
     if (!to) { setStep('password'); return fail(''); }
     const from = await derive(password);
     let updates;
@@ -133,7 +139,7 @@ function UnlockDialog({ stale }) {
     create: t('pgp.unlock.createTitle'),
   }[step] || t('pgp.unlock.title');
   const body = {
-    password: hasPassword ? t('pgp.unlock.body') : t('pgp.unlock.bodySso'),
+    password: stale ? t('pgp.unlock.staleBody') : hasPassword ? t('pgp.unlock.body') : t('pgp.unlock.bodySso'),
     previous: t('pgp.unlock.previousBody'),
     lost: t('pgp.unlock.lostBody'),
     create: t('pgp.unlock.createBody'),

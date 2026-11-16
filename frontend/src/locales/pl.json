@@ -2659,7 +2659,13 @@
       "makeAutomaticNote": "Wpisz hasło tego klucza. Od tej pory będzie chroniony hasłem do Plimaila i odblokuje się przy logowaniu.",
       "makeAutomaticGo": "Chroń moim hasłem do Plimaila",
       "importAutomatic": "Odblokowuj ten klucz automatycznie moim hasłem do Plimaila (zamiast jego własnego hasła)",
-      "generateOwnTitle": "Utwórz klucz z własnym hasłem"
+      "generateOwnTitle": "Utwórz klucz z własnym hasłem",
+      "autoKeys": "Automatycznie twórz i publikuj moje klucze",
+      "autoKeysHint": "Każdy adres dostaje klucz, a Twoje wiadomości go przenoszą (Autocrypt), by inni mogli pisać do Ciebie zaszyfrowane. Wyłączone: żaden klucz nie jest tworzony ani wysyłany.",
+      "securityNote": "Jak chronione są klucze: hasło, które je odblokowuje, jest wyprowadzane w przeglądarce z hasła do Plimaila i nigdy nie trafia na serwer. Jest przechowywane w tej karcie (sessionStorage) do wylogowania lub zablokowania ekranu; wstrzyknięty do strony skrypt mógłby je tam odczytać. Ktoś z kopią bazy danych lub jej kopii zapasowych może offline próbować odgadnąć Twoje hasło do Plimaila, by otworzyć klucze, taniej niż przy sprawdzaniu logowania: wybierz silne hasło.",
+      "replaceAuto": "Zaimportowany klucz jest teraz używany dla {{email}}. Usunąć klucz utworzony dla niego przez Plimaila? Zaszyfrowanej dla niego poczty nie dałoby się już przeczytać.",
+      "replaceAutoDelete": "Usuń go",
+      "replaceAutoKeep": "Zachowaj go"
     },
     "source": {
       "manual": "dodany przez Ciebie",
@@ -2769,7 +2775,13 @@
       "createGo": "Utwórz moje klucze",
       "tooShort": "Co najmniej {{n}} znaków.",
       "mismatch": "Hasła nie są zgodne.",
-      "tooMany": "Zbyt wiele prób. Spróbuj później."
+      "tooMany": "Zbyt wiele prób. Spróbuj później.",
+      "staleBody": "Najpierw wpisz obecne hasło do Plimaila. Następnie poprzednie, które nadal chroni klucze, przeniesie je na obecne."
+    },
+    "stale": {
+      "body": "Twój klucz dla {{email}} jest zablokowany poprzednim hasłem do Plimaila. Zaszyfrowanej dla niego poczty nie da się czytać, dopóki go nie odzyskasz, i nie jest już publikowany. Odzyskaj go starym hasłem albo utwórz nowy klucz (stary zostanie dla poczty, którą jeszcze otwiera).",
+      "recover": "Odzyskaj starym hasłem",
+      "newKey": "Utwórz nowy klucz"
     }
   }
 }

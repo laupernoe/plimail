@@ -228,3 +228,73 @@ test('Send with every recipient keyed goes encrypted and signed, unlocked by the
     await loadOwnKeys({ fresh: true });
   }
 });
+
+// Shared by the tests below: a real key of the user's own, unlocked by the sign-in secret.
+async function withOwnKey(run) {
+  const SECRET = 'v1.secret-from-the-plimail-password';
+  const mine = await generateKeyPair({ email: 'on@example.test', passphrase: SECRET });
+  ownKeys = [{ ...OWN_KEY, fingerprint: mine.fingerprint, armoredPublic: mine.armoredPublic, armoredPrivate: mine.armoredPrivate }];
+  const { loadOwnKeys } = await import('../utils/pgpOwnKeys.js');
+  await loadOwnKeys({ fresh: true });
+  useStore.setState({ user: { id: 'u-send' } });
+  setKeySecret('u-send', SECRET);
+  try { await run(mine); } finally {
+    forgetKeySecret();
+    ownKeys = [OWN_KEY];
+    await loadOwnKeys({ fresh: true });
+  }
+}
+const sentBody = async () => {
+  for (let i = 0; i < 200 && !requests.some(r => r.path === '/api/mail/send'); i++) await React.act(() => new Promise(r => setTimeout(r, 25)));
+  return requests.find(r => r.path === '/api/mail/send')?.body;
+};
+
+test('a recipient whose address is not looked up while typing (no dot, an IDN) is never shown as encrypted, and Send goes', async () => {
+  const root = await mount({ accountId: 'on', to: ['bob@example.net', 'dave@intranet'], subject: 's', body: 'hi' });
+  try {
+    await lookedUp();
+    assert.equal(line(), null, 'not every recipient has a key');
+    requests.length = 0;
+    await click(buttonText('compose.send'));
+    const sent = await sentBody();
+    assert.ok(sent, 'sent, not stuck "checking" keys');
+    assert.equal(sent.pgp, undefined);
+    assert.equal(sent.body.includes('hi'), true);
+  } finally { await unmount(root); }
+});
+
+test('"Send encrypted" chosen while the password panel is open sends encrypted, not a password link', async () => {
+  await withOwnKey(async () => {
+    const root = await mount({ accountId: 'on', to: ['bob@example.net'], subject: 's', body: 'secret text' });
+    try {
+      await click(document.querySelector('button[aria-label="compose.sendOptions"]'));
+      await click(document.querySelector('[data-preset="sendWithPassword"]'));
+      assert.ok(document.querySelector('section[aria-label="compose.sendWithPassword"]'));
+      requests.length = 0;
+      await click(document.querySelector('button[aria-label="compose.sendOptions"]'));
+      await click(document.querySelector('[data-preset="sendEncrypted"]'));
+      const sent = await sentBody();
+      assert.ok(sent, `sent (${document.body.textContent.slice(0, 200)})`);
+      assert.match(sent.pgp?.encrypted || '', /BEGIN PGP MESSAGE/);
+      assert.ok(!requests.some(r => r.path.startsWith('/api/secure')), 'no password link');
+    } finally { await unmount(root); }
+  });
+});
+
+test('a From address whose only key is stale says so loudly, and does not encrypt with it', async () => {
+  ownKeys = [{ ...OWN_KEY, stale: true }];
+  const { loadOwnKeys } = await import('../utils/pgpOwnKeys.js');
+  await loadOwnKeys({ fresh: true });
+  const root = await mount({ accountId: 'on', to: ['bob@example.net'], subject: 's', body: 'hi' });
+  try {
+    await until(() => document.querySelector('[data-stale-key]'));
+    assert.ok(buttonText('pgp.stale.recover'));
+    assert.ok(buttonText('pgp.stale.newKey'));
+    await lookedUp();
+    assert.equal(line(), null, 'nothing goes encrypted with a key the user cannot open');
+  } finally {
+    await unmount(root);
+    ownKeys = [OWN_KEY];
+    await loadOwnKeys({ fresh: true });
+  }
+});

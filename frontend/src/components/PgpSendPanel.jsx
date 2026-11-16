@@ -50,6 +50,27 @@ const LockIcon = ({ size = 13 }) => (
 );
 export { LockIcon };
 
+// An address whose only key the current Plimail password no longer opens (it was reset, the old
+// one is gone or not given yet). Said loudly, since mail from correspondents who still have that key
+// cannot be read: recover it with the old password, or make a new key, which is used from then on
+// while the old one stays for the mail it can still open.
+export function StaleKeyBanner({ email, onRecover, onNewKey, disabled, mobile }) {
+  const { t } = useTranslation();
+  return (
+    <div role="alert" data-stale-key="" style={{
+      display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0,
+      padding: mobile ? '10px 16px' : '10px 14px', border: '1px solid var(--amber)', borderRadius: 8,
+      background: 'color-mix(in srgb, var(--amber) 10%, var(--bg-primary))', color: 'var(--text-primary)', fontSize: 12.5, lineHeight: 1.5,
+    }}>
+      <span>{t('pgp.stale.body', { email })}</span>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <button type="button" disabled={disabled} onClick={onRecover} style={small()}>{t('pgp.stale.recover')}</button>
+        <button type="button" disabled={disabled} onClick={onNewKey} style={small()}>{t('pgp.stale.newKey')}</button>
+      </div>
+    </div>
+  );
+}
+
 // Under the recipients: "This message will be encrypted", with a way to turn that off for this
 // message, or, once turned off while it could be, a way back.
 export function EncryptionLine({ encrypting, canUndo = false, onTurnOff, onTurnOn, disabled, mobile }) {

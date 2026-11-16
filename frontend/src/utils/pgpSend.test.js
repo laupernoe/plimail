@@ -158,7 +158,29 @@ test('encrypts automatically only when every recipient has a usable key', async 
   assert.deepEqual(encryptionDecision({ ...base, secure: true, explicit: true }), { mode: 'password' });
 });
 
-test('looks keys up only for addresses that look whole', async () => {
-  const { lookupAddresses } = await import('./pgpSend.js');
-  assert.deepEqual(lookupAddresses(['Bob <Bob@Example.net>', 'bob@example.net', 'carol@exa', 'dave@', '', ' eve@example.org ']), ['bob@example.net', 'eve@example.org']);
+test('decides on every recipient, and looks up only what is not still being typed', async () => {
+  const { composerRecipients, encryptionDecision } = await import('./pgpSend.js');
+  const { recipients, lookup } = composerRecipients(
+    ['Bob <Bob@Example.net>', 'dave@intranet', 'ivan@пример.рф', 'bob@example.net'],
+    ['carol@exa', '', ' eve@example.org '],
+  );
+  assert.deepEqual(recipients, ['bob@example.net', 'dave@intranet', 'ivan@пример.рф', 'carol@exa', 'eve@example.org']);
+  // Chips are looked up whatever they look like; a typed address only once whole.
+  assert.deepEqual(lookup, ['bob@example.net', 'dave@intranet', 'ivan@пример.рф', 'eve@example.org']);
+  // A recipient with no answer (not looked up, or nothing found) has no key: plain, never "encrypted".
+  const ok = email => ({ email, status: 'ok', keys: [{}] });
+  assert.deepEqual(encryptionDecision({ autoSetting: true, ownKey, recipients, statuses: lookup.map(ok) }), { mode: 'plain' });
+  assert.deepEqual(encryptionDecision({ autoSetting: true, ownKey, recipients: lookup, statuses: lookup.map(ok) }), { mode: 'pgp', auto: true });
+});
+
+test('signs with an imported key before one Plimail made, and never with a stale one', async () => {
+  const { ownKeyFor, staleKeyFor } = await import('./pgpSend.js');
+  const imported = { id: 'imp', emails: ['me@example.com'], auto: false, keyCreatedAt: '2019-01-01' };
+  const made = { id: 'auto', emails: ['me@example.com'], auto: true, keyCreatedAt: '2026-01-01' };
+  const stale = { id: 'old', emails: ['me@example.com'], auto: true, stale: true, keyCreatedAt: '2027-01-01' };
+  assert.equal(ownKeyFor([made, imported, stale], 'me@example.com').id, 'imp');
+  assert.equal(ownKeyFor([made, stale], 'me@example.com').id, 'auto');
+  assert.equal(ownKeyFor([stale], 'me@example.com'), null);
+  assert.equal(staleKeyFor([stale], 'me@example.com').id, 'old');
+  assert.equal(staleKeyFor([stale, made], 'me@example.com'), null, 'a usable key: nothing to warn about');
 });

@@ -62,9 +62,36 @@ export async function rewrapLoginKeys(rows, { from, to, unlock = unlockPrivateKe
       if (err?.code !== 'wrongPassphrase') throw err;
     }
     const key = await unlock(row.armoredPrivate, from);
-    updates.push({ id: row.id, armoredPrivate: await lock(key, to), protection: 'login' });
+    const armoredPrivate = await lock(key, to);
+    // Opened again with the new secret before anything is sent: what is stored must open.
+    await unlock(armoredPrivate, to);
+    updates.push({ id: row.id, armoredPrivate, protection: 'login' });
   }
   return updates;
+}
+
+// After sign-in, with the current password's secret (`entry.verified`): which 'login' keys it no
+// longer opens (the password was reset, and the old one has not been given), and which it opens
+// again. Each change is reported with markStale(id, stale) (PATCH /api/pgp/keys/:id), so the
+// server stops advertising a dead key and the user is told. Resolves to whether anything changed.
+// An unverified secret (one an SSO user chose) proves nothing either way.
+export async function checkLoginKeys({ keys, entry, markStale, open = openOwnKey }) {
+  if (!entry?.secret || !entry.verified) return false;
+  let changed = false;
+  for (const k of (keys || []).filter(isLoginKey)) {
+    let stale = false;
+    try {
+      await open(k, { secret: entry.secret, verified: true });
+    } catch (err) {
+      if (err?.code !== 'staleSecret') continue;
+      stale = true;
+    }
+    if (stale !== Boolean(k.stale)) {
+      await markStale(k.id, stale);
+      changed = true;
+    }
+  }
+  return changed;
 }
 
 // The addresses the user sends from: accounts and their aliases, each once.
@@ -93,14 +120,16 @@ export function forgetAutoKeyState() {
 // protected by `secret`. Resolves to { created, changed }: the keys stored here, and whether the
 // user's keys may differ from `ownKeys` (another tab stored one first, 409). One address failing
 // (offline) leaves it to the next call; the others go on.
-export async function ensureAutoKeys({ userId, addresses, ownKeys, secret, addKey, generate = generateKeyPair }) {
+// `force`: the user asked for this one (a new key for an address whose key is stale): an address
+// done earlier in this tab is made again.
+export async function ensureAutoKeys({ userId, addresses, ownKeys, secret, addKey, generate = generateKeyPair, force = false }) {
   if (!userId || !secret) return { created: [], changed: false };
   const have = new Set((ownKeys || []).flatMap(k => k.emails || []));
   const jobs = [];
   for (const address of addresses || []) {
     const email = String(address.email || '').toLowerCase();
     const id = `${userId}\n${email}`;
-    if (!email || have.has(email) || settled.has(id)) continue;
+    if (!email || have.has(email) || (!force && settled.has(id))) continue;
     if (!inflight.has(id)) {
       const job = (async () => {
         const pair = await generate({ name: address.name || '', email, passphrase: secret });

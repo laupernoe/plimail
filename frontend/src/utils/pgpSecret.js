@@ -12,10 +12,18 @@
 // The derived secret is kept in this tab's memory and in sessionStorage, so a reload of the same
 // tab does not ask again. sessionStorage belongs to the tab (a new tab or window starts without it,
 // though a duplicated tab copies it) and lasts until the tab closes, or until sign-out or the
-// screen lock clear it here. Script running in the page could read it there, as it could read an
-// unlocked key in memory; nothing else can.
+// screen lock clear it here. Script running in the page (an XSS) could read it there, as it could
+// read an unlocked key in memory; nothing else can.
+//
+// The keys and the salt are in the database, and so in its backups: whoever has those can try
+// passwords offline, at the cost of this derivation per guess, which is cheaper than the bcrypt
+// (cost 12) sign-in hash. A strong Plimail password is what protects the keys then.
+//
+// 1,000,000 iterations: about half a second in Node with WebCrypto on a desktop, run in the
+// background after sign-in, so nobody waits for it. Argon2id would be stronger but needs a new
+// dependency.
 
-export const KDF_ITERATIONS = 600_000;
+export const KDF_ITERATIONS = 1_000_000;
 const LABEL = 'plimail/pgp-key-passphrase/v1:';
 export const STORAGE_KEY = 'plimail_pgp_secret';
 
@@ -90,6 +98,34 @@ export function keySecretEntry(userId) {
 }
 
 export const keySecret = userId => keySecretEntry(userId)?.secret || null;
+
+// A password change in one tab: every other tab of this browser forgets the secret it holds for
+// that user, which is the old password's (and would otherwise be taken for the current one).
+// BroadcastChannel, with a localStorage write as the fallback ('storage' fires in other tabs only).
+const CHANNEL = 'plimail-pgp';
+const SIGNAL_KEY = 'plimail_pgp_signal';
+let channel = null;
+function onSignal(data) {
+  if (data?.type === 'passwordChanged' && data.userId && keySecretEntry(data.userId)) forgetKeySecret();
+}
+export function listenForPasswordChanges() {
+  if (channel || typeof globalThis.BroadcastChannel !== 'function') return;
+  channel = new globalThis.BroadcastChannel(CHANNEL);
+  channel.onmessage = e => onSignal(e.data);
+  channel.unref?.(); // Node (tests): the channel does not keep the process alive
+  if (typeof window !== 'undefined' && window.addEventListener) {
+    window.addEventListener('storage', (e) => {
+      if (e.key !== SIGNAL_KEY || !e.newValue) return;
+      try { onSignal(JSON.parse(e.newValue)); } catch { /* not ours */ }
+    });
+  }
+}
+export function announcePasswordChanged(userId) {
+  const data = { type: 'passwordChanged', userId, at: Date.now() };
+  try { channel?.postMessage(data); } catch { /* no channel here */ }
+  try { globalThis.localStorage?.setItem(SIGNAL_KEY, JSON.stringify(data)); } catch { /* storage off */ }
+}
+listenForPasswordChanges();
 
 export function forgetKeySecret() {
   const had = current != null || pending != null;

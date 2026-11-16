@@ -7,7 +7,7 @@ import { formatRelativeTime } from '../utils/relativeTime.js';
 import { htmlLang } from '../utils/browserLanguage.js';
 import { keysForNewPassword } from '../utils/pgpPasswordChange.js';
 import { loadOwnKeys, ownKeysChanged } from '../utils/pgpOwnKeys.js';
-import { setKeySecret } from '../utils/pgpSecret.js';
+import { announcePasswordChanged, setKeySecret } from '../utils/pgpSecret.js';
 import { ensureKeySecret } from '../utils/pgpUnlock.js';
 
 // Lets an admin change another user's sign-in name, recovery email and password: the way back
@@ -96,6 +96,8 @@ export default function AdminUserEditor({ user, isSelf, onClose, onSaved, onChan
           await api.admin.setUserPassword(user.id, password, ownKeys?.pgpKeys);
           if (ownKeys) {
             setKeySecret(user.id, ownKeys.secret, { verified: true });
+            // Other tabs hold the old password's secret: they forget it, and ask again.
+            announcePasswordChanged(user.id);
             ownKeysChanged();
           }
         } catch (err) {

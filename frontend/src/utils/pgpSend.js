@@ -139,19 +139,38 @@ export function pgpSendProblem({ recipients, statuses, ownKey, sign = false, sig
   return null;
 }
 
-// The user's key for sending from `fromEmail`: the newest with that address, else none.
+// The user's key for sending from `fromEmail` (signing, the Sent copy): never a stale one (the
+// current password does not open it, utils/pgpKeys.js), a key the user imported before one Plimail
+// made (it is the one correspondents know), then the newest. The server's Autocrypt header picks
+// the same way (services/autocrypt.js). Null when the address has no usable key.
 export function ownKeyFor(ownKeys, fromEmail) {
   const email = String(fromEmail || '').toLowerCase();
-  const mine = (ownKeys || []).filter(k => (k.emails || []).includes(email));
-  return mine.sort((a, b) => new Date(b.keyCreatedAt || b.createdAt || 0) - new Date(a.keyCreatedAt || a.createdAt || 0))[0] || null;
+  const mine = (ownKeys || []).filter(k => (k.emails || []).includes(email) && !k.stale);
+  const created = k => new Date(k.keyCreatedAt || k.createdAt || 0).getTime();
+  return mine.sort((a, b) => (Number(Boolean(a.auto)) - Number(Boolean(b.auto))) || (created(b) - created(a)))[0] || null;
 }
 
-// The addresses to look keys up for: the ones that look whole (an address still being typed is
-// not asked of anyone's directory).
-const WHOLE_ADDRESS = /^[^\s@<>]+@[^\s@<>]+\.[a-z]{2,}$/i;
-export function lookupAddresses(values) {
-  return [...new Set((values || []).map(v => String(v || '').trim()).filter(Boolean).map(emailOfRecipient))]
-    .filter(e => WHOLE_ADDRESS.test(e));
+// The address's key that the current password no longer opens, when it has no usable one.
+export function staleKeyFor(ownKeys, fromEmail) {
+  const email = String(fromEmail || '').toLowerCase();
+  if (ownKeyFor(ownKeys, email)) return null;
+  return (ownKeys || []).find(k => (k.emails || []).includes(email) && k.stale) || null;
+}
+
+// The composer's recipients: `recipients`, every one the message goes to (chips, and what is
+// still typed in a field), which encryption decides on; `lookup`, those to look keys up for while
+// writing: every chip, and a typed address only once it looks whole, so one half typed is not
+// asked of anyone's directory. A recipient not looked up has no key as far as the decision goes
+// (a typed one, plain until it is complete); the send itself looks up every recipient, unfiltered.
+const WHOLE_ADDRESS = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>.]{2,}$/u;
+export const recipientEmails = values => [...new Set((values || []).map(v => String(v || '').trim()).filter(Boolean).map(emailOfRecipient))];
+export function composerRecipients(chips, typed) {
+  const committed = recipientEmails(chips);
+  const typing = recipientEmails(typed);
+  return {
+    recipients: [...new Set([...committed, ...typing])],
+    lookup: [...new Set([...committed, ...typing.filter(e => WHOLE_ADDRESS.test(e))])],
+  };
 }
 
 // The /mail/send body for the encrypted message: `payload` is the composer's (buildSendPayload),

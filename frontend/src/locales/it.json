@@ -2640,7 +2640,13 @@
       "makeAutomaticNote": "Inserisci la passphrase di questa chiave. Sarà poi protetta dalla tua password di Plimail e si sbloccherà all’accesso.",
       "makeAutomaticGo": "Proteggi con la mia password di Plimail",
       "importAutomatic": "Sblocca questa chiave automaticamente con la mia password di Plimail (invece della sua passphrase)",
-      "generateOwnTitle": "Crea una chiave con la sua passphrase"
+      "generateOwnTitle": "Crea una chiave con la sua passphrase",
+      "autoKeys": "Crea e pubblica automaticamente le mie chiavi",
+      "autoKeysHint": "Ogni indirizzo riceve una chiave, e i tuoi messaggi la portano (Autocrypt) perché altri possano scriverti cifrato. Disattivato: nessuna chiave viene creata né inviata.",
+      "securityNote": "Come sono protette le chiavi: la passphrase che le sblocca è derivata nel browser dalla password di Plimail e non viene mai inviata al server. Resta in questa scheda (sessionStorage) fino alla disconnessione o al blocco dello schermo; uno script iniettato nella pagina potrebbe leggerla lì. Chi ha una copia del database o dei suoi backup può provare a indovinare offline la tua password di Plimail per aprire le chiavi, con un costo inferiore a quello della verifica di accesso: scegli una password robusta.",
+      "replaceAuto": "La chiave importata è ora usata per {{email}}. Eliminare la chiave che Plimail aveva creato? La posta cifrata per quella chiave non si potrebbe più leggere.",
+      "replaceAutoDelete": "Eliminala",
+      "replaceAutoKeep": "Tienila"
     },
     "source": {
       "manual": "aggiunta da te",
@@ -2750,7 +2756,13 @@
       "createGo": "Crea le mie chiavi",
       "tooShort": "Almeno {{n}} caratteri.",
       "mismatch": "Le password non coincidono.",
-      "tooMany": "Troppi tentativi. Riprova più tardi."
+      "tooMany": "Troppi tentativi. Riprova più tardi.",
+      "staleBody": "Inserisci prima la tua password attuale di Plimail. Poi quella precedente, che protegge ancora le chiavi, le sposterà sulla attuale."
+    },
+    "stale": {
+      "body": "La tua chiave per {{email}} è bloccata da una password precedente di Plimail. La posta cifrata per lei non si può leggere finché non viene recuperata, e non viene più pubblicata. Recuperala con la vecchia password o crea una nuova chiave (la vecchia resta per la posta che può ancora aprire).",
+      "recover": "Recupera con la vecchia password",
+      "newKey": "Crea una nuova chiave"
     }
   }
 }

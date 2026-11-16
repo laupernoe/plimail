@@ -4,12 +4,13 @@ import { useStore } from '../store/index.js';
 import { api } from '../utils/api.js';
 import { formatDay } from '../utils/formatDate.js';
 import { formatFingerprint, generateKeyPair, keyInfo, loadOpenpgp, preparePrivateKeyImport, readArmoredKeys } from '../utils/pgp.js';
-import { isLoginKey, lockKey, openOwnKey, senderAddresses } from '../utils/pgpKeys.js';
+import { ensureAutoKeys, isLoginKey, lockKey, openOwnKey, senderAddresses } from '../utils/pgpKeys.js';
 import { OWN_KEYS_CHANGED, ownKeysChanged } from '../utils/pgpOwnKeys.js';
 import { keySecretEntry, subscribeKeySecret } from '../utils/pgpSecret.js';
 import { forgetAllUnlockedKeys, forgetUnlockedKey, isUnlocked, unlockedCount } from '../utils/pgpSession.js';
 import { ensureKeySecret, requestKeyUnlock, unlockOwnKey } from '../utils/pgpUnlock.js';
-import { ownKeyFor } from '../utils/pgpSend.js';
+import { ownKeyFor, staleKeyFor } from '../utils/pgpSend.js';
+import { StaleKeyBanner } from './PgpSendPanel.jsx';
 import { button } from './pgpStyles.js';
 
 // Settings → Encryption. What most people need is at the top and says it plainly: each address's
@@ -159,7 +160,7 @@ async function protectWithSecret(armored, passphrase, secret) {
   return { armoredPrivate, armoredPublic: key.toPublic().armor() };
 }
 
-function ImportPrivateForm({ addresses, userId, onDone, onCancel }) {
+function ImportPrivateForm({ addresses, userId, keys, onDone, onCancel }) {
   const { t } = useTranslation();
   const [armored, setArmored] = useState('');
   const [pass, setPass] = useState('');
@@ -169,6 +170,9 @@ function ImportPrivateForm({ addresses, userId, onDone, onCancel }) {
   const [automatic, setAutomatic] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  // Keys Plimail made for the addresses of the key just imported: the imported one is used from
+  // now on, and these may go (they are kept unless the user says so, for the mail they opened).
+  const [replaced, setReplaced] = useState(null);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -192,7 +196,9 @@ function ImportPrivateForm({ addresses, userId, onDone, onCancel }) {
         armoredPrivate: pair.armoredPrivate, armoredPublic: pair.armoredPublic, accountId: account?.accountId || null,
         protection: automatic ? 'login' : 'passphrase',
       });
-      onDone();
+      const autos = (keys || []).filter(k => k.auto && (k.emails || []).some(a => emails.includes(a)));
+      if (autos.length) setReplaced(autos);
+      else onDone();
     } catch (err) {
       if (err?.code === 'unprotectedKey') setNeedsNew(true);
       if (err?.code !== 'unlockCancelled') setError(errorText(t, err));
@@ -200,6 +206,31 @@ function ImportPrivateForm({ addresses, userId, onDone, onCancel }) {
       setBusy(false);
     }
   };
+
+  const removeReplaced = async () => {
+    setBusy(true);
+    try {
+      for (const k of replaced) { await api.pgp.removeKey(k.id); forgetUnlockedKey(k.fingerprint); }
+      onDone();
+    } catch (err) {
+      setError(errorText(t, err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (replaced) {
+    return (
+      <div role="alertdialog" style={panel}>
+        <p style={{ ...muted, margin: 0, color: 'var(--text-primary)' }}>{t('pgp.settings.replaceAuto', { email: replaced.flatMap(k => k.emails).join(', ') })}</p>
+        {error && <p role="alert" style={{ fontSize: 12, color: 'var(--red)', margin: 0 }}>{error}</p>}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button type="button" disabled={busy} onClick={removeReplaced} style={button('danger', busy)}>{t('pgp.settings.replaceAutoDelete')}</button>
+          <button type="button" disabled={busy} onClick={onDone} style={button()}>{t('pgp.settings.replaceAutoKeep')}</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={submit} style={panel} aria-label={t('pgp.settings.importTitle')}>
@@ -507,6 +538,8 @@ export default function PgpSettingsSection() {
   const userId = useStore(s => s.user?.id);
   const autoEncrypt = useStore(s => s.pgpAutoEncrypt);
   const setAutoEncrypt = useStore(s => s.setPgpAutoEncrypt);
+  const autoKeys = useStore(s => s.pgpAutoKeys);
+  const setAutoKeys = useStore(s => s.setPgpAutoKeys);
   const addresses = useMemo(() => senderAddresses(accounts), [accounts]);
   const secret = useSyncExternalStore(subscribeKeySecret, () => keySecretEntry(userId)?.secret || null);
   const [keys, setKeys] = useState(null);
@@ -547,14 +580,28 @@ export default function PgpSettingsSection() {
   const done = () => { setForm(null); changed(); };
   const groups = groupKeyring(ring);
   const unlock = (isStale) => requestKeyUnlock({ stale: isStale }).then(() => setUnlocked(unlockedCount()), () => {});
-  // Addresses, and imported keys for addresses that are no account's.
+  // Addresses, and imported keys for addresses that are no account's. An address whose only key
+  // the password no longer opens shows that key, with what to do about it.
   const rows = useMemo(() => {
-    const list = addresses.map(a => ({ email: a.email, key: ownKeyFor(keys, a.email) }));
+    const list = addresses.map(a => ({ email: a.email, key: ownKeyFor(keys, a.email), staleKey: staleKeyFor(keys, a.email) }));
+    const shown = new Set(list.flatMap(r => [r.key?.id, r.staleKey?.id]).filter(Boolean));
     for (const k of keys || []) {
-      if (!list.some(r => r.key?.id === k.id)) list.push({ email: k.emails[0] || '', key: k });
+      if (shown.has(k.id) || k.stale || list.some(r => (k.emails || []).includes(r.email))) continue;
+      list.push({ email: k.emails[0] || '', key: k, staleKey: null });
     }
     return list;
   }, [addresses, keys]);
+  // A new key for an address whose key is stale; the old one stays, for the mail it opened.
+  const newKeyFor = async (email) => {
+    try {
+      const entry = await ensureKeySecret(userId);
+      const address = addresses.find(a => a.email === email) || { email };
+      if (entry?.secret) {
+        await ensureAutoKeys({ userId, addresses: [address], ownKeys: (keys || []).filter(k => !k.stale), secret: entry.secret, addKey: api.pgp.addKey, force: true });
+      }
+      changed();
+    } catch { /* cancelled: nothing changes */ }
+  };
 
   const stateText = {
     active: t('pgp.settings.stateActive'),
@@ -573,22 +620,34 @@ export default function PgpSettingsSection() {
         {loadFailed && <p role="alert" style={{ fontSize: 13, color: 'var(--red)' }}>{t('pgp.errors.loadFailed')}</p>}
         {keys && (
           <ul aria-label={t('pgp.settings.addressesTitle')} style={{ listStyle: 'none', margin: '0 0 14px', padding: 0, borderTop: '1px solid var(--border-subtle)' }}>
-            {rows.map(({ email, key }) => {
-              const state = addressKeyState(key, { secret, stale: key && stale.has(key.id) });
+            {rows.map(({ email, key, staleKey }) => {
+              const state = !key && staleKey ? 'stale' : addressKeyState(key, { secret, stale: key && stale.has(key.id) });
               return (
                 <li key={key?.id || email} data-key-state={state} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '10px 0', borderBottom: '1px solid var(--border-subtle)' }}>
                   <span style={{ flex: '1 1 200px', minWidth: 0, fontSize: 13.5, fontWeight: 500, color: 'var(--text-primary)', overflowWrap: 'anywhere' }}>{email}</span>
                   <span style={{ fontSize: 12.5, color: STATE_COLOR[state] }}>{stateText[state]}</span>
-                  {(state === 'locked' || state === 'stale' || state === 'none') && (
-                    <button type="button" onClick={() => unlock(state === 'stale')} style={button()}>
+                  {(state === 'locked' || state === 'none') && (
+                    <button type="button" onClick={() => unlock(false)} style={button()}>
                       {state === 'none' ? t('pgp.settings.createKeys') : t('pgp.settings.unlock')}
                     </button>
+                  )}
+                  {state === 'stale' && (
+                    <div style={{ flexBasis: '100%' }}>
+                      <StaleKeyBanner email={email} onRecover={() => unlock(true).then(changed)} onNewKey={() => newKeyFor(email)} />
+                    </div>
                   )}
                 </li>
               );
             })}
           </ul>
         )}
+        <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer', margin: '0 0 10px' }}>
+          <input type="checkbox" checked={autoKeys} onChange={e => setAutoKeys(e.target.checked)} style={{ marginTop: 3 }} />
+          <span>
+            <span style={{ display: 'block', fontSize: 13.5, color: 'var(--text-primary)' }}>{t('pgp.settings.autoKeys')}</span>
+            <span style={muted}>{t('pgp.settings.autoKeysHint')}</span>
+          </span>
+        </label>
         <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer', margin: '0 0 6px' }}>
           <input type="checkbox" checked={autoEncrypt} onChange={e => setAutoEncrypt(e.target.checked)} style={{ marginTop: 3 }} />
           <span>
@@ -624,13 +683,14 @@ export default function PgpSettingsSection() {
         <summary style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}>{t('pgp.settings.advanced')}</summary>
         <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <p style={{ ...muted, margin: 0 }}>{t('pgp.settings.advancedIntro')}</p>
+          <p style={{ ...muted, margin: 0 }}>{t('pgp.settings.securityNote')}</p>
           {keys && keys.length > 0 && (
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, borderTop: '1px solid var(--border-subtle)' }}>
               {keys.map(k => <OwnKeyRow key={k.id} k={k} userId={userId} onChanged={changed} />)}
             </ul>
           )}
           {form === 'generate' && <GenerateForm addresses={addresses} ownEmails={new Set((keys || []).flatMap(k => k.emails))} onDone={done} onCancel={() => setForm(null)} />}
-          {form === 'import' && <ImportPrivateForm addresses={addresses} userId={userId} onDone={done} onCancel={() => setForm(null)} />}
+          {form === 'import' && <ImportPrivateForm addresses={addresses} userId={userId} keys={keys} onDone={done} onCancel={() => setForm(null)} />}
           {form !== 'generate' && form !== 'import' && keys && (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button type="button" onClick={() => setForm('import')} style={button()}>{t('pgp.settings.importTitle')}</button>

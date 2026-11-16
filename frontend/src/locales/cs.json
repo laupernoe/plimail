@@ -2659,7 +2659,13 @@
       "makeAutomaticNote": "Zadejte heslovou frázi tohoto klíče. Poté ho bude místo ní chránit heslo k Plimailu a odemkne se při přihlášení.",
       "makeAutomaticGo": "Chránit mým heslem k Plimailu",
       "importAutomatic": "Odemykat tento klíč automaticky mým heslem k Plimailu (místo jeho vlastní heslové fráze)",
-      "generateOwnTitle": "Vytvořit klíč s vlastní heslovou frází"
+      "generateOwnTitle": "Vytvořit klíč s vlastní heslovou frází",
+      "autoKeys": "Automaticky vytvářet a zveřejňovat mé klíče",
+      "autoKeysHint": "Každá adresa dostane klíč a vaše zprávy ho nesou (Autocrypt), aby vám ostatní mohli psát šifrovaně. Vypnuto: žádný klíč se nevytvoří ani neodešle.",
+      "securityNote": "Jak jsou vaše klíče chráněny: heslová fráze, která je odemyká, se odvozuje ve vašem prohlížeči z hesla k Plimailu a nikdy se neposílá na server. Zůstává v této kartě (sessionStorage) do odhlášení nebo zamčení obrazovky; skript vložený do stránky by ji tam mohl přečíst. Kdo má kopii databáze nebo jejích záloh, může offline zkoušet uhodnout vaše heslo k Plimailu a otevřít klíče, a to levněji než u kontroly při přihlášení: zvolte silné heslo.",
+      "replaceAuto": "Importovaný klíč se nyní používá pro {{email}}. Smazat klíč, který pro tuto adresu vytvořil Plimail? Poštu pro něj zašifrovanou by pak nešlo přečíst.",
+      "replaceAutoDelete": "Smazat ho",
+      "replaceAutoKeep": "Ponechat ho"
     },
     "source": {
       "manual": "přidáno vámi",
@@ -2769,7 +2775,13 @@
       "createGo": "Vytvořit mé klíče",
       "tooShort": "Alespoň {{n}} znaků.",
       "mismatch": "Hesla se neshodují.",
-      "tooMany": "Příliš mnoho pokusů. Zkuste to později."
+      "tooMany": "Příliš mnoho pokusů. Zkuste to později.",
+      "staleBody": "Nejprve zadejte své současné heslo k Plimailu. Poté předchozí heslo, které klíče stále chrání, je na ně převede."
+    },
+    "stale": {
+      "body": "Váš klíč pro {{email}} je zamčený předchozím heslem k Plimailu. Poštu pro něj zašifrovanou nelze číst, dokud ho neobnovíte, a už se nezveřejňuje. Obnovte ho starým heslem, nebo vytvořte nový klíč (starý zůstane pro poštu, kterou ještě otevře).",
+      "recover": "Obnovit starým heslem",
+      "newKey": "Vytvořit nový klíč"
     }
   }
 }

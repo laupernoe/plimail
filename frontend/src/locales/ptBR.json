@@ -2640,7 +2640,13 @@
       "makeAutomaticNote": "Digite a frase secreta desta chave. Ela passará a ser protegida pela senha do Plimail e será desbloqueada ao entrar.",
       "makeAutomaticGo": "Proteger com minha senha do Plimail",
       "importAutomatic": "Desbloquear esta chave automaticamente com minha senha do Plimail (em vez da própria frase secreta)",
-      "generateOwnTitle": "Criar uma chave com frase secreta própria"
+      "generateOwnTitle": "Criar uma chave com frase secreta própria",
+      "autoKeys": "Criar e publicar minhas chaves automaticamente",
+      "autoKeysHint": "Cada endereço recebe uma chave, e suas mensagens a levam (Autocrypt) para que outros possam escrever criptografado para você. Desativado: nenhuma chave é criada nem enviada.",
+      "securityNote": "Como suas chaves são protegidas: a frase secreta que as desbloqueia é derivada no navegador a partir da senha do Plimail e nunca é enviada ao servidor. Ela fica nesta aba (sessionStorage) até você sair ou bloquear a tela; um script injetado na página poderia lê-la ali. Quem tiver uma cópia do banco de dados ou dos backups pode tentar adivinhar offline sua senha do Plimail para abrir as chaves, a um custo menor que a verificação de login: escolha uma senha forte.",
+      "replaceAuto": "A chave importada agora é usada para {{email}}. Excluir a chave que o Plimail criou para ele? Os e-mails criptografados para ela não poderiam mais ser lidos.",
+      "replaceAutoDelete": "Excluí-la",
+      "replaceAutoKeep": "Mantê-la"
     },
     "source": {
       "manual": "adicionada por você",
@@ -2750,7 +2756,13 @@
       "createGo": "Criar minhas chaves",
       "tooShort": "Pelo menos {{n}} caracteres.",
       "mismatch": "As senhas não coincidem.",
-      "tooMany": "Tentativas demais. Tente novamente mais tarde."
+      "tooMany": "Tentativas demais. Tente novamente mais tarde.",
+      "staleBody": "Digite primeiro sua senha atual do Plimail. Depois, a anterior, que ainda protege suas chaves, as passa para a atual."
+    },
+    "stale": {
+      "body": "Sua chave para {{email}} está bloqueada por uma senha anterior do Plimail. Os e-mails criptografados para ela não podem ser lidos até recuperá-la, e ela não é mais publicada. Recupere-a com a senha antiga ou crie uma nova chave (a antiga é mantida para os e-mails que ainda abre).",
+      "recover": "Recuperar com a senha antiga",
+      "newKey": "Criar uma nova chave"
     }
   }
 }

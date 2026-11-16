@@ -16,13 +16,22 @@ import { deriveKeySecret } from './pgpSecret.js';
 // { pgpKeys, secret }: the keys to send with the new password (undefined when there are none) and
 // the new secret, to keep once the change is stored. `currentSecret()` gives the old password's
 // secret, asking for it if the tab has none, and may throw PgpError('unlockCancelled').
-export async function keysForNewPassword({ newPassword, loadKeys, fetchSalt, currentSecret, derive = deriveKeySecret, rewrap = rewrapLoginKeys }) {
-  const keys = (await loadKeys()).filter(isLoginKey);
+// A stale key (already under an even older password) is left as it is: the old secret does not
+// open it either, and it must not stop the change. The keys are read again once re-encrypted; a
+// key another tab made meanwhile (or one changed there) means doing it over, so none is left out.
+const fingerprintOf = keys => keys.map(k => `${k.id}:${k.armoredPrivate}`).sort().join('\n');
+export async function keysForNewPassword({ newPassword, loadKeys, fetchSalt, currentSecret, derive = deriveKeySecret, rewrap = rewrapLoginKeys, attempts = 3 }) {
   const { salt } = await fetchSalt();
   const secret = await derive(newPassword, salt);
-  if (!keys.length) return { pgpKeys: undefined, secret };
-  const from = await currentSecret();
-  if (!from) throw new PgpError('unlockCancelled');
-  const updates = await rewrap(keys, { from, to: secret });
-  return { pgpKeys: updates.length ? updates : undefined, secret };
+  let from = null;
+  for (let i = 0; i < attempts; i++) {
+    const keys = (await loadKeys()).filter(k => isLoginKey(k) && !k.stale);
+    if (!keys.length) return { pgpKeys: undefined, secret };
+    if (!from) from = await currentSecret();
+    if (!from) throw new PgpError('unlockCancelled');
+    const updates = await rewrap(keys, { from, to: secret });
+    const again = (await loadKeys()).filter(k => isLoginKey(k) && !k.stale);
+    if (fingerprintOf(again) === fingerprintOf(keys)) return { pgpKeys: updates.length ? updates : undefined, secret };
+  }
+  throw new PgpError('keysChanging');
 }

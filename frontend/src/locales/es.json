@@ -2640,7 +2640,13 @@
       "makeAutomaticNote": "Introduzca la frase de contraseña de esta clave. Pasará a estar protegida por su contraseña de Plimail y se desbloqueará al iniciar sesión.",
       "makeAutomaticGo": "Proteger con mi contraseña de Plimail",
       "importAutomatic": "Desbloquear esta clave automáticamente con mi contraseña de Plimail (en lugar de su propia frase de contraseña)",
-      "generateOwnTitle": "Crear una clave con su propia frase de contraseña"
+      "generateOwnTitle": "Crear una clave con su propia frase de contraseña",
+      "autoKeys": "Crear y publicar mis claves automáticamente",
+      "autoKeysHint": "Cada dirección recibe una clave, y sus mensajes la llevan (Autocrypt) para que le escriban cifrado. Desactivado: no se crea ni se envía ninguna clave.",
+      "securityNote": "Cómo se protegen sus claves: la frase que las desbloquea se deriva en su navegador de su contraseña de Plimail y nunca se envía al servidor. Se guarda en esta pestaña (sessionStorage) hasta cerrar sesión o bloquear la pantalla; un script inyectado en la página podría leerla ahí. Quien tenga una copia de la base de datos o de sus copias de seguridad puede intentar adivinar sin conexión su contraseña de Plimail para abrir sus claves, a un coste menor que la comprobación de inicio de sesión: elija una contraseña robusta.",
+      "replaceAuto": "La clave importada se usa ahora para {{email}}. ¿Eliminar la clave que Plimail creó para ella? El correo cifrado para esa clave ya no podría leerse.",
+      "replaceAutoDelete": "Eliminarla",
+      "replaceAutoKeep": "Conservarla"
     },
     "source": {
       "manual": "añadida por ti",
@@ -2750,7 +2756,13 @@
       "createGo": "Crear mis claves",
       "tooShort": "Al menos {{n}} caracteres.",
       "mismatch": "Las contraseñas no coinciden.",
-      "tooMany": "Demasiados intentos. Inténtelo más tarde."
+      "tooMany": "Demasiados intentos. Inténtelo más tarde.",
+      "staleBody": "Introduzca primero su contraseña actual de Plimail. Después, la anterior, que aún protege sus claves, las pasará a la actual."
+    },
+    "stale": {
+      "body": "Su clave para {{email}} está bloqueada por una contraseña anterior de Plimail. El correo cifrado para ella no puede leerse hasta recuperarla, y ya no se publica. Recupérela con la contraseña antigua o cree una clave nueva (la antigua se conserva para el correo que aún puede abrir).",
+      "recover": "Recuperar con la contraseña antigua",
+      "newKey": "Crear una clave nueva"
     }
   }
 }

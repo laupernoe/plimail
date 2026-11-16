@@ -2,7 +2,7 @@ import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { decryptArmored, encryptMime, generateKeyPair, unlockPrivateKey } from './pgp.js';
 import { deriveKeySecret } from './pgpSecret.js';
-import { ensureAutoKeys, forgetAutoKeyState, isLoginKey, lockKey, openOwnKey, rewrapLoginKeys } from './pgpKeys.js';
+import { checkLoginKeys, ensureAutoKeys, forgetAutoKeyState, isLoginKey, lockKey, openOwnKey, rewrapLoginKeys } from './pgpKeys.js';
 import { forgetAllUnlockedKeys, isUnlocked } from './pgpSession.js';
 
 const SALT = btoa(String.fromCharCode(...new Uint8Array(16).fill(3)));
@@ -125,4 +125,37 @@ test('an address that failed (offline) is tried again next time', async () => {
     assert.deepEqual(await ensureAutoKeys(args), { created: [], changed: false });
     assert.deepEqual(await ensureAutoKeys(args), { created: [{ id: 'k' }], changed: true });
   } finally { console.warn = warn; }
+});
+
+test('a re-wrap sends nothing that the new secret does not open', async () => {
+  // A lock that goes wrong (here: with the wrong passphrase) is caught before the PUT.
+  await assert.rejects(rewrapLoginKeys([row(made)], { from: OLD, to: NEW, lock: (key) => lockKey(key, 'something else') }), { code: 'wrongPassphrase' });
+});
+
+test('after sign-in, marks the keys the current password no longer opens, and clears the mark when it does', async () => {
+  const other = await generateKeyPair({ email: 'other@example.com', passphrase: NEW });
+  const marks = [];
+  const markStale = async (id, stale) => { marks.push([id, stale]); };
+  const keys = [row(made), row(other, { id: 'k2', stale: true }), row(made, { id: 'k3', protection: 'passphrase' })];
+  assert.equal(await checkLoginKeys({ keys, entry: { secret: NEW, verified: true }, markStale }), true);
+  assert.deepEqual(marks, [['k1', true], ['k2', false]]);
+  // An unverified secret (an SSO user's) proves nothing.
+  marks.length = 0;
+  forgetAllUnlockedKeys();
+  assert.equal(await checkLoginKeys({ keys, entry: { secret: NEW, verified: false }, markStale }), false);
+  assert.deepEqual(marks, []);
+});
+
+test('a new key for an address whose key went stale is made even if this tab made one before', async () => {
+  let generated = 0;
+  const args = {
+    userId: 'u1', addresses: [{ email: 'me@example.com' }], ownKeys: [], secret: NEW,
+    generate: async () => { generated += 1; return { armoredPrivate: 'p', armoredPublic: 'q', fingerprint: 'f' }; },
+    addKey: async () => ({ key: { id: `k${generated}` } }),
+  };
+  await ensureAutoKeys(args);
+  await ensureAutoKeys(args);
+  assert.equal(generated, 1);
+  await ensureAutoKeys({ ...args, force: true });
+  assert.equal(generated, 2);
 });
