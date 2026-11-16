@@ -2018,6 +2018,12 @@
       "failed": "Wiederherstellung fehlgeschlagen: {{message}}",
       "downloadFailed": "Die Sicherung konnte nicht gestartet werden.",
       "connectionLost": "Die Verbindung ist während der Wiederherstellung abgebrochen, daher ist das Ergebnis unbekannt. Diese Seite wird neu geladen, sobald Plimail wieder antwortet; prüfen Sie dann, ob Ihre Daten wiederhergestellt wurden.",
+      "identityTitle": "Bestätigen Sie, dass Sie es sind",
+      "identityIntro": "Eine Sicherung enthält die Zugangsdaten aller Konten, und eine Wiederherstellung ersetzt diesen Server. Bestätigen Sie deshalb zuerst, wer Sie sind. Die Bestätigung gilt 5 Minuten.",
+      "identityConfirm": "Bestätigen",
+      "identityOidcHint": "Melden Sie sich über die Schaltfläche unten erneut per Single Sign-on an, kehren Sie dann zu diesem Tab zurück und wählen Sie Bestätigen. Jede Anmeldung bestätigt einmal, innerhalb von 10 Minuten.",
+      "identityOidcNoProvider": "Sicherung und Wiederherstellung erfordern eine kürzliche Anmeldung per Single Sign-on, und Ihr Konto hat keine Single-Sign-on-Identität, mit der es sich anmelden kann. Wenden Sie sich an einen anderen Administrator.",
+      "identityTotpSetup": "Dieser Server erfordert Zwei-Faktor-Authentifizierung. Richten Sie vor einer Sicherung oder Wiederherstellung eine Authenticator-App in Ihren Sicherheitseinstellungen ein.",
       "tooLarge": "Die Datei ist größer, als der Proxy vor Plimail zulässt."
     },
     "writingStyle": {

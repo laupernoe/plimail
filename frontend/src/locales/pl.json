@@ -2037,6 +2037,12 @@
       "failed": "Przywracanie nie powiodło się: {{message}}",
       "downloadFailed": "Nie udało się rozpocząć tworzenia kopii zapasowej.",
       "connectionLost": "Połączenie zostało przerwane podczas przywracania, więc jego wynik jest nieznany. Ta strona odświeży się, gdy Plimail znów zacznie odpowiadać; sprawdź wtedy, czy dane zostały przywrócone.",
+      "identityTitle": "Potwierdź, że to Ty",
+      "identityIntro": "Kopia zapasowa zawiera dane logowania wszystkich kont, a przywrócenie zastępuje ten serwer, więc najpierw potwierdź, kim jesteś. Potwierdzenie jest ważne 5 minut.",
+      "identityConfirm": "Potwierdź",
+      "identityOidcHint": "Zaloguj się ponownie przez logowanie jednokrotne przyciskiem poniżej, a potem wróć do tej karty i wybierz Potwierdź. Każde logowanie potwierdza jeden raz, w ciągu 10 minut.",
+      "identityOidcNoProvider": "Kopia zapasowa i przywracanie wymagają niedawnego logowania jednokrotnego, a Twoje konto nie ma tożsamości logowania jednokrotnego, którą można się zalogować. Poproś innego administratora.",
+      "identityTotpSetup": "Ten serwer wymaga uwierzytelniania dwuskładnikowego. Przed kopią zapasową lub przywróceniem skonfiguruj aplikację uwierzytelniającą w ustawieniach bezpieczeństwa.",
       "tooLarge": "Plik jest większy, niż pozwala serwer proxy przed Plimail."
     },
     "writingStyle": {

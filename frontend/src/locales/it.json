@@ -2018,6 +2018,12 @@
       "failed": "Ripristino non riuscito: {{message}}",
       "downloadFailed": "Impossibile avviare il backup.",
       "connectionLost": "La connessione si è interrotta durante il ripristino, quindi l'esito è sconosciuto. Questa pagina si ricaricherà quando Plimail risponderà di nuovo; verifica poi che i dati siano quelli ripristinati.",
+      "identityTitle": "Conferma che sei tu",
+      "identityIntro": "Un backup contiene le credenziali di tutti gli account e un ripristino sostituisce questo server, quindi conferma prima chi sei. La conferma vale 5 minuti.",
+      "identityConfirm": "Conferma",
+      "identityOidcHint": "Accedi di nuovo con il single sign-on tramite il pulsante qui sotto, poi torna a questa scheda e seleziona Conferma. Ogni accesso conferma una sola volta, entro 10 minuti.",
+      "identityOidcNoProvider": "Backup e ripristino richiedono un accesso recente tramite single sign-on, e il tuo account non ha alcuna identità single sign-on con cui accedere. Chiedi a un altro amministratore.",
+      "identityTotpSetup": "Questo server richiede l’autenticazione a due fattori. Configura un’app di autenticazione nelle impostazioni di sicurezza prima di un backup o di un ripristino.",
       "tooLarge": "Il file è più grande di quanto consenta il proxy davanti a Plimail."
     },
     "writingStyle": {

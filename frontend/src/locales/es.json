@@ -2018,6 +2018,12 @@
       "failed": "La restauración ha fallado: {{message}}",
       "downloadFailed": "No se pudo iniciar la copia de seguridad.",
       "connectionLost": "La conexión se perdió durante la restauración, así que se desconoce el resultado. Esta página se recargará cuando Plimail vuelva a responder; comprueba entonces que tus datos son los restaurados.",
+      "identityTitle": "Confirma que eres tú",
+      "identityIntro": "Una copia de seguridad contiene las credenciales de todas las cuentas y una restauración reemplaza este servidor, así que confirma primero quién eres. La confirmación vale 5 minutos.",
+      "identityConfirm": "Confirmar",
+      "identityOidcHint": "Vuelve a iniciar sesión con inicio de sesión único mediante el botón de abajo, luego vuelve a esta pestaña y selecciona Confirmar. Cada inicio de sesión confirma una sola vez, en 10 minutos.",
+      "identityOidcNoProvider": "La copia de seguridad y la restauración requieren un inicio de sesión reciente mediante inicio de sesión único, y tu cuenta no tiene ninguna identidad de inicio de sesión único. Pide ayuda a otro administrador.",
+      "identityTotpSetup": "Este servidor requiere autenticación en dos pasos. Configura una aplicación de autenticación en tus ajustes de seguridad antes de una copia de seguridad o una restauración.",
       "tooLarge": "El archivo es más grande de lo que permite el proxy situado delante de Plimail."
     },
     "writingStyle": {

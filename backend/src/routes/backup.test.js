@@ -7,11 +7,19 @@ vi.mock('../services/db.js', () => ({
   query: vi.fn(),
   pool: { connect: vi.fn() },
 }));
+// One session for every request of a test, confirmed for backups unless a test says otherwise.
+const auth = vi.hoisted(() => ({ session: null }));
 vi.mock('../middleware/auth.js', () => ({
   requireAdmin: (req, _res, next) => {
-    req.session = { userId: 'admin-1', username: 'admin' };
+    req.session = auth.session;
     next();
   },
+}));
+vi.mock('../services/apiTokenReauth.js', () => ({
+  userForReauth: vi.fn(async id => ({ id, username: 'admin' })),
+  reauthFor: vi.fn(async () => 'password'),
+  oidcConfirmationState: vi.fn(),
+  confirmReauth: vi.fn(),
 }));
 // `actual` is the module the mock's BackupFileError comes from, so a test that runs the real
 // restore gets errors the router recognises.
@@ -42,6 +50,7 @@ const client = { release: vi.fn(), query: vi.fn() };
 let m;
 beforeAll(async () => {
   const app = express();
+  app.use(express.json());
   app.use('/api/admin/backup', (req, res, next) => m.router(req, res, next));
   await new Promise(resolve => { server = app.listen(0, '127.0.0.1', resolve); });
   port = server.address().port;
@@ -57,8 +66,12 @@ beforeEach(async () => {
     index: await import('../index.js'),
     scheduled: await import('../services/scheduledSend.js'),
     router: (await import('./backup.js')).default,
+    reauth: await import('../services/apiTokenReauth.js'),
   };
   vi.clearAllMocks();
+  auth.session = {
+    userId: 'admin-1', username: 'admin', backupConfirmation: { userId: 'admin-1', until: Date.now() + 60_000 },
+  };
   m.db.pool.connect.mockResolvedValue(client);
   m.db.query.mockResolvedValue({ rows: [{ id: 'u1' }, { id: 'u2' }] });
   m.backup.unclassifiedTables.mockResolvedValue([]);
@@ -272,5 +285,54 @@ describe('POST /api/admin/backup/restore', () => {
     });
     const res = await post('gz-bytes');
     expect(await ndjson(res)).toEqual([{ error: 'Another connection kept Plimail’s tables busy for 30 seconds. Nothing was changed; try again.' }]);
+  });
+});
+
+describe('confirming it is the admin', () => {
+  const refused = { error: 'Confirm it is you before a backup or a restore.', code: 'reauth_required' };
+
+  it('is needed before a backup, its check or a restore', async () => {
+    delete auth.session.backupConfirmation;
+    const check = await fetch(`${base}/check?scope=full`);
+    expect(check.status).toBe(403);
+    expect(await check.json()).toEqual(refused);
+    const download = await fetch(`${base}?scope=full`);
+    expect(download.status).toBe(403);
+    expect(await download.json()).toEqual(refused);
+    expect(m.backup.writeBackup).not.toHaveBeenCalled();
+    const restore = await post(gzipSync(Buffer.from('{}')));
+    expect(restore.status).toBe(403);
+    expect(await restore.json()).toEqual(refused);
+    expect(m.backup.restoreBackup).not.toHaveBeenCalled();
+  });
+
+  it('runs out after a few minutes, and counts only for the admin who confirmed', async () => {
+    auth.session.backupConfirmation = { userId: 'admin-1', until: Date.now() - 1 };
+    expect((await fetch(`${base}/check?scope=full`)).status).toBe(403);
+    auth.session.backupConfirmation = { userId: 'someone-else', until: Date.now() + 60_000 };
+    expect((await fetch(`${base}/check?scope=full`)).status).toBe(403);
+  });
+
+  it('is recorded in the session once the password checks out, and refused otherwise', async () => {
+    delete auth.session.backupConfirmation;
+    m.reauth.confirmReauth.mockResolvedValueOnce({
+      refusal: { status: 400, body: { error: 'Incorrect password', reauth: 'password' } },
+    });
+    const wrong = await fetch(`${base}/confirm`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: 'nope' }),
+    });
+    expect(wrong.status).toBe(400);
+    expect(auth.session.backupConfirmation).toBeUndefined();
+
+    m.reauth.confirmReauth.mockResolvedValueOnce({ confirmedWith: 'password' });
+    const right = await fetch(`${base}/confirm`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: 'right' }),
+    });
+    expect(right.status).toBe(200);
+    expect(m.reauth.confirmReauth).toHaveBeenLastCalledWith(expect.anything(), { id: 'admin-1', username: 'admin' }, 'password');
+    const { confirmedUntil } = await right.json();
+    expect(new Date(confirmedUntil).getTime()).toBeGreaterThan(Date.now());
+    expect((await fetch(`${base}/check?scope=full`)).status).toBe(200);
+    expect(await (await fetch(`${base}/reauth`)).json()).toEqual({ reauth: 'password', confirmedUntil });
   });
 });

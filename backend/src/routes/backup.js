@@ -5,6 +5,8 @@ import { requireAdmin } from '../middleware/auth.js';
 import { BACKUP_SCOPES, BackupFileError, restoreBackup, unclassifiedTables, writeBackup } from '../services/backup.js';
 import { APP_VERSION, imapManager, restartAfterRestore } from '../index.js';
 import { startScheduledSender, stopScheduledSender } from '../services/scheduledSend.js';
+import { confirmReauth, oidcConfirmationState, reauthFor, userForReauth } from '../services/apiTokenReauth.js';
+import { backupConfirmed, recordBackupConfirmation } from '../services/backupConfirmation.js';
 
 const router = Router();
 router.use(requireAdmin);
@@ -20,9 +22,35 @@ let downloads = 0;
 // site must not be able to start one. Browsers that send no Sec-Fetch-Site are let through.
 const fromAnotherSite = req => ['cross-site', 'same-site'].includes(req.get('Sec-Fetch-Site'));
 
+// What confirms the admin before a backup or a restore (backupConfirmation.js), and until when the
+// last confirmation counts.
+router.get('/reauth', async (req, res) => {
+  const user = await userForReauth(req.session.userId);
+  if (!user) return res.status(401).json({ error: 'Not authenticated' });
+  const reauth = await reauthFor(user);
+  res.json({
+    reauth,
+    ...(reauth === 'oidc' ? { oidc: await oidcConfirmationState(req, user) } : {}),
+    confirmedUntil: backupConfirmed(req.session) ? new Date(req.session.backupConfirmation.until).toISOString() : null,
+  });
+});
+
+router.post('/confirm', async (req, res) => {
+  const user = await userForReauth(req.session.userId);
+  if (!user) return res.status(401).json({ error: 'Not authenticated' });
+  const { refusal } = await confirmReauth(req, user, await reauthFor(user));
+  if (refusal) return res.status(refusal.status).set(refusal.headers ?? {}).json(refusal.body);
+  const until = recordBackupConfirmation(req.session, user.id);
+  console.log(`[admin] ${req.session.username} confirmed their identity for backup and restore`);
+  res.json({ confirmedUntil: until.toISOString() });
+});
+
+const NEEDS_CONFIRMATION = { error: 'Confirm it is you before a backup or a restore.', code: 'reauth_required' };
+
 // Asked before the download starts, so a problem shows on the page instead of as a failed
 // download in the browser.
 router.get('/check', async (req, res) => {
+  if (!backupConfirmed(req.session)) return res.status(403).json(NEEDS_CONFIRMATION);
   if (restoring) return res.status(409).json({ error: 'A restore is running. Try again when Plimail is back.' });
   const unclassified = await unclassifiedTables({ query });
   if (unclassified.length) return res.status(500).json({ error: `Tables not classified for backup: ${unclassified.join(', ')}` });
@@ -33,6 +61,7 @@ router.get('/', async (req, res) => {
   const scope = req.query.scope ?? 'setup';
   if (!BACKUP_SCOPES.includes(scope)) return res.status(400).json({ error: 'scope must be "setup" or "full"' });
   if (fromAnotherSite(req)) return res.status(403).json({ error: 'Start a backup from Plimail settings.' });
+  if (!backupConfirmed(req.session)) return res.status(403).json(NEEDS_CONFIRMATION);
   if (restoring) return res.status(409).json({ error: 'A restore is running. Try again when Plimail is back.' });
 
   downloads++;
@@ -77,6 +106,10 @@ function restoreErrorMessage(err) {
 }
 
 router.post('/restore', async (req, res) => {
+  if (!backupConfirmed(req.session)) {
+    await discardBody(req);
+    return res.status(403).json(NEEDS_CONFIRMATION);
+  }
   if (!/^application\/(x-)?gzip\b/.test(req.get('Content-Type') || '')) {
     await discardBody(req);
     return res.status(415).json({ error: 'Send the backup file as application/gzip.' });

@@ -2018,6 +2018,12 @@
       "failed": "Restore failed: {{message}}",
       "downloadFailed": "The backup could not be started.",
       "connectionLost": "The connection was lost during the restore, so its outcome is unknown. This page reloads once Plimail answers again; then check that your data is the restored one.",
+      "identityTitle": "Confirm it is you",
+      "identityIntro": "A backup holds every account's credentials, and a restore replaces this server, so confirm who you are first. It counts for 5 minutes.",
+      "identityConfirm": "Confirm",
+      "identityOidcHint": "Sign in again through single sign-on with the button below, then come back to this tab and select Confirm. Each sign-in confirms once, within 10 minutes.",
+      "identityOidcNoProvider": "Backup and restore need a recent sign-in through single sign-on, and your account has no single sign-on identity to sign in with. Ask another administrator.",
+      "identityTotpSetup": "This server requires two-factor authentication. Set up an authenticator app in your security settings before a backup or a restore.",
       "tooLarge": "The file is larger than the proxy in front of Plimail allows."
     },
     "writingStyle": {
