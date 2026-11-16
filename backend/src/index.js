@@ -39,6 +39,7 @@ import senderFaviconsRoutes from './routes/senderFavicons.js';
 import signatureImagesRoutes from './routes/signatureImages.js';
 import secureMessageRoutes from './routes/secureMessages.js';
 import secureMessagePublicRoutes from './routes/secureMessagesPublic.js';
+import pgpRoutes from './routes/pgp.js';
 import diagnosticsRoutes from './routes/diagnostics.js';
 import backupRoutes from './routes/backup.js';
 import apiTokenRoutes from './routes/apiTokens.js';
@@ -181,6 +182,7 @@ app.use('/api', categoriesRoutes);
 app.use('/api/sender-favicons', senderFaviconsRoutes);
 app.use('/api/signature-images', signatureImagesRoutes);
 app.use('/api/secure-messages', secureMessageRoutes);
+app.use('/api/pgp', pgpRoutes);
 // The recipient of a password-protected message, who has no account: no session involved.
 app.use('/api/s', secureMessagePublicRoutes);
 app.use('/api/diagnostics', diagnosticsRoutes);
