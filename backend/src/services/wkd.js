@@ -127,14 +127,20 @@ export async function lookupWkd(email, { fetchImpl = safeFetch, cache = redisCli
   const { allowPrivateHosts } = await getConnectionPolicy().catch(() => ({ allowPrivateHosts: false }));
   let bytes = null;
   let failure = null;
+  // Whether either place answered at all. The advanced host often does not exist as a TLS site
+  // (a wildcard record pointing at a server without its certificate); the direct one then saying
+  // 404 is the answer, "no key", not a failure.
+  let answered = false;
   for (const url of [urls.advanced, urls.direct]) {
     try {
       bytes = await fetchOne(url, { allowPrivate: allowPrivateHosts, fetchImpl });
+      answered = true;
       if (bytes) break;
     } catch (err) {
       failure = err;
     }
   }
+  if (answered) failure = null;
   let keys = [];
   if (bytes) {
     try {

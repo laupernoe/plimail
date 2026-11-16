@@ -63,8 +63,8 @@ vi.mock('../services/db.js', () => {
         db.ring = db.ring.filter(k => !(k.user_id === p[0] && k.fingerprint === p[1]));
         return { rowCount: before - db.ring.length, rows: [] };
       }
-      if (s.startsWith('SELECT fingerprint, emails, armored_public FROM pgp_keys')) return { rows: db.own.filter(k => k.user_id === p[0]) };
-      if (s.startsWith('SELECT email, fingerprint, armored, source, verified FROM pgp_public_keys')) {
+      if (s.startsWith('SELECT fingerprint, emails, armored_public, key_created_at FROM pgp_keys')) return { rows: db.own.filter(k => k.user_id === p[0]) };
+      if (s.startsWith('SELECT email, fingerprint, armored, source, verified, last_seen FROM pgp_public_keys')) {
         return { rows: db.ring.filter(k => k.user_id === p[0] && p[1].includes(k.email)) };
       }
       throw new Error(`unexpected SQL: ${s}`);
@@ -102,6 +102,7 @@ import express from 'express';
 import pgpRoutes from './pgp.js';
 import { KEYS } from '../services/pgp.fixtures.js';
 import { matchApiTokenRoute } from '../services/apiTokenAllowlist.js';
+import { consume } from '../services/rateLimiter.js';
 
 const ACCOUNT = '11111111-1111-4111-8111-111111111111';
 const OTHER_ACCOUNT = '22222222-2222-4222-8222-222222222222';
@@ -258,6 +259,38 @@ describe('lookup', () => {
     const { results } = await (await call('/lookup', { method: 'POST', user: 'u1', body: { emails: ['bob@example.net', 'alice@example.org'] } })).json();
     expect(results['bob@example.net'].source).toBe(null);
     expect(results['alice@example.org'].source).toBe(null);
+  });
+
+  it('encrypts to one key per address: a verified one before a newer unverified one', async () => {
+    await call('/keyring', { method: 'POST', user: 'u1', body: { armored: KEYS.carolPublic } });
+    // A second key for the same address, seen later (say, collected from a message).
+    db.ring.push({ id: 'x', user_id: 'u1', email: 'carol@example.org', fingerprint: KEYS.bobFingerprint, armored: KEYS.bobPublic, source: 'autocrypt', verified: false, first_seen: new Date(), last_seen: new Date(Date.now() + 1000) });
+    let { results } = await (await call('/lookup', { method: 'POST', user: 'u1', body: { emails: ['carol@example.org'] } })).json();
+    expect(results['carol@example.org'].keys.map(k => k.fingerprint)).toEqual([KEYS.bobFingerprint]);
+    db.ring.find(k => k.fingerprint === KEYS.carolFingerprint).verified = true;
+    ({ results } = await (await call('/lookup', { method: 'POST', user: 'u1', body: { emails: ['carol@example.org'] } })).json());
+    expect(results['carol@example.org'].keys.map(k => k.fingerprint)).toEqual([KEYS.carolFingerprint]);
+  });
+
+  it('asks no directory for a local lookup (the reader), so opening a message tells no one', async () => {
+    wkd.answers.set('carol@example.org', KEYS.carolPublic);
+    const { results } = await (await call('/lookup', { method: 'POST', user: 'u1', body: { emails: ['carol@example.org'], local: true } })).json();
+    expect(results['carol@example.org']).toEqual({ source: null, keys: [] });
+    expect(wkd.calls).toEqual([]);
+  });
+
+  it('counts each address asked of a directory against the limit, not those found locally', async () => {
+    consume.mockClear();
+    await call('/keyring', { method: 'POST', user: 'u1', body: { armored: KEYS.bobPublic } });
+    await call('/lookup', { method: 'POST', user: 'u1', body: { emails: ['bob@example.net', 'a@example.org', 'b@example.org', 'c@example.org'] } });
+    expect(consume.mock.calls.filter(([key]) => key === 'pgp-wkd:u1')).toHaveLength(3);
+    consume.mockClear();
+    await call('/lookup', { method: 'POST', user: 'u1', body: { emails: ['bob@example.net'] } });
+    expect(consume).not.toHaveBeenCalled();
+    consume.mockResolvedValueOnce({ limited: true, resetMs: 5000 });
+    const res = await call('/lookup', { method: 'POST', user: 'u1', body: { emails: ['d@example.org'] } });
+    expect(res.status).toBe(429);
+    expect(wkd.calls).not.toContain('d@example.org');
   });
 
   it('bounds the request', async () => {

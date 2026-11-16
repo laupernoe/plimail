@@ -76,19 +76,31 @@ router.delete('/keyring/:fingerprint', async (req, res) => {
 });
 
 // The keys for a message's recipients: { results: { [email]: { source, keys, error? } } }.
+// `local: true` (the reader) never asks a directory. Each address that has to be asked of one
+// counts against the user's limit; one answered from their own keys or keyring does not.
+const WKD_ADDRESSES_PER_WINDOW = 120;
+const WKD_WINDOW_MS = 10 * 60 * 1000;
+
 router.post('/lookup', async (req, res) => {
   const emails = req.body?.emails;
   if (!Array.isArray(emails) || emails.length > MAX_LOOKUP_EMAILS || emails.some(e => typeof e !== 'string' || e.length > 320)) {
     return res.status(400).json({ error: `emails must be an array of at most ${MAX_LOOKUP_EMAILS} addresses` });
   }
-  // Each lookup may reach out to other servers (WKD), so it is bounded per user.
-  const limit = await consume(`pgp-lookup:${req.session.userId}`, 120, 10 * 60 * 1000);
-  if (limit.limited) {
-    res.set('Retry-After', String(Math.max(1, Math.ceil(limit.resetMs / 1000))));
-    return res.status(429).json({ error: 'Too many key lookups. Try again later.', code: 'rate_limited' });
-  }
+  const userId = req.session.userId;
+  const chargeWkd = async (n) => {
+    let limit;
+    for (let i = 0; i < n; i++) {
+      limit = await consume(`pgp-wkd:${userId}`, WKD_ADDRESSES_PER_WINDOW, WKD_WINDOW_MS);
+      if (limit.limited) throw Object.assign(new PgpRequestError(429, 'Too many key lookups. Try again later.', 'rate_limited'), { resetMs: limit.resetMs });
+    }
+  };
   res.set('Cache-Control', 'no-store');
-  res.json({ results: await lookupRecipientKeys(req.session.userId, emails) });
+  try {
+    res.json({ results: await lookupRecipientKeys(userId, emails, { local: req.body?.local === true, chargeWkd }) });
+  } catch (err) {
+    if (err?.status === 429) res.set('Retry-After', String(Math.max(1, Math.ceil((err.resetMs || 1000) / 1000))));
+    answerError(res, err);
+  }
 });
 
 export default router;

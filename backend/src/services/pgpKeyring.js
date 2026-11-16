@@ -164,38 +164,50 @@ export async function deleteFromKeyring(userId, fingerprint) {
   return rowCount > 0;
 }
 
-// The keys to encrypt to each address: the user's own keys first (writing to oneself), then the
-// keyring, then the address's Web Key Directory. A key found there is saved to the keyring, so
-// the next message uses the same key and a change of key is something the user can see.
-// Returns { [email]: { source: 'own' | 'keyring' | 'wkd' | null, keys: [...], error? } }.
-export async function lookupRecipientKeys(userId, emails, { wkd = lookupWkd } = {}) {
+// The one key to encrypt to for an address, of the rows the keyring holds for it: one the user
+// verified, then the most recently seen. Encrypting to every key ever stored for an address would
+// let an old or planted key read the message too.
+export function preferredKeyringRow(rows) {
+  return [...rows].sort((a, b) => (Number(b.verified) - Number(a.verified))
+    || (new Date(b.last_seen || 0) - new Date(a.last_seen || 0)))[0] || null;
+}
+
+const keyOut = (row, source) => ({ fingerprint: row.fingerprint, armored: row.armored, source, verified: row.verified });
+
+// The key to encrypt to for each address, one per address: the user's own (writing to oneself,
+// the most recent if several), then the keyring's preferred one, then, unless `local`, the
+// address's Web Key Directory. A key found there is saved to the keyring, so the next message uses
+// the same key and a change of key is something the user can see. `chargeWkd(n)` is called with
+// the number of addresses about to be asked of a directory, before any is, and may throw to
+// refuse (the route's rate limit).
+// Returns { [email]: { source: 'own' | 'keyring' | 'wkd' | null, keys: [one], error? } }.
+export async function lookupRecipientKeys(userId, emails, { wkd = lookupWkd, local = false, chargeWkd = async () => {} } = {}) {
   const wanted = [...new Set(emails.map(e => String(e).trim().toLowerCase()).filter(Boolean))];
   const results = {};
   if (!wanted.length) return results;
   const [own, ring] = await Promise.all([
-    query('SELECT fingerprint, emails, armored_public FROM pgp_keys WHERE user_id = $1', [userId]),
+    query('SELECT fingerprint, emails, armored_public, key_created_at FROM pgp_keys WHERE user_id = $1', [userId]),
     query(
-      'SELECT email, fingerprint, armored, source, verified FROM pgp_public_keys WHERE user_id = $1 AND email = ANY($2::text[])',
+      'SELECT email, fingerprint, armored, source, verified, last_seen FROM pgp_public_keys WHERE user_id = $1 AND email = ANY($2::text[])',
       [userId, wanted],
     ),
   ]);
   for (const email of wanted) {
-    const mine = own.rows.filter(r => (r.emails || []).includes(email));
+    const mine = own.rows.filter(r => (r.emails || []).includes(email))
+      .sort((a, b) => new Date(b.key_created_at || 0) - new Date(a.key_created_at || 0));
     if (mine.length) {
-      results[email] = { source: 'own', keys: mine.map(r => ({ fingerprint: r.fingerprint, armored: r.armored_public, source: 'own', verified: true })) };
+      results[email] = { source: 'own', keys: [{ fingerprint: mine[0].fingerprint, armored: mine[0].armored_public, source: 'own', verified: true }] };
       continue;
     }
-    const known = ring.rows.filter(r => r.email === email);
-    if (known.length) {
-      results[email] = { source: 'keyring', keys: known.map(r => ({ fingerprint: r.fingerprint, armored: r.armored, source: r.source, verified: r.verified })) };
-    }
+    const best = preferredKeyringRow(ring.rows.filter(r => r.email === email));
+    if (best) results[email] = { source: 'keyring', keys: [keyOut(best, best.source)] };
   }
   const unknown = wanted.filter(e => !results[e]);
-  await Promise.all(unknown.map(async (email) => {
-    if (!parseWkdAddress(email)) {
-      results[email] = { source: null, keys: [] };
-      return;
-    }
+  const askable = local ? [] : unknown.filter(e => parseWkdAddress(e));
+  for (const email of unknown) if (!askable.includes(email)) results[email] = { source: null, keys: [] };
+  if (!askable.length) return results;
+  await chargeWkd(askable.length);
+  await Promise.all(askable.map(async (email) => {
     let found;
     try {
       found = await wkd(email);
@@ -214,12 +226,13 @@ export async function lookupRecipientKeys(userId, emails, { wkd = lookupWkd } = 
         `INSERT INTO pgp_public_keys (user_id, email, fingerprint, armored, source)
          VALUES ($1, $2, $3, $4, 'wkd')
          ON CONFLICT (user_id, email, fingerprint) DO UPDATE SET armored = EXCLUDED.armored, last_seen = NOW()
-         RETURNING fingerprint, armored, source, verified`,
+         RETURNING fingerprint, armored, source, verified, last_seen`,
         [userId, email, key.primary.fingerprint, key.armored],
       );
       if (rows[0]) saved.push(rows[0]);
     }
-    results[email] = { source: 'wkd', keys: saved };
+    const best = preferredKeyringRow(saved);
+    results[email] = best ? { source: 'wkd', keys: [keyOut(best, 'wkd')] } : { source: null, keys: [] };
   }));
   return results;
 }

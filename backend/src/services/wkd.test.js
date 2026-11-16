@@ -104,6 +104,16 @@ describe('lookupWkd', () => {
     expect(cache.set).not.toHaveBeenCalled();
   });
 
+  it('takes a TLS failure on the advanced host and a 404 on the direct one for no key', async () => {
+    const fetchImpl = vi.fn(async (url) => {
+      if (url.startsWith('https://openpgpkey.')) throw Object.assign(new TypeError('fetch failed'), { cause: { code: 'ERR_TLS_CERT_ALTNAME_INVALID' } });
+      return new Response('', { status: 404 });
+    });
+    const result = await lookupWkd('nobody@example.org', { fetchImpl, cache });
+    expect(result).toEqual({ keys: [], cached: false });
+    expect(JSON.parse(cache.set.mock.calls[0][1])).toEqual({ armored: [] });
+  });
+
   it('treats a name that does not resolve as no key', async () => {
     const fetchImpl = vi.fn(async () => { throw Object.assign(new TypeError('fetch failed'), { cause: { code: 'ENOTFOUND' } }); });
     const result = await lookupWkd('bob@example.net', { fetchImpl, cache });
