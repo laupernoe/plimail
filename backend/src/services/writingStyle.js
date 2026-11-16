@@ -1,4 +1,5 @@
 import { query } from './db.js';
+import { wrapUntrusted } from './aiUntrusted.js';
 
 // "My style": a short profile of how the user writes email, learned by the AI from their own sent
 // mail and editable by them, which the writing assistant follows when it writes as the user.
@@ -9,12 +10,8 @@ export const STYLE_SAMPLES_MAX_TOTAL_CHARS = 20_000;
 export const STYLE_MIN_SAMPLES = 3;
 export const STYLE_MAX_MESSAGES = 25;
 
-// Mail text handed to the model is data, never instructions. A delimiter inside the mail is
-// neutralised, so a message cannot close its own block and speak as the prompt.
-export function wrapUntrusted(text) {
-  const inner = String(text ?? '').replace(/<\s*\/?\s*untrusted_email\b[^>]*>/gi, '[removed]');
-  return `<untrusted_email>\n${inner}\n</untrusted_email>`;
-}
+// Mail text handed to the model is data, never instructions (see aiUntrusted.js).
+export { wrapUntrusted };
 
 const NAMED_ENTITIES = { amp: '&', apos: "'", gt: '>', lt: '<', nbsp: ' ', quot: '"' };
 
