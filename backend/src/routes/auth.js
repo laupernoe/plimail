@@ -794,7 +794,7 @@ export async function patchPreferences(req, res) {
           autoLockMinutes, showMobileAvatars, gravatarAvatars, folderSyncInterval,
           folderOrder, senderFavicons, showMessagePreviews, defaultSender,
           conversationMode, hoverActionSet, autoOpenReplyDrafts, afterRemove, darkEmailBodies, listSort,
-          timeFormat, undoSend, pgpAutoEncrypt } = req.body;
+          timeFormat, undoSend, pgpAutoEncrypt, pgpAutoKeys } = req.body;
   if (autoOpenReplyDrafts !== undefined && typeof autoOpenReplyDrafts !== 'boolean') {
     return res.status(400).json({ error: 'autoOpenReplyDrafts must be a boolean' });
   }
@@ -803,6 +803,9 @@ export async function patchPreferences(req, res) {
   }
   if (pgpAutoEncrypt !== undefined && typeof pgpAutoEncrypt !== 'boolean') {
     return res.status(400).json({ error: 'pgpAutoEncrypt must be a boolean' });
+  }
+  if (pgpAutoKeys !== undefined && typeof pgpAutoKeys !== 'boolean') {
+    return res.status(400).json({ error: 'pgpAutoKeys must be a boolean' });
   }
   if (darkEmailBodies !== undefined && typeof darkEmailBodies !== 'boolean') {
     return res.status(400).json({ error: 'darkEmailBodies must be a boolean' });
@@ -924,6 +927,7 @@ export async function patchPreferences(req, res) {
       || CASE WHEN $45::text IS NOT NULL THEN jsonb_build_object('timeFormat', $45::text) ELSE '{}'::jsonb END
       || CASE WHEN $46::boolean IS NOT NULL THEN jsonb_build_object('undoSend', $46::boolean) ELSE '{}'::jsonb END
       || CASE WHEN $47::boolean IS NOT NULL THEN jsonb_build_object('pgpAutoEncrypt', $47::boolean) ELSE '{}'::jsonb END
+      || CASE WHEN $48::boolean IS NOT NULL THEN jsonb_build_object('pgpAutoKeys', $48::boolean) ELSE '{}'::jsonb END
     WHERE id = $1
   `, [req.session.userId, themeVal, font ?? null, layout ?? null, notificationSound ?? null,
       pageSize ?? null, scrollMode ?? null, syncInterval ?? null,
@@ -935,7 +939,7 @@ export async function patchPreferences(req, res) {
       autoLockMinutesVal,
       showMobileAvatars ?? null, gravatarAvatars ?? null, folderSyncIntervalVal, folderOrderJson, senderFaviconsVal,
       showMessagePreviews ?? null, defaultSenderVal, conversationModeVal, hoverActionSetJson, autoOpenReplyDrafts ?? null,
-      afterRemoveVal, darkEmailBodies ?? null, listSortJson, timeFormatVal, undoSend ?? null, pgpAutoEncrypt ?? null]);
+      afterRemoveVal, darkEmailBodies ?? null, listSortJson, timeFormatVal, undoSend ?? null, pgpAutoEncrypt ?? null, pgpAutoKeys ?? null]);
 
   if (syncInterval != null) {
     const ms = parseInt(syncInterval) * 1000;

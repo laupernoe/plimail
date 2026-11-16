@@ -20,6 +20,8 @@ import { autocryptFor } from './autocrypt.js';
 
 // The user's "encrypt automatically when every recipient has a key" setting, on unless turned off.
 export const pgpPreferEncrypt = preferences => preferences?.pgpAutoEncrypt !== false;
+// "Create and publish my keys automatically": off, no Autocrypt header goes out.
+export const pgpPublishKeys = preferences => preferences?.pgpAutoKeys !== false;
 
 // The outgoing message pipeline: validate what the composer sent, resolve the From identity and
 // any forwarded content, build the message, deliver it over SMTP and record it (Sent copy, Sent
@@ -300,7 +302,8 @@ export async function resolveIdentity(userId, input) {
   // Uploaded images go out with the message (as cid: parts, by buildMailOptions), so a held or
   // scheduled send carries them too and recipients never load them from this server.
   const signature = await inlineSignatureImages(sanitized, userId);
-  const autocrypt = await autocryptFor(userId, fromEmail, { preferEncrypt: pgpPreferEncrypt(prefResult.rows[0]?.preferences) });
+  const prefs = prefResult.rows[0]?.preferences;
+  const autocrypt = pgpPublishKeys(prefs) ? await autocryptFor(userId, fromEmail, { preferEncrypt: pgpPreferEncrypt(prefs) }) : null;
 
   return { account: owned, plaintextEmail, fromName, fromEmail, replyTo, signature, autocrypt };
 }

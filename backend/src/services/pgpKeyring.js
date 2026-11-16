@@ -37,10 +37,11 @@ const ownKeyRow = r => ({
   armoredPrivate: r.armored_private,
   protection: r.protection || 'passphrase',
   auto: r.auto_email != null,
+  stale: r.stale_at != null,
 });
 
 export const KEY_PROTECTIONS = new Set(['passphrase', 'login']);
-const OWN_COLUMNS = 'id, account_id, fingerprint, emails, user_ids, algorithm, armored_public, armored_private, key_created_at, created_at, protection, auto_email';
+const OWN_COLUMNS = 'id, account_id, fingerprint, emails, user_ids, algorithm, armored_public, armored_private, key_created_at, created_at, protection, auto_email, stale_at';
 
 export async function listOwnKeys(userId) {
   const { rows } = await query(`SELECT ${OWN_COLUMNS} FROM pgp_keys WHERE user_id = $1 ORDER BY created_at`, [userId]);
@@ -63,7 +64,9 @@ export async function kdfSalt(userId) {
 // passphrase-protected (parseOwnKeyPair) before anything is written. `protection` says with what
 // (KEY_PROTECTIONS); the server cannot tell and does not need to. `auto`: a key Plimail made by
 // itself for the one address it is for. One is stored per address and user, and none for an
-// address that already has a key: another tab that made one at the same time gets 409 'exists'.
+// address that already has a usable key: another tab that made one at the same time gets 409
+// 'exists'. A stale key (setKeyStale) gives up the address's slot, so a new key can replace it as
+// the one in use while the old one stays for reading old mail.
 export async function addOwnKey(userId, { armoredPrivate, armoredPublic, accountId = null, protection = 'passphrase', auto = false }) {
   if (typeof armoredPrivate !== 'string' || typeof armoredPublic !== 'string') {
     throw new PgpRequestError(400, 'armoredPrivate and armoredPublic are required');
@@ -92,15 +95,22 @@ export async function addOwnKey(userId, { armoredPrivate, armoredPublic, account
     parsed.algorithm, parsed.armoredPublic, parsed.armoredPrivate, parsed.created, protection];
   if (auto) {
     const email = parsed.emails[0];
-    // No key over one the address already has; the unique index on auto_email settles two at once.
-    const { rows } = await query(
-      `INSERT INTO pgp_keys (user_id, account_id, fingerprint, emails, user_ids, algorithm, armored_public, armored_private, key_created_at, protection, auto_email)
-       SELECT $1, $2, $3, $4::jsonb, $5::jsonb, $6, $7, $8, $9, $10, $11
-       WHERE NOT EXISTS (SELECT 1 FROM pgp_keys WHERE user_id = $1 AND emails ? $11)
-       ON CONFLICT DO NOTHING
-       RETURNING ${OWN_COLUMNS}`,
-      [...values, email],
-    );
+    // No key over a usable one the address already has; the unique index on auto_email settles
+    // two at once.
+    const rows = await withTransaction(async (db) => {
+      await db.query(
+        'UPDATE pgp_keys SET auto_email = NULL WHERE user_id = $1 AND auto_email = $2 AND stale_at IS NOT NULL',
+        [userId, email],
+      );
+      return (await db.query(
+        `INSERT INTO pgp_keys (user_id, account_id, fingerprint, emails, user_ids, algorithm, armored_public, armored_private, key_created_at, protection, auto_email)
+         SELECT $1, $2, $3, $4::jsonb, $5::jsonb, $6, $7, $8, $9, $10, $11
+         WHERE NOT EXISTS (SELECT 1 FROM pgp_keys WHERE user_id = $1 AND emails ? $11 AND stale_at IS NULL)
+         ON CONFLICT DO NOTHING
+         RETURNING ${OWN_COLUMNS}`,
+        [...values, email],
+      )).rows;
+    });
     if (!rows.length) throw new PgpRequestError(409, 'This address already has a key', 'exists');
     return ownKeyRow(rows[0]);
   }
@@ -152,13 +162,26 @@ export async function setKeysProtection(userId, updates, { client = null } = {})
     });
     for (const p of parsed) {
       await db.query(
-        'UPDATE pgp_keys SET armored_private = $3, protection = $4 WHERE id = $1 AND user_id = $2',
+        // Encrypted again for the password the user has now: usable again.
+        'UPDATE pgp_keys SET armored_private = $3, protection = $4, stale_at = NULL WHERE id = $1 AND user_id = $2',
         [p.id, userId, p.armoredPrivate, p.protection],
       );
     }
     return parsed.length;
   };
   return client ? run(client) : withTransaction(run);
+}
+
+// What the owner's browser found: the current Plimail password does not open this 'login' key
+// (stale), or does again. The server cannot check it, and need not: a key marked stale is only
+// left out of what goes to others (Autocrypt) and out of the browser's choice of key to use.
+export async function setKeyStale(userId, id, stale) {
+  const { rowCount } = await query(
+    `UPDATE pgp_keys SET stale_at = CASE WHEN $3 THEN COALESCE(stale_at, NOW()) ELSE NULL END
+     WHERE id = $1 AND user_id = $2 AND protection = 'login'`,
+    [id, userId, stale === true],
+  );
+  return rowCount > 0;
 }
 
 export async function deleteOwnKey(userId, id) {

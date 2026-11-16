@@ -330,3 +330,17 @@ describe('PATCH /auth/preferences pgpAutoEncrypt', () => {
     expect(query.mock.calls[0][1][46]).toBeNull();
   });
 });
+
+describe('PATCH /auth/preferences pgpAutoKeys', () => {
+  const res = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn() });
+  it('persists a boolean and refuses anything else', async () => {
+    await patchPreferences({ session: { userId: 'user-1' }, body: { pgpAutoKeys: false } }, res());
+    expect(query.mock.calls[0][0]).toContain("jsonb_build_object('pgpAutoKeys', $48::boolean)");
+    expect(query.mock.calls[0][1][47]).toBe(false);
+    query.mockClear();
+    const r = res();
+    await patchPreferences({ session: { userId: 'user-1' }, body: { pgpAutoKeys: 'off' } }, r);
+    expect(r.status).toHaveBeenCalledWith(400);
+    expect(query).not.toHaveBeenCalled();
+  });
+});

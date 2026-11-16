@@ -5,7 +5,7 @@ import { findOwnedAccount } from './ownership.js';
 import { sanitizeSignature } from './emailSanitizer.js';
 import { autocryptFor } from './autocrypt.js';
 import {
-  buildMailOptions, deliverAndRecord, pgpPreferEncrypt, prepareDelivery, renderRawMessage, sanitizeSmtpError, serverAutoSavesSent,
+  buildMailOptions, deliverAndRecord, pgpPreferEncrypt, pgpPublishKeys, prepareDelivery, renderRawMessage, sanitizeSmtpError, serverAutoSavesSent,
   validateSendInput,
 } from './outgoingMail.js';
 import { sendPushToUser } from './pushNotifications.js';
@@ -668,7 +668,9 @@ export class ScheduledSender {
     if (!account?.user_id) return null;
     try {
       const { rows } = await this.db.query('SELECT preferences FROM users WHERE id = $1', [account.user_id]);
-      return await autocryptFor(account.user_id, fromEmail, { preferEncrypt: pgpPreferEncrypt(rows?.[0]?.preferences), query: (sql, p) => this.db.query(sql, p) });
+      const prefs = rows?.[0]?.preferences;
+      if (!pgpPublishKeys(prefs)) return null;
+      return await autocryptFor(account.user_id, fromEmail, { preferEncrypt: pgpPreferEncrypt(prefs), query: (sql, p) => this.db.query(sql, p) });
     } catch {
       return null;
     }

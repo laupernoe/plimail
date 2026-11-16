@@ -108,7 +108,11 @@ describe('resolveIdentity', () => {
     expect(id.autocrypt).toMatch(/^addr=alice@example\.org; prefer-encrypt=mutual; keydata=\r\n /);
     query.mockImplementation(keyFor({ pgpAutoEncrypt: false }));
     expect((await resolveIdentity('u1', valid())).autocrypt).toMatch(/^addr=alice@example\.org; keydata=/);
+    // "Create and publish my keys automatically" off: no header.
+    query.mockImplementation(keyFor({ pgpAutoKeys: false }));
+    expect((await resolveIdentity('u1', valid())).autocrypt).toBeNull();
     findOwnedAccount.mockResolvedValue(account);
+    query.mockImplementation(keyFor({}));
     expect((await resolveIdentity('u1', valid())).autocrypt).toBeNull();
   });
 

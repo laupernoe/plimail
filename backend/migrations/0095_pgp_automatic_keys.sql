@@ -7,10 +7,15 @@
 -- `pgp_keys.protection` says what the private key is encrypted with: 'passphrase', a passphrase of
 -- the user's own (the keys of migration 0094), or 'login', the passphrase derived from the Plimail
 -- password. `auto_email` is set on a key Plimail made by itself for an address, and is unique per
--- user, so two tabs making the first key at once store one. Additive and idempotent.
+-- user, so two tabs making the first key at once store one. `stale_at` is set by the owner's
+-- browser when the current Plimail password does not open a 'login' key (the password was reset
+-- and the old one is gone): such a key still decrypts old mail once recovered, but is never sent
+-- in an Autocrypt header nor used to encrypt or sign, and no longer holds its address's
+-- automatic slot, so a new key can be made. Additive and idempotent.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS pgp_kdf_salt TEXT;
 ALTER TABLE pgp_keys ADD COLUMN IF NOT EXISTS protection TEXT NOT NULL DEFAULT 'passphrase';
 ALTER TABLE pgp_keys ADD COLUMN IF NOT EXISTS auto_email TEXT;
+ALTER TABLE pgp_keys ADD COLUMN IF NOT EXISTS stale_at TIMESTAMPTZ;
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'pgp_keys_protection_check') THEN

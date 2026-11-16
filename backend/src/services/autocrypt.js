@@ -129,16 +129,19 @@ export function autocryptHeaderValue({ addr, keydata, preferEncrypt = false }) {
   return [head, ...lines].join('\r\n ');
 }
 
-// The Autocrypt header value for mail `userId` sends from `fromEmail`, or null: the newest of the
-// user's own keys for the address. `preferEncrypt` is the user's "encrypt automatically" setting,
-// which is what prefer-encrypt=mutual tells correspondents. Never throws: a key it cannot read
-// leaves the header out, and the message goes as it would have without one.
+// The Autocrypt header value for mail `userId` sends from `fromEmail`, or null: the key the
+// browser uses for the address too (frontend utils/pgpSend.js ownKeyFor), never a stale one
+// (pgp_keys.stale_at: the user can no longer open it, so mail encrypted to it would be lost), a key
+// the user imported before one Plimail made, then the newest. `preferEncrypt` is the user's
+// "encrypt automatically" setting, which is what prefer-encrypt=mutual tells correspondents.
+// Never throws: a key it cannot read leaves the header out, and the message goes without one.
 export async function autocryptFor(userId, fromEmail, { preferEncrypt = false, query = defaultQuery } = {}) {
   const addr = String(fromEmail || '').trim().toLowerCase();
   if (!userId || !addr) return null;
   try {
     const { rows } = await query(
-      'SELECT armored_public FROM pgp_keys WHERE user_id = $1 AND emails ? $2 ORDER BY key_created_at DESC NULLS LAST, created_at DESC LIMIT 1',
+      `SELECT armored_public FROM pgp_keys WHERE user_id = $1 AND emails ? $2 AND stale_at IS NULL
+       ORDER BY (auto_email IS NULL) DESC, key_created_at DESC NULLS LAST, created_at DESC LIMIT 1`,
       [userId, addr],
     );
     const armored = rows?.[0]?.armored_public;

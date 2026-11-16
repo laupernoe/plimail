@@ -26,7 +26,7 @@ vi.mock('./db.js', () => ({
 }));
 
 import { runMigrations } from './migrations.js';
-import { addOwnKey, kdfSalt, listOwnKeys, setKeysProtection } from './pgpKeyring.js';
+import { addOwnKey, kdfSalt, listOwnKeys, setKeyStale, setKeysProtection } from './pgpKeyring.js';
 import { autocryptFor } from './autocrypt.js';
 import { KEYS } from './pgp.fixtures.js';
 
@@ -92,6 +92,29 @@ describe.skipIf(!ADMIN_URL)('automatic OpenPGP keys on PostgreSQL', () => {
       .rejects.toMatchObject({ status: 404 });
     expect(await setKeysProtection(ann.id, [{ id: a.id, armoredPrivate: KEYS.alicePrivate, protection: 'passphrase' }])).toBe(1);
     expect((await listOwnKeys(ann.id)).find(k => k.id === a.id).protection).toBe('passphrase');
+  });
+
+  it('never advertises a stale key, prefers an imported key, and gives a stale key\'s address a new one', async () => {
+    const old = await auto(ann.id);
+    expect(await autocryptFor(ann.id, 'alice@example.org')).not.toBeNull();
+    await setKeyStale(ann.id, old.id, true);
+    expect(await autocryptFor(ann.id, 'alice@example.org')).toBeNull();
+    // A new automatic key for the address (another fingerprint: Bob's key re-labelled is not
+    // possible without crypto, so Carol's stands in, imported for a different address).
+    await h.pool.query("UPDATE pgp_keys SET fingerprint = 'old' WHERE id = $1", [old.id]);
+    const fresh = await auto(ann.id);
+    const keys = await listOwnKeys(ann.id);
+    expect(keys.map(k => [k.id, k.stale, k.auto])).toEqual([[old.id, true, false], [fresh.id, false, true]]);
+    expect(await autocryptFor(ann.id, 'alice@example.org')).not.toBeNull();
+  });
+
+  it('puts a key the user imported in the Autocrypt header before a newer one Plimail made', async () => {
+    const made = await auto(ann.id);
+    // The automatic key, made later, stands in with a public key that has no user ID for the
+    // address: chosen, it would give no header at all.
+    await h.pool.query("UPDATE pgp_keys SET fingerprint = 'x', armored_public = $2, key_created_at = NOW() + interval '1 day' WHERE id = $1", [made.id, KEYS.bobPublic]);
+    await addOwnKey(ann.id, { armoredPrivate: KEYS.alicePrivate, armoredPublic: KEYS.alicePublic });
+    expect(await autocryptFor(ann.id, 'alice@example.org')).toMatch(/^addr=alice@example\.org;/);
   });
 
   it('keeps one salt per user and finds the From address\'s key for the Autocrypt header', async () => {

@@ -19,8 +19,17 @@ vi.mock('../services/db.js', () => {
         const u = db.users.get(p[0]);
         return { rows: u ? [{ password_hash: u.password_hash ?? null }] : [] };
       }
+      if (s.startsWith('UPDATE pgp_keys SET auto_email = NULL')) {
+        for (const k of db.own) if (k.user_id === p[0] && k.auto_email === p[1] && k.stale_at) k.auto_email = null;
+        return { rows: [], rowCount: 0 };
+      }
+      if (s.startsWith('UPDATE pgp_keys SET stale_at')) {
+        const k = db.own.find(r => r.id === p[0] && r.user_id === p[1] && r.protection === 'login');
+        if (k) k.stale_at = p[2] ? (k.stale_at || new Date()) : null;
+        return { rows: [], rowCount: k ? 1 : 0 };
+      }
       if (s.startsWith('INSERT INTO pgp_keys') && s.includes('WHERE NOT EXISTS')) {
-        if (db.own.some(k => k.user_id === p[0] && (k.fingerprint === p[2] || k.emails.includes(p[10]) || k.auto_email === p[10]))) return { rows: [] };
+        if (db.own.some(k => k.user_id === p[0] && (k.fingerprint === p[2] || (k.emails.includes(p[10]) && !k.stale_at) || k.auto_email === p[10]))) return { rows: [] };
         const row = {
           id: id(), user_id: p[0], account_id: p[1], fingerprint: p[2], emails: JSON.parse(p[3]), user_ids: JSON.parse(p[4]),
           algorithm: p[5], armored_public: p[6], armored_private: p[7], key_created_at: p[8], created_at: new Date(), protection: p[9], auto_email: p[10],
@@ -33,7 +42,7 @@ vi.mock('../services/db.js', () => {
       }
       if (s.startsWith('UPDATE pgp_keys SET armored_private')) {
         const k = db.own.find(r => r.id === p[0] && r.user_id === p[1]);
-        if (k) { k.armored_private = p[2]; k.protection = p[3]; }
+        if (k) { k.armored_private = p[2]; k.protection = p[3]; k.stale_at = null; }
         return { rowCount: k ? 1 : 0, rows: [] };
       }
       if (s.startsWith('SELECT id FROM email_accounts')) {
@@ -116,7 +125,7 @@ vi.mock('../services/ownership.js', () => ({
     return a && a.user_id === userId ? { id: a.id } : null;
   }),
 }));
-vi.mock('../services/rateLimiter.js', () => ({ consume: vi.fn(async () => ({ limited: false, resetMs: 0 })) }));
+vi.mock('../services/rateLimiter.js', () => ({ consume: vi.fn(async () => ({ limited: false, resetMs: 0 })), release: vi.fn(async () => {}) }));
 vi.mock('bcryptjs', () => ({ default: { compare: vi.fn(async (password, hash) => hash === `hash:${password}`) } }));
 vi.mock('../services/wkd.js', async () => {
   const { parsePublicKeys } = await import('../services/pgpPackets.js');
@@ -141,7 +150,8 @@ import express from 'express';
 import pgpRoutes from './pgp.js';
 import { KEYS } from '../services/pgp.fixtures.js';
 import { matchApiTokenRoute } from '../services/apiTokenAllowlist.js';
-import { consume } from '../services/rateLimiter.js';
+import { consume, release } from '../services/rateLimiter.js';
+import { authLimiterConfig } from '../services/authLimiter.js';
 
 const ACCOUNT = '11111111-1111-4111-8111-111111111111';
 const OTHER_ACCOUNT = '22222222-2222-4222-8222-222222222222';
@@ -289,6 +299,54 @@ describe('keys that unlock with the Plimail password', () => {
     const ok = await put([{ id: a.id, armoredPrivate: KEYS.alicePrivate, protection: 'passphrase' }]);
     expect(await ok.json()).toEqual({ updated: 1 });
     expect(db.own[0].protection).toBe('passphrase');
+  });
+});
+
+describe('keys the current password no longer opens', () => {
+  const addAuto = () => addAlice('u1', { protection: 'login', auto: true });
+
+  it('lets the owner mark a login key stale, and then makes a new automatic key for the address', async () => {
+    const { key: old } = await (await addAuto()).json();
+    expect((await call(`/keys/${old.id}`, { method: 'PATCH', user: 'u2', body: { stale: true } })).status).toBe(404);
+    expect((await call(`/keys/${old.id}`, { method: 'PATCH', user: 'u1', body: { stale: 'yes' } })).status).toBe(400);
+    expect((await call(`/keys/${old.id}`, { method: 'PATCH', user: 'u1', body: { stale: true } })).status).toBe(200);
+    const { keys } = await (await call('/keys', { user: 'u1' })).json();
+    expect(keys[0]).toMatchObject({ stale: true, auto: true });
+    // Same fixture key again stands in for a new one: the old row keeps its fingerprint, so give the
+    // new one another fingerprint by removing the duplicate guard's match.
+    db.own[0].fingerprint = 'old';
+    expect((await addAuto()).status).toBe(201);
+    expect(db.own).toHaveLength(2);
+    expect(db.own.map(k => [Boolean(k.stale_at), k.auto_email])).toEqual([[true, null], [false, 'alice@example.org']]);
+  });
+
+  it('a key with its own passphrase cannot be marked, and re-encrypting a key makes it usable again', async () => {
+    const { key: own } = await (await addAlice()).json();
+    expect((await call(`/keys/${own.id}`, { method: 'PATCH', user: 'u1', body: { stale: true } })).status).toBe(404);
+    db.own = [];
+    const { key } = await (await addAuto()).json();
+    await call(`/keys/${key.id}`, { method: 'PATCH', user: 'u1', body: { stale: true } });
+    await call('/keys/protection', { method: 'PUT', user: 'u1', body: { keys: [{ id: key.id, armoredPrivate: KEYS.alicePrivate, protection: 'login' }] } });
+    expect(db.own[0].stale_at).toBeNull();
+  });
+});
+
+describe('verify-password budget', () => {
+  it('counts wrong passwords against the sign-in limit, per user, and hands a right one back', async () => {
+    consume.mockClear();
+    release.mockClear();
+    authLimiterConfig.maxRequests = 4;
+    const check = password => call('/verify-password', { method: 'POST', user: 'u1', body: { password } });
+    await check('wrong');
+    expect(consume).toHaveBeenLastCalledWith('pgp-verify:u1', 4, authLimiterConfig.windowMs);
+    expect(release).not.toHaveBeenCalled();
+    await check('secret pw');
+    expect(release).toHaveBeenCalledWith('pgp-verify:u1');
+    consume.mockResolvedValueOnce({ limited: true, resetMs: 5000 });
+    const limited = await check('secret pw');
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get('retry-after')).toBe('5');
+    authLimiterConfig.maxRequests = 10;
   });
 });
 
