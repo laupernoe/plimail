@@ -54,9 +54,11 @@ export function analyzeRaw(raw) {
   if (enc) return { ...base, kind: 'inlineEncrypted', armored: enc[0] };
   const sig = CLEARTEXT_SIGNED.exec(text);
   if (sig) {
-    return sig.index === 0 && sig[0].length === text.length
-      ? { ...base, kind: 'inlineSigned', cleartext: sig[0] }
-      : { ...base, kind: 'partlySigned' };
+    // Signed only when the signed text is all the reader shows: no HTML alternative (the pane
+    // shows that instead, and nothing signs it), no other part, no unsigned text around it.
+    const whole = sig.index === 0 && sig[0].length === text.length
+      && content.html == null && !content.attachments.length && !content.inline.length;
+    return whole ? { ...base, kind: 'inlineSigned', cleartext: sig[0] } : { ...base, kind: 'partlySigned' };
   }
   return null;
 }
@@ -92,26 +94,6 @@ export async function findDecryptionKeys(armored, ownKeys, { preferEmails = [] }
 
 export async function findDecryptionKey(armored, ownKeys) {
   return (await findDecryptionKeys(armored, ownKeys))[0] || null;
-}
-
-// Whether the receiving server vouched for the From domain: the topmost Authentication-Results
-// (the one the user's own server added; any below came with the message and prove nothing) says
-// dmarc=pass, or dkim=pass for the From domain or a parent of it. Autocrypt keys are collected
-// without asking only then, since a From that is not authenticated can be anyone's.
-export function senderAuthenticated(root, fromEmail) {
-  const header = (root?.headers || []).find(h => h.name === 'authentication-results');
-  const domain = lower(String(fromEmail || '').split('@')[1]);
-  if (!header || !domain) return false;
-  const value = lower(header.value);
-  if (/(?:^|[\s;])dmarc=pass\b/.test(value)) {
-    const from = /header\.from=([^\s;]+)/.exec(value.slice(value.search(/dmarc=pass/)));
-    return !from || from[1] === domain;
-  }
-  for (const m of value.matchAll(/dkim=pass\b([^;]*)/g)) {
-    const d = /header\.(?:d|i)=@?([^\s;]+)/.exec(m[1]);
-    if (d && (d[1] === domain || domain.endsWith(`.${d[1]}`))) return true;
-  }
-  return false;
 }
 
 // A signature result with the trust the user gave the key: 'verified' when good and the key is

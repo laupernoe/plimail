@@ -5,7 +5,7 @@ import { api } from '../utils/api.js';
 import { armoredPublicFrom, shortFingerprint, unlockPrivateKey } from '../utils/pgp.js';
 import { rememberUnlockedKey, unlockedKey } from '../utils/pgpSession.js';
 import {
-  analyzeRaw, decryptMessage, deliveryAddresses, findDecryptionKeys, senderAuthenticated, senderKeysFor, verifySigned,
+  analyzeRaw, decryptMessage, deliveryAddresses, findDecryptionKeys, senderKeysFor, verifySigned,
 } from '../utils/pgpReader.js';
 import { button } from './pgpStyles.js';
 
@@ -121,23 +121,16 @@ function KeyOffer({ offer, onDone }) {
   );
 }
 
-// What the message's Autocrypt header offers. Collected at once (unverified, as the keyring marks
-// every key until the user checks it) only when the sender has no key here yet and the receiving
-// server authenticated the From domain (senderAuthenticated): otherwise anyone could plant a key
-// for any address by sending one message. Offered for an explicit import in every other case.
-export async function autocryptOffer(analyzed, fromEmail, senderKeys, { addToKeyring = api.pgp.addToKeyring } = {}) {
+// What the message's Autocrypt header offers, for the user to import or not. Never taken without
+// asking: who sent a message is only what its headers claim, and an Authentication-Results header
+// may be the sender's own, so a key collected by itself could be anyone's key for the address.
+export async function autocryptOffer(analyzed, fromEmail, senderKeys) {
   const ac = analyzed?.autocrypt;
   if (!ac || !fromEmail || ac.addr !== fromEmail.toLowerCase()) return null;
   let parsed;
   try { parsed = await armoredPublicFrom({ base64: ac.keydata }); } catch { return null; }
   const fingerprint = parsed.keys[0]?.getFingerprint();
   if (senderKeys.some(k => k.fingerprint === fingerprint)) return null;
-  if (!senderKeys.length && senderAuthenticated(analyzed.root, fromEmail)) {
-    try {
-      await addToKeyring({ armored: parsed.armored, source: 'autocrypt', email: ac.addr });
-      return { collected: true };
-    } catch { /* offered below instead */ }
-  }
   return { armored: parsed.armored, source: 'autocrypt', email: ac.addr, different: senderKeys.length > 0 };
 }
 
@@ -270,7 +263,7 @@ export default function PgpMessageView({ message, onOpenSettings, onShowOriginal
         const sKeys = await senderKeysFor(message.from_email, api.pgp.lookup);
         if (cancelled) return;
         setSenderKeys(sKeys);
-        autocryptOffer(analyzed, message.from_email, sKeys).then(o => { if (!cancelled && o && !o.collected) setOffer(o); });
+        autocryptOffer(analyzed, message.from_email, sKeys).then(o => { if (!cancelled && o) setOffer(o); });
         if (!own.keys?.length) { setPhase('noKeys'); return; }
         const rows = await findDecryptionKeys(analyzed.armored, own.keys, { preferEmails: deliveryAddresses(analyzed.root) });
         if (cancelled) return;
@@ -405,9 +398,7 @@ export function PgpSignatureBadge({ message }) {
         if (cancelled) return;
         setSignature(result);
         const o = await autocryptOffer(analyzed, message.from_email, sKeys);
-        // A key collected from this very message is not checked against it: anyone can sign with
-        // a key they put in their own message. It verifies later messages, still unverified.
-        if (!cancelled && o && !o.collected) setOffer(o);
+        if (!cancelled && o) setOffer(o);
       } catch { /* no line rather than a wrong one */ }
     })();
     return () => { cancelled = true; };

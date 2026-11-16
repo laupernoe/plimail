@@ -5,7 +5,7 @@ import { encryptMime, generateKeyPair, unlockPrivateKey } from './pgp.js';
 import { buildMimeEntity, entityBytes } from './mimeBuild.js';
 import { canonicalEntityBytes, parseMime } from './mimeParse.js';
 import {
-  analyzeRaw, decryptMessage, deliveryAddresses, findDecryptionKey, findDecryptionKeys, pgpVisibleAttachments, senderAuthenticated, verifySigned, withTrust,
+  analyzeRaw, decryptMessage, deliveryAddresses, findDecryptionKey, findDecryptionKeys, pgpVisibleAttachments, verifySigned, withTrust,
 } from './pgpReader.js';
 
 const alice = await generateKeyPair({ email: 'alice@example.org', passphrase: 'a-pass-123' });
@@ -157,20 +157,23 @@ test('with hidden recipients every key is a candidate, those for the delivery ad
   assert.deepEqual((await findDecryptionKeys(named, rows)).map(r => r.id), ['k1']);
 });
 
-test('trusts the receiving server\'s authentication of From, only the topmost result', () => {
-  const root = (...headers) => parseMime(enc.encode(`${headers.join('\r\n')}\r\n\r\nx`));
-  assert.equal(senderAuthenticated(root('Authentication-Results: mx.example.com; dkim=pass header.d=example.org; dmarc=pass header.from=example.org'), 'a@example.org'), true);
-  assert.equal(senderAuthenticated(root('Authentication-Results: mx.example.com; dkim=pass header.d=mail.example.org'), 'a@mail.example.org'), true);
-  assert.equal(senderAuthenticated(root('Authentication-Results: mx.example.com; dkim=pass header.d=example.org'), 'a@sub.example.org'), true);
-  // A DKIM pass for someone else's domain says nothing about From.
-  assert.equal(senderAuthenticated(root('Authentication-Results: mx.example.com; dkim=pass header.d=attacker.example; dmarc=fail'), 'a@example.org'), false);
-  assert.equal(senderAuthenticated(root('Authentication-Results: mx.example.com; dmarc=pass header.from=attacker.example'), 'a@example.org'), false);
-  // A forged result further down (added by the sender) is not the one read.
-  assert.equal(senderAuthenticated(root(
-    'Authentication-Results: mx.example.com; dkim=none; dmarc=fail',
-    'Authentication-Results: fake; dkim=pass header.d=example.org; dmarc=pass',
-  ), 'a@example.org'), false);
-  assert.equal(senderAuthenticated(root('Subject: x'), 'a@example.org'), false);
+test('a signed text with an HTML alternative is not a signed message: the HTML is what shows', async () => {
+  const signingKey = await unlockPrivateKey(alice.armoredPrivate, 'a-pass-123');
+  const clear = (await openpgp.sign({ message: await openpgp.createCleartextMessage({ text: 'hello' }), signingKeys: signingKey })).replace(/\n/g, '\r\n');
+  const raw = enc.encode([
+    'From: alice@example.org', 'Content-Type: multipart/alternative; boundary="b"', '',
+    '--b', 'Content-Type: text/plain; charset=utf-8', '', clear.replace(/\r\n$/, ''),
+    '--b', 'Content-Type: text/html; charset=utf-8', '', '<p>Wire money to X</p>', '--b--', '',
+  ].join('\r\n'));
+  const analyzed = analyzeRaw(raw);
+  assert.equal(analyzed.kind, 'partlySigned');
+  assert.equal((await verifySigned(analyzed, aliceAsSender(true))).state, 'partial');
+  // Nor with a file next to it.
+  const withFile = enc.encode([
+    'Content-Type: multipart/mixed; boundary="m"', '', '--m', 'Content-Type: text/plain', '', clear.replace(/\r\n$/, ''),
+    '--m', 'Content-Type: application/pdf; name="x.pdf"', 'Content-Disposition: attachment; filename="x.pdf"', '', 'JVBERi0=', '--m--', '',
+  ].join('\r\n'));
+  assert.equal(analyzeRaw(withFile).kind, 'partlySigned');
 });
 
 test('shows an encrypted message\'s parts as received when asked', () => {

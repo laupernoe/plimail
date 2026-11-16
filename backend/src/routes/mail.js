@@ -594,11 +594,11 @@ router.get('/messages/:id/body', async (req, res) => {
     const imageStats = {};
     if (remoteImagesProxied && shown) responseHtml = proxyRemoteImages(shown, (raw, width) => imageProxyPath(id, raw, width), imageStats);
     const inline = req.query.original === '1' ? { html: responseHtml, count: 0 } : await fitInlineImages(responseHtml, req.session.userId);
-    return res.json({ ...splitDarkScheme(inline.html), inlineImagesFitted: inline.count > 0, text: message.body_text, attachments: cachedAttachments, pgp: pgpKindOfBody({ snippet: message.snippet, text: message.body_text, attachments: cachedAttachments }), hasBlockedRemoteImages, remoteImagesBlocked, remoteImagesProxied, trackersBlocked: imageStats.trackers ?? 0, senderEmail: message.sender_email, senderName: message.sender_name, forwardedFromEmail: message.forwarded_from_email, forwardedFromName: message.forwarded_from_name, forwardedVia: message.forwarded_via, bccAddresses: bccOf(message) });
+    return res.json({ ...splitDarkScheme(inline.html), inlineImagesFitted: inline.count > 0, text: message.body_text, attachments: cachedAttachments, pgp: pgpKindOfBody({ snippet: message.snippet, text: message.body_text, html: message.body_html, attachments: cachedAttachments }), hasBlockedRemoteImages, remoteImagesBlocked, remoteImagesProxied, trackersBlocked: imageStats.trackers ?? 0, senderEmail: message.sender_email, senderName: message.sender_name, forwardedFromEmail: message.forwarded_from_email, forwardedFromName: message.forwarded_from_name, forwardedVia: message.forwarded_via, bccAddresses: bccOf(message) });
   };
   // A body fetched from the mail server and stored (storeFetchedBody), as the response gives it.
   const serveFetched = async ({ sanitized, safeText, attachments, pgp: structureKind = null }) => {
-    const pgp = pgpKindOfBody({ structureKind, snippet: message.snippet, text: safeText, attachments });
+    const pgp = pgpKindOfBody({ structureKind, snippet: message.snippet, text: safeText, html: sanitized, attachments });
     // A message synced before encrypted mail was recognized keeps its ciphertext or "Version: 1"
     // as its snippet; it gets the marker the list shows as "Encrypted message". Only on the
     // structure's word: the marker is what makes a stored message read as encrypted from then on.

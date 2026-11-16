@@ -46,6 +46,12 @@ describe('pgpKindOfBody', () => {
     expect(pgpKindOfBody({ text: 'An email that mentions -----BEGIN PGP MESSAGE----- in passing.' })).toBe(null);
   });
 
+  it('does not call a signed text with an HTML alternative signed: the HTML is what shows', () => {
+    const signedText = '-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA256\n\nhello\n-----BEGIN PGP SIGNATURE-----\nx\n-----END PGP SIGNATURE-----';
+    expect(pgpKindOfBody({ text: signedText, html: '<p>Wire money to X</p>' })).toBe(null);
+    expect(pgpKindOfBody({ text: signedText })).toBe('signed');
+  });
+
   it('does not take ordinary mail for encrypted: a quoted or pasted block, a .pgp file', () => {
     // Its body and attachments would be hidden behind a lock that opens nothing.
     expect(pgpKindOfBody({ text: `Here is what you sent:\n${inlineArmor}` })).toBe(null);

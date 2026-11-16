@@ -156,22 +156,23 @@ test('decrypted files download as octet-stream, whatever type the sender declare
   assert.equal(ATTACHMENT_BLOB_TYPE, 'application/octet-stream');
 });
 
-test('collects an Autocrypt key without asking only when the server authenticated the sender', async () => {
+test('never takes an Autocrypt key without asking, whatever the headers claim', async () => {
   const bob = await generateKeyPair({ email: 'bob@example.net', passphrase: 'x-pass-123' });
   const { readKey } = await import('openpgp');
   const keydata = btoa(String.fromCharCode(...(await readKey({ armoredKey: bob.armoredPublic })).write()));
-  const added = [];
-  const addToKeyring = async (body) => { added.push(body); return { added: [] }; };
+  const posted = [];
+  const before = globalThis.fetch;
+  globalThis.fetch = async (url, init) => { if (String(url) === '/api/pgp/keyring') posted.push(init); return before(url, init); };
   const { parseMime } = await import('../utils/mimeParse.js');
-  const msg = auth => ({ autocrypt: { addr: 'bob@example.net', keydata }, root: parseMime(new TextEncoder().encode(`${auth}From: bob@example.net\r\n\r\nx`)) });
-  // Spoofable From: offered for an explicit import, not taken.
-  const offered = await autocryptOffer(msg(''), 'bob@example.net', [], { addToKeyring });
-  assert.equal(offered.collected, undefined);
-  assert.equal(offered.email, 'bob@example.net');
-  assert.equal(added.length, 0);
-  const taken = await autocryptOffer(msg('Authentication-Results: mx.example.com; dkim=pass header.d=example.net; dmarc=pass header.from=example.net\r\n'), 'bob@example.net', [], { addToKeyring });
-  assert.deepEqual(taken, { collected: true });
-  assert.equal(added[0].source, 'autocrypt');
+  try {
+    // An Authentication-Results header the sender wrote themselves, which nothing removed.
+    const forged = 'Authentication-Results: mx.example.com; dkim=pass header.d=example.net; dmarc=pass header.from=example.net\r\n';
+    const offer = await autocryptOffer({ autocrypt: { addr: 'bob@example.net', keydata }, root: parseMime(new TextEncoder().encode(`${forged}From: bob@example.net\r\n\r\nx`)) }, 'bob@example.net', []);
+    assert.equal(offer.email, 'bob@example.net');
+    assert.equal(offer.source, 'autocrypt');
+    assert.equal(offer.collected, undefined);
+    assert.equal(posted.length, 0);
+  } finally { globalThis.fetch = before; }
 });
 
 test('shows the message as received when there is nothing to decrypt in it', async () => {

@@ -35,7 +35,7 @@ export function pgpKindOfText(text) {
 // just fetched, otherwise what the stored row and body show. An attachment's type never makes a
 // message encrypted (an ordinary message can carry a .pgp file); the marker snippet, which only
 // sync's reading of the structure or an inline body writes, does.
-export function pgpKindOfBody({ structureKind = null, snippet = null, text = null, attachments = [] } = {}) {
+export function pgpKindOfBody({ structureKind = null, snippet = null, text = null, html = null, attachments = [] } = {}) {
   if (structureKind) return structureKind;
   if (typeof attachments === 'string') {
     try { attachments = JSON.parse(attachments); } catch { attachments = []; }
@@ -43,6 +43,9 @@ export function pgpKindOfBody({ structureKind = null, snippet = null, text = nul
   if (!Array.isArray(attachments)) attachments = [];
   if (snippet === PGP_ENCRYPTED_SNIPPET) return 'encrypted';
   const inline = pgpKindOfText(text);
+  // A signed text next to an HTML body is not a signed message: the HTML is what the reader shows,
+  // and nothing signs it.
+  if (inline === 'signed' && html) return null;
   if (inline) return inline;
   // A signature file adds a line under the message, checked by the browser against the source.
   if (attachments.some(a => lower(a?.type) === 'application/pgp-signature')) return 'signed';
