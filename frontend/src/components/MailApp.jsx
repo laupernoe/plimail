@@ -21,6 +21,8 @@ import Sidebar from './Sidebar.jsx';
 import MessageList from './MessageList.jsx';
 import ReadingPane from './ReadingPane.jsx';
 import NotificationToasts from './NotificationToasts.jsx';
+import PgpUnlockPrompt from './PgpUnlockPrompt.jsx';
+import usePgpAutoKeys from '../hooks/usePgpAutoKeys.js';
 import CommandPalette from './CommandPalette.jsx';
 import { takePendingDeepLink, watchPendingDeepLink } from '../utils/pendingDeepLink.js';
 import { scheduledFeed } from '../utils/scheduledFeed.js';
@@ -64,6 +66,7 @@ export default function MailApp() {
     showContacts, showCalendar,
   } = useStore();
   const syncInterval = useStore(s => s.syncInterval);
+  usePgpAutoKeys();
   const autoLockMinutes = useStore(s => s.autoLockMinutes);
   const lockScreen = useStore(s => s.lockScreen);
 
@@ -857,6 +860,7 @@ export default function MailApp() {
       {/* Detached message windows (#219) — desktop only. */}
       {!isMobile && <Suspense fallback={null}><WindowLayer /></Suspense>}
       <NotificationToasts />
+      <PgpUnlockPrompt />
       <CommandPalette open={paletteOpen} labelPickerMessage={labelPickerMessage}
         onClose={() => { setPaletteOpen(false); setLabelPickerMessage(null); }} />
 

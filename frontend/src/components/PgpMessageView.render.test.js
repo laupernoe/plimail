@@ -187,3 +187,38 @@ test('shows the message as received when there is nothing to decrypt in it', asy
     await until(() => shown);
   } finally { globalThis.fetch = before; }
 });
+
+// A key Plimail made, protected by the passphrase derived from the Plimail password: the secret
+// this tab got at sign-in opens it, and the message, without a question.
+test('a key protected by the Plimail password opens the message by itself', async () => {
+  const { setKeySecret, setKeySecretOwner, forgetKeySecret } = await import('../utils/pgpSecret.js');
+  const SECRET = 'v1.derived-at-sign-in';
+  const auto = await generateKeyPair({ email: 'auto@example.com', passphrase: SECRET });
+  const encrypted = await encryptMime(entityBytes(buildMimeEntity({ text: 'Opened by itself', headers: { subject: 'Auto' } })), { recipientArmored: [auto.armoredPublic] });
+  const autoId = '00000000-0000-4000-8000-0000000000cc';
+  const autoRaw = new TextEncoder().encode([
+    'From: bob@example.net', 'Subject: ...',
+    'Content-Type: multipart/encrypted; protocol="application/pgp-encrypted"; boundary="e"', '',
+    '--e', 'Content-Type: application/pgp-encrypted', '', 'Version: 1', '',
+    '--e', 'Content-Type: application/octet-stream', '', encrypted.replace(/\n/g, '\r\n'), '--e--', '',
+  ].join('\r\n'));
+  const before = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    const path = String(url);
+    if (path === `/api/mail/messages/${autoId}/raw.eml`) return new Response(autoRaw, { status: 200 });
+    if (path === '/api/pgp/keys') return json({ keys: [{ id: 'k2', fingerprint: auto.fingerprint, emails: ['auto@example.com'], armoredPublic: auto.armoredPublic, armoredPrivate: auto.armoredPrivate, protection: 'login' }] });
+    return before(url, init);
+  };
+  setKeySecretOwner('u-reader');
+  setKeySecret('u-reader', SECRET);
+  try {
+    await act(async () => { root.render(createElement(PgpMessageView, { message: { id: autoId, from_email: 'bob@example.net', subject: '...' } })); });
+    await until(() => container.textContent.includes('Opened by itself'));
+    assert.equal(container.querySelector('input[type="password"]'), null, 'no passphrase asked');
+    assert.ok(isUnlocked(auto.fingerprint));
+  } finally {
+    globalThis.fetch = before;
+    forgetKeySecret();
+    setKeySecretOwner(null);
+  }
+});
