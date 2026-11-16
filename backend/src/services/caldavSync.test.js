@@ -260,7 +260,10 @@ describe('a sync running while the user changes things', () => {
 
   it('writes an event only into a calendar that is not ignored, under a lock on the calendar row', async () => {
     setup('p');
-    client.fetchEvents.mockResolvedValue([{ rawHref: '/h/work/x.ics', url: 'https://dav.example.com/h/work/x.ics', etag: '"2"', ical: ICS }]);
+    // Another event than the one the test before deletes: its tombstone is noted in the same
+    // millisecond this sync can start on a fast runner, which would rightly skip the write.
+    client.listEvents.mockResolvedValue([{ rawHref: '/h/work/y.ics', url: 'https://dav.example.com/h/work/y.ics', etag: '"2"' }]);
+    client.fetchEvents.mockResolvedValue([{ rawHref: '/h/work/y.ics', url: 'https://dav.example.com/h/work/y.ics', etag: '"2"', ical: ICS }]);
     expect(await syncAccount('p')).toEqual({ ok: true });
     const [insert] = callsTo('INSERT INTO calendar_events');
     expect(insert[0]).toMatch(/FROM calendars WHERE id = \$1 AND NOT ignored FOR SHARE/);
