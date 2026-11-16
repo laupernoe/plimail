@@ -50,11 +50,11 @@ router.get('/keyring', async (req, res) => {
 });
 
 router.post('/keyring', async (req, res) => {
-  const { armored, source = 'manual', email = null } = req.body || {};
+  const { armored, source = 'manual', email = null, explicit = false } = req.body || {};
   // The directory adds its own finds (lookup below); nobody posts a key as found there.
   if (source === 'wkd') return res.status(400).json({ error: 'Invalid source' });
   try {
-    res.status(201).json({ added: await addToKeyring(req.session.userId, { armored, source, email }) });
+    res.status(201).json({ added: await addToKeyring(req.session.userId, { armored, source, email, explicit: explicit === true }) });
   } catch (err) {
     answerError(res, err);
   }

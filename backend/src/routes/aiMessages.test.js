@@ -127,6 +127,20 @@ describe.each(['translate', 'scam-check'])('POST /api/ai/messages/:id/%s', (acti
     expect(res.status).toBe(409);
     expect((await res.json()).code).toBe('body_not_loaded');
   });
+
+  it('refuses an encrypted message, PGP/MIME or inline, and sends nothing to the provider', async () => {
+    for (const encrypted of [
+      { snippet: '-----BEGIN PGP MESSAGE-----', body_html: null, body_text: null, attachments: '[{"type":"application/octet-stream","filename":"encrypted.asc"}]' },
+      { body_html: null, body_text: '-----BEGIN PGP MESSAGE-----\n\nhQEMA\n-----END PGP MESSAGE-----\n' },
+    ]) {
+      mocks.findOwnedMessage.mockResolvedValueOnce({ ...message, ...encrypted });
+      const res = await post(path);
+      expect(res.status).toBe(422);
+      expect((await res.json()).code).toBe('encrypted');
+    }
+    expect(mocks.streamChat).not.toHaveBeenCalled();
+    expect(mocks.completeText).not.toHaveBeenCalled();
+  });
 });
 
 describe('translate', () => {

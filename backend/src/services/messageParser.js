@@ -1,4 +1,5 @@
 import { Parser } from 'htmlparser2';
+import { PGP_ENCRYPTED_SNIPPET, pgpSnippet } from './pgpDetect.js';
 
 // Regex matching invisible / zero-width / filler Unicode chars used by email marketers
 // as "preheader killers" to prevent snippet text from leaking into mail-client previews.
@@ -72,6 +73,13 @@ function isDegenerateText(text) {
 // Single canonical function used by all snippet-generation paths (IMAP sync,
 // body prefetch, backfill) so entity handling is identical everywhere.
 export function snippetFromBody(text, html) {
+  // Inline OpenPGP (services/pgpDetect.js): ciphertext is no preview, and a signed text's preview
+  // is its text, without the armor around it.
+  if (text && text.trimStart().startsWith('-----BEGIN PGP MESSAGE-----')) return PGP_ENCRYPTED_SNIPPET;
+  if (text && text.trimStart().startsWith('-----BEGIN PGP SIGNED MESSAGE-----')) {
+    text = text.trimStart().replace(/^-----BEGIN PGP SIGNED MESSAGE-----\r?\n(?:[^\r\n]+\r?\n)*\r?\n/, '')
+      .replace(/-----BEGIN PGP SIGNATURE-----[\s\S]*$/, '').replace(/^- /gm, '');
+  }
   // HTML shipped in the text/plain part must go through the HTML stripper,
   // otherwise the markup itself becomes the "preview" (<!DOCTYPE html ...).
   if (text && looksLikeHtml(text)) {
@@ -904,7 +912,7 @@ export async function parseMessage(msg) {
     parsedHeaders,
     deliveryAddresses: parseDeliveryAddresses(parsedHeaders),
     date: msg.internalDate || envelope.date || new Date(),
-    snippet,
+    snippet: pgpSnippet(msg.bodyStructure, snippet),
     isRead,
     isStarred,
     hasAttachments,

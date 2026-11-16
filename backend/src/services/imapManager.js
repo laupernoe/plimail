@@ -4,6 +4,7 @@ import { recordUnfetchable, suppressedUids, clearUnfetchable, hasRealGap } from 
 import { ImapFlow } from 'imapflow';
 import { query } from './db.js';
 import { parseMessage, parseMailboxList, snippetFromBody, detectBulkFromParsedHeaders, ALIAS_FORWARDER_HEADERS, parseHeadersInput, headersToRawString, decodeMimeWords, enrichParsedMetadata, renderCalendarInvite, MAX_HEADER_FIELD } from './messageParser.js';
+import { pgpKindOfStructure } from './pgpDetect.js';
 import { headerIds, searchReplyDraftUids, draftFolderPaths } from './replyDraftLookup.js';
 import { classifyMessage, loadSocialDomains, getGlobalCategorizationEnabled } from './categorizer.js';
 import { refreshMicrosoftToken, refreshGoogleToken } from '../routes/oauth.js';
@@ -6690,6 +6691,9 @@ export class ImapManager {
       // so a later view should fetch again; a reference no part answers, or one over the repeat
       // budget, stays whatever happens and leaves this true (utils/cidRefs.js, #595).
       let cidsComplete = true;
+      // 'encrypted' or 'signed' for OpenPGP mail (services/pgpDetect.js), which the client reads
+      // from the raw source.
+      let pgp;
       // Parts embedded into the HTML as <img src> data: URIs, which a forward of this body or a
       // reopened draft carries inline (embedInlineDataImages) and need not attach.
       let inlineParts = [];
@@ -6745,6 +6749,7 @@ export class ImapManager {
 
         const results = { textParts: [], attachments: [], inlineImages: [], calendarParts: [] };
         walkStructure(structure, results);
+        pgp = pgpKindOfStructure(structure);
 
         // Handle single-part root node (no childNodes, type is the content type)
         if (results.textParts.length === 0 && bodyFallbackApplies(results)) {
@@ -6978,7 +6983,7 @@ export class ImapManager {
 
       // Some malformed emails include NUL bytes that PostgreSQL rejects in text
       // columns. Strip them once here so all callers are safe.
-      return { html: sanitizeStr(html), text: sanitizeStr(text), attachments, cidsComplete, inlineParts };
+      return { html: sanitizeStr(html), text: sanitizeStr(text), attachments, cidsComplete, inlineParts, pgp };
     });
 
     // Providers flagged preferFreshBodyFetch (e.g. PurelyMail) skip the shared pool on the

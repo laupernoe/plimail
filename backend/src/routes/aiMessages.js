@@ -5,6 +5,7 @@ import { findOwnedAccount, findOwnedMessage } from '../services/ownership.js';
 import { consume } from '../services/rateLimiter.js';
 import { SCAM_BODY_LIMIT, TRANSLATE_BODY_LIMIT, buildScamAnalysis, messagePlainText, truncateText } from '../services/mailSafetyInput.js';
 import { AI_LANGUAGE_NAMES, gateAiRequest, userLanguage } from './ai.js';
+import { pgpKindOfBody } from '../services/pgpDetect.js';
 
 // AI actions on a received message (translate, "is this a scam?"). Unlike /ai/chat, where the
 // client sends the text, these read the message server-side: the scam check needs headers and
@@ -112,6 +113,12 @@ async function loadMessage(req, res) {
   const message = await findOwnedMessage(req.session.userId, id, { columns: 'm.*', live: true });
   if (!message) {
     res.status(404).json({ error: 'Message not found' });
+    return null;
+  }
+  // What the server holds of an encrypted message is ciphertext, and its plaintext never leaves the
+  // browser that decrypted it, so there is nothing an AI action could read.
+  if (pgpKindOfBody({ snippet: message.snippet, text: message.body_text, attachments: message.attachments }) === 'encrypted') {
+    res.status(422).json({ error: 'This message is encrypted.', code: 'encrypted' });
     return null;
   }
   if (!message.body_html && !message.body_text) {

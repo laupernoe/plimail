@@ -104,8 +104,9 @@ export async function listKeyring(userId) {
 
 // Adds the public keys in `armored` to the keyring, one row per address in their user IDs (or
 // only `email`, which must be one of them). Autocrypt keys are collected without being asked
-// for, so one never replaces or joins a key the user already has for the address.
-export async function addToKeyring(userId, { armored, source = 'manual', email = null }) {
+// for, so one never replaces or joins a key the user already has for the address, unless the
+// user imported it themselves (`explicit`).
+export async function addToKeyring(userId, { armored, source = 'manual', email = null, explicit = false }) {
   if (!KEYRING_SOURCES.has(source)) throw new PgpRequestError(400, 'Invalid source');
   if (typeof armored !== 'string' || !armored.trim()) throw new PgpRequestError(400, 'armored is required');
   let keys;
@@ -128,7 +129,7 @@ export async function addToKeyring(userId, { armored, source = 'manual', email =
   if ((count.rows[0]?.n || 0) + rows.length > MAX_KEYRING_ROWS) throw new PgpRequestError(400, 'The keyring is full');
   const added = [];
   for (const row of rows) {
-    const result = source === 'autocrypt'
+    const result = source === 'autocrypt' && !explicit
       ? await query(
         `INSERT INTO pgp_public_keys (user_id, email, fingerprint, armored, source)
          SELECT $1, $2, $3, $4, 'autocrypt'
