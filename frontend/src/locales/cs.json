@@ -1197,7 +1197,8 @@
       "mailSignIn": "Poskytovatelé e-mailu",
       "groupCalendar": "Kalendář",
       "calendarAccounts": "Účty",
-      "calendarList": "Kalendáře"
+      "calendarList": "Kalendáře",
+      "secureMessages": "Chráněné zprávy"
     },
     "categories": {
       "title": "Kategorie e-mailů",
@@ -2114,6 +2115,34 @@
       "notEnoughMail": "Zatím není dost odeslaných e-mailů. Jsou potřeba alespoň 3.",
       "rateLimited": "Příliš mnoho pokusů. Zkuste to znovu za několik minut.",
       "loadFailed": "Styl psaní se nepodařilo načíst."
+    },
+    "secureMessages": {
+      "title": "Zprávy chráněné heslem",
+      "intro": "Zprávy, které jste odeslali s heslem. Server je uchovává zašifrované a smaže je, když vyprší platnost odkazu. Zrušte odkaz, aby už nešel otevřít; smažte zprávu, abyste ji hned odstranili i s odpověďmi.",
+      "empty": "Zatím žádné zprávy chráněné heslem. Jednu odešlete zapnutím zámku v okně psaní.",
+      "loadFailed": "Chráněné zprávy se nepodařilo načíst.",
+      "statusActive": "Aktivní",
+      "statusExpired": "Vypršela",
+      "statusRevoked": "Zrušena",
+      "statusLocked": "Zamčena",
+      "sentOn": "Odesláno {{date}}, odkaz vyprší {{expiry}}",
+      "opened": "Poprvé otevřeno {{date}}, celkem otevřeno {{n}}×",
+      "notOpened": "Zatím neotevřeno",
+      "replies": "Odpovědi: {{n}}",
+      "repliesNew": "Odpovědi: {{n}}, nové: {{unread}}",
+      "readReplies": "Číst odpovědi",
+      "hideReplies": "Skrýt odpovědi",
+      "revoke": "Zrušit odkaz",
+      "delete": "Smazat",
+      "confirmDelete": "Smazat zprávu i odpovědi",
+      "actionFailed": "Nepodařilo se. Zkuste to znovu.",
+      "passwordPh": "Heslo této zprávy",
+      "showReplies": "Zobrazit odpovědi",
+      "decrypting": "Dešifrování…",
+      "wrongPassword": "Toto heslo odpovědi neotevře.",
+      "replyReceived": "Odpověď přijata {{date}}",
+      "replyToast": "Nová odpověď na zprávu chráněnou heslem",
+      "replyToastAction": "Otevřít"
     }
   },
   "diagnostics": {

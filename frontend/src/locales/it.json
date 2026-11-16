@@ -1121,7 +1121,8 @@
       "mailSignIn": "Provider di posta",
       "groupCalendar": "Calendario",
       "calendarAccounts": "Account",
-      "calendarList": "Calendari"
+      "calendarList": "Calendari",
+      "secureMessages": "Messaggi protetti"
     },
     "rules": {
       "title": "Regole posta in arrivo",
@@ -2035,6 +2036,34 @@
       "notEnoughMail": "Non ci sono ancora abbastanza email inviate da cui imparare. Ne servono almeno 3.",
       "rateLimited": "Troppi tentativi. Riprova tra qualche minuto.",
       "loadFailed": "Impossibile caricare il tuo stile di scrittura."
+    },
+    "secureMessages": {
+      "title": "Messaggi protetti da password",
+      "intro": "I messaggi che hai inviato con una password. Il server li conserva cifrati e li elimina alla scadenza del link. Revoca un link per impedirne l’apertura; elimina un messaggio per cancellarlo subito insieme alle risposte.",
+      "empty": "Nessun messaggio protetto per ora. Attiva il lucchetto nella finestra di composizione per inviarne uno.",
+      "loadFailed": "Impossibile caricare i messaggi protetti.",
+      "statusActive": "Attivo",
+      "statusExpired": "Scaduto",
+      "statusRevoked": "Revocato",
+      "statusLocked": "Bloccato",
+      "sentOn": "Inviato il {{date}}, il link scade il {{expiry}}",
+      "opened": "Aperto la prima volta il {{date}}, {{n}} aperture in tutto",
+      "notOpened": "Non ancora aperto",
+      "replies": "Risposte: {{n}}",
+      "repliesNew": "Risposte: {{n}}, {{unread}} nuove",
+      "readReplies": "Leggi le risposte",
+      "hideReplies": "Nascondi le risposte",
+      "revoke": "Revoca link",
+      "delete": "Elimina",
+      "confirmDelete": "Elimina messaggio e risposte",
+      "actionFailed": "Non ha funzionato. Riprova.",
+      "passwordPh": "Password di questo messaggio",
+      "showReplies": "Mostra le risposte",
+      "decrypting": "Decifratura…",
+      "wrongPassword": "Questa password non apre le risposte.",
+      "replyReceived": "Risposta ricevuta il {{date}}",
+      "replyToast": "Nuova risposta a un messaggio protetto",
+      "replyToastAction": "Apri"
     }
   },
   "blockList": {

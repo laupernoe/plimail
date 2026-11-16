@@ -1137,7 +1137,8 @@
       "mailSignIn": "Dostawcy poczty",
       "groupCalendar": "Kalendarz",
       "calendarAccounts": "Konta",
-      "calendarList": "Kalendarze"
+      "calendarList": "Kalendarze",
+      "secureMessages": "Chronione wiadomości"
     },
     "rules": {
       "title": "Reguły skrzynki odbiorczej",
@@ -2054,6 +2055,34 @@
       "notEnoughMail": "Za mało wysłanych wiadomości do nauki. Potrzebne są co najmniej 3.",
       "rateLimited": "Zbyt wiele prób. Spróbuj ponownie za kilka minut.",
       "loadFailed": "Nie udało się wczytać Twojego stylu pisania."
+    },
+    "secureMessages": {
+      "title": "Wiadomości chronione hasłem",
+      "intro": "Wiadomości wysłane przez Ciebie z hasłem. Serwer przechowuje je zaszyfrowane i usuwa po wygaśnięciu linku. Unieważnij link, aby nie dało się go już otworzyć; usuń wiadomość, aby od razu skasować ją razem z odpowiedziami.",
+      "empty": "Brak wiadomości chronionych hasłem. Włącz kłódkę w oknie tworzenia wiadomości, aby wysłać taką wiadomość.",
+      "loadFailed": "Nie udało się wczytać chronionych wiadomości.",
+      "statusActive": "Aktywna",
+      "statusExpired": "Wygasła",
+      "statusRevoked": "Unieważniona",
+      "statusLocked": "Zablokowana",
+      "sentOn": "Wysłano {{date}}, link wygasa {{expiry}}",
+      "opened": "Pierwsze otwarcie {{date}}, łącznie otwarć: {{n}}",
+      "notOpened": "Jeszcze nieotwarta",
+      "replies": "Odpowiedzi: {{n}}",
+      "repliesNew": "Odpowiedzi: {{n}}, nowe: {{unread}}",
+      "readReplies": "Czytaj odpowiedzi",
+      "hideReplies": "Ukryj odpowiedzi",
+      "revoke": "Unieważnij link",
+      "delete": "Usuń",
+      "confirmDelete": "Usuń wiadomość i odpowiedzi",
+      "actionFailed": "Nie udało się. Spróbuj ponownie.",
+      "passwordPh": "Hasło tej wiadomości",
+      "showReplies": "Pokaż odpowiedzi",
+      "decrypting": "Odszyfrowywanie…",
+      "wrongPassword": "To hasło nie otwiera odpowiedzi.",
+      "replyReceived": "Odpowiedź otrzymana {{date}}",
+      "replyToast": "Nowa odpowiedź na wiadomość chronioną hasłem",
+      "replyToastAction": "Otwórz"
     }
   },
   "blockList": {

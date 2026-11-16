@@ -1121,7 +1121,8 @@
       "mailSignIn": "E-Mail-Anbieter",
       "groupCalendar": "Kalender",
       "calendarAccounts": "Konten",
-      "calendarList": "Kalender"
+      "calendarList": "Kalender",
+      "secureMessages": "Geschützte Nachrichten"
     },
     "accounts": {
       "title": "E-Mail-Konten",
@@ -2035,6 +2036,34 @@
       "notEnoughMail": "Noch nicht genug gesendete E-Mails zum Lernen. Mindestens 3 sind nötig.",
       "rateLimited": "Zu viele Versuche. Versuchen Sie es in ein paar Minuten erneut.",
       "loadFailed": "Ihr Schreibstil konnte nicht geladen werden."
+    },
+    "secureMessages": {
+      "title": "Passwortgeschützte Nachrichten",
+      "intro": "Nachrichten, die Sie mit Passwort gesendet haben. Der Server speichert sie verschlüsselt und löscht sie, wenn ihr Link abläuft. Widerrufen Sie einen Link, damit er sich nicht mehr öffnen lässt; löschen Sie eine Nachricht, um sie samt Antworten sofort zu entfernen.",
+      "empty": "Noch keine passwortgeschützten Nachrichten. Aktivieren Sie das Schloss im Editor, um eine zu senden.",
+      "loadFailed": "Geschützte Nachrichten konnten nicht geladen werden.",
+      "statusActive": "Aktiv",
+      "statusExpired": "Abgelaufen",
+      "statusRevoked": "Widerrufen",
+      "statusLocked": "Gesperrt",
+      "sentOn": "Gesendet am {{date}}, Link läuft am {{expiry}} ab",
+      "opened": "Zuerst geöffnet am {{date}}, insgesamt {{n}}-mal geöffnet",
+      "notOpened": "Noch nicht geöffnet",
+      "replies": "Antworten: {{n}}",
+      "repliesNew": "Antworten: {{n}}, davon {{unread}} neu",
+      "readReplies": "Antworten lesen",
+      "hideReplies": "Antworten ausblenden",
+      "revoke": "Link widerrufen",
+      "delete": "Löschen",
+      "confirmDelete": "Nachricht und Antworten löschen",
+      "actionFailed": "Das hat nicht geklappt. Versuchen Sie es erneut.",
+      "passwordPh": "Passwort dieser Nachricht",
+      "showReplies": "Antworten anzeigen",
+      "decrypting": "Wird entschlüsselt…",
+      "wrongPassword": "Mit diesem Passwort lassen sich die Antworten nicht öffnen.",
+      "replyReceived": "Antwort erhalten am {{date}}",
+      "replyToast": "Neue Antwort auf eine passwortgeschützte Nachricht",
+      "replyToastAction": "Öffnen"
     }
   },
   "blockList": {

@@ -1120,7 +1120,8 @@
       "mailSignIn": "이메일 제공업체",
       "groupCalendar": "캘린더",
       "calendarAccounts": "계정",
-      "calendarList": "캘린더"
+      "calendarList": "캘린더",
+      "secureMessages": "보호된 메시지"
     },
     "close": "닫기",
     "rules": {
@@ -2035,6 +2036,34 @@
       "notEnoughMail": "학습할 보낸 메일이 아직 부족합니다. 최소 3개가 필요합니다.",
       "rateLimited": "시도 횟수가 너무 많습니다. 몇 분 후 다시 시도하세요.",
       "loadFailed": "글쓰기 스타일을 불러오지 못했습니다."
+    },
+    "secureMessages": {
+      "title": "비밀번호로 보호된 메시지",
+      "intro": "비밀번호를 걸어 보낸 메시지입니다. 서버는 암호화된 상태로만 보관하며 링크가 만료되면 삭제합니다. 링크를 취소하면 더 이상 열 수 없고, 메시지를 삭제하면 답장과 함께 즉시 지워집니다.",
+      "empty": "아직 비밀번호로 보호된 메시지가 없습니다. 작성 창에서 자물쇠를 켜면 보낼 수 있습니다.",
+      "loadFailed": "보호된 메시지를 불러오지 못했습니다.",
+      "statusActive": "활성",
+      "statusExpired": "만료됨",
+      "statusRevoked": "취소됨",
+      "statusLocked": "잠김",
+      "sentOn": "{{date}}에 보냄, 링크 만료 {{expiry}}",
+      "opened": "{{date}}에 처음 열림, 총 {{n}}회 열림",
+      "notOpened": "아직 열리지 않음",
+      "replies": "답장: {{n}}",
+      "repliesNew": "답장: {{n}}, 새 답장 {{unread}}",
+      "readReplies": "답장 읽기",
+      "hideReplies": "답장 숨기기",
+      "revoke": "링크 취소",
+      "delete": "삭제",
+      "confirmDelete": "메시지와 답장 삭제",
+      "actionFailed": "실패했습니다. 다시 시도하세요.",
+      "passwordPh": "이 메시지의 비밀번호",
+      "showReplies": "답장 보기",
+      "decrypting": "복호화 중…",
+      "wrongPassword": "이 비밀번호로는 답장을 열 수 없습니다.",
+      "replyReceived": "{{date}}에 받은 답장",
+      "replyToast": "비밀번호로 보호된 메시지에 새 답장이 왔습니다",
+      "replyToastAction": "열기"
     }
   },
   "blockList": {

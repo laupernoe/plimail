@@ -1121,7 +1121,8 @@
       "mailSignIn": "邮件服务商",
       "groupCalendar": "日历",
       "calendarAccounts": "账户",
-      "calendarList": "日历"
+      "calendarList": "日历",
+      "secureMessages": "受保护的邮件"
     },
     "rules": {
       "title": "收件箱规则",
@@ -2035,6 +2036,34 @@
       "notEnoughMail": "已发送邮件还不够，至少需要 3 封。",
       "rateLimited": "尝试次数过多，请几分钟后再试。",
       "loadFailed": "无法加载你的写作风格。"
+    },
+    "secureMessages": {
+      "title": "密码保护邮件",
+      "intro": "您用密码发送的邮件。服务器只以加密形式保存，链接失效时会将其删除。撤销链接可使其无法再打开；删除邮件会立即将其连同回复一并移除。",
+      "empty": "还没有密码保护邮件。在写邮件窗口中打开锁形按钮即可发送。",
+      "loadFailed": "无法加载受保护的邮件。",
+      "statusActive": "有效",
+      "statusExpired": "已过期",
+      "statusRevoked": "已撤销",
+      "statusLocked": "已锁定",
+      "sentOn": "发送于 {{date}}，链接于 {{expiry}} 失效",
+      "opened": "首次打开于 {{date}}，共打开 {{n}} 次",
+      "notOpened": "尚未打开",
+      "replies": "回复：{{n}}",
+      "repliesNew": "回复：{{n}}，其中 {{unread}} 条未读",
+      "readReplies": "阅读回复",
+      "hideReplies": "隐藏回复",
+      "revoke": "撤销链接",
+      "delete": "删除",
+      "confirmDelete": "删除邮件及回复",
+      "actionFailed": "操作失败，请重试。",
+      "passwordPh": "此邮件的密码",
+      "showReplies": "显示回复",
+      "decrypting": "正在解密…",
+      "wrongPassword": "此密码无法打开回复。",
+      "replyReceived": "回复收到于 {{date}}",
+      "replyToast": "密码保护邮件有新回复",
+      "replyToastAction": "打开"
     }
   },
   "blockList": {

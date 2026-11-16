@@ -314,6 +314,21 @@ export function useWebSocket() {
         break;
       }
 
+      // A reply to a password-protected message: the server can say only that there is one.
+      case 'secure_message_reply': {
+        addNotification({
+          title: t('admin.secureMessages.replyToast'),
+          actionLabel: t('admin.secureMessages.replyToastAction'),
+          onAction: () => {
+            const { setAdminTab, setShowAdmin } = useStore.getState();
+            setAdminTab('secure-messages');
+            setShowAdmin(true);
+          },
+        });
+        window.dispatchEvent(new CustomEvent('mailflow:secure-message-reply', { detail: { id: data.id } }));
+        break;
+      }
+
       case 'snooze_wakeup': {
         window.dispatchEvent(new CustomEvent('mailflow:refresh'));
         api.getUnreadCounts().then(counts => {

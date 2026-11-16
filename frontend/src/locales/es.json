@@ -1121,7 +1121,8 @@
       "mailSignIn": "Proveedores de correo",
       "groupCalendar": "Calendario",
       "calendarAccounts": "Cuentas",
-      "calendarList": "Calendarios"
+      "calendarList": "Calendarios",
+      "secureMessages": "Mensajes protegidos"
     },
     "rules": {
       "title": "Reglas de bandeja de entrada",
@@ -2035,6 +2036,34 @@
       "notEnoughMail": "Todavía no hay suficientes correos enviados para aprender. Se necesitan al menos 3.",
       "rateLimited": "Demasiados intentos. Vuelve a intentarlo en unos minutos.",
       "loadFailed": "No se pudo cargar tu estilo de escritura."
+    },
+    "secureMessages": {
+      "title": "Mensajes protegidos con contraseña",
+      "intro": "Los mensajes que enviaste con contraseña. El servidor los guarda cifrados y los elimina cuando caduca su enlace. Revoca un enlace para que deje de abrirse; elimina un mensaje para borrarlo al momento junto con sus respuestas.",
+      "empty": "Aún no hay mensajes protegidos. Activa el candado en la ventana de redacción para enviar uno.",
+      "loadFailed": "No se pudieron cargar los mensajes protegidos.",
+      "statusActive": "Activo",
+      "statusExpired": "Caducado",
+      "statusRevoked": "Revocado",
+      "statusLocked": "Bloqueado",
+      "sentOn": "Enviado el {{date}}, el enlace caduca el {{expiry}}",
+      "opened": "Abierto por primera vez el {{date}}, {{n}} aperturas en total",
+      "notOpened": "Aún sin abrir",
+      "replies": "Respuestas: {{n}}",
+      "repliesNew": "Respuestas: {{n}}, {{unread}} nuevas",
+      "readReplies": "Leer respuestas",
+      "hideReplies": "Ocultar respuestas",
+      "revoke": "Revocar enlace",
+      "delete": "Eliminar",
+      "confirmDelete": "Eliminar mensaje y respuestas",
+      "actionFailed": "No ha funcionado. Inténtalo de nuevo.",
+      "passwordPh": "Contraseña de este mensaje",
+      "showReplies": "Mostrar respuestas",
+      "decrypting": "Descifrando…",
+      "wrongPassword": "Esta contraseña no abre las respuestas.",
+      "replyReceived": "Respuesta recibida el {{date}}",
+      "replyToast": "Nueva respuesta a un mensaje protegido",
+      "replyToastAction": "Abrir"
     }
   },
   "blockList": {
