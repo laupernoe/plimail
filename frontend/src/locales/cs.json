@@ -2653,7 +2653,11 @@
       "keyOffer": "Tato zpráva obsahuje veřejný klíč pro {{email}}.",
       "keyOfferDifferent": "Tato zpráva obsahuje pro {{email}} jiný veřejný klíč, než jaký máte.",
       "importKey": "Importovat klíč",
-      "keyImported": "Klíč byl přidán mezi klíče korespondentů."
+      "keyImported": "Klíč byl přidán mezi klíče korespondentů.",
+      "sigPartial": "Podepsaná je jen část této zprávy, takže podpis o zbytku nic neříká. Neověřuje se.",
+      "lookUpKey": "Vyhledat klíč odesílatele",
+      "notThisKey": "Tento klíč zprávu neotevře. Zkuste další klíč.",
+      "showOriginal": "Zobrazit, jak přišla"
     },
     "compose": {
       "protection": "Ochrana",

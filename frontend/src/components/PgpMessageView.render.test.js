@@ -48,7 +48,7 @@ globalThis.__VITE_ENV__ = { MODE: 'test', DEV: false, PROD: true };
 
 const { createElement, act } = await import('react');
 const { createRoot } = await import('react-dom/client');
-const { default: PgpMessageView, decryptedFrameDocument, DECRYPTED_FRAME_SANDBOX } = await import('./PgpMessageView.jsx');
+const { default: PgpMessageView, decryptedFrameDocument, DECRYPTED_FRAME_SANDBOX, ATTACHMENT_BLOB_TYPE, autocryptOffer } = await import('./PgpMessageView.jsx');
 const { encryptMime, generateKeyPair } = await import('../utils/pgp.js');
 const { buildMimeEntity, entityBytes } = await import('../utils/mimeBuild.js');
 const { forgetAllUnlockedKeys, isUnlocked } = await import('../utils/pgpSession.js');
@@ -146,4 +146,43 @@ test('the frame document blocks remote content and keeps only images the message
   assert.ok(!doc.includes('cid:missing'));
   // Remote images stay in the markup but the frame's policy (img-src data:) never loads them.
   assert.match(doc, /img-src data:;/);
+});
+
+test('a cid: that does not decode does not break the message', () => {
+  assert.doesNotThrow(() => decryptedFrameDocument('<img src="cid:%E0%A4%A">'));
+});
+
+test('decrypted files download as octet-stream, whatever type the sender declared', () => {
+  assert.equal(ATTACHMENT_BLOB_TYPE, 'application/octet-stream');
+});
+
+test('collects an Autocrypt key without asking only when the server authenticated the sender', async () => {
+  const bob = await generateKeyPair({ email: 'bob@example.net', passphrase: 'x-pass-123' });
+  const { readKey } = await import('openpgp');
+  const keydata = btoa(String.fromCharCode(...(await readKey({ armoredKey: bob.armoredPublic })).write()));
+  const added = [];
+  const addToKeyring = async (body) => { added.push(body); return { added: [] }; };
+  const { parseMime } = await import('../utils/mimeParse.js');
+  const msg = auth => ({ autocrypt: { addr: 'bob@example.net', keydata }, root: parseMime(new TextEncoder().encode(`${auth}From: bob@example.net\r\n\r\nx`)) });
+  // Spoofable From: offered for an explicit import, not taken.
+  const offered = await autocryptOffer(msg(''), 'bob@example.net', [], { addToKeyring });
+  assert.equal(offered.collected, undefined);
+  assert.equal(offered.email, 'bob@example.net');
+  assert.equal(added.length, 0);
+  const taken = await autocryptOffer(msg('Authentication-Results: mx.example.com; dkim=pass header.d=example.net; dmarc=pass header.from=example.net\r\n'), 'bob@example.net', [], { addToKeyring });
+  assert.deepEqual(taken, { collected: true });
+  assert.equal(added[0].source, 'autocrypt');
+});
+
+test('shows the message as received when there is nothing to decrypt in it', async () => {
+  let shown = false;
+  const plainId = '00000000-0000-4000-8000-0000000000bb';
+  const before = globalThis.fetch;
+  globalThis.fetch = async (url, init) => (String(url) === `/api/mail/messages/${plainId}/raw.eml`
+    ? new Response(new TextEncoder().encode('Content-Type: text/plain\r\n\r\nSee the .pgp file attached.\r\n'), { status: 200 })
+    : before(url, init));
+  try {
+    await act(async () => { root.render(createElement(PgpMessageView, { message: { id: plainId, from_email: 'x@example.org' }, onShowOriginal: () => { shown = true; } })); });
+    await until(() => shown);
+  } finally { globalThis.fetch = before; }
 });

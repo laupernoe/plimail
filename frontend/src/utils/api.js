@@ -231,7 +231,8 @@ export const api = {
     addToKeyring: (data) => request('POST', '/pgp/keyring', data),
     setVerified: (fingerprint, verified) => request('PATCH', `/pgp/keyring/${fingerprint}`, { verified }),
     removeFromKeyring: (fingerprint) => request('DELETE', `/pgp/keyring/${fingerprint}`),
-    lookup: (emails) => request('POST', '/pgp/lookup', { emails }),
+    // local: the user's own keys and keyring only, no Web Key Directory (the reader's lookups).
+    lookup: (emails, { local = false } = {}) => request('POST', '/pgp/lookup', { emails, ...(local ? { local: true } : {}) }),
     // The message's raw source (the same route as "Download .eml"), as bytes for the PGP reader.
     rawMessage: async (messageId) => {
       const res = await fetch(`${BASE}/mail/messages/${encodeURIComponent(messageId)}/raw.eml`, {

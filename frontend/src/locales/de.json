@@ -2634,7 +2634,11 @@
       "keyOffer": "Diese Nachricht enthält einen öffentlichen Schlüssel für {{email}}.",
       "keyOfferDifferent": "Diese Nachricht enthält einen anderen öffentlichen Schlüssel für {{email}} als den, den Sie haben.",
       "importKey": "Schlüssel importieren",
-      "keyImported": "Schlüssel zu den Schlüsseln Ihrer Korrespondenten hinzugefügt."
+      "keyImported": "Schlüssel zu den Schlüsseln Ihrer Korrespondenten hinzugefügt.",
+      "sigPartial": "Nur ein Teil dieser Nachricht ist signiert, die Signatur sagt also nichts über den Rest. Sie wird nicht geprüft.",
+      "lookUpKey": "Schlüssel des Absenders suchen",
+      "notThisKey": "Dieser Schlüssel öffnet die Nachricht nicht. Versuchen Sie Ihren nächsten Schlüssel.",
+      "showOriginal": "Wie empfangen anzeigen"
     },
     "compose": {
       "protection": "Schutz",

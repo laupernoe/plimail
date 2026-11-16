@@ -222,6 +222,9 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
   const [body, setBody] = useState(null);
   const [bodyError, setBodyError] = useState(null);
   const [retryKey, setRetryKey] = useState(0);
+  // The encrypted message shown as it was received, at the user's word or because the reader
+  // found nothing to decrypt in it (PgpMessageView onShowOriginal).
+  const [pgpOriginalId, setPgpOriginalId] = useState(null);
   const [loadingBody, setLoadingBody] = useState(false);
   const [savingAllow, setSavingAllow] = useState(false);
   const [paneScrolled, setPaneScrolled] = useState(false);
@@ -1300,8 +1303,11 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
   // Reply with AI sits by Reply. A phone's toolbar only just fits its buttons at large font sizes,
   // so there it is in More.
   // An encrypted message's plaintext exists only in this tab (PgpMessageView.jsx): no AI reads it.
-  const pgpEncrypted = body?.pgp === 'encrypted';
-  const aiReplyShown = !pgpEncrypted && aiReplyAvailable(aiStatus, plaintextEmail);
+  const pgpCiphertext = body?.pgp === 'encrypted';
+  const pgpOriginal = pgpCiphertext && pgpOriginalId === selectedMessageId;
+  // Shown by the reader; as received (body and attachments as the server has them) otherwise.
+  const pgpEncrypted = pgpCiphertext && !pgpOriginal;
+  const aiReplyShown = !pgpCiphertext && aiReplyAvailable(aiStatus, plaintextEmail);
   const handleAiReply = () => handleReply(defaultReplyAll, { aiReply: true });
   const toolItems = message ? [
     aiReplyShown && isMobile && { key: 'aiReply', label: t('compose.toolbar.aiReply'), icon: <AiReplyIcon />, onClick: handleAiReply },
@@ -1314,7 +1320,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
     { key: 'print', label: t('message.print'), title: withShortcut(t('message.print'), 'printMessage'), icon: <PrintIcon />, onClick: handlePrint },
     darkToggleShown && { key: 'dark', label: darkToggleLabel, icon: <DarkToggleIcon shownDark={shownDark} />, onClick: toggleDark, pressed: shownDark, disabled: darkRefused },
   ].filter(Boolean) : [];
-  const aiTools = withMailActions(aiStatus?.enabled && aiStatus?.features?.summarize && body && !pgpEncrypted ? {
+  const aiTools = withMailActions(aiStatus?.enabled && aiStatus?.features?.summarize && body && !pgpCiphertext ? {
     items: [{ ...BUILTIN_SUMMARIZE, label: t('message.summarize') }, ...(aiActions || [])],
     results: aiResults,
     onRun: action => runAiAction(action),
@@ -1324,7 +1330,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
   // Only messages you sent (or drafts you saved) have a Bcc on record (#585).
   const bccList = Array.isArray(body?.bccAddresses) ? body.bccAddresses : [];
 
-  const attachments = pgpVisibleAttachments(body);
+  const attachments = pgpVisibleAttachments(body, { original: pgpOriginal });
 
   return (
     <div
@@ -1846,10 +1852,10 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
 
       {/* OpenPGP: an encrypted message is decrypted and shown here, a signed one gets its
           signature checked above the body. */}
-      {!loadingBody && !bodyError && body?.pgp && (
+      {!loadingBody && !bodyError && body?.pgp && !pgpOriginal && (
         <div style={{ padding: isMobile ? '0 0 8px' : '0 28px 8px' }}>
           {pgpEncrypted
-            ? <PgpMessageView message={message} onOpenSettings={() => { setAdminTab('pgp'); setShowAdmin(true); }} />
+            ? <PgpMessageView message={message} onOpenSettings={() => { setAdminTab('pgp'); setShowAdmin(true); }} onShowOriginal={() => setPgpOriginalId(message.id)} />
             : <PgpSignatureBadge message={message} />}
         </div>
       )}

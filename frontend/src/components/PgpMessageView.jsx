@@ -4,7 +4,9 @@ import DOMPurify from 'dompurify';
 import { api } from '../utils/api.js';
 import { armoredPublicFrom, shortFingerprint, unlockPrivateKey } from '../utils/pgp.js';
 import { rememberUnlockedKey, unlockedKey } from '../utils/pgpSession.js';
-import { analyzeRaw, decryptMessage, findDecryptionKey, senderKeysFor, verifySigned } from '../utils/pgpReader.js';
+import {
+  analyzeRaw, decryptMessage, deliveryAddresses, findDecryptionKeys, senderAuthenticated, senderKeysFor, verifySigned,
+} from '../utils/pgpReader.js';
 import { button } from './pgpStyles.js';
 
 // An OpenPGP message in the reading pane. The raw source comes from the server as it is on the
@@ -29,7 +31,10 @@ export function decryptedFrameDocument(html, inline = []) {
     FORBID_TAGS: ['form', 'input', 'button', 'textarea', 'select', 'base', 'meta', 'link', 'iframe', 'frame', 'object', 'embed', 'script'],
     ADD_ATTR: ['target'],
   }).replace(/(\ssrc\s*=\s*["'])cid:([^"']+)(["'])/gi, (m, pre, cid, post) => {
-    const part = byCid.get(decodeURIComponent(cid).toLowerCase());
+    let id = cid;
+    // A malformed %-escape in a sender's cid: is not worth breaking the message over.
+    try { id = decodeURIComponent(cid); } catch { /* used as written */ }
+    const part = byCid.get(id.toLowerCase());
     return part && /^image\//i.test(part.mimeType) ? `${pre}${bytesToDataUrl(part.data, part.mimeType)}${post}` : `${pre}${post}`;
   });
   return '<!DOCTYPE html><html><head><meta charset="utf-8">'
@@ -63,21 +68,27 @@ function LockIcon() {
   );
 }
 
-// "Signed by …" for a signature result (utils/pgpReader.js).
-export function SignatureLine({ signature }) {
+// "Signed by …" for a signature result (utils/pgpReader.js). For a signer whose key is not here,
+// `onLookUp` asks the sender's Web Key Directory, only because the user said so: a lookup made by
+// opening a message would tell the sender's domain it was read.
+export function SignatureLine({ signature, onLookUp, lookingUp = false }) {
   const { t } = useTranslation();
   if (!signature || signature.state === 'none') return null;
   const fp = signature.fingerprint ? shortFingerprint(signature.fingerprint) : (signature.keyId ? shortFingerprint(signature.keyId) : '');
-  const tone = { verified: 'good', good: 'good', unknownKey: 'warn', bad: 'bad' }[signature.state] || 'neutral';
+  const tone = { verified: 'good', good: 'good', unknownKey: 'warn', bad: 'bad', partial: 'warn' }[signature.state] || 'neutral';
   const text = {
     verified: t('pgp.read.sigVerified', { key: fp }),
     good: t('pgp.read.sigGood', { key: fp }),
     unknownKey: t('pgp.read.sigUnknown', { key: fp }),
     bad: t('pgp.read.sigBad'),
+    partial: t('pgp.read.sigPartial'),
   }[signature.state];
   return (
     <div role="status" data-signature={signature.state} style={banner(tone)}>
       <span style={{ flex: 1 }}>{text}</span>
+      {signature.state === 'unknownKey' && onLookUp && (
+        <button type="button" disabled={lookingUp} onClick={onLookUp} style={button('plain', lookingUp)}>{t('pgp.read.lookUpKey')}</button>
+      )}
     </div>
   );
 }
@@ -110,27 +121,34 @@ function KeyOffer({ offer, onDone }) {
   );
 }
 
-// What the message's Autocrypt header offers, collected at once when the sender has no key here
-// yet (unverified, as the keyring marks every key until the user checks it), offered otherwise.
-async function autocryptOffer(analyzed, fromEmail, senderKeys) {
+// What the message's Autocrypt header offers. Collected at once (unverified, as the keyring marks
+// every key until the user checks it) only when the sender has no key here yet and the receiving
+// server authenticated the From domain (senderAuthenticated): otherwise anyone could plant a key
+// for any address by sending one message. Offered for an explicit import in every other case.
+export async function autocryptOffer(analyzed, fromEmail, senderKeys, { addToKeyring = api.pgp.addToKeyring } = {}) {
   const ac = analyzed?.autocrypt;
   if (!ac || !fromEmail || ac.addr !== fromEmail.toLowerCase()) return null;
   let parsed;
   try { parsed = await armoredPublicFrom({ base64: ac.keydata }); } catch { return null; }
   const fingerprint = parsed.keys[0]?.getFingerprint();
   if (senderKeys.some(k => k.fingerprint === fingerprint)) return null;
-  if (!senderKeys.length) {
+  if (!senderKeys.length && senderAuthenticated(analyzed.root, fromEmail)) {
     try {
-      await api.pgp.addToKeyring({ armored: parsed.armored, source: 'autocrypt', email: ac.addr });
+      await addToKeyring({ armored: parsed.armored, source: 'autocrypt', email: ac.addr });
       return { collected: true };
     } catch { /* offered below instead */ }
   }
   return { armored: parsed.armored, source: 'autocrypt', email: ac.addr, different: senderKeys.length > 0 };
 }
 
+// Downloads of the decrypted files. The type the sender declared is not trusted: every Blob is
+// application/octet-stream, so the browser saves the file rather than render it in the app's
+// origin; its name stays.
+export const ATTACHMENT_BLOB_TYPE = 'application/octet-stream';
+
 function DecryptedAttachments({ attachments }) {
   const { t } = useTranslation();
-  const urls = useMemo(() => attachments.map(a => URL.createObjectURL(new Blob([a.data], { type: a.mimeType || 'application/octet-stream' }))), [attachments]);
+  const urls = useMemo(() => attachments.map(a => URL.createObjectURL(new Blob([a.data], { type: ATTACHMENT_BLOB_TYPE }))), [attachments]);
   useEffect(() => () => urls.forEach(u => URL.revokeObjectURL(u)), [urls]);
   const [imported, setImported] = useState({});
   if (!attachments.length) return null;
@@ -147,7 +165,7 @@ function DecryptedAttachments({ attachments }) {
     <ul aria-label={t('pgp.read.attachments')} style={{ listStyle: 'none', margin: '0 0 12px', padding: 0, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
       {attachments.map((a, i) => (
         <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--bg-secondary)', fontSize: 12.5 }}>
-          <a href={urls[i]} download={a.filename} style={{ color: 'var(--text-primary)', textDecoration: 'none', overflowWrap: 'anywhere' }}>{a.filename}</a>
+          <a href={urls[i]} download={a.filename || 'attachment'} style={{ color: 'var(--text-primary)', textDecoration: 'none', overflowWrap: 'anywhere' }}>{a.filename}</a>
           <span style={{ color: 'var(--text-tertiary)' }}>{formatSize(a.data.length)}</span>
           {a.mimeType === 'application/pgp-keys' && (
             imported[i] === 'done'
@@ -190,12 +208,26 @@ export function DecryptedBody({ content, subject }) {
   );
 }
 
-// The encrypted message: the lock banner, the passphrase, then the decrypted message.
-export default function PgpMessageView({ message, onOpenSettings }) {
+// The sender's keys for checking a signature, local first; `lookUp` asks the directory too.
+function useSenderKeys(fromEmail) {
+  const [lookingUp, setLookingUp] = useState(false);
+  const lookUp = async () => {
+    setLookingUp(true);
+    try { return await senderKeysFor(fromEmail, api.pgp.lookup, { local: false }); } finally { setLookingUp(false); }
+  };
+  return { lookingUp, lookUp };
+}
+
+// The encrypted message: the lock banner, the passphrase, then the decrypted message. When the
+// message cannot be read here (no key, not for these keys, damaged, no encrypted part found),
+// `onShowOriginal` shows it as it was received, so nothing in it is ever out of reach; a message
+// that turns out to hold no encrypted part at all is shown that way at once.
+export default function PgpMessageView({ message, onOpenSettings, onShowOriginal }) {
   const { t } = useTranslation();
   const [phase, setPhase] = useState('loading'); // loading | noKeys | notForYou | locked | decrypting | open | failed
   const [analysis, setAnalysis] = useState(null);
-  const [keyRow, setKeyRow] = useState(null);
+  const [candidates, setCandidates] = useState([]);
+  const [keyIndex, setKeyIndex] = useState(0);
   const [senderKeys, setSenderKeys] = useState([]);
   const [content, setContent] = useState(null);
   const [passphrase, setPassphrase] = useState('');
@@ -203,15 +235,17 @@ export default function PgpMessageView({ message, onOpenSettings }) {
   const [formError, setFormError] = useState('');
   const [offer, setOffer] = useState(null);
   const [failure, setFailure] = useState('');
+  const sender = useSenderKeys(message.from_email);
+  const keyRow = candidates[keyIndex] || null;
 
-  const open = async (analyzed, row, key, sKeys) => {
-    setPhase('decrypting');
+  // Decrypts with `key`; false when it is not the key (a hidden recipient tried in turn).
+  const attempt = async (analyzed, key, sKeys) => {
     try {
       setContent(await decryptMessage(analyzed, { decryptionKey: key, senderKeys: sKeys }));
       setPhase('open');
+      return true;
     } catch {
-      setFailure(t('pgp.read.decryptFailed'));
-      setPhase('failed');
+      return false;
     }
   };
 
@@ -220,25 +254,39 @@ export default function PgpMessageView({ message, onOpenSettings }) {
     setPhase('loading');
     setContent(null);
     setOffer(null);
+    setKeyIndex(0);
     (async () => {
       try {
         const [raw, own] = await Promise.all([api.pgp.rawMessage(message.id), api.pgp.keys()]);
         if (cancelled) return;
         const analyzed = analyzeRaw(raw);
-        if (!analyzed || !analyzed.armored) { setFailure(t('pgp.read.unreadable')); setPhase('failed'); return; }
+        if (!analyzed || !analyzed.armored) {
+          // The server took it for encrypted, but there is nothing to decrypt: show it as it is.
+          if (onShowOriginal) onShowOriginal();
+          else { setFailure(t('pgp.read.unreadable')); setPhase('failed'); }
+          return;
+        }
         setAnalysis(analyzed);
         const sKeys = await senderKeysFor(message.from_email, api.pgp.lookup);
         if (cancelled) return;
         setSenderKeys(sKeys);
         autocryptOffer(analyzed, message.from_email, sKeys).then(o => { if (!cancelled && o && !o.collected) setOffer(o); });
         if (!own.keys?.length) { setPhase('noKeys'); return; }
-        const row = await findDecryptionKey(analyzed.armored, own.keys);
+        const rows = await findDecryptionKeys(analyzed.armored, own.keys, { preferEmails: deliveryAddresses(analyzed.root) });
         if (cancelled) return;
-        if (!row) { setPhase('notForYou'); return; }
-        setKeyRow(row);
-        const key = unlockedKey(row.fingerprint);
-        if (key) await open(analyzed, row, key, sKeys);
-        else setPhase('locked');
+        if (!rows.length) { setPhase('notForYou'); return; }
+        setCandidates(rows);
+        // Keys already unlocked in this tab are tried first, without asking.
+        setPhase('decrypting');
+        for (const row of rows) {
+          const key = unlockedKey(row.fingerprint);
+          if (key && await attempt(analyzed, key, sKeys)) return;
+          if (cancelled) return;
+        }
+        const firstLocked = rows.findIndex(r => !unlockedKey(r.fingerprint));
+        if (firstLocked < 0) { setFailure(t('pgp.read.decryptFailed')); setPhase('failed'); return; }
+        setKeyIndex(firstLocked);
+        setPhase('locked');
       } catch {
         if (!cancelled) { setFailure(t('pgp.read.loadFailed')); setPhase('failed'); }
       }
@@ -249,7 +297,7 @@ export default function PgpMessageView({ message, onOpenSettings }) {
 
   const unlock = async (e) => {
     e.preventDefault();
-    if (!passphrase || phase === 'decrypting') return;
+    if (!passphrase || phase === 'decrypting' || !keyRow) return;
     setFormError('');
     let key;
     try {
@@ -260,8 +308,30 @@ export default function PgpMessageView({ message, onOpenSettings }) {
     }
     setPassphrase('');
     if (remember) rememberUnlockedKey(keyRow.fingerprint, key);
-    await open(analysis, keyRow, key, senderKeys);
+    setPhase('decrypting');
+    if (await attempt(analysis, key, senderKeys)) return;
+    // Not this key: with hidden recipients the next one may be; otherwise the message is damaged.
+    const next = candidates.findIndex((r, i) => i > keyIndex && !unlockedKey(r.fingerprint));
+    if (next >= 0) {
+      setKeyIndex(next);
+      setFormError(t('pgp.read.notThisKey'));
+      setPhase('locked');
+      return;
+    }
+    setFailure(t('pgp.read.decryptFailed'));
+    setPhase('failed');
   };
+
+  const lookUpSigner = async () => {
+    const sKeys = await sender.lookUp();
+    setSenderKeys(sKeys);
+    const key = keyRow && unlockedKey(keyRow.fingerprint);
+    if (key && sKeys.length) await attempt(analysis, key, sKeys);
+  };
+
+  const showOriginal = onShowOriginal && ['noKeys', 'notForYou', 'failed', 'locked'].includes(phase) && (
+    <button type="button" onClick={onShowOriginal} style={button()}>{t('pgp.read.showOriginal')}</button>
+  );
 
   return (
     <div data-pgp-view={phase}>
@@ -270,6 +340,7 @@ export default function PgpMessageView({ message, onOpenSettings }) {
         <span style={{ flex: 1, color: 'var(--text-primary)' }}>
           {phase === 'open' ? t('pgp.read.decrypted') : t('pgp.read.encrypted')}
         </span>
+        {showOriginal}
       </div>
       {phase === 'loading' || phase === 'decrypting' ? (
         <div style={{ fontSize: 13, color: 'var(--text-tertiary)', padding: '8px 0' }}>{phase === 'loading' ? t('common.loading') : t('pgp.read.decrypting')}</div>
@@ -303,7 +374,7 @@ export default function PgpMessageView({ message, onOpenSettings }) {
       <KeyOffer offer={offer} onDone={() => setOffer(null)} />
       {phase === 'open' && content && (
         <>
-          <SignatureLine signature={content.signature} />
+          <SignatureLine signature={content.signature} onLookUp={lookUpSigner} lookingUp={sender.lookingUp} />
           <DecryptedBody content={content} subject={message.subject} />
         </>
       )}
@@ -312,10 +383,13 @@ export default function PgpMessageView({ message, onOpenSettings }) {
 }
 
 // A signed (not encrypted) message: the body shows as usual; this line says whether the signature
-// holds, checked against the sender's keys.
+// holds, checked against the sender's keys here. A signature over only part of what is shown
+// gets a "partly signed" line and no verdict.
 export function PgpSignatureBadge({ message }) {
   const [signature, setSignature] = useState(null);
   const [offer, setOffer] = useState(null);
+  const [analysis, setAnalysis] = useState(null);
+  const sender = useSenderKeys(message.from_email);
   useEffect(() => {
     let cancelled = false;
     setSignature(null);
@@ -323,7 +397,9 @@ export function PgpSignatureBadge({ message }) {
     (async () => {
       try {
         const analyzed = analyzeRaw(await api.pgp.rawMessage(message.id));
-        if (!analyzed || (analyzed.kind !== 'signed' && analyzed.kind !== 'inlineSigned')) return;
+        if (!analyzed || !['signed', 'inlineSigned', 'partlySigned'].includes(analyzed.kind)) return;
+        setAnalysis(analyzed);
+        if (analyzed.kind === 'partlySigned') { if (!cancelled) setSignature({ state: 'partial' }); return; }
         const sKeys = await senderKeysFor(message.from_email, api.pgp.lookup);
         const result = await verifySigned(analyzed, sKeys);
         if (cancelled) return;
@@ -336,9 +412,13 @@ export function PgpSignatureBadge({ message }) {
     })();
     return () => { cancelled = true; };
   }, [message.id, message.from_email]);
+  const lookUp = async () => {
+    const sKeys = await sender.lookUp();
+    if (analysis && sKeys.length) setSignature(await verifySigned(analysis, sKeys));
+  };
   return (
     <>
-      <SignatureLine signature={signature} />
+      <SignatureLine signature={signature} onLookUp={lookUp} lookingUp={sender.lookingUp} />
       <KeyOffer offer={offer} onDone={() => setOffer(null)} />
     </>
   );

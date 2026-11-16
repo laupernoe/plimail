@@ -2634,7 +2634,11 @@
       "keyOffer": "Esta mensagem inclui uma chave pública de {{email}}.",
       "keyOfferDifferent": "Esta mensagem inclui uma chave pública de {{email}} diferente da que você tem.",
       "importKey": "Importar chave",
-      "keyImported": "Chave adicionada às chaves dos seus contatos."
+      "keyImported": "Chave adicionada às chaves dos seus contatos.",
+      "sigPartial": "Só uma parte desta mensagem está assinada, então a assinatura não diz nada sobre o resto. Ela não é verificada.",
+      "lookUpKey": "Procurar a chave do remetente",
+      "notThisKey": "Essa chave não abre esta mensagem. Tente sua próxima chave.",
+      "showOriginal": "Mostrar como recebida"
     },
     "compose": {
       "protection": "Proteção",

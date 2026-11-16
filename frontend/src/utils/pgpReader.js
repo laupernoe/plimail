@@ -5,19 +5,25 @@
 import {
   binaryToBytes, bytesToBinary, canonicalEntityBytes, decodeCharset, extractContent, parseAutocrypt, parseMime, partText,
 } from './mimeParse.js';
-import { decryptArmored, encryptionKeyIds, keyMatches, readArmoredKeys, verifyCleartext, verifyDetached } from './pgp.js';
+import { WILDCARD_KEY_ID, decryptArmored, encryptionKeyIds, keyMatches, readArmoredKeys, verifyCleartext, verifyDetached } from './pgp.js';
 
 const ARMORED_MESSAGE = /-----BEGIN PGP MESSAGE-----[\s\S]*?-----END PGP MESSAGE-----/;
+// Inline PGP is a body that IS an armored block: one quoted or pasted in the middle of ordinary
+// mail is that mail's text, not an encrypted or signed message.
+const WHOLE_ENCRYPTED = /^-----BEGIN PGP MESSAGE-----[\s\S]*?-----END PGP MESSAGE-----/;
 const CLEARTEXT_SIGNED = /-----BEGIN PGP SIGNED MESSAGE-----[\s\S]*?-----END PGP SIGNATURE-----/;
 
 const lower = v => String(v || '').toLowerCase();
 
 // The OpenPGP content of a message's raw source:
-//   { kind: 'encrypted', armored }                      RFC 3156 multipart/encrypted
-//   { kind: 'signed', signedBytes, signature, node }    RFC 3156 multipart/signed
-//   { kind: 'inlineEncrypted', armored }                an armored block in a text body
-//   { kind: 'inlineSigned', cleartext }                 a cleartext-signed text body
-// or null, each with `autocrypt` (the parsed Autocrypt header or null) and `root`.
+//   { kind: 'encrypted', armored }                      RFC 3156 multipart/encrypted, at the root
+//   { kind: 'signed', signedBytes, signature, node }    RFC 3156 multipart/signed, at the root
+//   { kind: 'inlineEncrypted', armored }                a text body that is an armored block
+//   { kind: 'inlineSigned', cleartext }                 a text body that is a cleartext-signed block
+//   { kind: 'partlySigned' }                            a signed part inside an unsigned message
+// or null, each with `autocrypt` (the parsed Autocrypt header or null) and `root`. Only a
+// signature over everything the reader shows can say the message is signed; one over a part
+// (a list footer added after it, a signed block quoted in a reply) says nothing about the rest.
 export function analyzeRaw(raw) {
   const root = parseMime(raw);
   const str = root.source;
@@ -38,27 +44,74 @@ export function analyzeRaw(raw) {
     }
     return null;
   };
-  const top = find(root) || (root.contentType === 'multipart/mixed' && root.children[0] ? find(root.children[0]) : null);
+  const top = find(root);
   if (top) return { ...base, ...top };
+  const nested = root.contentType === 'multipart/mixed' && root.children[0] ? find(root.children[0]) : null;
+  if (nested?.kind === 'signed') return { ...base, kind: 'partlySigned' };
   const content = extractContent(root);
-  const text = content.text || '';
-  const enc = ARMORED_MESSAGE.exec(text);
+  const text = (content.text || '').trim();
+  const enc = WHOLE_ENCRYPTED.exec(text);
   if (enc) return { ...base, kind: 'inlineEncrypted', armored: enc[0] };
   const sig = CLEARTEXT_SIGNED.exec(text);
-  if (sig) return { ...base, kind: 'inlineSigned', cleartext: sig[0] };
+  if (sig) {
+    return sig.index === 0 && sig[0].length === text.length
+      ? { ...base, kind: 'inlineSigned', cleartext: sig[0] }
+      : { ...base, kind: 'partlySigned' };
+  }
   return null;
 }
 
-// Which of the user's keys (rows from GET /api/pgp/keys) the message is encrypted to, or null.
-export async function findDecryptionKey(armored, ownKeys) {
+// The addresses the message was delivered to, from its own headers, for choosing a key.
+export function deliveryAddresses(root) {
+  const out = new Set();
+  for (const h of root?.headers || []) {
+    if (!['to', 'cc', 'delivered-to', 'x-original-to'].includes(h.name)) continue;
+    for (const m of h.value.matchAll(/[^\s<>,;:"]+@[^\s<>,;:"]+/g)) out.add(m[0].toLowerCase());
+  }
+  return [...out];
+}
+
+// The user's keys (rows from GET /api/pgp/keys) that may open the message, best first: the ones it
+// names. A message with hidden recipients (wildcard key IDs, sent with Bcc) names none, so every
+// key may be the one, those for the addresses it was delivered to first; the reader tries them in
+// turn. [] when it is for none of them.
+export async function findDecryptionKeys(armored, ownKeys, { preferEmails = [] } = {}) {
   const ids = await encryptionKeyIds(armored);
+  const named = [];
   for (const row of ownKeys || []) {
     try {
       const [key] = await readArmoredKeys(row.armoredPublic);
-      if (key && keyMatches(key, ids)) return row;
+      if (key && keyMatches(key, ids)) named.push(row);
     } catch { /* a key that does not read opens nothing */ }
   }
-  return null;
+  if (named.length || !ids.includes(WILDCARD_KEY_ID)) return named;
+  const prefer = new Set(preferEmails.map(lower));
+  const score = row => ((row.emails || []).some(e => prefer.has(lower(e))) ? 1 : 0);
+  return [...(ownKeys || [])].sort((a, b) => score(b) - score(a));
+}
+
+export async function findDecryptionKey(armored, ownKeys) {
+  return (await findDecryptionKeys(armored, ownKeys))[0] || null;
+}
+
+// Whether the receiving server vouched for the From domain: the topmost Authentication-Results
+// (the one the user's own server added; any below came with the message and prove nothing) says
+// dmarc=pass, or dkim=pass for the From domain or a parent of it. Autocrypt keys are collected
+// without asking only then, since a From that is not authenticated can be anyone's.
+export function senderAuthenticated(root, fromEmail) {
+  const header = (root?.headers || []).find(h => h.name === 'authentication-results');
+  const domain = lower(String(fromEmail || '').split('@')[1]);
+  if (!header || !domain) return false;
+  const value = lower(header.value);
+  if (/(?:^|[\s;])dmarc=pass\b/.test(value)) {
+    const from = /header\.from=([^\s;]+)/.exec(value.slice(value.search(/dmarc=pass/)));
+    return !from || from[1] === domain;
+  }
+  for (const m of value.matchAll(/dkim=pass\b([^;]*)/g)) {
+    const d = /header\.(?:d|i)=@?([^\s;]+)/.exec(m[1]);
+    if (d && (d[1] === domain || domain.endsWith(`.${d[1]}`))) return true;
+  }
+  return false;
 }
 
 // A signature result with the trust the user gave the key: 'verified' when good and the key is
@@ -97,21 +150,24 @@ export async function decryptMessage(analyzed, { decryptionKey, senderKeys = [] 
   return { ...opened, signature: withTrust(opened.signature, senderKeys) };
 }
 
-// A signed message's signature, checked against the sender's keys.
+// A signed message's signature, checked against the sender's keys. A partly signed message gets
+// no verdict: its signature covers something other than what the reader shows.
 export async function verifySigned(analyzed, senderKeys = []) {
+  if (analyzed.kind === 'partlySigned') return { state: 'partial' };
   const senderArmored = senderKeys.map(k => k.armored);
   if (analyzed.kind === 'signed') return withTrust(await verifyDetached(analyzed.signedBytes, analyzed.signature, senderArmored), senderKeys);
   if (analyzed.kind === 'inlineSigned') return withTrust((await verifyCleartext(analyzed.cleartext, senderArmored)).signature, senderKeys);
   return { state: 'none' };
 }
 
-// The sender's keys to verify with: the user's own keys and keyring (and, failing those, the
-// sender's Web Key Directory) through POST /api/pgp/lookup. An Autocrypt key in the message itself
-// proves nothing about who signed it, so it is never used here; the reader offers to import it.
-export async function senderKeysFor(email, lookup) {
+// The sender's keys to verify with, through POST /api/pgp/lookup: the user's own keys and keyring
+// only (`local`), since asking the sender's domain for their key when a message is opened would
+// tell them it was read. The reader asks the directory only when the user says so. An Autocrypt
+// key in the message itself proves nothing about who signed it, so it is never used here.
+export async function senderKeysFor(email, lookup, { local = true } = {}) {
   if (!email) return [];
   try {
-    const { results } = await lookup([email]);
+    const { results } = await lookup([email], { local });
     return results?.[lower(email)]?.keys || [];
   } catch {
     return [];
@@ -121,8 +177,9 @@ export async function senderKeysFor(email, lookup) {
 // The attachments the reader lists for a message as the server describes it: none of an encrypted
 // one's (the ciphertext and its version part; the decrypted message lists its own), and a signed
 // one's without the signature file.
-export function pgpVisibleAttachments(body) {
+export function pgpVisibleAttachments(body, { original = false } = {}) {
   const list = body?.attachments || [];
+  if (original) return list;
   if (body?.pgp === 'encrypted') return [];
   if (body?.pgp === 'signed') return list.filter(a => lower(a?.type) !== 'application/pgp-signature');
   return list;

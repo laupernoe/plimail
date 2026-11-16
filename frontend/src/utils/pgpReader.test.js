@@ -4,7 +4,9 @@ import * as openpgp from 'openpgp';
 import { encryptMime, generateKeyPair, unlockPrivateKey } from './pgp.js';
 import { buildMimeEntity, entityBytes } from './mimeBuild.js';
 import { canonicalEntityBytes, parseMime } from './mimeParse.js';
-import { analyzeRaw, decryptMessage, findDecryptionKey, pgpVisibleAttachments, verifySigned, withTrust } from './pgpReader.js';
+import {
+  analyzeRaw, decryptMessage, deliveryAddresses, findDecryptionKey, findDecryptionKeys, pgpVisibleAttachments, senderAuthenticated, verifySigned, withTrust,
+} from './pgpReader.js';
 
 const alice = await generateKeyPair({ email: 'alice@example.org', passphrase: 'a-pass-123' });
 const bob = await generateKeyPair({ email: 'bob@example.net', passphrase: 'b-pass-123' });
@@ -67,7 +69,7 @@ test('reads sign-then-encrypt: a multipart/signed entity inside the encryption',
 test('reads inline PGP and cleartext-signed text', async () => {
   const signingKey = await unlockPrivateKey(alice.armoredPrivate, 'a-pass-123');
   const armored = await openpgp.encrypt({ message: await openpgp.createMessage({ text: 'Inline secret' }), encryptionKeys: await openpgp.readKey({ armoredKey: bob.armoredPublic }) });
-  const raw = enc.encode(`Content-Type: text/plain\r\n\r\nHello\r\n${armored.replace(/\n/g, '\r\n')}`);
+  const raw = enc.encode(`Content-Type: text/plain\r\n\r\n${armored.replace(/\n/g, '\r\n')}`);
   const analyzed = analyzeRaw(raw);
   assert.equal(analyzed.kind, 'inlineEncrypted');
   const decryptionKey = await unlockPrivateKey(bob.armoredPrivate, 'b-pass-123');
@@ -112,4 +114,66 @@ test('lists none of an encrypted message\'s parts as attachments, and a signed o
   assert.deepEqual(pgpVisibleAttachments({ pgp: 'signed', attachments: atts }), [atts[0]]);
   assert.deepEqual(pgpVisibleAttachments({ attachments: atts }), atts);
   assert.equal(analyzeRaw(enc.encode('Content-Type: text/plain\r\n\r\nNothing here\r\n')), null);
+});
+
+test('a signature over part of the message is not a signed message', async () => {
+  const signingKey = await unlockPrivateKey(alice.armoredPrivate, 'a-pass-123');
+  const clear = (await openpgp.sign({ message: await openpgp.createCleartextMessage({ text: 'Signed bit' }), signingKeys: signingKey })).replace(/\n/g, '\r\n');
+  // Unsigned text around a signed block: the reader would show both under a "valid signature".
+  const around = analyzeRaw(enc.encode(`Content-Type: text/plain\r\n\r\nUnsigned intro\r\n${clear}\r\nUnsigned footer\r\n`));
+  assert.equal(around.kind, 'partlySigned');
+  assert.equal((await verifySigned(around, aliceAsSender(true))).state, 'partial');
+  // A multipart/signed under a multipart/mixed (a list footer added beside it).
+  const mixed = enc.encode([
+    'Content-Type: multipart/mixed; boundary="m"', '', '--m',
+    'Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha512; boundary="s"', '',
+    '--s', 'Content-Type: text/plain', '', 'signed', '--s', 'Content-Type: application/pgp-signature', '', 'x', '--s--',
+    '--m', 'Content-Type: text/plain', '', 'Unsubscribe here', '--m--', '',
+  ].join('\r\n'));
+  assert.equal(analyzeRaw(mixed).kind, 'partlySigned');
+  // A whole cleartext-signed body is still a signed message.
+  assert.equal(analyzeRaw(enc.encode(`Content-Type: text/plain\r\n\r\n  ${clear}\r\n`)).kind, 'inlineSigned');
+});
+
+test('an armored block quoted or pasted in ordinary mail is not an encrypted message', async () => {
+  const armored = await encryptMime(enc.encode('x'), { recipientArmored: [bob.armoredPublic] });
+  assert.equal(analyzeRaw(enc.encode(`Content-Type: text/plain\r\n\r\nYou sent this:\r\n${armored}`)), null);
+  const quoted = armored.split('\n').map(l => `> ${l}`).join('\r\n');
+  assert.equal(analyzeRaw(enc.encode(`Content-Type: text/plain\r\n\r\n${quoted}`)), null);
+});
+
+test('with hidden recipients every key is a candidate, those for the delivery address first', async () => {
+  const other = await generateKeyPair({ email: 'other@example.org', passphrase: 'o-pass-123' });
+  const rows = [
+    { id: 'o', fingerprint: other.fingerprint, emails: ['other@example.org'], armoredPublic: other.armoredPublic },
+    ...own,
+  ];
+  const hidden = await encryptMime(enc.encode('x'), { recipientArmored: [bob.armoredPublic], hidden: true });
+  const root = parseMime(enc.encode('To: someone@example.com\r\nDelivered-To: bob@example.net\r\n\r\nx'));
+  const found = await findDecryptionKeys(hidden, rows, { preferEmails: deliveryAddresses(root) });
+  assert.deepEqual(found.map(r => r.id), ['k1', 'o']);
+  // A message that names its recipients is only for those.
+  const named = await encryptMime(enc.encode('x'), { recipientArmored: [bob.armoredPublic] });
+  assert.deepEqual((await findDecryptionKeys(named, rows)).map(r => r.id), ['k1']);
+});
+
+test('trusts the receiving server\'s authentication of From, only the topmost result', () => {
+  const root = (...headers) => parseMime(enc.encode(`${headers.join('\r\n')}\r\n\r\nx`));
+  assert.equal(senderAuthenticated(root('Authentication-Results: mx.example.com; dkim=pass header.d=example.org; dmarc=pass header.from=example.org'), 'a@example.org'), true);
+  assert.equal(senderAuthenticated(root('Authentication-Results: mx.example.com; dkim=pass header.d=mail.example.org'), 'a@mail.example.org'), true);
+  assert.equal(senderAuthenticated(root('Authentication-Results: mx.example.com; dkim=pass header.d=example.org'), 'a@sub.example.org'), true);
+  // A DKIM pass for someone else's domain says nothing about From.
+  assert.equal(senderAuthenticated(root('Authentication-Results: mx.example.com; dkim=pass header.d=attacker.example; dmarc=fail'), 'a@example.org'), false);
+  assert.equal(senderAuthenticated(root('Authentication-Results: mx.example.com; dmarc=pass header.from=attacker.example'), 'a@example.org'), false);
+  // A forged result further down (added by the sender) is not the one read.
+  assert.equal(senderAuthenticated(root(
+    'Authentication-Results: mx.example.com; dkim=none; dmarc=fail',
+    'Authentication-Results: fake; dkim=pass header.d=example.org; dmarc=pass',
+  ), 'a@example.org'), false);
+  assert.equal(senderAuthenticated(root('Subject: x'), 'a@example.org'), false);
+});
+
+test('shows an encrypted message\'s parts as received when asked', () => {
+  const atts = [{ type: 'application/octet-stream', filename: 'encrypted.asc' }];
+  assert.deepEqual(pgpVisibleAttachments({ pgp: 'encrypted', attachments: atts }, { original: true }), atts);
 });

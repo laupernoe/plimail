@@ -2634,7 +2634,11 @@
       "keyOffer": "此邮件包含 {{email}} 的公钥。",
       "keyOfferDifferent": "此邮件包含 {{email}} 的一个公钥，与你已有的不同。",
       "importKey": "导入密钥",
-      "keyImported": "密钥已添加到联系人的密钥中。"
+      "keyImported": "密钥已添加到联系人的密钥中。",
+      "sigPartial": "此邮件只有一部分已签名，签名无法说明其余内容，因此不予验证。",
+      "lookUpKey": "查找发件人的密钥",
+      "notThisKey": "这个密钥无法打开此邮件，请尝试下一个密钥。",
+      "showOriginal": "按收到的原样显示"
     },
     "compose": {
       "protection": "保护",

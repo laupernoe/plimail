@@ -2653,7 +2653,11 @@
       "keyOffer": "Ta wiadomość zawiera klucz publiczny dla {{email}}.",
       "keyOfferDifferent": "Ta wiadomość zawiera dla {{email}} inny klucz publiczny niż ten, który masz.",
       "importKey": "Importuj klucz",
-      "keyImported": "Klucz dodano do kluczy korespondentów."
+      "keyImported": "Klucz dodano do kluczy korespondentów.",
+      "sigPartial": "Podpisana jest tylko część tej wiadomości, więc podpis nie mówi nic o reszcie. Nie jest sprawdzany.",
+      "lookUpKey": "Wyszukaj klucz nadawcy",
+      "notThisKey": "Ten klucz nie otwiera tej wiadomości. Spróbuj następnego klucza.",
+      "showOriginal": "Pokaż w otrzymanej postaci"
     },
     "compose": {
       "protection": "Ochrona",

@@ -2634,7 +2634,11 @@
       "keyOffer": "This message includes a public key for {{email}}.",
       "keyOfferDifferent": "This message includes a different public key for {{email}} than the one you have.",
       "importKey": "Import key",
-      "keyImported": "Key added to your correspondents' keys."
+      "keyImported": "Key added to your correspondents' keys.",
+      "sigPartial": "Only part of this message is signed, so its signature says nothing about the rest. It is not checked.",
+      "lookUpKey": "Look up the sender's key",
+      "notThisKey": "That key does not open this message. Try your next key.",
+      "showOriginal": "Show as received"
     },
     "compose": {
       "protection": "Protection",
