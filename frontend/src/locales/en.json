@@ -2502,7 +2502,18 @@
       "when": "When",
       "where": "Where"
     },
-    "syncAll": "Sync calendars"
+    "syncAll": "Sync calendars",
+    "search": {
+      "label": "Search events",
+      "placeholder": "Search",
+      "clear": "Clear search",
+      "results": "Search results",
+      "searching": "Searching…",
+      "empty": "No event matches “{{query}}”",
+      "error": "Search failed: {{message}}",
+      "past": "Past",
+      "truncated": "Only the first results are shown. Refine the search to see more."
+    }
   },
   "calendarOffer": {
     "prompt": "Also add the calendars of this account",

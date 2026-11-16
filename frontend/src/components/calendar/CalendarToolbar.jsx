@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { VIEWS } from '../../utils/calendarDates.js';
-import { Btn, IconBtn } from './calendarUi.jsx';
+import { SEARCH_MAX } from './eventSearch.js';
+import { Btn, Icon, IconBtn } from './calendarUi.jsx';
 
 const VIEW_KEYS = {
   month: 'calendar.views.month',
@@ -26,8 +28,42 @@ function Segmented({ view, onView, compact }) {
   );
 }
 
-export default function CalendarToolbar({ title, view, onView, onToday, onPrev, onNext, isMobile, busy, onRail, onBack, onSync, syncing }) {
+// Escape clears what is typed, then leaves the field.
+function SearchField({ value, onChange, inputRef, onClose, isMobile }) {
   const { t } = useTranslation();
+  const onKeyDown = (e) => {
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (value) onChange('');
+    else { e.currentTarget.blur(); onClose?.(); }
+  };
+  return (
+    <div role="search" style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: isMobile ? 1 : '0 1 240px', minWidth: isMobile ? 0 : 150 }}>
+      <Icon name="search" size={14} style={{ position: 'absolute', left: 9, color: 'var(--text-tertiary)', pointerEvents: 'none' }} />
+      <input
+        ref={inputRef} type="text" inputMode="search" enterKeyHint="search" value={value} maxLength={SEARCH_MAX} autoFocus={isMobile}
+        onChange={e => onChange(e.target.value)} onKeyDown={onKeyDown}
+        placeholder={t('calendar.search.placeholder')} aria-label={t('calendar.search.label')}
+        style={{
+          width: '100%', boxSizing: 'border-box', padding: value ? '0 30px 0 29px' : '0 10px 0 29px', borderRadius: 7,
+          border: '1px solid var(--border)', background: 'var(--bg-tertiary)', color: 'var(--text-primary)',
+          fontSize: isMobile ? 16 : 13, fontFamily: 'inherit', outline: 'none', height: isMobile ? 36 : 30,
+        }}
+      />
+      {value && (
+        <IconBtn label={t('calendar.search.clear')} icon="close" onClick={() => { onChange(''); inputRef?.current?.focus(); }}
+          size={24} iconSize={13} style={{ position: 'absolute', right: 3 }} />
+      )}
+    </div>
+  );
+}
+
+export default function CalendarToolbar({
+  title, view, onView, onToday, onPrev, onNext, isMobile, busy, onRail, onBack, onSync, syncing, search = '', onSearch, searchRef,
+}) {
+  const { t } = useTranslation();
+  const [searchOpen, setSearchOpen] = useState(false);
   const nav = (
     <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
       <Btn onClick={onToday} style={{ marginRight: 4 }}>{t('calendar.today')}</Btn>
@@ -46,9 +82,15 @@ export default function CalendarToolbar({ title, view, onView, onToday, onPrev, 
       size={isMobile ? 36 : 30} iconSize={isMobile ? 18 : 15} iconStyle={syncing ? { animation: 'spin 0.8s linear infinite' } : undefined} />
   ) : null;
   const status = busy ? <span role="status" style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{t('common.saving')}</span> : null;
+  const closeSearch = () => { onSearch(''); setSearchOpen(false); };
+  const field = onSearch ? (
+    <SearchField value={search} onChange={onSearch} inputRef={searchRef} isMobile={isMobile} onClose={isMobile ? closeSearch : undefined} />
+  ) : null;
 
   if (isMobile) {
     // Everything on two rows that fit a 320 px phone: no control is ever pushed off the edge.
+    // The search takes a row of its own while it is open.
+    const searching = field && (searchOpen || search);
     return (
       <div style={{ flexShrink: 0, padding: 'calc(var(--sat) + 4px) 8px 8px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-secondary)', display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
@@ -58,9 +100,19 @@ export default function CalendarToolbar({ title, view, onView, onToday, onPrev, 
           <IconBtn label={t('calendar.today')} icon="today" onClick={onToday} size={36} iconSize={18} />
           <IconBtn label={t('calendar.previous')} icon="chevL" onClick={onPrev} size={36} />
           <IconBtn label={t('calendar.next')} icon="chevR" onClick={onNext} size={36} />
+          {onSearch && (
+            <IconBtn label={t('calendar.search.label')} icon="search" onClick={() => setSearchOpen(true)} active={Boolean(searching)}
+              aria-expanded={Boolean(searching)} size={36} iconSize={18} />
+          )}
           {sync}
           <IconBtn label={t('calendar.calendars')} icon="list" onClick={onRail} size={36} iconSize={18} />
         </div>
+        {searching && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {field}
+            <Btn kind="plain" onClick={closeSearch}>{t('common.cancel')}</Btn>
+          </div>
+        )}
         <Segmented view={view} onView={onView} compact />
       </div>
     );
@@ -70,6 +122,7 @@ export default function CalendarToolbar({ title, view, onView, onToday, onPrev, 
       {nav}
       {heading}
       {status}
+      {field}
       {sync}
       <Segmented view={view} onView={onView} />
     </div>

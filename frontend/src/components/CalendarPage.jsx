@@ -19,6 +19,9 @@ import AgendaView from './calendar/AgendaView.jsx';
 import EventDetail from './calendar/EventDetail.jsx';
 import EventForm from './calendar/EventForm.jsx';
 import ScopeDialog from './calendar/ScopeDialog.jsx';
+import SearchResults from './calendar/SearchResults.jsx';
+import { useEventSearch } from './calendar/useEventSearch.js';
+import { shortcutBus } from '../utils/shortcutBus.js';
 
 const VIEW_STORAGE_KEY = 'mailflow:calendar:view';
 
@@ -82,6 +85,9 @@ function CalendarShell({ active }) {
   const [railOpen, setRailOpen] = useState(false);
   const calendarFocus = useStore(s => s.calendarFocus);
   const setCalendarFocus = useStore(s => s.setCalendarFocus);
+  const [search, setSearch] = useState('');
+  const searchRef = useRef(null);
+  const found = useEventSearch(search);
 
   const range = useMemo(() => visibleRange(view, anchor, firstDay), [view, anchor, firstDay]);
   const data = useCalendarData({ active, from: range.from, to: range.to });
@@ -128,6 +134,14 @@ function CalendarShell({ active }) {
     }
   }, [active, calendarFocus, accounts, setCalendarFocus]);
 
+  // The mail list's search key ("/" unless remapped) searches the calendar while it is shown.
+  useEffect(() => {
+    if (!active) return undefined;
+    const focusSearch = () => { searchRef.current?.focus(); searchRef.current?.select(); };
+    shortcutBus.on('focusSearch', focusSearch);
+    return () => shortcutBus.off('focusSearch', focusSearch);
+  }, [active]);
+
   const byId = useMemo(() => new Map(calendars.map(c => [c.id, c])), [calendars]);
   const colorOf = useCallback((id) => byId.get(id)?.color || 'var(--accent)', [byId]);
   const calendarName = useCallback((id) => byId.get(id)?.name || '', [byId]);
@@ -171,6 +185,15 @@ function CalendarShell({ active }) {
     const r = el.getBoundingClientRect();
     setDetailError(null);
     setDetail({ occ, rect: { left: r.left, right: r.right, top: r.top, bottom: r.bottom } });
+  };
+
+  // A search result: back to the view, on that day, with the event open.
+  const openFound = (occ, day) => {
+    setSearch('');
+    setAnchor(day);
+    const x = Math.round(window.innerWidth / 2);
+    setDetailError(null);
+    setDetail({ occ, rect: { left: x, right: x, top: 120, bottom: 120 } });
   };
 
   const openForm = (occ, scope, defaults) => { setForm({ occ, scope, defaults, key: Date.now() }); closeDetail(); };
@@ -280,7 +303,9 @@ function CalendarShell({ active }) {
 
   const goToday = () => setAnchor(todayDay());
   const openDay = (day) => { setAnchor(day); setView('day'); };
-  const pickDay = (day) => { setAnchor(day); setRailOpen(false); };
+  const pickDay = (day) => { setSearch(''); setAnchor(day); setRailOpen(false); };
+  // Moving through the calendar means leaving the results for it.
+  const leavingSearch = (fn) => (...args) => { setSearch(''); fn(...args); };
   const onPreview = (occ, times) => setPreview(times ? { id: occ.id, ...times } : null);
 
   const rangeInfo = { first: range.first, endDay: range.endDay };
@@ -308,6 +333,13 @@ function CalendarShell({ active }) {
       : <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>{t('common.loading')}</div>;
   } else if (noAccounts) {
     body = <EmptyState onConnect={() => openSettings()} />;
+  } else if (found.query) {
+    body = (
+      <SearchResults
+        query={found.query} events={found.events} loading={found.loading} truncated={found.truncated} error={found.error}
+        today={today} colorOf={colorOf} calendarName={calendarName} locale={locale} onOpen={openFound} onRetry={found.retry}
+      />
+    );
   } else {
     const commonProps = { today, events: shown, colorOf, locale, onOpen: openDetail };
     const dragProps = { onPreview, onMove: requestMove };
@@ -367,10 +399,12 @@ function CalendarShell({ active }) {
       )}
       <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         <CalendarToolbar
-          title={formatTitle(view, anchor, firstDay, locale)} view={view} onView={setView} isMobile={isMobile}
-          onToday={goToday} onPrev={() => setAnchor(a => shiftAnchor(view, a, -1))} onNext={() => setAnchor(a => shiftAnchor(view, a, 1))}
+          title={formatTitle(view, anchor, firstDay, locale)} view={view} onView={leavingSearch(setView)} isMobile={isMobile}
+          onToday={leavingSearch(goToday)} onPrev={leavingSearch(() => setAnchor(a => shiftAnchor(view, a, -1)))}
+          onNext={leavingSearch(() => setAnchor(a => shiftAnchor(view, a, 1)))}
           busy={busy > 0} onRail={() => setRailOpen(true)}
           onSync={accounts?.length ? syncAll : null} syncing={syncBusy} onBack={() => setShowCalendar(false)}
+          search={search} onSearch={accounts?.length ? setSearch : null} searchRef={searchRef}
         />
         {stack}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0 }}>{body}</div>

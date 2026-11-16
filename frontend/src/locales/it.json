@@ -2502,7 +2502,18 @@
       "when": "Quando",
       "where": "Dove"
     },
-    "syncAll": "Sincronizza calendari"
+    "syncAll": "Sincronizza calendari",
+    "search": {
+      "label": "Cerca eventi",
+      "placeholder": "Cerca",
+      "clear": "Cancella ricerca",
+      "results": "Risultati della ricerca",
+      "searching": "Ricerca in corso…",
+      "empty": "Nessun evento corrisponde a «{{query}}»",
+      "error": "Ricerca non riuscita: {{message}}",
+      "past": "Passati",
+      "truncated": "Vengono mostrati solo i primi risultati. Affina la ricerca per vederne altri."
+    }
   },
   "calendarOffer": {
     "prompt": "Aggiungi anche i calendari di questo account",

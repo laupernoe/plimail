@@ -2502,7 +2502,18 @@
       "when": "일시",
       "where": "장소"
     },
-    "syncAll": "캘린더 동기화"
+    "syncAll": "캘린더 동기화",
+    "search": {
+      "label": "일정 검색",
+      "placeholder": "검색",
+      "clear": "검색어 지우기",
+      "results": "검색 결과",
+      "searching": "검색 중…",
+      "empty": "‘{{query}}’와(과) 일치하는 일정이 없습니다",
+      "error": "검색 실패: {{message}}",
+      "past": "지난 일정",
+      "truncated": "처음 결과만 표시됩니다. 더 보려면 검색어를 구체화하세요."
+    }
   },
   "calendarOffer": {
     "prompt": "이 계정의 캘린더도 추가",
