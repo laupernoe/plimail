@@ -11,6 +11,7 @@ import RedisStore from 'connect-redis';
 import 'dotenv/config';
 import { redisClient } from './services/redis.js';
 import { parseTrustProxyHops } from './utils/trustProxy.js';
+import { directRequestHandler, stripForwardedOnUpgrade } from './utils/directListener.js';
 import { loadOrCreateCertificate } from './services/tlsCertificate.js';
 import { buildSessionOptions } from './utils/sessionConfig.js';
 import { mountApiAuth } from './middleware/apiChain.js';
@@ -47,9 +48,11 @@ import carddavRouter from './routes/carddav.js';
 import calendarRoutes from './routes/calendar.js';
 import { startCaldavScheduler } from './services/caldavSync.js';
 import { encryptExistingCredentials, query } from './services/db.js';
+import { isValidEncryptionKey } from './services/encryption.js';
 import { runMigrations } from './services/migrations.js';
 import { parseVCard } from './utils/vcard.js';
 import { reloadAuthSettings } from './services/authLimiter.js';
+import { createClientAddressWatch } from './services/clientAddressWatch.js';
 import { closeWebSocketClients, createWebSocketServer, setupWebSocket } from './services/websocket.js';
 import { ImapManager } from './services/imapManager.js';
 import { getUpdateStatus } from './services/updateCheck.js';
@@ -69,6 +72,7 @@ try {
 export const APP_VERSION = (process.env.APP_VERSION || buildMeta.version || packageMeta.version).replace(/^v[.]?/, '');
 
 const app = express();
+app.disable('x-powered-by');
 // Trust the operator's reverse proxy so req.secure reflects HTTPS correctly: behind a
 // TLS-terminating proxy the connection itself is plain HTTP, and without this express-session
 // would never mark the session cookie Secure. The hop count also decides req.ip, which keys the
@@ -91,7 +95,11 @@ try {
   console.error(`FATAL: cannot load the HTTPS certificate: ${err.message}. Exiting.`);
   process.exit(1);
 }
-const httpsServer = createHttpsServer({ cert: tlsCertificate.cert, key: tlsCertificate.key }, app);
+// Nothing forwards to this listener, so whatever forwarded headers a request brings are the
+// client's own and must not decide req.ip (directListener.js).
+const httpsServer = stripForwardedOnUpgrade(
+  createHttpsServer({ cert: tlsCertificate.cert, key: tlsCertificate.key }, directRequestHandler(app))
+);
 const wss = createWebSocketServer(httpServer, httpsServer);
 
 // Redis — connect the shared client before any route or session middleware uses it.
@@ -106,7 +114,7 @@ if (!process.env.DB_PASSWORD) {
   console.error('FATAL: DB_PASSWORD must be set. Exiting.');
   process.exit(1);
 }
-if (!process.env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY.length !== 64) {
+if (!isValidEncryptionKey(process.env.ENCRYPTION_KEY)) {
   console.error('FATAL: ENCRYPTION_KEY must be set and exactly 64 hex characters (32 bytes). Generate one with: openssl rand -hex 32');
   process.exit(1);
 }
@@ -146,6 +154,9 @@ app.use((req, res, next) => {
 });
 
 app.use(securityHeaders);
+// Says so in the log when every client seems to share the proxy's address (clientAddressWatch.js).
+const clientAddressWatch = createClientAddressWatch({ hops: trustProxyHops });
+app.use(clientAddressWatch);
 app.use(compress);
 // Who a request is and whether it may go on: API tokens, the body parsers, the session, the CSRF
 // header check, the screen lock and the token guards, in that order (middleware/apiChain.js, so

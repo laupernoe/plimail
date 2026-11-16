@@ -46,9 +46,9 @@ const ROUTING = (() => {
     }
     const mount = /^'([^']+)', (\w+)\);$/.exec(use.trim());
     if (mount) routing.push({ owner: mount[2], prefix: mount[1], router: ROUTERS[mount[2]] });
-    else if (!use.startsWith('(') && !/^(corsExceptDav\(|securityHeaders\)|compress\))/.test(use)) {
-      // Middleware is an inline function, the CORS wrapper, the security headers or compression;
-      // anything else may be a router. The web app is mounted after every route, and leaves
+    else if (!use.startsWith('(') && !/^(corsExceptDav\(|securityHeaders\)|compress\)|clientAddressWatch\))/.test(use)) {
+      // Middleware is an inline function, the CORS wrapper, the security headers, compression or
+      // the client address watch; anything else may be a router. The web app is mounted after every route, and leaves
       // /api to them.
       throw new Error(`index.js has an app.use this test cannot read: app.use(${use.slice(0, 60)}`);
     }

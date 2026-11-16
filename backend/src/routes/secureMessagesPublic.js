@@ -3,15 +3,18 @@ import { discardBodyUpTo } from '../middleware/bodyParsers.js';
 import { consume } from '../services/rateLimiter.js';
 import { sendPushToUser } from '../services/pushNotifications.js';
 import {
-  MAX_REPLY_BYTES, addReply, authKeyMatches, decodeBase64, findOpenable, isToken, openMessage,
-  publicMeta, recordFailedAttempt,
+  MAX_REPLY_BYTES, addReply, attemptFailed, attemptSucceeded, attemptsExhausted, authKeyMatches,
+  decodeBase64, findOpenable, isToken, openMessage, publicMeta, reserveAttempt,
 } from '../services/secureMessages.js';
+import { rateLimitAddress } from '../utils/rateLimitAddress.js';
 
 // The recipient's side of a password-protected message, at /api/s/<token>/…, for someone with
 // no account here. Nothing in it reads the session. What the token alone gets is the sender, the
 // key derivation's salt and cost, and the expiry; the ciphertext needs the authentication key
 // derived from the password, so the link by itself allows no guessing offline, and guesses online
-// are counted against the message (it locks after MAX_FAILED_ATTEMPTS) and rate limited.
+// are counted against the message (it locks after MAX_FAILED_ATTEMPTS) and rate limited per
+// message. The per-address limit is only a loose backstop: many recipients can share an address,
+// and all of them would share one bucket if the proxy in front were not counted (TRUST_PROXY_HOPS).
 //
 // The page sends X-Requested-With like the app does, so the CSRF check holds here too
 // (csrfGuard.js); the screen lock lets these paths through (screenLock.js), as they act for the
@@ -21,8 +24,8 @@ const router = Router();
 const MINUTE = 60 * 1000;
 const META_PER_IP = { max: 120, windowMs: 5 * MINUTE };
 // Every try at the password (open or reply) costs both, right or wrong.
-const ATTEMPTS_PER_IP = { max: 30, windowMs: 15 * MINUTE };
-const ATTEMPTS_PER_TOKEN = { max: 20, windowMs: 15 * MINUTE };
+export const ATTEMPTS_PER_IP = Object.freeze({ max: 100, windowMs: 15 * MINUTE });
+export const ATTEMPTS_PER_TOKEN = Object.freeze({ max: 20, windowMs: 15 * MINUTE });
 
 // One answer for unknown, expired, revoked and locked, so a token cannot be probed for its state.
 const UNAVAILABLE = { error: 'This message has expired or was removed', code: 'unavailable' };
@@ -36,7 +39,7 @@ router.use((req, res, next) => {
   next();
 });
 
-const ipOf = req => req.ip || 'unknown';
+const ipOf = req => rateLimitAddress(req.ip);
 
 // Answers 429 and returns true if any of the limits is spent. `answer` sends the response, so
 // the reply route can read off the body it is refusing first.
@@ -62,17 +65,23 @@ const attemptLimits = req => [
 // The message, if the key is right. Otherwise answers for it: unavailable, wrong (with the tries
 // left) or, at the last wrong one, locked. Returns null once it has answered.
 async function authorize(req, res, authKey) {
-  const row = await findOpenable(req.params.token);
+  const row = await reserveAttempt(req.params.token);
   if (!row) {
-    res.status(404).json(UNAVAILABLE);
+    // Every try left is being answered: this one waits rather than being compared past the limit.
+    if (await attemptsExhausted(req.params.token)) {
+      res.set('Retry-After', '1').status(429).json({ error: 'Too many attempts. Try again later.', code: 'rate_limited' });
+    } else {
+      res.status(404).json(UNAVAILABLE);
+    }
     return null;
   }
   if (!authKeyMatches(authKey, row.auth_verifier)) {
-    const { locked, remainingAttempts } = await recordFailedAttempt(row.id);
+    const { locked, remainingAttempts } = await attemptFailed(row.id);
     if (locked) res.status(403).json({ error: 'Too many wrong passwords. This message is locked.', code: 'locked' });
     else res.status(401).json({ error: 'Wrong password', code: 'wrong_password', remainingAttempts });
     return null;
   }
+  await attemptSucceeded(row.id);
   return row;
 }
 

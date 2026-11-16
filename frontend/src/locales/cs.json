@@ -91,7 +91,8 @@
       "backToLogin": "← Zpět k přihlášení"
     },
     "showPassword": "Zobrazit heslo",
-    "hidePassword": "Skrýt heslo"
+    "hidePassword": "Skrýt heslo",
+    "passwordRule": "Použijte alespoň 8 a nejvýše 72 znaků."
   },
   "lockScreen": {
     "subtitle": "Odemkněte zadáním PINu",
@@ -1531,6 +1532,12 @@
       "failed": "Obnovení se nezdařilo: {{message}}",
       "downloadFailed": "Zálohu se nepodařilo spustit.",
       "connectionLost": "Během obnovení se přerušilo spojení, takže výsledek není znám. Tato stránka se znovu načte, jakmile Plimail opět odpoví; pak zkontrolujte, zda jsou data obnovená.",
+      "identityTitle": "Potvrďte, že jste to vy",
+      "identityIntro": "Záloha obsahuje přihlašovací údaje všech účtů a obnovení nahradí tento server, proto nejprve potvrďte, kdo jste. Potvrzení platí 5 minut.",
+      "identityConfirm": "Potvrdit",
+      "identityOidcHint": "Přihlaste se znovu přes jednotné přihlášení tlačítkem níže, pak se vraťte na tuto kartu a zvolte Potvrdit. Každé přihlášení potvrdí jednou, do 10 minut.",
+      "identityOidcNoProvider": "Záloha a obnovení vyžadují nedávné přihlášení přes jednotné přihlášení a váš účet nemá žádnou identitu jednotného přihlášení. Požádejte jiného správce.",
+      "identityTotpSetup": "Tento server vyžaduje dvoufázové ověření. Před zálohou nebo obnovením si v nastavení zabezpečení nastavte ověřovací aplikaci.",
       "tooLarge": "Soubor je větší, než povoluje proxy před Plimail."
     },
     "messageList": {

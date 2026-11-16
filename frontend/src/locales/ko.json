@@ -28,6 +28,7 @@
     "password": "비밀번호",
     "showPassword": "비밀번호 표시",
     "hidePassword": "비밀번호 숨기기",
+    "passwordRule": "8자 이상 72자 이하로 입력하세요.",
     "username": "사용자 이름",
     "alreadyHaveAccount": "이미 계정이 있나요? ",
     "register": "가입",
@@ -2022,6 +2023,12 @@
       "failed": "복원 실패: {{message}}",
       "downloadFailed": "백업을 시작할 수 없습니다.",
       "connectionLost": "복원 중에 연결이 끊어져 결과를 알 수 없습니다. Plimail가 다시 응답하면 이 페이지가 새로 고쳐집니다. 그런 다음 데이터가 복원된 내용인지 확인하세요.",
+      "identityTitle": "본인 확인",
+      "identityIntro": "백업에는 모든 계정의 자격 증명이 들어 있고 복원은 이 서버를 대체하므로, 먼저 본인임을 확인하세요. 확인은 5분 동안 유효합니다.",
+      "identityConfirm": "확인",
+      "identityOidcHint": "아래 버튼으로 통합 로그인(SSO)에 다시 로그인한 뒤 이 탭으로 돌아와 확인을 선택하세요. 각 로그인은 10분 이내에 한 번만 확인됩니다.",
+      "identityOidcNoProvider": "백업과 복원에는 최근의 통합 로그인(SSO)이 필요한데, 계정에 로그인할 SSO ID가 없습니다. 다른 관리자에게 문의하세요.",
+      "identityTotpSetup": "이 서버는 2단계 인증을 요구합니다. 백업이나 복원 전에 보안 설정에서 인증 앱을 설정하세요.",
       "tooLarge": "파일이 Plimail 앞에 있는 프록시가 허용하는 크기보다 큽니다."
     },
     "writingStyle": {

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { openMessage, sealReply, unlock } from '../utils/secureMessageCrypto.js';
 import { getMeta, openWithKey, postReply } from './api.js';
 import { formatDateTime, t } from './i18n.js';
+import { attachmentBlobType } from '../utils/attachmentBlobType.js';
 
 // The recipient's page for a password-protected message: the password is turned into keys here,
 // the message decrypted here, and a reply encrypted here. The server sees neither.
@@ -82,8 +83,9 @@ export default function SecureMessagePage({ token }) {
     return () => { cancelled = true; };
   }, [token, loadAttempt]);
 
-  // Blob URLs for the attachments, given back when the page lets them go.
-  const attachmentUrls = useMemo(() => (message?.attachments || []).map(a => URL.createObjectURL(new Blob([a.data], { type: a.mimeType }))), [message]);
+  // Blob URLs for the attachments, given back when the page lets them go. The link keeps the
+  // file's name; its type is the sender's only for a raster image (attachmentBlobType.js).
+  const attachmentUrls = useMemo(() => (message?.attachments || []).map(a => URL.createObjectURL(new Blob([a.data], { type: attachmentBlobType(a.mimeType) }))), [message]);
   useEffect(() => () => attachmentUrls.forEach(u => URL.revokeObjectURL(u)), [attachmentUrls]);
 
   const submit = async (e) => {

@@ -63,6 +63,8 @@ let settingsGate;
 let patchResponse;
 let checkResponse;
 let restoreResponse;
+let reauthResponse;
+let confirmResponse;
 let health;
 globalThis.fetch = async (url, init = {}) => {
   const path = String(url);
@@ -74,6 +76,8 @@ globalThis.fetch = async (url, init = {}) => {
   }
   if (path.endsWith('/api/admin/settings') && method === 'PATCH') return patchResponse();
   if (path.includes('/api/admin/backup/check')) return checkResponse();
+  if (path.endsWith('/api/admin/backup/reauth')) return reauthResponse();
+  if (path.endsWith('/api/admin/backup/confirm')) return confirmResponse(init);
   if (path.endsWith('/api/admin/backup/restore')) return restoreResponse(init);
   if (path.includes('/api/health')) return new Response('{}', { status: (health.length > 1 ? health.shift() : health[0]) ? 200 : 503 });
   throw new Error('unexpected fetch ' + method + ' ' + path);
@@ -151,6 +155,9 @@ beforeEach(async () => {
   patchResponse = () => json({ ok: true });
   checkResponse = () => json({ ok: true });
   restoreResponse = () => json({ error: 'unset' }, 500);
+  // Confirmed a moment ago, unless a test says otherwise.
+  reauthResponse = () => json({ reauth: 'password', confirmedUntil: '2099-01-01T00:00:00.000Z' });
+  confirmResponse = () => json({ confirmedUntil: '2099-01-01T00:00:00.000Z' });
   health = [true];
   ({ default: BackupSettings } = await import(`./BackupSettings.jsx?copy=${++copies}`));
 });
@@ -345,5 +352,65 @@ describe('BackupSettings', () => {
     } finally {
       nav.restore();
     }
+  });
+
+  test('a download the server wants confirmed first asks for the password, then goes ahead', async () => {
+    await mount();
+    let confirmed = false;
+    checkResponse = () => (confirmed ? json({ ok: true }) : json({ error: 'Confirm it is you', code: 'reauth_required' }, 403));
+    reauthResponse = () => json({ reauth: 'password', confirmedUntil: null });
+    confirmResponse = (init) => {
+      if (JSON.parse(init.body).password !== 'right') return json({ error: 'Incorrect password', reauth: 'password' }, 400);
+      confirmed = true;
+      return json({ confirmedUntil: '2099-01-01T00:00:00.000Z' });
+    };
+    const nav = captureNavigations();
+    try {
+      await click(buttonByText('admin.backup.create'));
+      await until(() => host.textContent.includes('admin.backup.identityTitle'), 'the confirmation form');
+      assert.deepEqual(nav.hrefs, [], 'no download before the confirmation');
+      assert.equal(notifications().length, 0, 'not reported as a failure');
+      const password = host.querySelector('input[type="password"]');
+      const typeInto = async (value) => act(async () => {
+        Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(password, value);
+        password.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+      });
+      const submit = () => act(async () => {
+        host.querySelector('form').dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));
+      });
+      await typeInto('wrong');
+      await submit();
+      await until(() => host.textContent.includes('Incorrect password'), 'the refusal');
+      assert.deepEqual(nav.hrefs, []);
+      await typeInto('right');
+      await submit();
+      await until(() => nav.hrefs.length === 1, 'the download');
+      assert.deepEqual(nav.hrefs, ['/api/admin/backup?scope=full']);
+      assert.ok(!host.textContent.includes('admin.backup.identityTitle'), 'the form is gone');
+    } finally {
+      nav.restore();
+    }
+  });
+
+  test('a restore is not uploaded until the admin has confirmed it is them', async () => {
+    await mount();
+    await chooseFile();
+    reauthResponse = () => json({ reauth: 'totp', confirmedUntil: null });
+    restoreResponse = () => stream([{ ok: true, scope: 'setup', tables: 1, rows: 1 }]);
+    await confirmRestore();
+    await until(() => host.textContent.includes('admin.backup.identityTitle'), 'the confirmation form');
+    assert.equal(CALLS.some(c => c.path.endsWith('/api/admin/backup/restore')), false, 'nothing uploaded yet');
+    const code = host.querySelector('input[autocomplete="one-time-code"]');
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(code, '123456');
+      code.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+    });
+    reauthResponse = () => json({ reauth: 'totp', confirmedUntil: '2099-01-01T00:00:00.000Z' });
+    await act(async () => {
+      host.querySelector('form').dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));
+    });
+    await until(() => CALLS.some(c => c.path.endsWith('/api/admin/backup/restore')), 'the upload');
+    assert.deepEqual(JSON.parse(CALLS.find(c => c.path.endsWith('/api/admin/backup/confirm')).init.body), { totpCode: '123456' });
+    await until(() => reloads.length === 1, 'the reload');
   });
 });

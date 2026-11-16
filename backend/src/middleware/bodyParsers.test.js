@@ -59,6 +59,8 @@ function buildApp() {
   });
   // Stands in for POST /api/auth/login, which parses a JSON body from a signed-out client.
   app.post('/api/auth/login', (req, res) => res.json({ received: req.body }));
+  // Stands in for the recipient's side of a password-protected message, open to anyone.
+  app.post('/api/s/:token/open', (req, res) => res.json({ received: req.body }));
   const routes = express.Router();
   routes.use(requireAuth);
   routes.post([...LARGE_BODY_PATHS, '/api/rules'], (req, res) => res.json({ received: req.body.text.length }));
@@ -200,6 +202,15 @@ describe('JSON body limits and sign-in', () => {
     const res = await post('/api/rules', OVER_1MB, { cookie });
     expect(res.status).toBe(413);
     expect(await res.json()).toEqual({ error: 'Request too large. Total attachment size must not exceed 25 MB.' });
+  });
+
+  it('holds the open routes of a password-protected message to 2 KB of JSON', async () => {
+    const key = JSON.stringify({ authKey: 'a'.repeat(64) });
+    const ok = await post('/api/s/tok/open', key);
+    expect(await ok.json()).toEqual({ received: { authKey: 'a'.repeat(64) } });
+    const big = await post('/api/s/tok/open', JSON.stringify({ authKey: 'a'.repeat(3000) }));
+    expect(big.status).toBe(413);
+    expect(await big.json()).toEqual({ error: 'Request too large.', code: 'too_large' });
   });
 
   it('still parses a signed-out body on a route that does not require sign-in', async () => {
