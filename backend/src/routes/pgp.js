@@ -1,10 +1,12 @@
 import { Router } from 'express';
+import bcrypt from 'bcryptjs';
 import { requireAuth } from '../middleware/auth.js';
+import { query } from '../services/db.js';
 import { consume } from '../services/rateLimiter.js';
 import { UUID_RE } from '../utils/uuid.js';
 import {
-  PgpRequestError, addOwnKey, addToKeyring, deleteFromKeyring, deleteOwnKey, isFingerprint, listKeyring,
-  listOwnKeys, lookupRecipientKeys, setKeyringVerified,
+  PgpRequestError, addOwnKey, addToKeyring, deleteFromKeyring, deleteOwnKey, isFingerprint, kdfSalt, listKeyring,
+  listOwnKeys, lookupRecipientKeys, setKeyringVerified, setKeysProtection,
 } from '../services/pgpKeyring.js';
 
 // OpenPGP keys (services/pgpKeyring.js). The user's own keys, whose private half is stored only
@@ -30,12 +32,52 @@ router.get('/keys', async (req, res) => {
 });
 
 router.post('/keys', async (req, res) => {
-  const { armoredPrivate, armoredPublic, accountId } = req.body || {};
+  const { armoredPrivate, armoredPublic, accountId, protection = 'passphrase', auto = false } = req.body || {};
   try {
-    res.status(201).json({ key: await addOwnKey(req.session.userId, { armoredPrivate, armoredPublic, accountId: accountId ?? null }) });
+    res.status(201).json({ key: await addOwnKey(req.session.userId, { armoredPrivate, armoredPublic, accountId: accountId ?? null, protection, auto }) });
   } catch (err) {
     answerError(res, err);
   }
+});
+
+// The same keys, encrypted another way, all or none: { keys: [{ id, armoredPrivate, protection }] }.
+router.put('/keys/protection', async (req, res) => {
+  try {
+    res.json({ updated: await setKeysProtection(req.session.userId, req.body?.keys) });
+  } catch (err) {
+    answerError(res, err);
+  }
+});
+
+// The salt for deriving the passphrase of the keys that unlock with the Plimail password. The
+// derivation, and everything it unlocks, stays in the browser.
+router.get('/kdf', async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  try {
+    res.json({ salt: await kdfSalt(req.session.userId) });
+  } catch (err) {
+    answerError(res, err);
+  }
+});
+
+// Whether `password` is the user's Plimail password, so the browser knows that a key it does not
+// open was protected by an earlier one (the password was reset or changed), rather than that the
+// password was mistyped. The password is what signing in sends anyway; what the browser derives
+// from it never leaves the browser. { ok, hasPassword }; an SSO-only user has none to check.
+const VERIFY_PER_WINDOW = 10;
+const VERIFY_WINDOW_MS = 15 * 60 * 1000;
+router.post('/verify-password', async (req, res) => {
+  const password = req.body?.password;
+  if (typeof password !== 'string' || !password || password.length > 1024) return res.status(400).json({ error: 'password is required' });
+  const limit = await consume(`pgp-verify:${req.session.userId}`, VERIFY_PER_WINDOW, VERIFY_WINDOW_MS);
+  if (limit.limited) {
+    res.set('Retry-After', String(Math.max(1, Math.ceil((limit.resetMs || 1000) / 1000))));
+    return res.status(429).json({ error: 'Too many attempts. Try again later.', code: 'rate_limited' });
+  }
+  const { rows } = await query('SELECT password_hash FROM users WHERE id = $1', [req.session.userId]);
+  const hash = rows[0]?.password_hash;
+  if (!hash) return res.json({ ok: false, hasPassword: false });
+  res.json({ ok: await bcrypt.compare(password, hash), hasPassword: true });
 });
 
 router.delete('/keys/:id', async (req, res) => {

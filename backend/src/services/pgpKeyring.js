@@ -1,5 +1,7 @@
-import { query } from './db.js';
+import { randomBytes } from 'node:crypto';
+import { query, withTransaction } from './db.js';
 import { findOwnedAccount } from './ownership.js';
+import { UUID_RE } from '../utils/uuid.js';
 import { PgpFormatError, parseOwnKeyPair, parsePublicKeys } from './pgpPackets.js';
 import { lookupWkd, parseWkdAddress } from './wkd.js';
 
@@ -33,23 +35,41 @@ const ownKeyRow = r => ({
   createdAt: r.created_at,
   armoredPublic: r.armored_public,
   armoredPrivate: r.armored_private,
+  protection: r.protection || 'passphrase',
+  auto: r.auto_email != null,
 });
 
+export const KEY_PROTECTIONS = new Set(['passphrase', 'login']);
+const OWN_COLUMNS = 'id, account_id, fingerprint, emails, user_ids, algorithm, armored_public, armored_private, key_created_at, created_at, protection, auto_email';
+
 export async function listOwnKeys(userId) {
-  const { rows } = await query(
-    `SELECT id, account_id, fingerprint, emails, user_ids, algorithm, armored_public, armored_private, key_created_at, created_at
-     FROM pgp_keys WHERE user_id = $1 ORDER BY created_at`,
-    [userId],
-  );
+  const { rows } = await query(`SELECT ${OWN_COLUMNS} FROM pgp_keys WHERE user_id = $1 ORDER BY created_at`, [userId]);
   return rows.map(ownKeyRow);
 }
 
+// The salt the browser derives the passphrase of 'login' keys with from the Plimail password
+// (frontend utils/pgpSecret.js), made on first use. Not a secret: the password is.
+export async function kdfSalt(userId) {
+  const fresh = randomBytes(16).toString('base64');
+  const { rows } = await query(
+    'UPDATE users SET pgp_kdf_salt = COALESCE(pgp_kdf_salt, $2) WHERE id = $1 RETURNING pgp_kdf_salt',
+    [userId, fresh],
+  );
+  if (!rows[0]?.pgp_kdf_salt) throw new PgpRequestError(404, 'User not found');
+  return rows[0].pgp_kdf_salt;
+}
+
 // Stores a key pair the browser generated or imported. The private key is checked to be
-// passphrase-protected (parseOwnKeyPair) before anything is written.
-export async function addOwnKey(userId, { armoredPrivate, armoredPublic, accountId = null }) {
+// passphrase-protected (parseOwnKeyPair) before anything is written. `protection` says with what
+// (KEY_PROTECTIONS); the server cannot tell and does not need to. `auto`: a key Plimail made by
+// itself for the one address it is for. One is stored per address and user, and none for an
+// address that already has a key: another tab that made one at the same time gets 409 'exists'.
+export async function addOwnKey(userId, { armoredPrivate, armoredPublic, accountId = null, protection = 'passphrase', auto = false }) {
   if (typeof armoredPrivate !== 'string' || typeof armoredPublic !== 'string') {
     throw new PgpRequestError(400, 'armoredPrivate and armoredPublic are required');
   }
+  if (!KEY_PROTECTIONS.has(protection)) throw new PgpRequestError(400, 'Invalid protection');
+  if (typeof auto !== 'boolean') throw new PgpRequestError(400, 'auto must be a boolean');
   let parsed;
   try {
     parsed = parseOwnKeyPair(armoredPrivate, armoredPublic);
@@ -58,6 +78,9 @@ export async function addOwnKey(userId, { armoredPrivate, armoredPublic, account
     throw err;
   }
   if (!parsed.emails.length) throw new PgpRequestError(400, 'The key has no email address in its user IDs', 'no_email');
+  if (auto && (parsed.emails.length !== 1 || protection !== 'login')) {
+    throw new PgpRequestError(400, 'An automatic key is for one address and unlocks with the Plimail password');
+  }
   if (accountId != null) {
     if (typeof accountId !== 'string' || !(await findOwnedAccount(userId, accountId, { columns: 'id' }))) {
       throw new PgpRequestError(404, 'Account not found');
@@ -65,16 +88,77 @@ export async function addOwnKey(userId, { armoredPrivate, armoredPublic, account
   }
   const count = await query('SELECT COUNT(*)::int AS n FROM pgp_keys WHERE user_id = $1', [userId]);
   if ((count.rows[0]?.n || 0) >= MAX_OWN_KEYS) throw new PgpRequestError(400, 'Too many keys');
+  const values = [userId, accountId, parsed.fingerprint, JSON.stringify(parsed.emails), JSON.stringify(parsed.userIds),
+    parsed.algorithm, parsed.armoredPublic, parsed.armoredPrivate, parsed.created, protection];
+  if (auto) {
+    const email = parsed.emails[0];
+    // No key over one the address already has; the unique index on auto_email settles two at once.
+    const { rows } = await query(
+      `INSERT INTO pgp_keys (user_id, account_id, fingerprint, emails, user_ids, algorithm, armored_public, armored_private, key_created_at, protection, auto_email)
+       SELECT $1, $2, $3, $4::jsonb, $5::jsonb, $6, $7, $8, $9, $10, $11
+       WHERE NOT EXISTS (SELECT 1 FROM pgp_keys WHERE user_id = $1 AND emails ? $11)
+       ON CONFLICT DO NOTHING
+       RETURNING ${OWN_COLUMNS}`,
+      [...values, email],
+    );
+    if (!rows.length) throw new PgpRequestError(409, 'This address already has a key', 'exists');
+    return ownKeyRow(rows[0]);
+  }
   const { rows } = await query(
-    `INSERT INTO pgp_keys (user_id, account_id, fingerprint, emails, user_ids, algorithm, armored_public, armored_private, key_created_at)
-     VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6, $7, $8, $9)
+    `INSERT INTO pgp_keys (user_id, account_id, fingerprint, emails, user_ids, algorithm, armored_public, armored_private, key_created_at, protection)
+     VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6, $7, $8, $9, $10)
      ON CONFLICT (user_id, fingerprint) DO NOTHING
-     RETURNING id, account_id, fingerprint, emails, user_ids, algorithm, armored_public, armored_private, key_created_at, created_at`,
-    [userId, accountId, parsed.fingerprint, JSON.stringify(parsed.emails), JSON.stringify(parsed.userIds),
-      parsed.algorithm, parsed.armoredPublic, parsed.armoredPrivate, parsed.created],
+     RETURNING ${OWN_COLUMNS}`,
+    values,
   );
   if (!rows.length) throw new PgpRequestError(409, 'This key is already in your keys', 'duplicate');
   return ownKeyRow(rows[0]);
+}
+
+// Replaces the private half of some of the user's keys with the same keys encrypted another way:
+// all of `updates` ([{ id, armoredPrivate, protection }]) or none, in one transaction. The browser
+// re-encrypts every 'login' key when the Plimail password changes, and a key the user protects
+// with the password instead of its own passphrase. Each must be the same key, still protected.
+// `client` runs it inside a caller's transaction (an admin setting their own password).
+export async function setKeysProtection(userId, updates, { client = null } = {}) {
+  if (!Array.isArray(updates) || !updates.length || updates.length > MAX_OWN_KEYS) {
+    throw new PgpRequestError(400, `keys must be an array of 1 to ${MAX_OWN_KEYS} keys`);
+  }
+  const checked = updates.map((u) => {
+    if (!u || typeof u.id !== 'string' || !UUID_RE.test(u.id) || typeof u.armoredPrivate !== 'string' || !KEY_PROTECTIONS.has(u.protection)) {
+      throw new PgpRequestError(400, 'Each key needs an id, armoredPrivate and protection');
+    }
+    return u;
+  });
+  if (new Set(checked.map(u => u.id)).size !== checked.length) throw new PgpRequestError(400, 'A key is listed twice');
+  const run = async (db) => {
+    const { rows } = await db.query(
+      'SELECT id, fingerprint, armored_public FROM pgp_keys WHERE user_id = $1 AND id = ANY($2::uuid[]) FOR UPDATE',
+      [userId, checked.map(u => u.id)],
+    );
+    const byId = new Map(rows.map(r => [r.id, r]));
+    const parsed = checked.map((u) => {
+      const row = byId.get(u.id);
+      if (!row) throw new PgpRequestError(404, 'Key not found');
+      let pair;
+      try {
+        // Against the stored public key: a private key that is not this key's is refused here.
+        pair = parseOwnKeyPair(u.armoredPrivate, row.armored_public);
+      } catch (err) {
+        if (err instanceof PgpFormatError) throw new PgpRequestError(400, err.message, err.code || 'invalid_key');
+        throw err;
+      }
+      return { id: u.id, armoredPrivate: pair.armoredPrivate, protection: u.protection };
+    });
+    for (const p of parsed) {
+      await db.query(
+        'UPDATE pgp_keys SET armored_private = $3, protection = $4 WHERE id = $1 AND user_id = $2',
+        [p.id, userId, p.armoredPrivate, p.protection],
+      );
+    }
+    return parsed.length;
+  };
+  return client ? run(client) : withTransaction(run);
 }
 
 export async function deleteOwnKey(userId, id) {

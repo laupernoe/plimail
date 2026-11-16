@@ -16,6 +16,7 @@ import { imapManager } from '../index.js';
 import { uuidParam } from '../utils/uuid.js';
 import { destroyUserSessions } from '../services/userSessions.js';
 import { listUserIdentities, removeIdentitiesForPasswordReset, unlinkUserIdentity } from '../services/userIdentities.js';
+import { PgpRequestError, setKeysProtection } from '../services/pgpKeyring.js';
 
 const router = Router();
 router.use(requireAdmin);
@@ -191,9 +192,18 @@ router.patch('/users/:id', updateUser);
 // the session they are using), trusted devices, which skip the second factor, API tokens, any reset
 // link or login code already sent, which would otherwise still set a different password or sign
 // in, and, while password sign-in is on, linked single sign-on identities (#714).
+//
+// An admin setting their own password sends `pgpKeys` too: their OpenPGP keys that unlock with the
+// password, re-encrypted in the browser for the new one (routes/pgp.js PUT /keys/protection). They
+// are stored in the same transaction as the password, so the keys never stop matching it. Another
+// user's keys cannot be re-encrypted (only that user's browser can open them): they stay protected
+// by the old password, which the user then gives once to unlock them.
 export async function setUserPassword(req, res) {
   const { id } = req.params;
-  const { password } = req.body ?? {};
+  const { password, pgpKeys } = req.body ?? {};
+  if (pgpKeys !== undefined && id !== req.session.userId) {
+    return res.status(400).json({ error: 'Only your own keys can be re-encrypted' });
+  }
   if (typeof password !== 'string' || password.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters' });
   }
@@ -205,18 +215,25 @@ export async function setUserPassword(req, res) {
   if (!target.rows.length) return res.status(404).json({ error: 'User not found' });
 
   const hash = await bcrypt.hash(password, 12);
-  const removed = await withTransaction(async client => {
-    await client.query('SELECT 1 FROM users WHERE id = $1 FOR UPDATE', [id]);
-    await client.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, id]);
-    await client.query('DELETE FROM trusted_devices WHERE user_id = $1', [id]);
-    await client.query('DELETE FROM password_reset_tokens WHERE user_id = $1', [id]);
-    await client.query('DELETE FROM email_otp_tokens WHERE user_id = $1', [id]);
-    // Identities before tokens: removing them reads the sign-in policy row shared, and an admin's
-    // policy change updates that row before it deletes tokens, so the two cannot wait on each other.
-    const removed = await removeIdentitiesForPasswordReset(client, id);
-    await client.query('DELETE FROM api_tokens WHERE user_id = $1', [id]);
-    return removed;
-  });
+  let removed;
+  try {
+    removed = await withTransaction(async client => {
+      await client.query('SELECT 1 FROM users WHERE id = $1 FOR UPDATE', [id]);
+      if (pgpKeys !== undefined) await setKeysProtection(id, pgpKeys, { client });
+      await client.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, id]);
+      await client.query('DELETE FROM trusted_devices WHERE user_id = $1', [id]);
+      await client.query('DELETE FROM password_reset_tokens WHERE user_id = $1', [id]);
+      await client.query('DELETE FROM email_otp_tokens WHERE user_id = $1', [id]);
+      // Identities before tokens: removing them reads the sign-in policy row shared, and an admin's
+      // policy change updates that row before it deletes tokens, so the two cannot wait on each other.
+      const removed = await removeIdentitiesForPasswordReset(client, id);
+      await client.query('DELETE FROM api_tokens WHERE user_id = $1', [id]);
+      return removed;
+    });
+  } catch (err) {
+    if (err instanceof PgpRequestError) return res.status(err.status).json({ error: err.message, ...(err.code ? { code: err.code } : {}) });
+    throw err;
+  }
   await destroyUserSessions(id, { exceptSessionId: id === req.session.userId ? req.sessionID : undefined });
   console.log(`[admin] ${req.session.username} set a new password for user ${target.rows[0].username} (${id})`);
   await logAdminChange(req, 'admin_password_set', { id, username: target.rows[0].username });

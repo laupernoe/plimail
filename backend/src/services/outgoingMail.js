@@ -16,6 +16,10 @@ import { deleteSentDraft } from './draftCopies.js';
 import { truncateFilename, safeFilename } from '../utils/contentDisposition.js';
 import { SMTP_AUTH_DISABLED, isSmtpAuthDisabled } from './smtpRefusals.js';
 import { PGP_ENCRYPTED_SNIPPET } from './pgpDetect.js';
+import { autocryptFor } from './autocrypt.js';
+
+// The user's "encrypt automatically when every recipient has a key" setting, on unless turned off.
+export const pgpPreferEncrypt = preferences => preferences?.pgpAutoEncrypt !== false;
 
 // The outgoing message pipeline: validate what the composer sent, resolve the From identity and
 // any forwarded content, build the message, deliver it over SMTP and record it (Sent copy, Sent
@@ -296,8 +300,9 @@ export async function resolveIdentity(userId, input) {
   // Uploaded images go out with the message (as cid: parts, by buildMailOptions), so a held or
   // scheduled send carries them too and recipients never load them from this server.
   const signature = await inlineSignatureImages(sanitized, userId);
+  const autocrypt = await autocryptFor(userId, fromEmail, { preferEncrypt: pgpPreferEncrypt(prefResult.rows[0]?.preferences) });
 
-  return { account: owned, plaintextEmail, fromName, fromEmail, replyTo, signature };
+  return { account: owned, plaintextEmail, fromName, fromEmail, replyTo, signature, autocrypt };
 }
 
 // Fetches the forwarded attachments and the messages forwarded whole from IMAP, and checks the
@@ -446,6 +451,8 @@ export function buildMailOptions(input, identity, forwarded = { attachments: [],
     bcc: input.bcc.join(', ') || undefined,
     subject: input.subject,
     ...(priority !== 'normal' ? { priority } : {}),
+    // The sender's public key (services/autocrypt.js), already folded: nodemailer must not touch it.
+    ...(identity.autocrypt ? { headers: { Autocrypt: { prepared: true, value: identity.autocrypt } } } : {}),
   };
   // An encrypted message has no body of the server's making: its content, signature included,
   // is the ciphertext, which prepareDelivery puts in place (renderPgpMime).

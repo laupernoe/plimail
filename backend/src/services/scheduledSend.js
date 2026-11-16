@@ -3,8 +3,9 @@ import { pool, query } from './db.js';
 import { decryptBytes, encryptBytes } from './encryption.js';
 import { findOwnedAccount } from './ownership.js';
 import { sanitizeSignature } from './emailSanitizer.js';
+import { autocryptFor } from './autocrypt.js';
 import {
-  buildMailOptions, deliverAndRecord, prepareDelivery, renderRawMessage, sanitizeSmtpError, serverAutoSavesSent,
+  buildMailOptions, deliverAndRecord, pgpPreferEncrypt, prepareDelivery, renderRawMessage, sanitizeSmtpError, serverAutoSavesSent,
   validateSendInput,
 } from './outgoingMail.js';
 import { sendPushToUser } from './pushNotifications.js';
@@ -658,7 +659,19 @@ export class ScheduledSender {
       fromEmail,
       replyTo,
       signature: payload.signature ? sanitizeSignature(payload.signature) : null,
+      autocrypt: await this.autocryptFor(account, fromEmail),
     };
+  }
+
+  // The sender's Autocrypt header, as Send adds it (services/autocrypt.js); never fails the send.
+  async autocryptFor(account, fromEmail) {
+    if (!account?.user_id) return null;
+    try {
+      const { rows } = await this.db.query('SELECT preferences FROM users WHERE id = $1', [account.user_id]);
+      return await autocryptFor(account.user_id, fromEmail, { preferEncrypt: pgpPreferEncrypt(rows?.[0]?.preferences), query: (sql, p) => this.db.query(sql, p) });
+    } catch {
+      return null;
+    }
   }
 
   afterError(row, err, phase) {

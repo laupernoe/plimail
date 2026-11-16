@@ -13,11 +13,13 @@ vi.mock('../services/connectionPolicy.js', () => ({ getConnectionPolicy: vi.fn()
 vi.mock('../services/authLimiter.js', () => ({ reloadAuthSettings: vi.fn() }));
 vi.mock('../services/userSessions.js', () => ({ destroyUserSessions: vi.fn() }));
 vi.mock('../services/redis.js', () => ({ redisClient: {} }));
+vi.mock('../services/pgpKeyring.js', async (importOriginal) => ({ ...await importOriginal(), setKeysProtection: vi.fn() }));
 
 import bcrypt from 'bcryptjs';
 import { query } from '../services/db.js';
 import { destroyUserSessions } from '../services/userSessions.js';
 import { listUsers, updateUser, setUserPassword, disableUserTotp, deleteUser } from './admin.js';
+import { PgpRequestError, setKeysProtection } from '../services/pgpKeyring.js';
 
 const ADMIN = 'aaaaaaaa-0000-4000-8000-000000000001';
 const USER = 'bbbbbbbb-0000-4000-8000-000000000002';
@@ -137,6 +139,36 @@ describe('POST /admin/users/:id/password', () => {
   it("keeps the admin's own session when they set their own password", async () => {
     await setUserPassword(request({ id: ADMIN }, { password: 'nova-senha-123' }), reply());
     expect(destroyUserSessions).toHaveBeenCalledWith(ADMIN, { exceptSessionId: 'current-session' });
+  });
+
+  // The admin's browser re-encrypted their OpenPGP keys for the new password: they are stored in
+  // the password's transaction, ahead of it, so a key that is refused leaves the password as it was.
+  it("stores an admin's own re-encrypted keys with their new password, or neither", async () => {
+    const pgpKeys = [{ id: USER, armoredPrivate: 'k', protection: 'login' }];
+    setKeysProtection.mockReset().mockResolvedValue(1);
+    await setUserPassword(request({ id: ADMIN }, { password: 'nova-senha-123', pgpKeys }), reply());
+    expect(setKeysProtection).toHaveBeenCalledWith(ADMIN, pgpKeys, { client: expect.objectContaining({ query }) });
+    expect(setKeysProtection.mock.invocationCallOrder[0])
+      .toBeLessThan(query.mock.invocationCallOrder[query.mock.calls.findIndex(([sql]) => sql.startsWith('UPDATE users SET password_hash'))]);
+
+    query.mockClear();
+    destroyUserSessions.mockClear();
+    setKeysProtection.mockRejectedValueOnce(new PgpRequestError(400, 'The public key does not belong to this private key', 'invalid_key'));
+    const res = reply();
+    await setUserPassword(request({ id: ADMIN }, { password: 'nova-senha-123', pgpKeys }), res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'The public key does not belong to this private key', code: 'invalid_key' });
+    expect(query.mock.calls.some(([sql]) => sql.startsWith('UPDATE users SET password_hash'))).toBe(false);
+    expect(destroyUserSessions).not.toHaveBeenCalled();
+  });
+
+  it("never takes keys for another user's password: only their own browser can open them", async () => {
+    setKeysProtection.mockReset();
+    const res = reply();
+    await setUserPassword(request({ id: USER }, { password: 'nova-senha-123', pgpKeys: [] }), res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(setKeysProtection).not.toHaveBeenCalled();
+    expect(query).not.toHaveBeenCalled();
   });
 
   it('refuses short, missing or over-long passwords', async () => {
