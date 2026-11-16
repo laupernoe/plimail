@@ -2679,6 +2679,7 @@
       "manual": "přidáno vámi",
       "wkd": "adresář webových klíčů (WKD)",
       "autocrypt": "přijatá pošta (Autocrypt)",
+      "autocryptAuto": "přijatá pošta (Autocrypt, přidáno automaticky)",
       "attachment": "klíč přiložený ke zprávě"
     },
     "errors": {

@@ -2660,6 +2660,7 @@
       "manual": "von Ihnen hinzugefügt",
       "wkd": "Web-Key-Verzeichnis (WKD)",
       "autocrypt": "empfangene E-Mail (Autocrypt)",
+      "autocryptAuto": "empfangene E-Mail (Autocrypt, automatisch hinzugefügt)",
       "attachment": "ein an eine Nachricht angehängter Schlüssel"
     },
     "errors": {

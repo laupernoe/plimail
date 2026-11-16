@@ -10,6 +10,7 @@ import { keySecretEntry, subscribeKeySecret } from '../utils/pgpSecret.js';
 import { forgetAllUnlockedKeys, forgetUnlockedKey, isUnlocked, unlockedCount } from '../utils/pgpSession.js';
 import { ensureKeySecret, requestKeyUnlock, unlockOwnKey } from '../utils/pgpUnlock.js';
 import { ownKeyFor, staleKeyFor } from '../utils/pgpSend.js';
+import { groupKeyring } from '../utils/pgpKeyringGroups.js';
 import { StaleKeyBanner } from './PgpSendPanel.jsx';
 import { button } from './pgpStyles.js';
 
@@ -365,21 +366,9 @@ export function sourceLabel(t, source) {
     manual: t('pgp.source.manual'),
     wkd: t('pgp.source.wkd'),
     autocrypt: t('pgp.source.autocrypt'),
+    autocryptAuto: t('pgp.source.autocryptAuto'),
     attachment: t('pgp.source.attachment'),
   }[source] || source;
-}
-
-// Keyring rows grouped by key: { fingerprint, emails, sources, verified, armored, firstSeen }.
-export function groupKeyring(rows) {
-  const by = new Map();
-  for (const r of rows || []) {
-    const g = by.get(r.fingerprint) || { fingerprint: r.fingerprint, emails: [], sources: [], verified: true, armored: r.armored, firstSeen: r.firstSeen };
-    g.emails.push(r.email);
-    if (!g.sources.includes(r.source)) g.sources.push(r.source);
-    g.verified = g.verified && r.verified;
-    by.set(r.fingerprint, g);
-  }
-  return [...by.values()];
 }
 
 function KeyringRow({ g, onChanged }) {

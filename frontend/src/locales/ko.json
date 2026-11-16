@@ -2660,6 +2660,7 @@
       "manual": "직접 추가함",
       "wkd": "웹 키 디렉터리(WKD)",
       "autocrypt": "받은 메일(Autocrypt)",
+      "autocryptAuto": "받은 메일 (Autocrypt, 자동으로 추가됨)",
       "attachment": "메시지에 첨부된 키"
     },
     "errors": {

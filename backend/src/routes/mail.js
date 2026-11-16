@@ -26,6 +26,7 @@ import { validateHost } from '../services/hostValidation.js';
 import { safeFetch } from '../services/safeFetch.js';
 import { safeFilename, attachmentDisposition, truncateFilename } from '../utils/contentDisposition.js';
 import { findOwnedAccount, findOwnedMessage, findOwnedMessages } from '../services/ownership.js';
+import { collectAutocrypt } from '../services/autocryptCollect.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -667,7 +668,10 @@ router.get('/messages/:id/body', async (req, res) => {
       imapManager.fetchMessageBody(account, message.uid, message.folder, { background: Boolean(prefetch) }),
       BODY_FETCH_TIMEOUT_MS
     );
-    return await serveFetched({ ...await storeFetchedBody(id, { html, text, attachments, cidsComplete }), attachments, pgp });
+    const served = await serveFetched({ ...await storeFetchedBody(id, { html, text, attachments, cidsComplete }), attachments, pgp });
+    // The sender's Autocrypt key, kept for the user without delaying the body (services/autocryptCollect.js).
+    collectAutocrypt({ imapManager, account, message, userId: req.session.userId });
+    return served;
   } catch (err) {
     const msg = err.message || 'Unknown error';
     console.error('Body fetch error:', msg);

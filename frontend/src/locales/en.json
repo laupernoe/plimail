@@ -2660,6 +2660,7 @@
       "manual": "added by you",
       "wkd": "Web Key Directory",
       "autocrypt": "received mail (Autocrypt)",
+      "autocryptAuto": "received mail (Autocrypt, added automatically)",
       "attachment": "a key attached to a message"
     },
     "errors": {

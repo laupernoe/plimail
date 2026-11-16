@@ -198,11 +198,12 @@ const keyringRow = r => ({
   verified: r.verified,
   firstSeen: r.first_seen,
   lastSeen: r.last_seen,
+  auto: r.auto_collected === true,
 });
 
 export async function listKeyring(userId) {
   const { rows } = await query(
-    `SELECT id, email, fingerprint, armored, source, verified, first_seen, last_seen
+    `SELECT id, email, fingerprint, armored, source, verified, first_seen, last_seen, auto_collected
      FROM pgp_public_keys WHERE user_id = $1 ORDER BY email, first_seen`,
     [userId],
   );
@@ -241,21 +242,84 @@ export async function addToKeyring(userId, { armored, source = 'manual', email =
         `INSERT INTO pgp_public_keys (user_id, email, fingerprint, armored, source)
          SELECT $1, $2, $3, $4, 'autocrypt'
          WHERE NOT EXISTS (SELECT 1 FROM pgp_public_keys WHERE user_id = $1 AND email = $2)
-         RETURNING id, email, fingerprint, armored, source, verified, first_seen, last_seen`,
+         RETURNING id, email, fingerprint, armored, source, verified, first_seen, last_seen, auto_collected`,
         [userId, row.email, row.fingerprint, row.armored],
       )
       : await query(
         // A newer copy of a key (new subkeys, a later expiry) replaces the stored one; where it
-        // came from first and whether the user verified it stay.
+        // came from first and whether the user verified it stay. Asked for by the user, the key
+        // stops being one an Autocrypt header may replace.
         `INSERT INTO pgp_public_keys (user_id, email, fingerprint, armored, source)
          VALUES ($1, $2, $3, $4, $5)
-         ON CONFLICT (user_id, email, fingerprint) DO UPDATE SET armored = EXCLUDED.armored, last_seen = NOW()
-         RETURNING id, email, fingerprint, armored, source, verified, first_seen, last_seen`,
+         ON CONFLICT (user_id, email, fingerprint) DO UPDATE SET armored = EXCLUDED.armored, last_seen = NOW(), auto_collected = FALSE
+         RETURNING id, email, fingerprint, armored, source, verified, first_seen, last_seen, auto_collected`,
         [userId, row.email, row.fingerprint, row.armored, source],
       );
     if (result.rows[0]) added.push(keyringRow(result.rows[0]));
   }
   return added;
+}
+
+// What to do with the key an Autocrypt header offers for an address, given the rows the keyring
+// holds for it ([{ fingerprint, source, verified, auto_collected, last_seen }]):
+//   'insert'  nothing is stored for the address;
+//   'refresh' the same key again, in a newer message: its copy and last_seen move up;
+//   'replace' a different key in a newer message: it takes the place of the automatic one;
+//   'skip'    anything else, with the `reason`.
+// Only a row this function stored (source 'autocrypt', auto_collected, not verified) is ever
+// replaced. A key the user imported or verified, or one from a Web Key Directory, stays, and so
+// does an address's key when the message failed DKIM or DMARC (a forged sender must not get a
+// key in, let alone swap one). The Date header is compared with the row's last_seen, which for these
+// rows is the date of the newest message that carried the key, so an older message, read late,
+// never puts an older key back.
+export function decideAutocryptStore(rows, { fingerprint, timestamp, authFailed }) {
+  if (authFailed) return { action: 'skip', reason: 'auth' };
+  if (!rows.length) return { action: 'insert' };
+  const replaceable = r => r.source === 'autocrypt' && r.auto_collected === true && r.verified !== true;
+  if (!rows.every(replaceable)) return { action: 'skip', reason: 'protected' };
+  if (!timestamp) return { action: 'skip', reason: 'noDate' };
+  const newest = Math.max(...rows.map(r => new Date(r.last_seen || 0).getTime()));
+  if (timestamp.getTime() <= newest) return { action: 'skip', reason: 'older' };
+  return { action: rows.some(r => r.fingerprint === fingerprint) ? 'refresh' : 'replace' };
+}
+
+// Keeps the key of a received Autocrypt header (autocryptReceive.js readAutocryptHeader) in the
+// keyring unless decideAutocryptStore says no. Returns what it did: 'insert', 'refresh',
+// 'replace' or 'skip'. One address is handled at a time (an advisory lock), so two messages read
+// at once cannot both decide on the same rows.
+export async function storeAutocryptKey(userId, { addr, armored, fingerprint, timestamp = null, authFailed = false }, { transaction = withTransaction } = {}) {
+  return transaction(async (db) => {
+    await db.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`autocrypt:${userId}:${addr}`]);
+    const { rows } = await db.query(
+      'SELECT fingerprint, source, verified, auto_collected, last_seen FROM pgp_public_keys WHERE user_id = $1 AND email = $2 FOR UPDATE',
+      [userId, addr],
+    );
+    const decision = decideAutocryptStore(rows, { fingerprint, timestamp, authFailed });
+    if (decision.action === 'skip') return decision;
+    if (decision.action === 'refresh') {
+      await db.query(
+        'UPDATE pgp_public_keys SET armored = $4, last_seen = $5 WHERE user_id = $1 AND email = $2 AND fingerprint = $3',
+        [userId, addr, fingerprint, armored, timestamp],
+      );
+      return decision;
+    }
+    if (decision.action === 'insert') {
+      const count = await db.query('SELECT COUNT(*)::int AS n FROM pgp_public_keys WHERE user_id = $1', [userId]);
+      if ((count.rows[0]?.n || 0) >= MAX_KEYRING_ROWS) return { action: 'skip', reason: 'full' };
+    } else {
+      await db.query(
+        "DELETE FROM pgp_public_keys WHERE user_id = $1 AND email = $2 AND source = 'autocrypt' AND auto_collected AND NOT verified",
+        [userId, addr],
+      );
+    }
+    await db.query(
+      `INSERT INTO pgp_public_keys (user_id, email, fingerprint, armored, source, last_seen, auto_collected)
+       VALUES ($1, $2, $3, $4, 'autocrypt', COALESCE($5::timestamptz, NOW()), TRUE)
+       ON CONFLICT (user_id, email, fingerprint) DO NOTHING`,
+      [userId, addr, fingerprint, armored, timestamp],
+    );
+    return decision;
+  });
 }
 
 export async function setKeyringVerified(userId, fingerprint, verified) {
@@ -332,7 +396,7 @@ export async function lookupRecipientKeys(userId, emails, { wkd = lookupWkd, loc
       const { rows } = await query(
         `INSERT INTO pgp_public_keys (user_id, email, fingerprint, armored, source)
          VALUES ($1, $2, $3, $4, 'wkd')
-         ON CONFLICT (user_id, email, fingerprint) DO UPDATE SET armored = EXCLUDED.armored, last_seen = NOW()
+         ON CONFLICT (user_id, email, fingerprint) DO UPDATE SET armored = EXCLUDED.armored, last_seen = NOW(), auto_collected = FALSE
          RETURNING fingerprint, armored, source, verified, last_seen`,
         [userId, email, key.primary.fingerprint, key.armored],
       );
