@@ -579,7 +579,7 @@ export default function PgpSettingsSection() {
   const changed = () => { ownKeysChanged(); load(); };
   const done = () => { setForm(null); changed(); };
   const groups = groupKeyring(ring);
-  const unlock = (isStale) => requestKeyUnlock({ stale: isStale }).then(() => setUnlocked(unlockedCount()), () => {});
+  const unlock = (isStale, keyId = null) => requestKeyUnlock({ stale: isStale, keyId }).then(() => setUnlocked(unlockedCount()), () => {});
   // Addresses, and imported keys for addresses that are no account's. An address whose only key
   // the password no longer opens shows that key, with what to do about it.
   const rows = useMemo(() => {
@@ -633,7 +633,7 @@ export default function PgpSettingsSection() {
                   )}
                   {state === 'stale' && (
                     <div style={{ flexBasis: '100%' }}>
-                      <StaleKeyBanner email={email} onRecover={() => unlock(true).then(changed)} onNewKey={() => newKeyFor(email)} />
+                      <StaleKeyBanner email={email} onRecover={() => unlock(true, staleKey?.id).then(changed)} onNewKey={() => newKeyFor(email)} />
                     </div>
                   )}
                 </li>

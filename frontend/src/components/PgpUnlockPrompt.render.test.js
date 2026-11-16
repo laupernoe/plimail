@@ -43,7 +43,9 @@ const { useStore } = await import('../store/index.js');
 const PgpUnlockPrompt = (await import('./PgpUnlockPrompt.jsx')).default;
 const { generateKeyPair, unlockPrivateKey } = await import('../utils/pgp.js');
 const { deriveKeySecret, setKeySecret, keySecret } = await import('../utils/pgpSecret.js');
-const { requestKeyUnlock } = await import('../utils/pgpUnlock.js');
+const { requestKeyUnlock, unlockOwnKey } = await import('../utils/pgpUnlock.js');
+const { forgetAllUnlockedKeys } = await import('../utils/pgpSession.js');
+const { loadOwnKeys } = await import('../utils/pgpOwnKeys.js');
 
 const SALT = btoa(String.fromCharCode(...new Uint8Array(16).fill(9)));
 const OLD = await deriveKeySecret('old password', SALT);
@@ -52,11 +54,12 @@ const pair = await generateKeyPair({ email: 'me@example.com', passphrase: OLD })
 const KEY = { id: '00000000-0000-4000-8000-000000000001', fingerprint: pair.fingerprint, emails: ['me@example.com'], armoredPublic: pair.armoredPublic, armoredPrivate: pair.armoredPrivate, protection: 'login', stale: true };
 
 const puts = [];
+let keys = [KEY];
 globalThis.fetch = async (url, init = {}) => {
   const path = String(url);
   const body = init.body ? JSON.parse(init.body) : null;
   const json = data => ({ ok: true, status: 200, json: async () => data });
-  if (path === '/api/pgp/keys' && (init.method || 'GET') === 'GET') return json({ keys: [KEY] });
+  if (path === '/api/pgp/keys' && (init.method || 'GET') === 'GET') return json({ keys });
   if (path === '/api/pgp/kdf') return json({ salt: SALT });
   if (path === '/api/pgp/verify-password') return json({ ok: body.password === 'new password', hasPassword: true });
   if (path === '/api/pgp/keys/protection') { puts.push(body); return json({ updated: body.keys.length }); }
@@ -100,5 +103,33 @@ test('recovering keys asks the current password first, and moves them to the one
   await unlockPrivateKey(moved.armoredPrivate, NEW);
   await assert.rejects(unlockPrivateKey(moved.armoredPrivate, OLD), { code: 'wrongPassphrase' });
   assert.equal(keySecret('u1'), NEW, 'the tab now holds the current password\'s secret');
+  await React.act(async () => root.unmount());
+});
+
+test('the prompt checks the password against the key that failed, not another one that opens', async () => {
+  puts.length = 0;
+  forgetAllUnlockedKeys();
+  useStore.setState({ user: { id: 'u2', hasPassword: true } });
+  // A newer key the current password opens, listed first, and the one that failed, not marked yet.
+  const fresh = await generateKeyPair({ email: 'new@example.com', passphrase: NEW });
+  const FRESH = { ...KEY, id: '00000000-0000-4000-8000-000000000002', fingerprint: fresh.fingerprint, armoredPublic: fresh.armoredPublic, armoredPrivate: fresh.armoredPrivate, stale: false };
+  const FAILING = { ...KEY, stale: false };
+  keys = [FRESH, FAILING];
+  await loadOwnKeys({ fresh: true });
+  setKeySecret('u2', NEW, { verified: true });
+  const root = createRoot(document.getElementById('root'));
+  await React.act(async () => root.render(React.createElement(PgpUnlockPrompt)));
+  let opened = null;
+  let failed = null;
+  await React.act(async () => { unlockOwnKey(FAILING, 'u2').then((k) => { opened = k; }, (e) => { failed = e; }); });
+  await until(() => document.querySelector('form[role="dialog"] input[type="password"]'));
+  await type('new password');
+  await until(() => document.body.textContent.includes('pgp.unlock.previousBody') || failed || opened);
+  assert.equal(failed, null, 'did not close on the other key and fail');
+  await type('old password');
+  await until(() => opened || failed);
+  assert.ok(opened, `opened (${failed?.code})`);
+  assert.equal(puts.length, 1);
+  assert.deepEqual(puts[0].keys.map(k => k.id), [FAILING.id]);
   await React.act(async () => root.unmount());
 });

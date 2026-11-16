@@ -32,10 +32,11 @@ const input = {
 export default function PgpUnlockPrompt() {
   const request = useSyncExternalStore(subscribeUnlock, currentUnlockRequest);
   if (!request) return null;
-  return <UnlockDialog key={request.id} stale={request.options?.stale === true} />;
+  return <UnlockDialog key={request.id} stale={request.options?.stale === true} keyId={request.options?.keyId || null} />;
 }
 
-function UnlockDialog({ stale }) {
+// `keyId`: the key that needs opening; the password is checked against it, not another key.
+function UnlockDialog({ stale, keyId }) {
   const { t } = useTranslation();
   const user = useStore(s => s.user);
   const titleId = useId();
@@ -76,8 +77,8 @@ function UnlockDialog({ stale }) {
       verified = check.hasPassword === true;
     }
     const secret = await derive(password);
-    // Recovering, the key to check is the stale one: a newer key may open while it does not.
-    const first = (stale && (keys || []).find(k => k.stale)) || (keys || [])[0];
+    // The key that needs opening, else (recovering) a stale one: a newer key may open while it does not.
+    const first = (keyId && (keys || []).find(k => k.id === keyId)) || (stale && (keys || []).find(k => k.stale)) || (keys || [])[0];
     if (first) {
       try {
         rememberUnlockedKey(first.fingerprint, await unlockPrivateKey(first.armoredPrivate, secret));
@@ -102,7 +103,10 @@ function UnlockDialog({ stale }) {
     const from = await derive(password);
     let updates;
     try {
-      updates = await rewrapLoginKeys(keys || [], { from, to });
+      const opened = [];
+      updates = await rewrapLoginKeys(keys || [], { from, to, onOpened: (row, key) => opened.push([row.fingerprint, key]) });
+      // Kept unlocked only once every key moved: whoever asked has the key, not a row's old copy.
+      for (const [fingerprint, key] of opened) rememberUnlockedKey(fingerprint, key);
     } catch {
       return fail(t('pgp.unlock.wrongPrevious'));
     }

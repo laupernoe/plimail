@@ -184,3 +184,11 @@ test('signs with an imported key before one Plimail made, and never with a stale
   assert.equal(staleKeyFor([stale], 'me@example.com').id, 'old');
   assert.equal(staleKeyFor([stale, made], 'me@example.com'), null, 'a usable key: nothing to warn about');
 });
+
+test('how the message went decides its restore, over a password panel the send just closed', async () => {
+  const { protectionForRestore } = await import('./pgpSend.js');
+  const secure = { password: '', confirm: '', expiresInDays: 7 };
+  assert.deepEqual(protectionForRestore({ secure, sent: { auto: false } }), { mode: 'pgp', sign: true });
+  assert.deepEqual(protectionForRestore({ secure, sent: { auto: true } }), { mode: 'pgp', sign: true, auto: true });
+  assert.equal(protectionForRestore({ secure }).mode, 'password');
+});

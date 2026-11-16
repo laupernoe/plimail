@@ -1256,7 +1256,9 @@ export default function ComposeModal() {
   // included: after an undone send or schedule, or a send that failed once this composer is gone.
   // `built` is buildSendPayload's result.
   // `encrypted`: it went out encrypted, as automatic encryption decided (protectionForRestore).
-  const buildRestoreData = ({ accountId, aliasId, toFinal, ccFinal, bccFinal, bodyToSend, sentQuotedHtml, autoAtSend, savedDraft, hasDraft }, { encrypted = encryption.mode === 'pgp' } = {}) => ({
+  // `sent`: how the message actually went, { auto } when encrypted; it wins over this render's
+  // state, which a send started from the menu ("Send encrypted" over the password panel) sees stale.
+  const buildRestoreData = ({ accountId, aliasId, toFinal, ccFinal, bccFinal, bodyToSend, sentQuotedHtml, autoAtSend, savedDraft, hasDraft }, { encrypted = encryption.mode === 'pgp', sent = null } = {}) => ({
     ...composeData,
     // A sender chosen since opening a draft from an address MailFlow cannot send as replaces it.
     unsupportedFrom: unsupportedSenderRef.current ? composeData?.unsupportedFrom : undefined,
@@ -1287,7 +1289,7 @@ export default function ComposeModal() {
     // A message put back this way is the user's own text, not a request for another reply.
     aiReply: undefined,
     // Encrypted or password-protected, it reopens so: never back as a plain message.
-    protection: protectionForRestore({ pgp, secure, autoEncrypt: encrypted, optedOut: pgpOptOut }),
+    protection: protectionForRestore({ pgp, secure, autoEncrypt: encrypted, optedOut: pgpOptOut, sent }),
   });
 
   // Locking replaces the mail view, and this composer with it, so hand what it holds to the store
@@ -1425,7 +1427,7 @@ export default function ComposeModal() {
       if (sendResult?.pending) {
         // Everything needed to put this message back in front of the user exactly as it was sent,
         // attachments included, if they undo it or it fails once this composer is gone.
-        const restoreData = buildRestoreData(built, { encrypted: sentEncrypted });
+        const restoreData = buildRestoreData(built, { encrypted: sentEncrypted, sent: sentEncrypted ? { auto: !required } : null });
         const pendingId = sendResult.pendingId;
         const undoMs = undoWindowMs(sendResult.remainingMs);
         const shownSubject = subject || t('common.noSubject');
@@ -1622,7 +1624,7 @@ export default function ComposeModal() {
       </ProtectionPanel>
     );
   };
-  const recoverStaleKey = () => requestKeyUnlock({ stale: true }).then(() => ownKeysChanged(), () => {});
+  const recoverStaleKey = () => requestKeyUnlock({ stale: true, keyId: pgpStaleKey?.id }).then(() => ownKeysChanged(), () => {});
   const renderStaleKey = (mobile) => (pgpStaleKey && !scheduledEdit ? (
     <div style={{ padding: mobile ? '8px 12px' : '8px 14px', flexShrink: 0 }}>
       <StaleKeyBanner email={pgpStaleKey.emails?.[0] || ''} onRecover={recoverStaleKey} onNewKey={createOwnKey} disabled={sending} mobile={mobile} />

@@ -39,7 +39,10 @@ export const pgpDefaults = () => ({ sign: true, passphrase: '', remember: true, 
 //                 same, as required, so a recipient's key gone missing meanwhile stops it rather
 //                 than letting it out in the clear
 //   `optedOut`    the user said "Don't encrypt" for this message: it stays so
-export function protectionForRestore({ pgp, secure, autoEncrypt = false, optedOut = false }) {
+//   `sent`        { auto }: the message went encrypted. That decides, whatever else the composer's
+//                 state still says (a password panel the send closed a moment before).
+export function protectionForRestore({ pgp, secure, autoEncrypt = false, optedOut = false, sent = null }) {
+  if (sent) return { mode: 'pgp', sign: pgp ? pgp.sign !== false : true, ...(sent.auto ? { auto: true } : {}) };
   if (secure) return { mode: 'password', expiresInDays: secure.expiresInDays };
   if (pgp) return { mode: 'pgp', sign: pgp.sign !== false, ...(pgp.auto ? { auto: true } : {}) };
   if (autoEncrypt) return { mode: 'pgp', sign: true, auto: true };

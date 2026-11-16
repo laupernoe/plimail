@@ -64,9 +64,13 @@ const OWN_KEY = { id: 'k1', fingerprint: 'ab'.repeat(20), emails: ['on@example.t
 let ownKeys = [OWN_KEY];
 const KNOWN = { 'bob@example.net': { source: 'keyring', keys: [{ fingerprint: bob.fingerprint, armored: bob.armoredPublic, source: 'manual', verified: true }] } };
 const requests = [];
+// Set by a test: Send answers "held" and the held send then fails, so the composer reopens.
+let heldThenFails = false;
 globalThis.fetch = async (url, init = {}) => {
   const path = String(url);
   requests.push({ path, body: init.body ? JSON.parse(init.body) : null });
+  if (heldThenFails && path === '/api/mail/send') return { ok: true, status: 200, json: async () => ({ pending: true, pendingId: 'p1', remainingMs: 10 }) };
+  if (heldThenFails && path === '/api/mail/send/p1') return { ok: true, status: 200, json: async () => ({ status: 'failed', error: 'refused' }) };
   if (path === '/api/pgp/keys') return { ok: true, status: 200, json: async () => ({ keys: ownKeys }) };
   if (path === '/api/pgp/lookup') {
     const { emails } = JSON.parse(init.body);
@@ -278,6 +282,25 @@ test('"Send encrypted" chosen while the password panel is open sends encrypted, 
       assert.match(sent.pgp?.encrypted || '', /BEGIN PGP MESSAGE/);
       assert.ok(!requests.some(r => r.path.startsWith('/api/secure')), 'no password link');
     } finally { await unmount(root); }
+  });
+});
+
+test('a message sent encrypted over the password panel comes back encrypted when the send fails', async () => {
+  await withOwnKey(async () => {
+    const root = await mount({ accountId: 'on', to: ['bob@example.net'], subject: 's', body: 'secret text' });
+    heldThenFails = true;
+    try {
+      await click(document.querySelector('button[aria-label="compose.sendOptions"]'));
+      await click(document.querySelector('[data-preset="sendWithPassword"]'));
+      await click(document.querySelector('button[aria-label="compose.sendOptions"]'));
+      await click(document.querySelector('[data-preset="sendEncrypted"]'));
+      assert.ok(await sentBody());
+      await until(() => useStore.getState().composeData?.sendError);
+      assert.deepEqual(useStore.getState().composeData.protection, { mode: 'pgp', sign: true });
+    } finally {
+      heldThenFails = false;
+      await unmount(root);
+    }
   });
 });
 

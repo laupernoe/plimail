@@ -24,7 +24,8 @@ export const currentUnlockRequest = () => open;
 // for that one and encrypts the keys again for the current.
 export function requestKeyUnlock(options = {}) {
   if (open) {
-    if (options.stale && !open.options.stale) { open = { ...open, options: { ...open.options, stale: true } }; notify(); }
+    const merged = { ...open.options, ...(options.stale ? { stale: true } : {}), ...(options.keyId ? { keyId: options.keyId } : {}) };
+    if (merged.stale !== open.options.stale || merged.keyId !== open.options.keyId) { open = { ...open, options: merged }; notify(); }
     return open.promise;
   }
   let resolve;
@@ -67,7 +68,8 @@ export async function unlockOwnKey(row, userId, { passphrase = '', remember = tr
     return await openOwnKey(row, { secret: entry?.secret, verified: entry?.verified !== false, remember });
   } catch (err) {
     if (err?.code !== 'staleSecret' && err?.code !== 'needsSecret') throw err;
-    await requestKeyUnlock({ stale: err.code === 'staleSecret' });
+    // The key that failed is the one the prompt must open, or it would close on another that does.
+    await requestKeyUnlock({ stale: err.code === 'staleSecret', keyId: row.id });
     entry = keySecretEntry(userId);
     return openOwnKey(row, { secret: entry?.secret, verified: false, remember });
   }
