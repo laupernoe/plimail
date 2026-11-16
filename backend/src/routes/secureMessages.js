@@ -38,7 +38,8 @@ router.post('/', async (req, res) => {
   const sender = await resolveSender(userId, parsed.accountId, parsed.aliasId);
   if (!sender) return res.status(404).json({ error: 'Account not found' });
   const created = await createSecureMessage(userId, parsed, sender);
-  res.status(201).json({ ...created, url: linkFor(req, created.token) });
+  // The sender as the recipient will see it, for the notice email the composer sends.
+  res.status(201).json({ ...created, url: linkFor(req, created.token), senderName: sender.name || null, senderEmail: sender.email });
 });
 
 router.get('/', async (req, res) => {

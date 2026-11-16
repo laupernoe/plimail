@@ -216,6 +216,7 @@ describe('creating a protected message', () => {
     const created = await create();
     expect(created.token).toMatch(/^[A-Za-z0-9_-]{43}$/);
     expect(created.url).toMatch(new RegExp(`/s/${created.token}$`));
+    expect(created).toMatchObject({ senderName: 'Maria Rossi', senderEmail: 'maria@example.com' });
     const row = rowOf(created.id);
     expect(Buffer.from(row.ciphertext).toString('base64')).toBe(CIPHERTEXT);
     expect(row).toMatchObject({ user_id: 'u1', sender_name: 'Maria Rossi', sender_email: 'maria@example.com', iterations: 600000 });

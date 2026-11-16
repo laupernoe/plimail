@@ -295,6 +295,7 @@ const SAME_VALUE_ALLOWED = {
   // "Password" — international term, same in en and it
   'admin.systemEmail.password':      [['en', 'it']],
   'login.password':                  [['en', 'it']],
+  'compose.secure.password':         [['en', 'it']], // "Password" is the Italian word too
 
   // "Tema" — "Theme" translates identically in es and it
   'admin.tabs.theme': [['es', 'it', 'ptBR']],

@@ -290,7 +290,35 @@
       "undoFailedOpen": "No se pudo deshacer. Ábrelo desde Programados."
     },
     "selectAccount": "Elige una cuenta desde la que enviar",
-    "smtpAuthDisabled": "Microsoft ha desactivado el envío desde aplicaciones de correo (SMTP) en esta cuenta. Puedes seguir enviando desde Outlook en la web. Si es una cuenta profesional o educativa, tu administrador puede volver a activarlo."
+    "smtpAuthDisabled": "Microsoft ha desactivado el envío desde aplicaciones de correo (SMTP) en esta cuenta. Puedes seguir enviando desde Outlook en la web. Si es una cuenta profesional o educativa, tu administrador puede volver a activarlo.",
+    "secure": {
+      "toggle": "Proteger con contraseña",
+      "title": "Mensaje protegido con contraseña",
+      "explain": "Los destinatarios reciben un enlace en lugar del mensaje y lo abren con esta contraseña. El asunto tampoco se envía en claro.",
+      "password": "Contraseña",
+      "confirm": "Confirmar contraseña",
+      "expiry": "El enlace caduca tras",
+      "expiry1": "1 día",
+      "expiry7": "7 días",
+      "expiry30": "30 días",
+      "strengthTooShort": "Usa al menos 8 caracteres",
+      "strengthWeak": "Contraseña débil",
+      "strengthFair": "Contraseña aceptable",
+      "strengthStrong": "Contraseña robusta",
+      "mismatch": "Las contraseñas no coinciden",
+      "shareNote": "Comunica la contraseña a los destinatarios por otra vía, como SMS o teléfono, nunca por correo.",
+      "limits": "Se envía al instante, sin Deshacer ni Enviar más tarde, y no se pueden incluir adjuntos de mensajes reenviados. Mientras escribes, el borrador se guarda sin cifrar en tu carpeta Borradores.",
+      "noSchedule": "Un mensaje protegido con contraseña no se puede programar. Desactiva la contraseña para enviarlo más tarde.",
+      "sent": "Mensaje protegido enviado",
+      "errorForwarded": "Los adjuntos de mensajes reenviados no se pueden proteger con contraseña. Quítalos, o descarga los archivos y vuelve a adjuntarlos.",
+      "errorTooLarge": "Los adjuntos de un mensaje protegido pueden sumar como máximo 25 MB.",
+      "errorInsecure": "La protección con contraseña necesita una conexión segura (HTTPS).",
+      "noticeSubject": "Mensaje seguro de {{name}}",
+      "noticeIntro": "{{name}} te ha enviado un mensaje protegido con contraseña.",
+      "noticeOpen": "Ábrelo aquí:",
+      "noticeExpires": "El enlace caduca el {{date}}.",
+      "noticePassword": "Para leerlo necesitas la contraseña que {{name}} te dio por separado."
+    }
   },
   "message": {
     "find": {

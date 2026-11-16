@@ -290,7 +290,35 @@
       "undoFailedOpen": "실행 취소하지 못했습니다. 예약됨에서 여세요."
     },
     "selectAccount": "보낼 계정을 선택하세요",
-    "smtpAuthDisabled": "Microsoft가 이 계정에서 메일 앱(SMTP)으로 보내기를 껐습니다. 웹용 Outlook에서는 계속 보낼 수 있습니다. 회사 또는 학교 계정이라면 관리자가 다시 켤 수 있습니다."
+    "smtpAuthDisabled": "Microsoft가 이 계정에서 메일 앱(SMTP)으로 보내기를 껐습니다. 웹용 Outlook에서는 계속 보낼 수 있습니다. 회사 또는 학교 계정이라면 관리자가 다시 켤 수 있습니다.",
+    "secure": {
+      "toggle": "비밀번호로 보호",
+      "title": "비밀번호로 보호된 메시지",
+      "explain": "받는 사람은 메시지 대신 링크를 받고 이 비밀번호로 엽니다. 제목도 평문으로 보내지 않습니다.",
+      "password": "비밀번호",
+      "confirm": "비밀번호 확인",
+      "expiry": "링크 만료 기간",
+      "expiry1": "1일",
+      "expiry7": "7일",
+      "expiry30": "30일",
+      "strengthTooShort": "8자 이상 입력하세요",
+      "strengthWeak": "약한 비밀번호",
+      "strengthFair": "보통 비밀번호",
+      "strengthStrong": "강한 비밀번호",
+      "mismatch": "비밀번호가 일치하지 않습니다",
+      "shareNote": "비밀번호는 문자나 전화 등 다른 방법으로 받는 사람에게 알려 주세요. 이메일로는 절대 보내지 마세요.",
+      "limits": "메시지는 바로 발송되며 실행 취소나 예약 발송은 할 수 없고, 전달하는 메시지의 첨부 파일은 포함할 수 없습니다. 작성하는 동안 임시 보관 메시지는 암호화되지 않은 채 임시 보관함에 저장됩니다.",
+      "noSchedule": "비밀번호로 보호된 메시지는 예약할 수 없습니다. 나중에 보내려면 비밀번호 보호를 끄세요.",
+      "sent": "비밀번호로 보호된 메시지를 보냈습니다",
+      "errorForwarded": "전달하는 메시지의 첨부 파일은 비밀번호로 보호할 수 없습니다. 제거하거나 파일을 내려받아 다시 첨부하세요.",
+      "errorTooLarge": "비밀번호로 보호된 메시지의 첨부 파일은 합계 25MB를 넘을 수 없습니다.",
+      "errorInsecure": "비밀번호 보호에는 보안 연결(HTTPS)이 필요합니다.",
+      "noticeSubject": "{{name}}님이 보낸 보안 메시지",
+      "noticeIntro": "{{name}}님이 비밀번호로 보호된 메시지를 보냈습니다.",
+      "noticeOpen": "여기에서 여세요:",
+      "noticeExpires": "링크는 {{date}}에 만료됩니다.",
+      "noticePassword": "읽으려면 {{name}}님이 따로 알려 준 비밀번호가 필요합니다."
+    }
   },
   "message": {
     "printConversation": "대화 인쇄",

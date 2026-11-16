@@ -290,7 +290,35 @@
       "undoFailedOpen": "Não foi possível desfazer. Abra-a em Agendados."
     },
     "selectAccount": "Escolha uma conta para enviar",
-    "smtpAuthDisabled": "A Microsoft desativou o envio por apps de e-mail (SMTP) nesta conta. Você ainda pode enviar pelo Outlook na web. Em uma conta corporativa ou de estudante, o administrador pode reativá-lo."
+    "smtpAuthDisabled": "A Microsoft desativou o envio por apps de e-mail (SMTP) nesta conta. Você ainda pode enviar pelo Outlook na web. Em uma conta corporativa ou de estudante, o administrador pode reativá-lo.",
+    "secure": {
+      "toggle": "Proteger com senha",
+      "title": "Mensagem protegida por senha",
+      "explain": "Os destinatários recebem um link no lugar da mensagem e o abrem com esta senha. O assunto também não é enviado às claras.",
+      "password": "Senha",
+      "confirm": "Confirmar senha",
+      "expiry": "O link expira após",
+      "expiry1": "1 dia",
+      "expiry7": "7 dias",
+      "expiry30": "30 dias",
+      "strengthTooShort": "Use pelo menos 8 caracteres",
+      "strengthWeak": "Senha fraca",
+      "strengthFair": "Senha razoável",
+      "strengthStrong": "Senha forte",
+      "mismatch": "As senhas não coincidem",
+      "shareNote": "Passe a senha aos destinatários por outro meio, como SMS ou telefone, nunca por e-mail.",
+      "limits": "Ela é enviada na hora, sem Desfazer nem Enviar mais tarde, e anexos de mensagens encaminhadas não podem ser incluídos. Enquanto você escreve, o rascunho é salvo sem criptografia na pasta Rascunhos.",
+      "noSchedule": "Uma mensagem protegida por senha não pode ser agendada. Desative a senha para enviá-la mais tarde.",
+      "sent": "Mensagem protegida enviada",
+      "errorForwarded": "Anexos de mensagens encaminhadas não podem ser protegidos por senha. Remova-os, ou baixe os arquivos e anexe-os de novo.",
+      "errorTooLarge": "Os anexos de uma mensagem protegida podem somar no máximo 25 MB.",
+      "errorInsecure": "A proteção por senha precisa de uma conexão segura (HTTPS).",
+      "noticeSubject": "Mensagem segura de {{name}}",
+      "noticeIntro": "{{name}} enviou a você uma mensagem protegida por senha.",
+      "noticeOpen": "Abra aqui:",
+      "noticeExpires": "O link expira em {{date}}.",
+      "noticePassword": "Para lê-la, você precisa da senha que {{name}} passou separadamente."
+    }
   },
   "message": {
     "find": {

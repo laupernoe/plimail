@@ -290,7 +290,35 @@
       "undoFailedOpen": "Nie udało się cofnąć. Otwórz ją w Zaplanowanych."
     },
     "selectAccount": "Wybierz konto do wysyłki",
-    "smtpAuthDisabled": "Microsoft wyłączył wysyłanie z aplikacji pocztowych (SMTP) dla tego konta. Nadal możesz wysyłać z Outlooka w przeglądarce. W przypadku konta służbowego lub szkolnego administrator może je ponownie włączyć."
+    "smtpAuthDisabled": "Microsoft wyłączył wysyłanie z aplikacji pocztowych (SMTP) dla tego konta. Nadal możesz wysyłać z Outlooka w przeglądarce. W przypadku konta służbowego lub szkolnego administrator może je ponownie włączyć.",
+    "secure": {
+      "toggle": "Chroń hasłem",
+      "title": "Wiadomość chroniona hasłem",
+      "explain": "Odbiorcy dostają link zamiast wiadomości i otwierają go tym hasłem. Temat również nie jest wysyłany jawnym tekstem.",
+      "password": "Hasło",
+      "confirm": "Potwierdź hasło",
+      "expiry": "Link wygasa po",
+      "expiry1": "1 dniu",
+      "expiry7": "7 dniach",
+      "expiry30": "30 dniach",
+      "strengthTooShort": "Użyj co najmniej 8 znaków",
+      "strengthWeak": "Słabe hasło",
+      "strengthFair": "Przeciętne hasło",
+      "strengthStrong": "Silne hasło",
+      "mismatch": "Hasła się nie zgadzają",
+      "shareNote": "Przekaż hasło odbiorcom inną drogą, np. SMS-em lub telefonicznie, nigdy e-mailem.",
+      "limits": "Wiadomość wychodzi od razu, bez cofania i wysyłki później, a załączników przekazywanych wiadomości nie można dołączyć. Podczas pisania wersja robocza zapisuje się bez szyfrowania w folderze Wersje robocze.",
+      "noSchedule": "Wiadomości chronionej hasłem nie można zaplanować. Wyłącz hasło, aby wysłać ją później.",
+      "sent": "Wysłano wiadomość chronioną hasłem",
+      "errorForwarded": "Załączników przekazywanych wiadomości nie można chronić hasłem. Usuń je albo pobierz pliki i załącz je ponownie.",
+      "errorTooLarge": "Załączniki wiadomości chronionej hasłem mogą mieć łącznie najwyżej 25 MB.",
+      "errorInsecure": "Ochrona hasłem wymaga bezpiecznego połączenia (HTTPS).",
+      "noticeSubject": "Bezpieczna wiadomość od {{name}}",
+      "noticeIntro": "{{name}} wysyła Ci wiadomość chronioną hasłem.",
+      "noticeOpen": "Otwórz ją tutaj:",
+      "noticeExpires": "Link wygasa {{date}}.",
+      "noticePassword": "Aby ją przeczytać, potrzebujesz hasła, które {{name}} przekazuje Ci osobno."
+    }
   },
   "message": {
     "find": {

@@ -290,7 +290,35 @@
       "undoFailedOpen": "Annullamento non riuscito. Aprilo da Programmati."
     },
     "selectAccount": "Scegli un account da cui inviare",
-    "smtpAuthDisabled": "Microsoft ha disattivato l'invio dalle app di posta (SMTP) per questo account. Puoi comunque inviare da Outlook sul web. Per un account aziendale o scolastico, l'amministratore può riattivarlo."
+    "smtpAuthDisabled": "Microsoft ha disattivato l'invio dalle app di posta (SMTP) per questo account. Puoi comunque inviare da Outlook sul web. Per un account aziendale o scolastico, l'amministratore può riattivarlo.",
+    "secure": {
+      "toggle": "Proteggi con password",
+      "title": "Messaggio protetto da password",
+      "explain": "I destinatari ricevono un link al posto del messaggio e lo aprono con questa password. Nemmeno l’oggetto viene inviato in chiaro.",
+      "password": "Password",
+      "confirm": "Conferma password",
+      "expiry": "Il link scade dopo",
+      "expiry1": "1 giorno",
+      "expiry7": "7 giorni",
+      "expiry30": "30 giorni",
+      "strengthTooShort": "Usa almeno 8 caratteri",
+      "strengthWeak": "Password debole",
+      "strengthFair": "Password discreta",
+      "strengthStrong": "Password robusta",
+      "mismatch": "Le password non coincidono",
+      "shareNote": "Comunica la password ai destinatari in un altro modo, per SMS o telefono, mai via email.",
+      "limits": "Viene inviato subito, senza Annulla né Invia più tardi, e gli allegati dei messaggi inoltrati non possono essere inclusi. Mentre scrivi, la bozza viene salvata non cifrata nella cartella Bozze.",
+      "noSchedule": "Un messaggio protetto da password non può essere programmato. Disattiva la password per inviarlo più tardi.",
+      "sent": "Messaggio protetto inviato",
+      "errorForwarded": "Gli allegati dei messaggi inoltrati non possono essere protetti da password. Rimuovili, oppure scarica i file e allegali di nuovo.",
+      "errorTooLarge": "Gli allegati di un messaggio protetto possono arrivare al massimo a 25 MB in tutto.",
+      "errorInsecure": "La protezione con password richiede una connessione sicura (HTTPS).",
+      "noticeSubject": "Messaggio sicuro da {{name}}",
+      "noticeIntro": "{{name}} ti ha inviato un messaggio protetto da password.",
+      "noticeOpen": "Aprilo qui:",
+      "noticeExpires": "Il link scade il {{date}}.",
+      "noticePassword": "Per leggerlo ti serve la password che {{name}} ti ha dato a parte."
+    }
   },
   "message": {
     "find": {

@@ -290,7 +290,35 @@
       "undoFailedOpen": "撤销失败。请在“定时”中打开。"
     },
     "selectAccount": "请选择用于发送的账户",
-    "smtpAuthDisabled": "Microsoft 已为此账户关闭从邮件应用（SMTP）发送。你仍可以在网页版 Outlook 中发送。如果是工作或学校账户，管理员可以重新开启。"
+    "smtpAuthDisabled": "Microsoft 已为此账户关闭从邮件应用（SMTP）发送。你仍可以在网页版 Outlook 中发送。如果是工作或学校账户，管理员可以重新开启。",
+    "secure": {
+      "toggle": "用密码保护",
+      "title": "密码保护邮件",
+      "explain": "收件人收到的是一个链接而不是邮件本身，需用此密码打开。主题也不会以明文发送。",
+      "password": "密码",
+      "confirm": "确认密码",
+      "expiry": "链接有效期",
+      "expiry1": "1 天",
+      "expiry7": "7 天",
+      "expiry30": "30 天",
+      "strengthTooShort": "至少使用 8 个字符",
+      "strengthWeak": "密码强度弱",
+      "strengthFair": "密码强度中等",
+      "strengthStrong": "密码强度高",
+      "mismatch": "两次输入的密码不一致",
+      "shareNote": "请通过其他方式（如短信或电话）把密码告诉收件人，切勿通过邮件发送。",
+      "limits": "邮件会立即发出，无法撤销或定时发送，且不能包含转发邮件的附件。撰写期间，草稿会以未加密形式保存在“草稿”文件夹中。",
+      "noSchedule": "密码保护邮件无法定时发送。如需稍后发送，请关闭密码保护。",
+      "sent": "密码保护邮件已发送",
+      "errorForwarded": "转发邮件的附件无法用密码保护。请移除它们，或下载文件后重新添加为附件。",
+      "errorTooLarge": "密码保护邮件的附件总计不能超过 25 MB。",
+      "errorInsecure": "密码保护需要安全连接（HTTPS）。",
+      "noticeSubject": "来自 {{name}} 的安全邮件",
+      "noticeIntro": "{{name}} 给您发送了一封密码保护邮件。",
+      "noticeOpen": "点此打开：",
+      "noticeExpires": "链接将于 {{date}} 失效。",
+      "noticePassword": "阅读时需要 {{name}} 另行告知您的密码。"
+    }
   },
   "message": {
     "find": {

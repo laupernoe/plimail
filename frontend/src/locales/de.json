@@ -290,7 +290,35 @@
       "undoFailedOpen": "Rückgängig fehlgeschlagen. Öffne sie unter Geplant."
     },
     "selectAccount": "Wähle ein Konto zum Senden",
-    "smtpAuthDisabled": "Microsoft hat das Senden aus Mail-Apps (SMTP) für dieses Konto abgeschaltet. Aus Outlook im Web kannst du weiterhin senden. Bei einem Geschäfts- oder Schulkonto kann dein Admin es wieder einschalten."
+    "smtpAuthDisabled": "Microsoft hat das Senden aus Mail-Apps (SMTP) für dieses Konto abgeschaltet. Aus Outlook im Web kannst du weiterhin senden. Bei einem Geschäfts- oder Schulkonto kann dein Admin es wieder einschalten.",
+    "secure": {
+      "toggle": "Mit Passwort schützen",
+      "title": "Passwortgeschützte Nachricht",
+      "explain": "Die Empfänger erhalten statt der Nachricht einen Link und öffnen ihn mit diesem Passwort. Auch der Betreff wird nicht im Klartext gesendet.",
+      "password": "Passwort",
+      "confirm": "Passwort bestätigen",
+      "expiry": "Link läuft ab nach",
+      "expiry1": "1 Tag",
+      "expiry7": "7 Tagen",
+      "expiry30": "30 Tagen",
+      "strengthTooShort": "Mindestens 8 Zeichen verwenden",
+      "strengthWeak": "Schwaches Passwort",
+      "strengthFair": "Mittleres Passwort",
+      "strengthStrong": "Starkes Passwort",
+      "mismatch": "Die Passwörter stimmen nicht überein",
+      "shareNote": "Teilen Sie das Passwort den Empfängern auf anderem Weg mit, etwa per SMS oder Telefon, niemals per E-Mail.",
+      "limits": "Sie wird sofort gesendet, ohne Rückgängig oder Später senden, und Anhänge weitergeleiteter Nachrichten können nicht mitgeschickt werden. Während Sie schreiben, wird der Entwurf unverschlüsselt in Ihrem Entwürfe-Ordner gespeichert.",
+      "noSchedule": "Eine passwortgeschützte Nachricht kann nicht geplant werden. Schalten Sie das Passwort aus, um sie später zu senden.",
+      "sent": "Passwortgeschützte Nachricht gesendet",
+      "errorForwarded": "Anhänge weitergeleiteter Nachrichten können nicht mit Passwort geschützt werden. Entfernen Sie sie oder laden Sie die Dateien herunter und hängen Sie sie erneut an.",
+      "errorTooLarge": "Die Anhänge einer passwortgeschützten Nachricht dürfen zusammen höchstens 25 MB groß sein.",
+      "errorInsecure": "Der Passwortschutz benötigt eine sichere Verbindung (HTTPS).",
+      "noticeSubject": "Sichere Nachricht von {{name}}",
+      "noticeIntro": "{{name}} hat Ihnen eine passwortgeschützte Nachricht gesendet.",
+      "noticeOpen": "Hier öffnen:",
+      "noticeExpires": "Der Link läuft am {{date}} ab.",
+      "noticePassword": "Zum Lesen brauchen Sie das Passwort, das {{name}} Ihnen separat mitgeteilt hat."
+    }
   },
   "message": {
     "find": {

@@ -290,7 +290,35 @@
       "undoFailedOpen": "Undo failed. Open it from Scheduled."
     },
     "selectAccount": "Choose an account to send from",
-    "smtpAuthDisabled": "Microsoft has turned off sending from mail apps (SMTP) for this account. You can still send from Outlook on the web. For a work or school account, your admin can turn it back on."
+    "smtpAuthDisabled": "Microsoft has turned off sending from mail apps (SMTP) for this account. You can still send from Outlook on the web. For a work or school account, your admin can turn it back on.",
+    "secure": {
+      "toggle": "Protect with a password",
+      "title": "Password-protected message",
+      "explain": "Recipients get a link instead of the message and open it with this password. The subject is not sent in the clear either.",
+      "password": "Password",
+      "confirm": "Confirm password",
+      "expiry": "Link expires after",
+      "expiry1": "1 day",
+      "expiry7": "7 days",
+      "expiry30": "30 days",
+      "strengthTooShort": "Use at least 8 characters",
+      "strengthWeak": "Weak password",
+      "strengthFair": "Fair password",
+      "strengthStrong": "Strong password",
+      "mismatch": "The passwords do not match",
+      "shareNote": "Give the password to the recipients another way, such as by SMS or phone, never in an email.",
+      "limits": "It is sent at once, without Undo or Send later, and attachments of forwarded messages cannot be included. While you write, the draft is saved unencrypted in your Drafts folder.",
+      "noSchedule": "A password-protected message cannot be scheduled. Turn off the password to send it later.",
+      "sent": "Password-protected message sent",
+      "errorForwarded": "Attachments of forwarded messages cannot be password protected. Remove them, or download and attach the files again.",
+      "errorTooLarge": "Attachments of a password-protected message may total at most 25 MB.",
+      "errorInsecure": "Password protection needs a secure connection (HTTPS).",
+      "noticeSubject": "Secure message from {{name}}",
+      "noticeIntro": "{{name}} sent you a password-protected message.",
+      "noticeOpen": "Open it here:",
+      "noticeExpires": "The link expires on {{date}}.",
+      "noticePassword": "To read it, you need the password {{name}} gave you separately."
+    }
   },
   "message": {
     "find": {

@@ -290,7 +290,35 @@
       "undoFailedOpen": "L'annulation a échoué. Ouvrez-le depuis Programmés."
     },
     "selectAccount": "Choisissez un compte d'envoi",
-    "smtpAuthDisabled": "Microsoft a désactivé l'envoi depuis les applications de messagerie (SMTP) pour ce compte. Vous pouvez toujours envoyer depuis Outlook sur le web. Pour un compte professionnel ou scolaire, votre administrateur peut le réactiver."
+    "smtpAuthDisabled": "Microsoft a désactivé l'envoi depuis les applications de messagerie (SMTP) pour ce compte. Vous pouvez toujours envoyer depuis Outlook sur le web. Pour un compte professionnel ou scolaire, votre administrateur peut le réactiver.",
+    "secure": {
+      "toggle": "Protéger par mot de passe",
+      "title": "Message protégé par mot de passe",
+      "explain": "Les destinataires reçoivent un lien à la place du message et l’ouvrent avec ce mot de passe. L’objet n’est pas non plus envoyé en clair.",
+      "password": "Mot de passe",
+      "confirm": "Confirmer le mot de passe",
+      "expiry": "Le lien expire après",
+      "expiry1": "1 jour",
+      "expiry7": "7 jours",
+      "expiry30": "30 jours",
+      "strengthTooShort": "Utilisez au moins 8 caractères",
+      "strengthWeak": "Mot de passe faible",
+      "strengthFair": "Mot de passe moyen",
+      "strengthStrong": "Mot de passe robuste",
+      "mismatch": "Les mots de passe ne correspondent pas",
+      "shareNote": "Transmettez le mot de passe aux destinataires par un autre moyen, par SMS ou par téléphone, jamais par e-mail.",
+      "limits": "Il part immédiatement, sans annulation ni envoi programmé, et les pièces jointes de messages transférés ne peuvent pas être incluses. Pendant la rédaction, le brouillon est enregistré non chiffré dans votre dossier Brouillons.",
+      "noSchedule": "Un message protégé par mot de passe ne peut pas être programmé. Désactivez le mot de passe pour l’envoyer plus tard.",
+      "sent": "Message protégé envoyé",
+      "errorForwarded": "Les pièces jointes de messages transférés ne peuvent pas être protégées. Retirez-les, ou téléchargez les fichiers et joignez-les à nouveau.",
+      "errorTooLarge": "Les pièces jointes d’un message protégé ne peuvent pas dépasser 25 Mo au total.",
+      "errorInsecure": "La protection par mot de passe nécessite une connexion sécurisée (HTTPS).",
+      "noticeSubject": "Message sécurisé de {{name}}",
+      "noticeIntro": "{{name}} vous a envoyé un message protégé par mot de passe.",
+      "noticeOpen": "Ouvrez-le ici :",
+      "noticeExpires": "Le lien expire le {{date}}.",
+      "noticePassword": "Pour le lire, il vous faut le mot de passe que {{name}} vous a donné séparément."
+    }
   },
   "message": {
     "find": {
