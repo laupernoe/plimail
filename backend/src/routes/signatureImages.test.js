@@ -2,9 +2,12 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 
 // A stand-in for the table: rows by id, each with its owner, answering the SQL the service sends.
 const rows = vi.hoisted(() => new Map());
+// Whether the user's images are at the cap, which the INSERT ... WHERE then answers with no row.
+const quota = vi.hoisted(() => ({ full: false }));
 vi.mock('../services/db.js', () => ({
   query: vi.fn(async (sql, params) => {
     if (sql.startsWith('INSERT INTO signature_images')) {
+      if (quota.full) return { rows: [] };
       const id = `00000000-0000-4000-8000-${String(rows.size + 1).padStart(12, '0')}`;
       const [user_id, content_type, data, width, height] = params;
       rows.set(id, { id, user_id, content_type, data, width, height });
@@ -37,7 +40,7 @@ describe('/api/signature-images', () => {
     base = `http://127.0.0.1:${server.address().port}/api/signature-images`;
   });
   afterAll(async () => { await new Promise(resolve => server.close(resolve)); });
-  beforeEach(() => { rows.clear(); });
+  beforeEach(() => { rows.clear(); quota.full = false; });
 
   const upload = (body, user = 'user-1', type = 'image/png') => fetch(base, {
     method: 'POST', headers: { 'Content-Type': type, 'X-User': user }, body,
@@ -58,6 +61,14 @@ describe('/api/signature-images', () => {
     expect(got.headers.get('content-security-policy')).toContain('sandbox');
     expect(got.headers.get('cache-control')).toContain('private');
     expect((await sharp(Buffer.from(await got.arrayBuffer())).metadata()).width).toBe(600);
+  });
+
+  it('refuses an upload past the per-user cap with a code the editor can explain', async () => {
+    quota.full = true;
+    const res = await upload(await logo());
+    expect(res.status).toBe(409);
+    expect(await res.json()).toMatchObject({ code: 'signature_image_quota', error: expect.stringMatching(/limit/) });
+    expect(rows.size).toBe(0);
   });
 
   it('answers another user as if the image did not exist', async () => {

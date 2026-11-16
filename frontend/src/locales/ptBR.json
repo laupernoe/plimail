@@ -1071,6 +1071,10 @@
       "title": "Tipo de imagem não suportado",
       "body": "Use uma imagem PNG, JPEG, GIF ou WebP."
     },
+    "imageQuota": {
+      "title": "Imagens de assinatura demais",
+      "body": "Você pode manter até 50 imagens (20 MB no total). Remova das suas assinaturas as imagens que não usa mais: elas são excluídas uma semana depois."
+    },
     "imageUploadFailed": "Não foi possível enviar a imagem",
     "imageSize": "Tamanho",
     "imageSmall": "Pequena",

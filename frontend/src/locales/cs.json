@@ -1113,6 +1113,10 @@
       "title": "Nepodporovaný typ obrázku",
       "body": "Použijte obrázek PNG, JPEG, GIF nebo WebP."
     },
+    "imageQuota": {
+      "title": "Příliš mnoho obrázků v podpisech",
+      "body": "Můžete mít až 50 obrázků (celkem 20 MB). Odeberte z podpisů obrázky, které už nepoužíváte: smažou se o týden později."
+    },
     "imageUploadFailed": "Obrázek se nepodařilo nahrát",
     "imageSize": "Velikost",
     "imageSmall": "Malá",

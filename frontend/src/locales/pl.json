@@ -1087,6 +1087,10 @@
       "title": "Nieobsługiwany typ obrazu",
       "body": "Użyj obrazu PNG, JPEG, GIF lub WebP."
     },
+    "imageQuota": {
+      "title": "Za dużo obrazów w podpisach",
+      "body": "Możesz przechowywać do 50 obrazów (łącznie 20 MB). Usuń z podpisów obrazy, których już nie używasz: zostaną usunięte tydzień później."
+    },
     "imageUploadFailed": "Nie udało się przesłać obrazu",
     "imageSize": "Rozmiar",
     "imageSmall": "Mały",

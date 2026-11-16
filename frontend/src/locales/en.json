@@ -1071,6 +1071,10 @@
       "title": "Image type not supported",
       "body": "Use a PNG, JPEG, GIF or WebP image."
     },
+    "imageQuota": {
+      "title": "Too many signature images",
+      "body": "You can keep up to 50 images (20 MB in all). Remove images you no longer use from your signatures: they are deleted a week later."
+    },
     "imageUploadFailed": "Could not upload the image",
     "imageSize": "Size",
     "imageSmall": "Small",

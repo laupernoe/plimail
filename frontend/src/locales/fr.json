@@ -1071,6 +1071,10 @@
       "title": "Type d'image non pris en charge",
       "body": "Utilisez une image PNG, JPEG, GIF ou WebP."
     },
+    "imageQuota": {
+      "title": "Trop d'images de signature",
+      "body": "Vous pouvez garder jusqu'à 50 images (20 Mo au total). Retirez de vos signatures les images que vous n'utilisez plus : elles sont supprimées une semaine plus tard."
+    },
     "imageUploadFailed": "Impossible d'envoyer l'image",
     "imageSize": "Taille",
     "imageSmall": "Petite",

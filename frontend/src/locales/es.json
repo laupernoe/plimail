@@ -1071,6 +1071,10 @@
       "title": "Tipo de imagen no admitido",
       "body": "Usa una imagen PNG, JPEG, GIF o WebP."
     },
+    "imageQuota": {
+      "title": "Demasiadas imágenes de firma",
+      "body": "Puede guardar hasta 50 imágenes (20 MB en total). Quite de sus firmas las imágenes que ya no use: se eliminan una semana después."
+    },
     "imageUploadFailed": "No se pudo subir la imagen",
     "imageSize": "Tamaño",
     "imageSmall": "Pequeña",
