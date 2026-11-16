@@ -52,6 +52,7 @@ import { isValidEncryptionKey } from './services/encryption.js';
 import { runMigrations } from './services/migrations.js';
 import { parseVCard } from './utils/vcard.js';
 import { reloadAuthSettings } from './services/authLimiter.js';
+import { createClientAddressWatch } from './services/clientAddressWatch.js';
 import { closeWebSocketClients, createWebSocketServer, setupWebSocket } from './services/websocket.js';
 import { ImapManager } from './services/imapManager.js';
 import { getUpdateStatus } from './services/updateCheck.js';
@@ -152,6 +153,8 @@ app.use((req, res, next) => {
 });
 
 app.use(securityHeaders);
+// Says so in the log when every client seems to share the proxy's address (clientAddressWatch.js).
+app.use('/api', createClientAddressWatch({ hops: trustProxyHops }));
 app.use(compress);
 // Who a request is and whether it may go on: API tokens, the body parsers, the session, the CSRF
 // header check, the screen lock and the token guards, in that order (middleware/apiChain.js, so

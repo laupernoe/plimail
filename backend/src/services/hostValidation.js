@@ -65,6 +65,14 @@ function isPrivateIPv6(ip) {
   return false;
 }
 
+// A private, loopback, link-local or otherwise reserved address, IPv4 or IPv6.
+export function isPrivateAddress(ip) {
+  if (typeof ip !== 'string') return false;
+  if (isIPv4(ip)) return isPrivateIPv4(ip);
+  if (isIPv6(ip.split('%')[0])) return isPrivateIPv6(ip);
+  return false;
+}
+
 // getaddrinfo (glibc, musl) reads 2130706433, 0x7f000001, 0177.0.0.1 and 127.1 as IPv4
 // addresses, but net.isIPv4 accepts only the dotted quad. The URL parser reads the same
 // inet_aton forms, so use it to find the address the socket would connect to.
