@@ -5,7 +5,9 @@ import { requireAuth } from '../middleware/auth.js';
 import { invalidateSocialDomainCache, backfillCategories, aiClassifyMessage, BUILTIN_SETS } from '../services/categorizer.js';
 import { validateHost } from '../services/hostValidation.js';
 import { safeFetch } from '../services/safeFetch.js';
-import { getUserAiAccess } from '../services/aiAccess.js';
+import { consume } from '../services/rateLimiter.js';
+import { gateAiRequest } from './ai.js';
+import { MAIL_ACTION_LIMIT } from './aiMessages.js';
 
 const router = Router();
 
@@ -234,9 +236,14 @@ router.post('/categories/ai-classify/:messageId', requireAuth, async (req, res) 
   const { messageId } = req.params;
   if (!UUID_RE_CAT.test(messageId)) return res.status(400).json({ error: 'Invalid message id' });
 
-  // Refused before any provider call when AI is off for the instance or for this user (#644).
-  const { allowed } = await getUserAiAccess(req.session.userId);
-  if (!allowed) return res.status(403).json({ error: 'AI is not available for your account' });
+  // Refused before any provider call when AI is off for the instance or for this user (#644), or
+  // when the admin turned off summaries and actions, which this is one of; and counted with the
+  // other AI actions on a message.
+  if (!await gateAiRequest(req, res, 'summarize')) return;
+  const rate = await consume(`ai_mail_action:${req.session.userId}`, MAIL_ACTION_LIMIT.max, MAIL_ACTION_LIMIT.windowMs);
+  if (rate.limited) {
+    return res.status(429).json({ error: 'Too many AI requests. Try again in a minute.', code: 'rate_limited' });
+  }
 
   const message = await findOwnedMessage(req.session.userId, messageId, {
     columns: 'm.subject, m.from_email, m.snippet',
