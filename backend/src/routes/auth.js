@@ -259,16 +259,30 @@ router.post('/login', authLimiter, async (req, res) => {
     // Regenerate session ID before storing any auth state to prevent session fixation
     await new Promise((resolve, reject) => req.session.regenerate(err => err ? reject(err) : resolve()));
 
-    // Check trusted device cookie — bypass 2FA if valid
+    // Load enforcement policy and device trust setting together
+    const policyResult = await query(
+      "SELECT key, value FROM system_settings WHERE key IN ('mfa_enforcement', 'mfa_device_trust')"
+    );
+    const policyMap = {};
+    for (const row of policyResult.rows) policyMap[row.key] = row.value;
+    const enforcement = policyMap.mfa_enforcement || 'off';
+    const trustSetting = policyMap.mfa_device_trust || '30d';
+    const trustMs = getTrustDurationMs(trustSetting);
+    const deviceTrustAvailable = trustMs > 0;
+
+    // Check trusted device cookie — bypass 2FA if valid. The admin's setting as it is now decides:
+    // "never" trusts no device, and a shorter duration than the device was remembered for ends its
+    // trust early, so tightening the policy is not undone by cookies issued under the old one.
     const rawCookies = req.headers.cookie || '';
     const deviceToken = rawCookies.split(';').map(c => c.trim()).find(c => c.startsWith('mf_td='))?.slice(6);
-    if (deviceToken) {
+    if (deviceToken && deviceTrustAvailable) {
       const tokenHash = crypto.createHash('sha256').update(deviceToken).digest('hex');
       const deviceRes = await query(
         `SELECT id FROM trusted_devices
          WHERE user_id = $1 AND token_hash = $2
-           AND (expires_at IS NULL OR expires_at > NOW())`,
-        [user.id, tokenHash]
+           AND (expires_at IS NULL OR expires_at > NOW())
+           AND created_at > $3`,
+        [user.id, tokenHash, new Date(Date.now() - trustMs)]
       );
       if (deviceRes.rows.length > 0) {
         await query('UPDATE trusted_devices SET last_used_at = NOW() WHERE id = $1', [deviceRes.rows[0].id]);
@@ -280,16 +294,6 @@ router.post('/login', authLimiter, async (req, res) => {
         return res.json({ user: { id: user.id, username: user.username, displayName: user.display_name, avatar: user.avatar, isAdmin: user.is_admin, totpEnabled: user.totp_enabled } });
       }
     }
-
-    // Load enforcement policy and device trust setting together
-    const policyResult = await query(
-      "SELECT key, value FROM system_settings WHERE key IN ('mfa_enforcement', 'mfa_device_trust')"
-    );
-    const policyMap = {};
-    for (const row of policyResult.rows) policyMap[row.key] = row.value;
-    const enforcement = policyMap.mfa_enforcement || 'off';
-    const trustSetting = policyMap.mfa_device_trust || '30d';
-    const deviceTrustAvailable = getTrustDurationMs(trustSetting) > 0;
 
     // If user has TOTP configured, require a TOTP challenge before creating a full session
     if (user.totp_enabled) {

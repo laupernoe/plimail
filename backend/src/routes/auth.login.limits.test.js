@@ -12,7 +12,11 @@ vi.mock('../services/db.js', () => ({
       return { rows: Object.entries(db.settings).map(([key, value]) => ({ key, value })) };
     }
     if (sql.includes('FROM trusted_devices')) {
-      return { rows: db.devices.filter(d => d.user_id === params[0] && d.token_hash === params[1]).map(d => ({ id: d.id })) };
+      return {
+        rows: db.devices
+          .filter(d => d.user_id === params[0] && d.token_hash === params[1] && (!params[2] || d.created_at > params[2]))
+          .map(d => ({ id: d.id })),
+      };
     }
     return { rows: [] };
   }),
@@ -153,4 +157,35 @@ describe('POST /api/auth/login limits', () => {
     expect(missing.status).toBe(429);
     expect(await missing.json()).toEqual(await real.json());
   }, 30_000);
+});
+
+describe('POST /api/auth/login with a trusted device', () => {
+  const remembered = (token, daysAgo = 1) => {
+    db.devices.push({
+      id: 'device-1', user_id: 'u-alice', token_hash: crypto.createHash('sha256').update(token).digest('hex'),
+      created_at: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
+    });
+    db.users[`alice${nameCounter}`].totp_enabled = true;
+  };
+
+  it('skips the second factor while devices may be trusted', async () => {
+    remembered('device-token');
+    db.settings = { mfa_device_trust: '30d' };
+    const res = await login(`alice${nameCounter}`, 'alice-password', freshIp(), { Cookie: 'mf_td=device-token' });
+    expect(await res.json()).toMatchObject({ user: { id: 'u-alice' } });
+  });
+
+  it('asks for the second factor once the admin has set device trust to never', async () => {
+    remembered('device-token');
+    db.settings = { mfa_device_trust: 'never' };
+    const res = await login(`alice${nameCounter}`, 'alice-password', freshIp(), { Cookie: 'mf_td=device-token' });
+    expect(await res.json()).toEqual({ requiresTOTP: true, deviceTrustAvailable: false });
+  });
+
+  it('stops trusting a device remembered for longer than the duration the admin has since set', async () => {
+    remembered('device-token', 10);
+    db.settings = { mfa_device_trust: '7d' };
+    const res = await login(`alice${nameCounter}`, 'alice-password', freshIp(), { Cookie: 'mf_td=device-token' });
+    expect(await res.json()).toEqual({ requiresTOTP: true, deviceTrustAvailable: true });
+  });
 });
