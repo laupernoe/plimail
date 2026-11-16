@@ -753,6 +753,7 @@
       "aiImprove": "Vylepšit",
       "aiShorten": "Zkrátit",
       "aiFixGrammar": "Opravit pravopis",
+      "aiProtected": "AI je vypnutá, dokud je tato zpráva chráněná: její text by se k poskytovateli AI dostal nešifrovaný.",
       "aiMakeClearer": "Zpřehlednit",
       "aiToneHeading": "Změnit tón",
       "toneProfessional": "Profesionální",

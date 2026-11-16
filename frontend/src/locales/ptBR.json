@@ -186,6 +186,7 @@
       "aiImprove": "Melhorar",
       "aiShorten": "Encurtar",
       "aiFixGrammar": "Corrigir ortografia",
+      "aiProtected": "A IA fica desativada enquanto esta mensagem estiver protegida: o texto chegaria sem criptografia ao provedor de IA.",
       "aiMakeClearer": "Deixar mais claro",
       "aiToneHeading": "Mudar o tom",
       "toneProfessional": "Profissional",
