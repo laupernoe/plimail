@@ -115,6 +115,13 @@ const dir = dirname(fileURLToPath(import.meta.url));
 // Two locales sharing a value is only allowed if both appear in the same group.
 // Any unlisted pair will still fail.
 const SAME_VALUE_ALLOWED = {
+  // ── OpenPGP: the same words in Spanish and Portuguese ──────────────────────
+  'compose.sendWithPasswordShort':          [['es', 'ptBR']], // Enviar protegido
+  'pgp.compose.cancelProtection':           [['es', 'ptBR']], // Cancelar
+  'pgp.read.unlock':                        [['es', 'ptBR']], // Desbloquear
+  'pgp.settings.unlock':                    [['es', 'ptBR']], // Desbloquear
+  'pgp.unlock.go':                          [['es', 'ptBR']], // Desbloquear
+  'pgp.unlock.working':                     [['es', 'ptBR']], // Desbloqueando…
   // ── Composer tone presets ──────────────────────────────────────────────────
   'compose.toolbar.toneFormal':             [['en', 'es', 'ptBR']], // Formal
   'compose.toolbar.toneDiplomatic':         [['es', 'ptBR']], // Diplomático

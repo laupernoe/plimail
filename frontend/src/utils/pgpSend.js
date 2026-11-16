@@ -5,6 +5,11 @@
 //
 // The rule that matters most: with encryption asked for, nothing goes out unencrypted unless the
 // user says so for this message. A recipient without a usable key stops the send.
+//
+// Encryption is asked for in two ways. The user chooses "Send encrypted" (`pgp` in the composer,
+// required: a missing key stops the send). Or every recipient has a key and automatic encryption
+// is on (encryptionDecision): the message goes encrypted with no extra step, and when one
+// recipient has none it goes as ordinary mail without a word, as any other mail program's would.
 
 import { buildMimeEntity, entityBytes } from './mimeBuild.js';
 import { encryptMime, keyInfo, readArmoredKeys } from './pgp.js';
@@ -23,19 +28,52 @@ export class PgpSendError extends Error {
 
 // The composer's PGP settings when encryption is turned on. The passphrase is only ever held here,
 // in this composer, never in what is kept for a restore.
-export const pgpDefaults = () => ({ sign: true, passphrase: '', remember: true, confirmPlain: false });
+// `auto`: encryption that automatic encryption decided on and a restore kept (protectionForRestore).
+export const pgpDefaults = () => ({ sign: true, passphrase: '', remember: true, confirmPlain: false, auto: false });
 
-// The lock's mode as a restored composer must reopen with it: after an undone or failed send, a
-// send lost on the server, or the screen lock. Without it the message reopens unprotected, and
-// Send would deliver it in the clear. No passphrase or password is kept: the user gives it again.
-export function protectionForRestore({ pgp, secure }) {
-  if (pgp) return { mode: 'pgp', sign: pgp.sign !== false };
+// The protection a restored composer must reopen with: after an undone or failed send, a send lost
+// on the server, or the screen lock. Without it the message reopens unprotected, and Send would
+// deliver it in the clear. No passphrase or password is kept: the user gives it again.
+//   `pgp`         the user chose "Send encrypted"
+//   `autoEncrypt` automatic encryption would encrypt it (or did): it reopens encrypted all the
+//                 same, as required, so a recipient's key gone missing meanwhile stops it rather
+//                 than letting it out in the clear
+//   `optedOut`    the user said "Don't encrypt" for this message: it stays so
+export function protectionForRestore({ pgp, secure, autoEncrypt = false, optedOut = false }) {
   if (secure) return { mode: 'password', expiresInDays: secure.expiresInDays };
+  if (pgp) return { mode: 'pgp', sign: pgp.sign !== false, ...(pgp.auto ? { auto: true } : {}) };
+  if (autoEncrypt) return { mode: 'pgp', sign: true, auto: true };
+  if (optedOut) return { mode: 'plain' };
   return null;
 }
 
 export function initialPgp(protection) {
-  return protection?.mode === 'pgp' ? { ...pgpDefaults(), sign: protection.sign !== false } : null;
+  return protection?.mode === 'pgp' ? { ...pgpDefaults(), sign: protection.sign !== false, auto: protection.auto === true } : null;
+}
+
+export const initialAutoOptOut = protection => protection?.mode === 'plain';
+
+// How the composer's message goes, decided again as recipients and keys change:
+//   { mode: 'password' }                       a password link (SecureSendPanel.jsx)
+//   { mode: 'pgp', auto: false }               the user chose "Send encrypted"
+//   { mode: 'pgp', auto: true }                automatic: every recipient has a usable key
+//   { mode: 'plain', checking? }               anything else, quietly
+// Automatic encryption needs the setting on and not turned off for this message, a key of the
+// user's own for the From address (the Sent copy must stay readable), every recipient's key
+// looked up and usable, and nothing the browser cannot encrypt (forwarded parts the server
+// fetches, attachments over the limit).
+export function encryptionDecision({
+  secure = false, explicit = false, autoSetting = true, optedOut = false,
+  recipients = [], statuses = [], checking = false, ownKey = null, forwardedCount = 0, attachmentBytes = 0,
+}) {
+  if (secure) return { mode: 'password' };
+  if (explicit) return { mode: 'pgp', auto: false };
+  if (!autoSetting || optedOut || !ownKey || !recipients.length) return { mode: 'plain' };
+  if (forwardedCount > 0 || attachmentBytes > PGP_MAX_ATTACHMENT_BYTES) return { mode: 'plain' };
+  if (checking) return { mode: 'plain', checking: true };
+  const byEmail = new Map((statuses || []).map(s => [s.email, s]));
+  if (!recipients.every(e => byEmail.get(e)?.status === 'ok')) return { mode: 'plain' };
+  return { mode: 'pgp', auto: true };
 }
 
 export function initialSecure(protection, secureDefaults) {
@@ -101,10 +139,19 @@ export function pgpSendProblem({ recipients, statuses, ownKey, sign = false, sig
   return null;
 }
 
-// The user's key for sending from `fromEmail`: the one with that address, else none.
+// The user's key for sending from `fromEmail`: the newest with that address, else none.
 export function ownKeyFor(ownKeys, fromEmail) {
   const email = String(fromEmail || '').toLowerCase();
-  return (ownKeys || []).find(k => (k.emails || []).includes(email)) || null;
+  const mine = (ownKeys || []).filter(k => (k.emails || []).includes(email));
+  return mine.sort((a, b) => new Date(b.keyCreatedAt || b.createdAt || 0) - new Date(a.keyCreatedAt || a.createdAt || 0))[0] || null;
+}
+
+// The addresses to look keys up for: the ones that look whole (an address still being typed is
+// not asked of anyone's directory).
+const WHOLE_ADDRESS = /^[^\s@<>]+@[^\s@<>]+\.[a-z]{2,}$/i;
+export function lookupAddresses(values) {
+  return [...new Set((values || []).map(v => String(v || '').trim()).filter(Boolean).map(emailOfRecipient))]
+    .filter(e => WHOLE_ADDRESS.test(e));
 }
 
 // The /mail/send body for the encrypted message: `payload` is the composer's (buildSendPayload),

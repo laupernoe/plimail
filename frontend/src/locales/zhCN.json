@@ -88,7 +88,8 @@
       "mismatch": "两次输入的密码不一致",
       "tooShort": "密码至少需要8个字符",
       "doneDesc": "您的密码已更新，现在可以登录。",
-      "backToLogin": "← 返回登录"
+      "backToLogin": "← 返回登录",
+      "pgpWarning": "如果您在 Plimail 中使用加密，您的密钥仍受旧密码保护：解锁时会询问一次旧密码。没有它，将无法再阅读加密邮件。"
     },
     "showPassword": "显示密码",
     "hidePassword": "隐藏密码"
@@ -219,7 +220,6 @@
     },
     "scheduleSend": {
       "title": "稍后发送",
-      "tooltip": "稍后发送 (Ctrl+Shift+Enter)",
       "tomorrowMorning": "明天上午",
       "tomorrowAfternoon": "明天下午",
       "mondayMorning": "周一上午",
@@ -292,7 +292,6 @@
     "selectAccount": "请选择用于发送的账户",
     "smtpAuthDisabled": "Microsoft 已为此账户关闭从邮件应用（SMTP）发送。你仍可以在网页版 Outlook 中发送。如果是工作或学校账户，管理员可以重新开启。",
     "secure": {
-      "toggle": "用密码保护",
       "title": "密码保护邮件",
       "explain": "收件人收到的是一个链接而不是邮件本身，需用此密码打开。主题也不会以明文发送。",
       "password": "密码",
@@ -318,7 +317,13 @@
       "noticeOpen": "点此打开：",
       "noticeExpires": "链接将于 {{date}} 失效。",
       "noticePassword": "阅读时需要 {{name}} 另行告知您的密码。"
-    }
+    },
+    "sendOptions": "发送选项",
+    "sendOptionsTooltip": "更多发送方式：加密、使用密码、稍后发送",
+    "sendEncrypted": "加密发送 (PGP)",
+    "sendEncryptedShort": "加密发送",
+    "sendWithPassword": "使用密码发送",
+    "sendWithPasswordShort": "受保护发送"
   },
   "message": {
     "find": {
@@ -1713,7 +1718,10 @@
       "usernameTaken": "该用户名已被占用。",
       "invalidEmail": "该邮箱地址无效。",
       "saveFailed": "无法保存：{{message}}",
-      "passwordNotSet": "其他更改已保存，但未设置密码：{{message}}"
+      "passwordNotSet": "其他更改已保存，但未设置密码：{{message}}",
+      "newPasswordPgpWarning": "如果该用户使用加密，其密钥仍受旧密码保护：解锁时需要输入一次旧密码，没有它将无法再阅读加密邮件。建议其先导出密钥备份。",
+      "pgpUnlockNeeded": "请先解锁您的加密密钥：它们会随新密码一起转换。",
+      "pgpRewrapFailed": "无法将您的加密密钥转换到新密码，因此密码未更改。"
     },
     "ai": {
       "title": "AI 助手",
@@ -2568,9 +2576,7 @@
   "pgp": {
     "settings": {
       "title": "加密（PGP）",
-      "intro": "你的 OpenPGP 密钥让别人可以向你发送加密邮件，也让你可以对发出的邮件签名和加密。你的私钥在这里仅以口令锁定的形式存储，口令绝不会离开你的浏览器，因此你可以在每台登录的设备上使用它。",
-      "noKeys": "你还没有密钥。可以为某个地址创建一个，或导入你已在使用的密钥（例如来自 Proton、Thunderbird 或 GnuPG）。",
-      "generateTitle": "创建密钥",
+      "intro": "Plimail 使用 OpenPGP 加密您的邮件。您的每个地址都会获得一把密钥，并由您的 Plimail 密码自动解锁。发给拥有密钥之人的邮件会为其加密：只有对方和您能阅读。",
       "address": "地址",
       "name": "密钥上的姓名",
       "passphrase": "口令",
@@ -2608,7 +2614,33 @@
       "markVerified": "标记为已验证",
       "markUnverified": "标记为未验证",
       "export": "导出",
-      "verifyHint": "标记为已验证之前，请当面或通过电话与密钥所有者核对此指纹。"
+      "verifyHint": "标记为已验证之前，请当面或通过电话与密钥所有者核对此指纹。",
+      "addressesTitle": "您的地址",
+      "stateActive": "密钥已启用，自动解锁",
+      "stateLocked": "密钥已启用，在此标签页中已锁定",
+      "stateStale": "密钥被之前的密码锁定",
+      "stateOwn": "密钥已启用，受其自身口令保护",
+      "stateMaking": "正在创建密钥…",
+      "stateNone": "尚无密钥",
+      "unlock": "解锁",
+      "createKeys": "创建我的密钥",
+      "autoEncrypt": "当所有收件人都有密钥时自动加密",
+      "autoEncryptHint": "邮件无需额外步骤即被加密并签名。若有收件人没有密钥，则作为普通邮件发送。",
+      "resetWarning": "您的密钥由 Plimail 密码解锁。如果密码被重置（忘记密码或由管理员重置），密钥只能用旧密码打开，没有旧密码将无法再阅读加密邮件。请保留备份。",
+      "backupTitle": "导出我的密钥备份",
+      "backupNote": "为备份文件设置一个口令（至少 {{n}} 个字符）。重新导入密钥时需要它，任何人都无法找回。",
+      "backupNoteOwn": "您的密钥将按原样导出，每把都由其自身口令锁定。",
+      "backupPassphrase": "备份口令",
+      "backupGo": "下载备份",
+      "advanced": "高级",
+      "advancedIntro": "密钥详情：指纹、导入与导出，以及带自身口令的密钥。",
+      "protectionLogin": "由您的 Plimail 密码解锁",
+      "protectionOwn": "受其自身口令保护",
+      "makeAutomatic": "自动解锁",
+      "makeAutomaticNote": "输入此密钥的口令。之后它将改由您的 Plimail 密码保护，并在登录时解锁。",
+      "makeAutomaticGo": "用我的 Plimail 密码保护",
+      "importAutomatic": "使用我的 Plimail 密码自动解锁此密钥（而非其自身口令）",
+      "generateOwnTitle": "创建带自身口令的密钥"
     },
     "source": {
       "manual": "由你添加",
@@ -2655,14 +2687,11 @@
       "sigPartial": "此邮件只有一部分已签名，签名无法说明其余内容，因此不予验证。",
       "lookUpKey": "查找发件人的密钥",
       "notThisKey": "这个密钥无法打开此邮件，请尝试下一个密钥。",
-      "showOriginal": "按收到的原样显示"
+      "showOriginal": "按收到的原样显示",
+      "unlockWithPassword": "使用您的 Plimail 密码解锁密钥以阅读此邮件。",
+      "unlock": "解锁"
     },
     "compose": {
-      "protection": "保护",
-      "mode": "如何保护此邮件",
-      "modePgp": "使用 PGP 加密",
-      "modePassword": "密码链接",
-      "title": "已使用 OpenPGP 加密",
       "explain": "邮件、签名、引用文本和附件会在此处分别用每位收件人的密钥以及你自己的密钥加密。",
       "recipients": "收件人的密钥",
       "keyChecking": "正在查找密钥…",
@@ -2682,13 +2711,46 @@
       "plainWarning": "邮件将以未加密形式发给所有人，他们的邮件服务商可以读取。",
       "sendPlainConfirm": "不加密发送",
       "subjectNote": "主题不会加密。",
-      "limits": "撰写时草稿以未加密形式保存。无法使用定时发送，也无法包含转发的附件。",
       "stillChecking": "仍在查找收件人的密钥。请稍后再试。",
       "needPassphrase": "请输入密钥的口令以进行签名，或关闭签名。",
       "noSchedule": "加密邮件无法定时发送。请立即发送，或关闭加密。",
       "errorForwarded": "转发邮件中的附件无法加密。请移除它们，或下载后重新添加。",
       "errorTooLarge": "加密附件总大小限制为 24 MB。",
-      "errorEncrypt": "无法加密此邮件。未发送任何内容。"
+      "errorEncrypt": "无法加密此邮件。未发送任何内容。",
+      "willEncrypt": "此邮件将被加密。",
+      "wontEncrypt": "此邮件不会被加密。",
+      "dontEncrypt": "不加密",
+      "encryptAgain": "加密",
+      "cancelProtection": "取消",
+      "createKey": "创建我的密钥",
+      "autoChanged": "找不到某位收件人的密钥，此邮件将以未加密方式发送。请检查收件人，然后再次点击发送。",
+      "unlockCancelled": "请解锁您的密钥以加密发送此邮件，或选择“不加密”。"
+    },
+    "unlock": {
+      "title": "解锁加密",
+      "body": "输入您的 Plimail 密码，以在此标签页中解锁加密密钥。",
+      "bodySso": "输入您为加密密钥设置的密码。",
+      "label": "Plimail 密码",
+      "go": "解锁",
+      "working": "正在解锁…",
+      "close": "关闭",
+      "wrongPassword": "密码错误。",
+      "wrongForKeys": "此密码无法打开您的密钥。",
+      "previousTitle": "您的密码已更改",
+      "previousBody": "您的密钥仍受之前的 Plimail 密码保护。输入一次旧密码，即可将其转到当前密码。",
+      "previousLabel": "旧密码",
+      "wrongPrevious": "此密码同样无法打开您的密钥。",
+      "forgotPrevious": "我不记得了",
+      "lostTitle": "密钥被旧密码锁定",
+      "lostBody": "没有旧密码，这些密钥无法打开，用它们加密的邮件也无法阅读。如果您有备份，请在“设置 → 加密 → 高级”中导入。您也可以在那里删除这些密钥，之后会为您创建新的密钥。",
+      "createTitle": "设置加密密码",
+      "createBody": "您登录时不使用 Plimail 密码，请为加密密钥设置一个密码。每个标签页会询问一次。如果丢失，加密邮件将无法再阅读。",
+      "createLabel": "加密密码",
+      "confirmLabel": "再次输入密码",
+      "createGo": "创建我的密钥",
+      "tooShort": "至少 {{n}} 个字符。",
+      "mismatch": "两次输入的密码不一致。",
+      "tooMany": "尝试次数过多，请稍后再试。"
     }
   }
 }

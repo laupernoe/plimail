@@ -88,7 +88,8 @@
       "mismatch": "Les mots de passe ne correspondent pas",
       "tooShort": "Le mot de passe doit comporter au moins 8 caractères",
       "doneDesc": "Votre mot de passe a été mis à jour. Vous pouvez maintenant vous connecter.",
-      "backToLogin": "← Retour à la connexion"
+      "backToLogin": "← Retour à la connexion",
+      "pgpWarning": "Si vous utilisez le chiffrement dans Plimail, vos clés restent protégées par votre ancien mot de passe : il vous sera demandé une fois pour les déverrouiller. Sans lui, vos messages chiffrés ne pourront plus être lus."
     },
     "showPassword": "Afficher le mot de passe",
     "hidePassword": "Masquer le mot de passe"
@@ -219,7 +220,6 @@
     },
     "scheduleSend": {
       "title": "Envoyer plus tard",
-      "tooltip": "Envoyer plus tard (Ctrl+Maj+Entrée)",
       "tomorrowMorning": "Demain matin",
       "tomorrowAfternoon": "Demain après-midi",
       "mondayMorning": "Lundi matin",
@@ -292,7 +292,6 @@
     "selectAccount": "Choisissez un compte d'envoi",
     "smtpAuthDisabled": "Microsoft a désactivé l'envoi depuis les applications de messagerie (SMTP) pour ce compte. Vous pouvez toujours envoyer depuis Outlook sur le web. Pour un compte professionnel ou scolaire, votre administrateur peut le réactiver.",
     "secure": {
-      "toggle": "Protéger par mot de passe",
       "title": "Message protégé par mot de passe",
       "explain": "Les destinataires reçoivent un lien à la place du message et l’ouvrent avec ce mot de passe. L’objet n’est pas non plus envoyé en clair.",
       "password": "Mot de passe",
@@ -318,7 +317,13 @@
       "noticeOpen": "Ouvrez-le ici :",
       "noticeExpires": "Le lien expire le {{date}}.",
       "noticePassword": "Pour le lire, il vous faut le mot de passe que {{name}} vous a donné séparément."
-    }
+    },
+    "sendOptions": "Options d’envoi",
+    "sendOptionsTooltip": "Autres façons d’envoyer : chiffré, avec un mot de passe, plus tard",
+    "sendEncrypted": "Envoyer chiffré (PGP)",
+    "sendEncryptedShort": "Envoyer chiffré",
+    "sendWithPassword": "Envoyer avec un mot de passe",
+    "sendWithPasswordShort": "Envoyer protégé"
   },
   "message": {
     "find": {
@@ -1713,7 +1718,10 @@
       "usernameTaken": "Ce nom d’utilisateur est déjà pris.",
       "invalidEmail": "Cette adresse e-mail n’est pas valide.",
       "saveFailed": "Enregistrement impossible : {{message}}",
-      "passwordNotSet": "Les autres modifications ont été enregistrées, mais le mot de passe n’a pas été défini : {{message}}"
+      "passwordNotSet": "Les autres modifications ont été enregistrées, mais le mot de passe n’a pas été défini : {{message}}",
+      "newPasswordPgpWarning": "Si cet utilisateur utilise le chiffrement, ses clés restent protégées par son ancien mot de passe : il en aura besoin une fois pour les déverrouiller, et sans lui ses messages chiffrés ne pourront plus être lus. Proposez-lui d’abord d’exporter une sauvegarde de ses clés.",
+      "pgpUnlockNeeded": "Déverrouillez d’abord vos clés de chiffrement : elles passent au nouveau mot de passe avec lui.",
+      "pgpRewrapFailed": "Vos clés de chiffrement n’ont pas pu passer au nouveau mot de passe : le mot de passe n’a pas été changé."
     },
     "ai": {
       "title": "Assistant IA",
@@ -2568,9 +2576,7 @@
   "pgp": {
     "settings": {
       "title": "Chiffrement (PGP)",
-      "intro": "Vos clés OpenPGP permettent de vous écrire des messages chiffrés, et à vous de signer et de chiffrer ce que vous envoyez. Votre clé privée n'est conservée ici que verrouillée par sa phrase secrète, qui ne quitte jamais votre navigateur : vous pouvez donc l'utiliser sur chaque appareil où vous vous connectez.",
-      "noKeys": "Vous n'avez pas encore de clé. Créez-en une pour une adresse, ou importez une clé que vous utilisez déjà (depuis Proton, Thunderbird ou GnuPG, par exemple).",
-      "generateTitle": "Créer une clé",
+      "intro": "Plimail chiffre vos messages avec OpenPGP. Chacune de vos adresses reçoit une clé, déverrouillée automatiquement par votre mot de passe Plimail. Les messages adressés à des personnes qui ont une clé sont chiffrés pour elles : seuls elles et vous pouvez les lire.",
       "address": "Adresse",
       "name": "Nom sur la clé",
       "passphrase": "Phrase secrète",
@@ -2608,7 +2614,33 @@
       "markVerified": "Marquer comme vérifiée",
       "markUnverified": "Marquer comme non vérifiée",
       "export": "Exporter",
-      "verifyHint": "Comparez cette empreinte avec son propriétaire, en personne ou par téléphone, avant de la marquer comme vérifiée."
+      "verifyHint": "Comparez cette empreinte avec son propriétaire, en personne ou par téléphone, avant de la marquer comme vérifiée.",
+      "addressesTitle": "Vos adresses",
+      "stateActive": "Clé active, déverrouillée automatiquement",
+      "stateLocked": "Clé active, verrouillée dans cet onglet",
+      "stateStale": "Clé verrouillée par un ancien mot de passe",
+      "stateOwn": "Clé active, protégée par sa propre phrase secrète",
+      "stateMaking": "Création de la clé…",
+      "stateNone": "Pas encore de clé",
+      "unlock": "Déverrouiller",
+      "createKeys": "Créer mes clés",
+      "autoEncrypt": "Chiffrer automatiquement quand tous les destinataires ont une clé",
+      "autoEncryptHint": "Le message est chiffré et signé sans étape supplémentaire. Quand un destinataire n’a pas de clé, il part comme un message ordinaire.",
+      "resetWarning": "Vos clés sont déverrouillées par votre mot de passe Plimail. S’il est réinitialisé (mot de passe oublié, ou par un administrateur), elles ne s’ouvrent plus qu’avec l’ancien, et sans lui vos messages chiffrés ne peuvent plus être lus. Gardez une sauvegarde.",
+      "backupTitle": "Exporter une sauvegarde de mes clés",
+      "backupNote": "Choisissez une phrase secrète pour le fichier de sauvegarde (au moins {{n}} caractères). Elle est nécessaire pour réimporter les clés ; personne ne peut la récupérer.",
+      "backupNoteOwn": "Vos clés sont exportées telles quelles, chacune verrouillée par sa propre phrase secrète.",
+      "backupPassphrase": "Phrase secrète de la sauvegarde",
+      "backupGo": "Télécharger la sauvegarde",
+      "advanced": "Avancé",
+      "advancedIntro": "Vos clés en détail : empreintes, import et export, et clés avec leur propre phrase secrète.",
+      "protectionLogin": "Déverrouillée par votre mot de passe Plimail",
+      "protectionOwn": "Protégée par sa propre phrase secrète",
+      "makeAutomatic": "Déverrouiller automatiquement",
+      "makeAutomaticNote": "Saisissez la phrase secrète de cette clé. Elle sera ensuite protégée par votre mot de passe Plimail et se déverrouillera à la connexion.",
+      "makeAutomaticGo": "Protéger par mon mot de passe Plimail",
+      "importAutomatic": "Déverrouiller cette clé automatiquement avec mon mot de passe Plimail (au lieu de sa propre phrase secrète)",
+      "generateOwnTitle": "Créer une clé avec sa propre phrase secrète"
     },
     "source": {
       "manual": "ajoutée par vous",
@@ -2655,14 +2687,11 @@
       "sigPartial": "Seule une partie de ce message est signée : sa signature ne dit rien du reste. Elle n'est pas vérifiée.",
       "lookUpKey": "Chercher la clé de l'expéditeur",
       "notThisKey": "Cette clé n'ouvre pas ce message. Essayez votre clé suivante.",
-      "showOriginal": "Afficher tel que reçu"
+      "showOriginal": "Afficher tel que reçu",
+      "unlockWithPassword": "Déverrouillez vos clés avec votre mot de passe Plimail pour lire ce message.",
+      "unlock": "Déverrouiller"
     },
     "compose": {
-      "protection": "Protection",
-      "mode": "Comment protéger ce message",
-      "modePgp": "Chiffrer avec PGP",
-      "modePassword": "Lien avec mot de passe",
-      "title": "Chiffré avec OpenPGP",
       "explain": "Le message, sa signature, le texte cité et ses pièces jointes sont chiffrés ici pour la clé de chaque destinataire et pour la vôtre.",
       "recipients": "Clés des destinataires",
       "keyChecking": "recherche d'une clé…",
@@ -2682,13 +2711,46 @@
       "plainWarning": "Le message partira en clair pour tout le monde, lisible par leurs fournisseurs de messagerie.",
       "sendPlainConfirm": "Envoyer en clair",
       "subjectNote": "L'objet n'est pas chiffré.",
-      "limits": "Les brouillons sont enregistrés sans chiffrement pendant la rédaction. L'envoi programmé n'est pas disponible et les pièces jointes de messages transférés ne peuvent pas être incluses.",
       "stillChecking": "Recherche des clés des destinataires en cours. Réessayez dans un instant.",
       "needPassphrase": "Saisissez la phrase secrète de votre clé pour signer, ou désactivez la signature.",
       "noSchedule": "Un message chiffré ne peut pas être programmé. Envoyez-le maintenant ou désactivez le chiffrement.",
       "errorForwarded": "Les pièces jointes de messages transférés ne peuvent pas être chiffrées. Retirez-les, ou téléchargez-les et joignez-les à nouveau.",
       "errorTooLarge": "Les pièces jointes chiffrées sont limitées à 24 Mo au total.",
-      "errorEncrypt": "Impossible de chiffrer le message. Rien n'a été envoyé."
+      "errorEncrypt": "Impossible de chiffrer le message. Rien n'a été envoyé.",
+      "willEncrypt": "Ce message sera chiffré.",
+      "wontEncrypt": "Ce message ne sera pas chiffré.",
+      "dontEncrypt": "Ne pas chiffrer",
+      "encryptAgain": "Chiffrer",
+      "cancelProtection": "Annuler",
+      "createKey": "Créer ma clé",
+      "autoChanged": "La clé d’un destinataire est introuvable : ce message partirait sans chiffrement. Vérifiez les destinataires, puis cliquez à nouveau sur Envoyer.",
+      "unlockCancelled": "Déverrouillez vos clés pour envoyer ce message chiffré, ou choisissez « Ne pas chiffrer »."
+    },
+    "unlock": {
+      "title": "Déverrouiller le chiffrement",
+      "body": "Saisissez votre mot de passe Plimail pour déverrouiller vos clés de chiffrement dans cet onglet.",
+      "bodySso": "Saisissez le mot de passe choisi pour vos clés de chiffrement.",
+      "label": "Mot de passe Plimail",
+      "go": "Déverrouiller",
+      "working": "Déverrouillage…",
+      "close": "Fermer",
+      "wrongPassword": "Mot de passe incorrect.",
+      "wrongForKeys": "Ce mot de passe n’ouvre pas vos clés.",
+      "previousTitle": "Votre mot de passe a changé",
+      "previousBody": "Vos clés sont encore protégées par votre ancien mot de passe Plimail. Saisissez-le une fois pour les passer à votre mot de passe actuel.",
+      "previousLabel": "Ancien mot de passe",
+      "wrongPrevious": "Ce mot de passe n’ouvre pas non plus vos clés.",
+      "forgotPrevious": "Je ne m’en souviens plus",
+      "lostTitle": "Clés verrouillées par un ancien mot de passe",
+      "lostBody": "Sans l’ancien mot de passe, ces clés ne peuvent pas être ouvertes, et les messages chiffrés pour elles ne peuvent pas être lus. Si vous avez une sauvegarde, importez-la dans Réglages → Chiffrement → Avancé. Vous pouvez aussi y supprimer ces clés : de nouvelles clés sont alors créées pour vous.",
+      "createTitle": "Choisissez un mot de passe de chiffrement",
+      "createBody": "Vous vous connectez sans mot de passe Plimail : choisissez-en un pour vos clés de chiffrement. Il est demandé une fois par onglet. Si vous le perdez, vos messages chiffrés ne pourront plus être lus.",
+      "createLabel": "Mot de passe de chiffrement",
+      "confirmLabel": "Confirmer le mot de passe",
+      "createGo": "Créer mes clés",
+      "tooShort": "Au moins {{n}} caractères.",
+      "mismatch": "Les mots de passe ne correspondent pas.",
+      "tooMany": "Trop de tentatives. Réessayez plus tard."
     }
   }
 }

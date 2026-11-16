@@ -88,7 +88,8 @@
       "mismatch": "Le password non corrispondono",
       "tooShort": "La password deve contenere almeno 8 caratteri",
       "doneDesc": "La tua password è stata aggiornata. Ora puoi accedere.",
-      "backToLogin": "← Torna al login"
+      "backToLogin": "← Torna al login",
+      "pgpWarning": "Se usi la cifratura in Plimail, le tue chiavi restano protette dalla password precedente: ti verrà chiesta una volta per sbloccarle. Senza di essa, la posta cifrata non potrà più essere letta."
     },
     "showPassword": "Mostra password",
     "hidePassword": "Nascondi password"
@@ -219,7 +220,6 @@
     },
     "scheduleSend": {
       "title": "Invia più tardi",
-      "tooltip": "Invia più tardi (Ctrl+Maiusc+Invio)",
       "tomorrowMorning": "Domani mattina",
       "tomorrowAfternoon": "Domani pomeriggio",
       "mondayMorning": "Lunedì mattina",
@@ -292,7 +292,6 @@
     "selectAccount": "Scegli un account da cui inviare",
     "smtpAuthDisabled": "Microsoft ha disattivato l'invio dalle app di posta (SMTP) per questo account. Puoi comunque inviare da Outlook sul web. Per un account aziendale o scolastico, l'amministratore può riattivarlo.",
     "secure": {
-      "toggle": "Proteggi con password",
       "title": "Messaggio protetto da password",
       "explain": "I destinatari ricevono un link al posto del messaggio e lo aprono con questa password. Nemmeno l’oggetto viene inviato in chiaro.",
       "password": "Password",
@@ -318,7 +317,13 @@
       "noticeOpen": "Aprilo qui:",
       "noticeExpires": "Il link scade il {{date}}.",
       "noticePassword": "Per leggerlo ti serve la password che {{name}} ti ha dato a parte."
-    }
+    },
+    "sendOptions": "Opzioni di invio",
+    "sendOptionsTooltip": "Altri modi di inviare: cifrato, con password, più tardi",
+    "sendEncrypted": "Invia cifrato (PGP)",
+    "sendEncryptedShort": "Invia cifrato",
+    "sendWithPassword": "Invia con una password",
+    "sendWithPasswordShort": "Invia protetto"
   },
   "message": {
     "find": {
@@ -1713,7 +1718,10 @@
       "usernameTaken": "Questo nome utente è già in uso.",
       "invalidEmail": "Questo indirizzo email non è valido.",
       "saveFailed": "Impossibile salvare: {{message}}",
-      "passwordNotSet": "Le altre modifiche sono state salvate, ma la password non è stata impostata: {{message}}"
+      "passwordNotSet": "Le altre modifiche sono state salvate, ma la password non è stata impostata: {{message}}",
+      "newPasswordPgpWarning": "Se questo utente usa la cifratura, le sue chiavi restano protette dalla password precedente: gli servirà una volta per sbloccarle, e senza di essa la sua posta cifrata non potrà più essere letta. Suggeriscigli di esportare prima un backup delle chiavi.",
+      "pgpUnlockNeeded": "Sblocca prima le tue chiavi di cifratura: passano alla nuova password insieme a essa.",
+      "pgpRewrapFailed": "Non è stato possibile passare le tue chiavi alla nuova password, quindi la password non è stata cambiata."
     },
     "ai": {
       "title": "Assistente IA",
@@ -2568,9 +2576,7 @@
   "pgp": {
     "settings": {
       "title": "Crittografia (PGP)",
-      "intro": "Le tue chiavi OpenPGP permettono agli altri di inviarti posta cifrata e a te di firmare e cifrare ciò che invii. La chiave privata è conservata qui solo bloccata dalla sua frase d'accesso, che non lascia mai il tuo browser, così puoi usarla su ogni dispositivo da cui accedi.",
-      "noKeys": "Non hai ancora una chiave. Creane una per un indirizzo oppure importa una chiave che usi già (ad esempio da Proton, Thunderbird o GnuPG).",
-      "generateTitle": "Crea una chiave",
+      "intro": "Plimail cifra la tua posta con OpenPGP. Ciascuno dei tuoi indirizzi riceve una chiave, sbloccata automaticamente dalla password di Plimail. La posta per chi ha una chiave viene cifrata per quella persona: solo lei e tu potete leggerla.",
       "address": "Indirizzo",
       "name": "Nome sulla chiave",
       "passphrase": "Frase d'accesso",
@@ -2608,7 +2614,33 @@
       "markVerified": "Segna come verificata",
       "markUnverified": "Segna come non verificata",
       "export": "Esporta",
-      "verifyHint": "Confronta questa impronta con il suo proprietario, di persona o per telefono, prima di segnarla come verificata."
+      "verifyHint": "Confronta questa impronta con il suo proprietario, di persona o per telefono, prima di segnarla come verificata.",
+      "addressesTitle": "I tuoi indirizzi",
+      "stateActive": "Chiave attiva, sbloccata automaticamente",
+      "stateLocked": "Chiave attiva, bloccata in questa scheda",
+      "stateStale": "Chiave bloccata da una password precedente",
+      "stateOwn": "Chiave attiva, protetta dalla sua passphrase",
+      "stateMaking": "Creazione della chiave…",
+      "stateNone": "Ancora nessuna chiave",
+      "unlock": "Sblocca",
+      "createKeys": "Crea le mie chiavi",
+      "autoEncrypt": "Cifra automaticamente quando tutti i destinatari hanno una chiave",
+      "autoEncryptHint": "Il messaggio viene cifrato e firmato senza passaggi in più. Se un destinatario non ha una chiave, parte come posta normale.",
+      "resetWarning": "Le tue chiavi vengono sbloccate dalla password di Plimail. Se viene reimpostata (password dimenticata, o da un amministratore), si aprono solo con quella vecchia, e senza di essa la posta cifrata non si può più leggere. Conserva un backup.",
+      "backupTitle": "Esporta un backup delle mie chiavi",
+      "backupNote": "Scegli una passphrase per il file di backup (almeno {{n}} caratteri). Serve per importare di nuovo le chiavi; nessuno può recuperarla.",
+      "backupNoteOwn": "Le tue chiavi vengono esportate così come sono, ciascuna bloccata dalla sua passphrase.",
+      "backupPassphrase": "Passphrase del backup",
+      "backupGo": "Scarica il backup",
+      "advanced": "Avanzate",
+      "advancedIntro": "Le tue chiavi in dettaglio: impronte, importazione ed esportazione, e chiavi con la propria passphrase.",
+      "protectionLogin": "Sbloccata dalla tua password di Plimail",
+      "protectionOwn": "Protetta dalla sua passphrase",
+      "makeAutomatic": "Sblocca automaticamente",
+      "makeAutomaticNote": "Inserisci la passphrase di questa chiave. Sarà poi protetta dalla tua password di Plimail e si sbloccherà all’accesso.",
+      "makeAutomaticGo": "Proteggi con la mia password di Plimail",
+      "importAutomatic": "Sblocca questa chiave automaticamente con la mia password di Plimail (invece della sua passphrase)",
+      "generateOwnTitle": "Crea una chiave con la sua passphrase"
     },
     "source": {
       "manual": "aggiunta da te",
@@ -2655,14 +2687,11 @@
       "sigPartial": "Solo una parte di questo messaggio è firmata, quindi la firma non dice nulla sul resto. Non viene verificata.",
       "lookUpKey": "Cerca la chiave del mittente",
       "notThisKey": "Questa chiave non apre il messaggio. Prova la chiave successiva.",
-      "showOriginal": "Mostra come ricevuto"
+      "showOriginal": "Mostra come ricevuto",
+      "unlockWithPassword": "Sblocca le tue chiavi con la password di Plimail per leggere questo messaggio.",
+      "unlock": "Sblocca"
     },
     "compose": {
-      "protection": "Protezione",
-      "mode": "Come proteggere questo messaggio",
-      "modePgp": "Cifra con PGP",
-      "modePassword": "Link con password",
-      "title": "Cifrato con OpenPGP",
       "explain": "Il messaggio, la sua firma, il testo citato e gli allegati vengono cifrati qui per la chiave di ogni destinatario e per la tua.",
       "recipients": "Chiavi dei destinatari",
       "keyChecking": "ricerca di una chiave…",
@@ -2682,13 +2711,46 @@
       "plainWarning": "Il messaggio arriverà a tutti non cifrato e sarà leggibile dai loro provider di posta.",
       "sendPlainConfirm": "Invia non cifrato",
       "subjectNote": "L'oggetto non è cifrato.",
-      "limits": "Le bozze vengono salvate non cifrate mentre scrivi. L'invio differito non è disponibile e gli allegati inoltrati non possono essere inclusi.",
       "stillChecking": "Le chiavi dei destinatari sono ancora in ricerca. Riprova tra un momento.",
       "needPassphrase": "Inserisci la frase d'accesso della tua chiave per firmare, oppure disattiva la firma.",
       "noSchedule": "Un messaggio cifrato non può essere programmato. Invialo ora oppure disattiva la cifratura.",
       "errorForwarded": "Gli allegati dei messaggi inoltrati non possono essere cifrati. Rimuovili, oppure scaricali e allegali di nuovo.",
       "errorTooLarge": "Gli allegati cifrati sono limitati a 24 MB in totale.",
-      "errorEncrypt": "Impossibile cifrare il messaggio. Non è stato inviato nulla."
+      "errorEncrypt": "Impossibile cifrare il messaggio. Non è stato inviato nulla.",
+      "willEncrypt": "Questo messaggio sarà cifrato.",
+      "wontEncrypt": "Questo messaggio non sarà cifrato.",
+      "dontEncrypt": "Non cifrare",
+      "encryptAgain": "Cifra",
+      "cancelProtection": "Annulla",
+      "createKey": "Crea la mia chiave",
+      "autoChanged": "La chiave di un destinatario non si trova più, quindi questo messaggio partirebbe senza cifratura. Controlla i destinatari e premi di nuovo Invia.",
+      "unlockCancelled": "Sblocca le tue chiavi per inviare questo messaggio cifrato, oppure scegli «Non cifrare»."
+    },
+    "unlock": {
+      "title": "Sblocca la cifratura",
+      "body": "Inserisci la tua password di Plimail per sbloccare le chiavi di cifratura in questa scheda.",
+      "bodySso": "Inserisci la password che hai scelto per le chiavi di cifratura.",
+      "label": "Password di Plimail",
+      "go": "Sblocca",
+      "working": "Sblocco in corso…",
+      "close": "Chiudi",
+      "wrongPassword": "Password errata.",
+      "wrongForKeys": "Questa password non apre le tue chiavi.",
+      "previousTitle": "La tua password è cambiata",
+      "previousBody": "Le tue chiavi sono ancora protette dalla tua password precedente di Plimail. Inseriscila una volta per passarle alla password attuale.",
+      "previousLabel": "Password precedente",
+      "wrongPrevious": "Neanche questa password apre le tue chiavi.",
+      "forgotPrevious": "Non la ricordo",
+      "lostTitle": "Chiavi bloccate da una vecchia password",
+      "lostBody": "Senza la password precedente queste chiavi non si possono aprire e la posta cifrata per loro non si può leggere. Se hai un backup, importalo in Impostazioni → Cifratura → Avanzate. Lì puoi anche eliminare queste chiavi: ne verranno create di nuove.",
+      "createTitle": "Scegli una password di cifratura",
+      "createBody": "Accedi senza una password di Plimail, quindi scegline una per le chiavi di cifratura. Viene chiesta una volta per scheda. Se la perdi, la posta cifrata non potrà più essere letta.",
+      "createLabel": "Password di cifratura",
+      "confirmLabel": "Ripeti la password",
+      "createGo": "Crea le mie chiavi",
+      "tooShort": "Almeno {{n}} caratteri.",
+      "mismatch": "Le password non coincidono.",
+      "tooMany": "Troppi tentativi. Riprova più tardi."
     }
   }
 }

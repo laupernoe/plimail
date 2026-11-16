@@ -88,7 +88,8 @@
       "mismatch": "Hesla se neshodují",
       "tooShort": "Heslo musí mít alespoň 8 znaků",
       "doneDesc": "Heslo bylo změněno. Nyní se můžete přihlásit.",
-      "backToLogin": "← Zpět k přihlášení"
+      "backToLogin": "← Zpět k přihlášení",
+      "pgpWarning": "Pokud v Plimailu používáte šifrování, zůstanou vaše klíče chráněny předchozím heslem: jednou si ho vyžádáme, abychom je odemkli. Bez něj šifrovanou poštu už nepřečtete."
     },
     "showPassword": "Zobrazit heslo",
     "hidePassword": "Skrýt heslo"
@@ -786,7 +787,6 @@
     },
     "scheduleSend": {
       "title": "Odeslat později",
-      "tooltip": "Odeslat později (Ctrl+Shift+Enter)",
       "tomorrowMorning": "Zítra ráno",
       "tomorrowAfternoon": "Zítra odpoledne",
       "mondayMorning": "V pondělí ráno",
@@ -859,7 +859,6 @@
     "selectAccount": "Vyberte účet, ze kterého odeslat",
     "smtpAuthDisabled": "Microsoft pro tento účet vypnul odesílání z poštovních aplikací (SMTP). Z Outlooku na webu můžete odesílat dál. U pracovního nebo školního účtu ho může znovu zapnout váš správce.",
     "secure": {
-      "toggle": "Chránit heslem",
       "title": "Zpráva chráněná heslem",
       "explain": "Příjemci dostanou místo zprávy odkaz a otevřou ho tímto heslem. Ani předmět se neodesílá jako čitelný text.",
       "password": "Heslo",
@@ -885,7 +884,13 @@
       "noticeOpen": "Otevřete ji zde:",
       "noticeExpires": "Platnost odkazu vyprší {{date}}.",
       "noticePassword": "Ke čtení potřebujete heslo, které vám {{name}} předal(a) zvlášť."
-    }
+    },
+    "sendOptions": "Možnosti odeslání",
+    "sendOptionsTooltip": "Další způsoby odeslání: šifrovaně, s heslem, později",
+    "sendEncrypted": "Odeslat šifrovaně (PGP)",
+    "sendEncryptedShort": "Odeslat šifrovaně",
+    "sendWithPassword": "Odeslat s heslem",
+    "sendWithPasswordShort": "Odeslat chráněně"
   },
   "notifications": {
     "newMessage": "Nová zpráva"
@@ -1891,7 +1896,10 @@
       "usernameTaken": "Toto uživatelské jméno je již obsazené.",
       "invalidEmail": "Tato e-mailová adresa není platná.",
       "saveFailed": "Uložení se nezdařilo: {{message}}",
-      "passwordNotSet": "Ostatní změny byly uloženy, ale heslo nebylo nastaveno: {{message}}"
+      "passwordNotSet": "Ostatní změny byly uloženy, ale heslo nebylo nastaveno: {{message}}",
+      "newPasswordPgpWarning": "Pokud tento uživatel používá šifrování, zůstanou jeho klíče chráněny předchozím heslem: bude ho jednou potřebovat k jejich odemčení a bez něj už šifrovanou poštu nepřečte. Doporučte mu nejprve exportovat zálohu klíčů.",
+      "pgpUnlockNeeded": "Nejprve odemkněte své šifrovací klíče: převedou se na nové heslo spolu s ním.",
+      "pgpRewrapFailed": "Vaše šifrovací klíče se nepodařilo převést na nové heslo, heslo proto nebylo změněno."
     },
     "search": {
       "placeholder": "Hledat v nastavení…",
@@ -2587,9 +2595,7 @@
   "pgp": {
     "settings": {
       "title": "Šifrování (PGP)",
-      "intro": "Vaše klíče OpenPGP umožňují ostatním posílat vám šifrovanou poštu a vám podepisovat a šifrovat odesílané zprávy. Soukromý klíč je tu uložen jen zamčený svou heslovou frází, která váš prohlížeč nikdy neopustí, takže klíč můžete používat na každém zařízení, kde se přihlásíte.",
-      "noKeys": "Zatím nemáte žádný klíč. Vytvořte ho pro některou adresu nebo importujte klíč, který už používáte (například z Protonu, Thunderbirdu nebo GnuPG).",
-      "generateTitle": "Vytvořit klíč",
+      "intro": "Plimail šifruje vaši poštu pomocí OpenPGP. Každá vaše adresa dostane klíč, který se automaticky odemyká heslem k Plimailu. Pošta lidem, kteří mají klíč, se šifruje pro ně: přečtou ji jen oni a vy.",
       "address": "Adresa",
       "name": "Jméno na klíči",
       "passphrase": "Heslová fráze",
@@ -2627,7 +2633,33 @@
       "markVerified": "Označit jako ověřený",
       "markUnverified": "Označit jako neověřený",
       "export": "Exportovat",
-      "verifyHint": "Než klíč označíte jako ověřený, porovnejte tento otisk s jeho majitelem, osobně nebo telefonicky."
+      "verifyHint": "Než klíč označíte jako ověřený, porovnejte tento otisk s jeho majitelem, osobně nebo telefonicky.",
+      "addressesTitle": "Vaše adresy",
+      "stateActive": "Klíč aktivní, odemyká se automaticky",
+      "stateLocked": "Klíč aktivní, v této kartě zamčený",
+      "stateStale": "Klíč zamčený předchozím heslem",
+      "stateOwn": "Klíč aktivní, chráněný vlastní heslovou frází",
+      "stateMaking": "Vytváří se klíč…",
+      "stateNone": "Zatím bez klíče",
+      "unlock": "Odemknout",
+      "createKeys": "Vytvořit mé klíče",
+      "autoEncrypt": "Šifrovat automaticky, když mají klíč všichni příjemci",
+      "autoEncryptHint": "Zpráva se zašifruje a podepíše bez dalšího kroku. Když některý příjemce klíč nemá, odejde jako běžná pošta.",
+      "resetWarning": "Vaše klíče se odemykají heslem k Plimailu. Pokud se heslo obnoví (zapomenuté heslo nebo zásah správce), otevřou se už jen starým heslem a bez něj šifrovanou poštu nepřečtete. Uchovávejte si zálohu.",
+      "backupTitle": "Exportovat zálohu mých klíčů",
+      "backupNote": "Zvolte heslovou frázi pro soubor se zálohou (alespoň {{n}} znaků). Budete ji potřebovat k opětovnému importu klíčů; nikdo ji nedokáže obnovit.",
+      "backupNoteOwn": "Vaše klíče se exportují tak, jak jsou, každý zamčený vlastní heslovou frází.",
+      "backupPassphrase": "Heslová fráze zálohy",
+      "backupGo": "Stáhnout zálohu",
+      "advanced": "Pokročilé",
+      "advancedIntro": "Vaše klíče podrobně: otisky, import a export a klíče s vlastní heslovou frází.",
+      "protectionLogin": "Odemyká se heslem k Plimailu",
+      "protectionOwn": "Chráněno vlastní heslovou frází",
+      "makeAutomatic": "Odemykat automaticky",
+      "makeAutomaticNote": "Zadejte heslovou frázi tohoto klíče. Poté ho bude místo ní chránit heslo k Plimailu a odemkne se při přihlášení.",
+      "makeAutomaticGo": "Chránit mým heslem k Plimailu",
+      "importAutomatic": "Odemykat tento klíč automaticky mým heslem k Plimailu (místo jeho vlastní heslové fráze)",
+      "generateOwnTitle": "Vytvořit klíč s vlastní heslovou frází"
     },
     "source": {
       "manual": "přidáno vámi",
@@ -2674,14 +2706,11 @@
       "sigPartial": "Podepsaná je jen část této zprávy, takže podpis o zbytku nic neříká. Neověřuje se.",
       "lookUpKey": "Vyhledat klíč odesílatele",
       "notThisKey": "Tento klíč zprávu neotevře. Zkuste další klíč.",
-      "showOriginal": "Zobrazit, jak přišla"
+      "showOriginal": "Zobrazit, jak přišla",
+      "unlockWithPassword": "Odemkněte své klíče heslem k Plimailu a přečtěte si tuto zprávu.",
+      "unlock": "Odemknout"
     },
     "compose": {
-      "protection": "Ochrana",
-      "mode": "Jak zprávu chránit",
-      "modePgp": "Šifrovat pomocí PGP",
-      "modePassword": "Odkaz s heslem",
-      "title": "Šifrováno pomocí OpenPGP",
       "explain": "Zpráva, její podpis, citovaný text i přílohy se zde šifrují pro klíč každého příjemce a pro váš.",
       "recipients": "Klíče příjemců",
       "keyChecking": "hledá se klíč…",
@@ -2701,13 +2730,46 @@
       "plainWarning": "Zpráva půjde všem nešifrovaně a jejich poskytovatelé pošty ji budou moci přečíst.",
       "sendPlainConfirm": "Odeslat nešifrovaně",
       "subjectNote": "Předmět není šifrovaný.",
-      "limits": "Koncepty se při psaní ukládají nešifrované. Odeslání později není k dispozici a přeposlané přílohy nelze zahrnout.",
       "stillChecking": "Klíče příjemců se ještě hledají. Zkuste to za chvíli znovu.",
       "needPassphrase": "Pro podepsání zadejte heslovou frázi svého klíče, nebo podepisování vypněte.",
       "noSchedule": "Šifrovanou zprávu nelze naplánovat. Odešlete ji hned, nebo vypněte šifrování.",
       "errorForwarded": "Přílohy z přeposlaných zpráv nelze šifrovat. Odeberte je, nebo je stáhněte a přiložte znovu.",
       "errorTooLarge": "Šifrované přílohy jsou omezeny na 24 MB celkem.",
-      "errorEncrypt": "Zprávu se nepodařilo zašifrovat. Nic nebylo odesláno."
+      "errorEncrypt": "Zprávu se nepodařilo zašifrovat. Nic nebylo odesláno.",
+      "willEncrypt": "Tato zpráva bude zašifrována.",
+      "wontEncrypt": "Tato zpráva nebude zašifrována.",
+      "dontEncrypt": "Nešifrovat",
+      "encryptAgain": "Šifrovat",
+      "cancelProtection": "Zrušit",
+      "createKey": "Vytvořit můj klíč",
+      "autoChanged": "Klíč jednoho z příjemců už nelze najít, zpráva by tedy odešla nešifrovaně. Zkontrolujte příjemce a znovu klikněte na Odeslat.",
+      "unlockCancelled": "Odemkněte své klíče, abyste zprávu odeslali šifrovaně, nebo zvolte „Nešifrovat“."
+    },
+    "unlock": {
+      "title": "Odemknout šifrování",
+      "body": "Zadejte heslo k Plimailu a odemkněte své šifrovací klíče v této kartě.",
+      "bodySso": "Zadejte heslo, které jste si zvolili pro své šifrovací klíče.",
+      "label": "Heslo k Plimailu",
+      "go": "Odemknout",
+      "working": "Odemykání…",
+      "close": "Zavřít",
+      "wrongPassword": "Nesprávné heslo.",
+      "wrongForKeys": "Toto heslo vaše klíče neotevře.",
+      "previousTitle": "Vaše heslo se změnilo",
+      "previousBody": "Vaše klíče jsou stále chráněny předchozím heslem k Plimailu. Zadejte ho jednou a klíče se převedou na současné heslo.",
+      "previousLabel": "Předchozí heslo",
+      "wrongPrevious": "Ani toto heslo vaše klíče neotevře.",
+      "forgotPrevious": "Nepamatuji si ho",
+      "lostTitle": "Klíče zamčené starým heslem",
+      "lostBody": "Bez předchozího hesla tyto klíče nelze otevřít a poštu pro ně zašifrovanou nelze přečíst. Máte-li zálohu, importujte ji v Nastavení → Šifrování → Pokročilé. Tam můžete tyto klíče také smazat: vytvoří se nové.",
+      "createTitle": "Zvolte heslo pro šifrování",
+      "createBody": "Přihlašujete se bez hesla k Plimailu, zvolte si tedy heslo pro své šifrovací klíče. Bude vyžádáno jednou v každé kartě. Pokud ho ztratíte, šifrovanou poštu už nepřečtete.",
+      "createLabel": "Heslo pro šifrování",
+      "confirmLabel": "Heslo znovu",
+      "createGo": "Vytvořit mé klíče",
+      "tooShort": "Alespoň {{n}} znaků.",
+      "mismatch": "Hesla se neshodují.",
+      "tooMany": "Příliš mnoho pokusů. Zkuste to později."
     }
   }
 }

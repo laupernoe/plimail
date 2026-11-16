@@ -52,13 +52,16 @@ import {
   openScheduledView, scheduleErrorText, sendNowUndoMs, undoSchedule, undoSendNow, withScheduledAttachments,
 } from '../utils/scheduledCompose.js';
 import { ComposeQuestion, ScheduledStrip, SendLaterIcon, SendLaterMenu, SendLaterSheet } from './SendLater.jsx';
-import SecureSendPanel, { SecureSendToggle, secureDefaults } from './SecureSendPanel.jsx';
-import PgpSendPanel, { ProtectionPanel, loadOwnKeys, pgpDefaults, usePgpRecipients } from './PgpSendPanel.jsx';
+import SecureSendPanel, { secureDefaults } from './SecureSendPanel.jsx';
+import PgpSendPanel, { EncryptionLine, LockIcon, ProtectionPanel, pgpDefaults, usePgpRecipients } from './PgpSendPanel.jsx';
 import {
-  PgpSendError, emailOfRecipient, encryptedSendPayload, initialPgp, initialSecure, ownKeyFor, pgpSendProblem, protectionForRestore,
+  PgpSendError, classifyRecipients, emailOfRecipient, encryptedSendPayload, encryptionDecision,
+  initialAutoOptOut, initialPgp, initialSecure, lookupAddresses, ownKeyFor, pgpSendProblem, protectionForRestore,
 } from '../utils/pgpSend.js';
-import { PgpError, unlockPrivateKey } from '../utils/pgp.js';
-import { isUnlocked, rememberUnlockedKey, unlockedKey } from '../utils/pgpSession.js';
+import { PgpError } from '../utils/pgp.js';
+import { ensureAutoKeys, senderAddresses } from '../utils/pgpKeys.js';
+import { OWN_KEYS_CHANGED, loadOwnKeys, ownKeysChanged } from '../utils/pgpOwnKeys.js';
+import { ensureKeySecret, unlockOwnKey } from '../utils/pgpUnlock.js';
 import { SecureSendError, secureSettingsProblem, sendProtected } from '../utils/secureSend.js';
 import { htmlLang } from '../utils/browserLanguage.js';
 
@@ -386,25 +389,45 @@ export default function ComposeModal() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(() => composeData?.sendError || (composeData?.unsupportedFrom ? t('compose.unsupportedDraftFrom', { defaultValue: 'Choose a configured sender before saving or sending this draft.' }) : ''));
   const [priority, setPriority] = useState(() => composeData?.priority || 'normal');
-  // Password protection (SecureSendPanel.jsx): null while off.
+  // Password protection (SecureSendPanel.jsx), "Send with a password": null while off.
   // A restored composer (undone or failed send, the screen lock) reopens with its protection.
   const [secure, setSecure] = useState(() => initialSecure(composeData?.protection, secureDefaults));
-  // OpenPGP encryption (PgpSendPanel.jsx, utils/pgpSend.js): null while off. The lock is in one
-  // mode at a time, PGP or a password link. pgpProblem is why Send was refused, for the panel.
+  // OpenPGP (PgpSendPanel.jsx, utils/pgpSend.js). `pgp` is encryption required: the user chose
+  // "Send encrypted", or a restore kept a message that was going encrypted; null otherwise. Without
+  // it the message still goes encrypted when automatic encryption finds a key for every recipient
+  // (encryptionDecision), unless the user turned that off for this message (pgpOptOut).
+  // pgpProblem is why "Send encrypted" was refused, for the panel.
   const [pgp, setPgp] = useState(() => initialPgp(composeData?.protection));
+  const [pgpOptOut, setPgpOptOut] = useState(() => initialAutoOptOut(composeData?.protection));
   const [pgpProblem, setPgpProblem] = useState(null);
   const [ownPgpKeys, setOwnPgpKeys] = useState(null);
+  const pgpAutoEncrypt = useStore(s => s.pgpAutoEncrypt);
   useEffect(() => {
-    if (composeData?.protection?.mode === 'pgp') loadOwnKeys().then(setOwnPgpKeys).catch(() => setOwnPgpKeys([]));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- the keys of a restored PGP composer, once
-  // The lock's mode, and for PGP every recipient's key (looked up as they change) and the key of
+    let live = true;
+    const load = (fresh) => loadOwnKeys({ fresh }).then(k => { if (live) setOwnPgpKeys(k); }).catch(() => { if (live) setOwnPgpKeys(v => v || []); });
+    load(false);
+    const onChanged = () => load(true);
+    window.addEventListener(OWN_KEYS_CHANGED, onChanged);
+    return () => { live = false; window.removeEventListener(OWN_KEYS_CHANGED, onChanged); };
+  }, []);
+  // Every recipient's key, looked up as they change while encryption may happen, and the key of
   // the address the message goes from.
-  const protectionMode = pgp ? 'pgp' : secure ? 'password' : null;
-  const pgpRecipients = pgp
-    ? [...new Set([...toChips, toInput, ...ccChips, ccInput, ...bccChips, bccInput].map(v => String(v || '').trim()).filter(Boolean).map(emailOfRecipient))]
-    : [];
-  const pgpLookup = usePgpRecipients(pgp != null, pgpRecipients);
   const pgpOwnKey = ownKeyFor(ownPgpKeys, fromAlias?.email || fromAccount?.email_address);
+  const pgpRecipients = lookupAddresses([...toChips, toInput, ...ccChips, ccInput, ...bccChips, bccInput]);
+  const pgpLookupOn = !secure && !scheduledEdit && (pgp != null || (pgpAutoEncrypt && Boolean(pgpOwnKey)));
+  const pgpLookup = usePgpRecipients(pgpLookupOn, pgpRecipients);
+  const pgpAttachmentBytes = attachments.reduce((n, a) => n + (a.size ?? Math.floor((a.data || '').length * 3 / 4)), 0);
+  const encryption = encryptionDecision({
+    secure: secure != null, explicit: pgp != null, autoSetting: pgpAutoEncrypt, optedOut: pgpOptOut,
+    recipients: pgpRecipients, statuses: pgpLookup.key === pgpRecipients.join(',') ? pgpLookup.statuses : [],
+    checking: pgpLookup.checking || pgpLookup.key !== pgpRecipients.join(','), ownKey: pgpOwnKey,
+    forwardedCount: fwdAttachments.length, attachmentBytes: pgpAttachmentBytes,
+  });
+  // Turned off for this message, and it would encrypt otherwise: the line offers it back.
+  const pgpCouldEncrypt = pgpOptOut && !pgp && !secure && encryptionDecision({
+    autoSetting: pgpAutoEncrypt, recipients: pgpRecipients, statuses: pgpLookup.statuses,
+    ownKey: pgpOwnKey, forwardedCount: fwdAttachments.length, attachmentBytes: pgpAttachmentBytes,
+  }).mode === 'pgp';
   const [minimized, setMinimized] = useState(false);
   const [maximized, setMaximized] = useState(false);
   const [pos, setPos] = useState(null);
@@ -1218,7 +1241,8 @@ export default function ComposeModal() {
   // Everything needed to put a message back in front of the user exactly as it went, attachments
   // included: after an undone send or schedule, or a send that failed once this composer is gone.
   // `built` is buildSendPayload's result.
-  const buildRestoreData = ({ accountId, aliasId, toFinal, ccFinal, bccFinal, bodyToSend, sentQuotedHtml, autoAtSend, savedDraft, hasDraft }) => ({
+  // `encrypted`: it went out encrypted, as automatic encryption decided (protectionForRestore).
+  const buildRestoreData = ({ accountId, aliasId, toFinal, ccFinal, bccFinal, bodyToSend, sentQuotedHtml, autoAtSend, savedDraft, hasDraft }, { encrypted = encryption.mode === 'pgp' } = {}) => ({
     ...composeData,
     // A sender chosen since opening a draft from an address MailFlow cannot send as replaces it.
     unsupportedFrom: unsupportedSenderRef.current ? composeData?.unsupportedFrom : undefined,
@@ -1249,7 +1273,7 @@ export default function ComposeModal() {
     // A message put back this way is the user's own text, not a request for another reply.
     aiReply: undefined,
     // Encrypted or password-protected, it reopens so: never back as a plain message.
-    protection: protectionForRestore({ pgp, secure }),
+    protection: protectionForRestore({ pgp, secure, autoEncrypt: encrypted, optedOut: pgpOptOut }),
   });
 
   // Locking replaces the mail view, and this composer with it, so hand what it holds to the store
@@ -1293,13 +1317,31 @@ export default function ComposeModal() {
     if (secure) return sendSecure(built);
     // Encrypted: the message is encrypted here, and if anything stands in the way it does not go
     // at all; it never falls back to going unencrypted (only "Send without encryption" does that).
+    // Encryption the user chose (or a restore kept) is required; automatic encryption that finds
+    // a recipient's key gone since the composer showed "encrypted" stops too, and says so, rather
+    // than sending in the clear what the user saw marked encrypted.
     let sendBody = payload;
-    if (pgp && !opts.plainConfirmed) {
+    let sentEncrypted = false;
+    const required = Boolean(pgp || opts.forcePgp);
+    if (!opts.plainConfirmed && (required || encryption.mode === 'pgp')) {
       try {
-        sendBody = await encryptedPayloadFor(built, accountId, aliasId);
+        const result = await encryptedPayloadFor(built, accountId, aliasId, { required, state: pgp || pgpDefaults() });
+        if (result.plain) {
+          setError(t('pgp.compose.autoChanged'));
+          sendingRef.current = false;
+          setSending(false);
+          return;
+        }
+        sendBody = result.body;
+        sentEncrypted = true;
       } catch (err) {
-        setError(pgpErrorText(err));
-        if (err instanceof PgpSendError && err.code === 'missingKeys') setPgpProblem({ code: 'missingKeys', emails: err.detail || [] });
+        if (err?.code !== 'unlockCancelled') setError(pgpErrorText(err));
+        else setError(t('pgp.compose.unlockCancelled'));
+        if (err instanceof PgpSendError && (err.code === 'missingKeys' || err.code === 'passphrase' || err.code === 'noOwnKey')) {
+          // The panel shows what stands in the way, encryption now required for this message.
+          setPgp(v => v || { ...pgpDefaults(), auto: !required });
+          setPgpProblem({ code: err.code, emails: err.detail || [] });
+        }
         sendingRef.current = false;
         setSending(false);
         return;
@@ -1368,7 +1410,7 @@ export default function ComposeModal() {
       if (sendResult?.pending) {
         // Everything needed to put this message back in front of the user exactly as it was sent,
         // attachments included, if they undo it or it fails once this composer is gone.
-        const restoreData = buildRestoreData(built);
+        const restoreData = buildRestoreData(built, { encrypted: sentEncrypted });
         const pendingId = sendResult.pendingId;
         const undoMs = undoWindowMs(sendResult.remainingMs);
         const shownSubject = subject || t('common.noSubject');
@@ -1421,6 +1463,7 @@ export default function ComposeModal() {
     if (err instanceof PgpError && code === 'wrongPassphrase') return t('pgp.errors.wrongPassphrase');
     return {
       noOwnKey: t('pgp.compose.noOwnKey'),
+      needsPassphrase: t('pgp.compose.needPassphrase'),
       checking: t('pgp.compose.stillChecking'),
       missingKeys: t('pgp.compose.blocked', { n: err?.detail?.length || 1 }),
       passphrase: t('pgp.compose.needPassphrase'),
@@ -1430,54 +1473,96 @@ export default function ComposeModal() {
     }[code] || t('pgp.compose.errorEncrypt');
   };
 
-  // The send body for the encrypted message (utils/pgpSend.js), the signing key unlocked first if
-  // it has to be.
-  const encryptedPayloadFor = async (built, accountId, aliasId) => {
+  // Each recipient's key for `recipients`, from the composer's lookup when it is for exactly
+  // these, else looked up now (and kept for the composer to show).
+  const recipientStatuses = async (recipients) => {
+    if (pgpLookup.key === recipients.join(',') && !pgpLookup.checking && !pgpLookup.failed) return pgpLookup.statuses;
+    const { results } = await api.pgp.lookup(recipients);
+    const statuses = await classifyRecipients(recipients, results);
+    pgpLookup.remember(recipients, statuses);
+    return statuses;
+  };
+
+  // The send body for the encrypted message (utils/pgpSend.js), the signing key unlocked first:
+  // silently with the Plimail password's secret, through the unlock prompt when this tab has none,
+  // or with the passphrase given in the panel for a key that has its own. `required`: the user
+  // chose encryption, so whatever stands in the way throws; otherwise (automatic) a recipient
+  // without a key since makes it { plain: true }, for the caller to stop on.
+  const encryptedPayloadFor = async (built, accountId, aliasId, { required, state }) => {
     if (!globalThis.crypto?.subtle) throw new PgpSendError('insecure');
     const account = accounts.find(a => a.id === accountId);
     const alias = aliasId ? account?.aliases?.find(al => al.id === aliasId) : null;
     const fromEmail = (alias?.email || account?.email_address || '').toLowerCase();
-    const ownKey = ownKeyFor(ownPgpKeys, fromEmail);
-    const problem = pgpSendProblem({
-      recipients: pgpRecipients, statuses: pgpLookup.checking ? [] : pgpLookup.statuses, ownKey,
-      sign: pgp.sign, signingReady: Boolean(ownKey && (isUnlocked(ownKey.fingerprint) || pgp.passphrase)),
-    });
+    const keys = ownPgpKeys || await loadOwnKeys().catch(() => []);
+    const ownKey = ownKeyFor(keys, fromEmail);
+    const recipients = lookupAddresses([...built.payload.to, ...(built.payload.cc || []), ...(built.payload.bcc || [])]);
+    const statuses = await recipientStatuses(recipients);
+    const problem = pgpSendProblem({ recipients, statuses, ownKey });
+    if (problem && !required) return { plain: true };
     if (problem) throw new PgpSendError(problem.code, problem.emails || null);
     let signingKey = null;
-    if (pgp.sign) {
-      signingKey = unlockedKey(ownKey.fingerprint);
-      if (!signingKey) {
-        signingKey = await unlockPrivateKey(ownKey.armoredPrivate, pgp.passphrase);
-        if (pgp.remember) rememberUnlockedKey(ownKey.fingerprint, signingKey);
-        setPgp(v => (v ? { ...v, passphrase: '' } : v));
+    if (state.sign) {
+      try {
+        signingKey = await unlockOwnKey(ownKey, composeOwner, { passphrase: state.passphrase, remember: state.remember });
+      } catch (err) {
+        if (err?.code === 'needsPassphrase') throw new PgpSendError('passphrase');
+        throw err;
       }
+      if (state.passphrase) setPgp(v => (v ? { ...v, passphrase: '' } : v));
     }
-    return encryptedSendPayload({
+    const body = await encryptedSendPayload({
       payload: built.payload, attachments, forwardedCount: fwdAttachments.length,
-      statuses: pgpLookup.statuses, ownKey, signingKey,
+      statuses, ownKey, signingKey,
       fromName: alias?.name || account?.sender_name || account?.name || '', fromEmail,
     });
+    return { body };
   };
 
-  // The lock: on, it opens in PGP mode when the user has a key, otherwise as a password link.
-  const toggleProtection = async (on) => {
+  // "Send encrypted": encryption required for this message, sent at once when every recipient has
+  // a key; otherwise the panel says who has none and what to do.
+  const sendEncrypted = () => {
     setPgpProblem(null);
-    if (!on) { setPgp(null); setSecure(null); return; }
-    let keys = [];
-    try { keys = await loadOwnKeys(); } catch { /* no keys known: a password link */ }
-    setOwnPgpKeys(keys);
-    if (keys.length) setPgp(pgpDefaults());
-    else setSecure(secureDefaults());
+    setSecure(null);
+    setPgpOptOut(false);
+    setPgp(v => v || pgpDefaults());
+    sendRef.current({ forcePgp: true });
   };
-  const setProtectionMode = (mode) => {
+  // "Send with a password": the password panel; Send then sends the link.
+  const useSecureLink = () => {
     setPgpProblem(null);
-    if (mode === 'pgp') {
-      setSecure(null);
-      setPgp(v => v || pgpDefaults());
-      loadOwnKeys().then(setOwnPgpKeys).catch(() => setOwnPgpKeys([]));
-    } else {
-      setPgp(null);
-      setSecure(v => v || secureDefaults());
+    setPgp(null);
+    setSecure(v => v || secureDefaults());
+  };
+  // The panel's Cancel: an ordinary message again, not encrypted automatically either.
+  const cancelProtection = () => {
+    setPgpProblem(null);
+    if (pgp) setPgpOptOut(true);
+    setPgp(null);
+    setSecure(null);
+  };
+  // The line's "Don't encrypt" and "Encrypt".
+  const turnEncryptionOff = () => {
+    setPgpProblem(null);
+    setPgp(null);
+    setPgpOptOut(true);
+    setError('');
+  };
+  const turnEncryptionOn = () => setPgpOptOut(false);
+  // No key for the From address yet (the tab had no secret to make it with): one now.
+  const createOwnKey = async () => {
+    const fromEmail = (fromAlias?.email || fromAccount?.email_address || '').toLowerCase();
+    try {
+      const entry = await ensureKeySecret(composeOwner);
+      const keys = await loadOwnKeys();
+      const address = senderAddresses(accounts).find(a => a.email === fromEmail);
+      if (entry?.secret && address) {
+        await ensureAutoKeys({ userId: composeOwner, addresses: [address], ownKeys: keys, secret: entry.secret, addKey: api.pgp.addKey });
+      }
+      ownKeysChanged();
+      setPgpProblem(null);
+      setError('');
+    } catch (err) {
+      if (err?.code !== 'unlockCancelled') setError(t('pgp.errors.generic'));
     }
   };
   const removeRecipient = (email) => {
@@ -1494,29 +1579,51 @@ export default function ComposeModal() {
   // "Send without encryption", once confirmed in the panel: for this message only.
   const sendWithoutEncryption = () => {
     setPgp(null);
+    setPgpOptOut(true);
     setPgpProblem(null);
     setError('');
     sendRef.current({ plainConfirmed: true });
   };
-  const openPgpSettings = () => {
-    const store = useStore.getState();
-    store.setAdminTab('pgp');
-    store.setShowAdmin(true);
-  };
-  const renderProtection = (mobile) => (
-    <ProtectionPanel mode={protectionMode} onMode={setProtectionMode} disabled={sending} mobile={mobile}>
-      {protectionMode === 'pgp' ? (
+  // The panel over the footer: the password link's settings, or what stops "Send encrypted".
+  // Encryption that can go as it is needs none: the line under the recipients says it.
+  const renderProtection = (mobile) => {
+    if (secure) {
+      return (
+        <ProtectionPanel title={t('compose.sendWithPassword')} onCancel={cancelProtection} disabled={sending} mobile={mobile}>
+          <SecureSendPanel value={secure} onChange={setSecure} disabled={sending} mobile={mobile} embedded />
+        </ProtectionPanel>
+      );
+    }
+    if (!pgp || !(pgpProblem || !pgpOwnKey)) return null;
+    return (
+      <ProtectionPanel title={t('compose.sendEncrypted')} onCancel={cancelProtection} disabled={sending} mobile={mobile}>
         <PgpSendPanel
           value={pgp} onChange={setPgp} recipients={pgpRecipients} statuses={pgpLookup.statuses} checking={pgpLookup.checking}
           ownKey={pgpOwnKey} problem={pgpProblem} disabled={sending}
-          onRemoveRecipient={removeRecipient} onUsePassword={() => setProtectionMode('password')}
-          onSendPlain={sendWithoutEncryption} onOpenSettings={openPgpSettings}
+          onRemoveRecipient={removeRecipient} onUsePassword={useSecureLink}
+          onSendPlain={sendWithoutEncryption} onCreateKey={createOwnKey}
         />
-      ) : (
-        <SecureSendPanel value={secure} onChange={setSecure} disabled={sending} mobile={mobile} embedded />
-      )}
-    </ProtectionPanel>
+      </ProtectionPanel>
+    );
+  };
+  const renderEncryptionLine = (mobile) => (
+    <EncryptionLine
+      encrypting={encryption.mode === 'pgp'} canUndo={pgpCouldEncrypt} mobile={mobile} disabled={sending}
+      onTurnOff={turnEncryptionOff} onTurnOn={turnEncryptionOn}
+    />
   );
+  // The ways to send besides Send, in the Send button's menu (desktop) and sheet (phone).
+  const sendOptions = scheduledEdit ? [] : [
+    { key: 'sendEncrypted', label: t('compose.sendEncrypted'), icon: <LockIcon size={14} />, onClick: sendEncrypted },
+    {
+      key: 'sendWithPassword', label: t('compose.sendWithPassword'), onClick: useSecureLink,
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="7.5" cy="15.5" r="4.5" /><path d="M10.7 12.3 21 2M16 7l3 3M18.5 4.5l2 2" />
+        </svg>
+      ),
+    },
+  ];
 
   // Send with a password (utils/secureSend.js): the message is encrypted here and only a notice
   // with its link goes out, at once, with no undo window.
@@ -1599,7 +1706,7 @@ export default function ComposeModal() {
   const handleSchedule = async (sendAt, opts = {}) => {
     if (scheduledEdit) return updateRef.current({ ...opts, sendAt });
     if (secure) { setError(t('compose.secure.noSchedule')); return; }
-    if (pgp) { setError(t('pgp.compose.noSchedule')); return; }
+    if (encryption.mode === 'pgp') { setError(t('pgp.compose.noSchedule')); return; }
     const from = await readyToSubmit(opts, o => scheduleRef.current(sendAt, o), { scheduling: true });
     if (!from) return;
     const { accountId, aliasId } = from;
@@ -2350,9 +2457,11 @@ export default function ComposeModal() {
   // Send later and Update: what can go now, and what scheduling shows over the composer.
   const noRecipients = toChips.length === 0 && !toInput.trim();
   const sendDisabled = sending || noRecipients || Boolean(scheduledEdit && !holdReady);
-  // A protected message goes at once (utils/secureSend.js), so it cannot be scheduled.
-  const sendLaterDisabled = sendDisabled || secure != null || pgp != null;
-  const sendLabel = scheduledEdit ? t('compose.scheduleSend.edit.update') : t('compose.send');
+  // The menu holds the other ways to send too; scheduling a protected message says why it cannot.
+  const sendLaterDisabled = sendDisabled;
+  const sendsEncrypted = !scheduledEdit && encryption.mode === 'pgp';
+  const sendLabel = scheduledEdit ? t('compose.scheduleSend.edit.update')
+    : sendsEncrypted ? t('compose.sendEncryptedShort') : secure ? t('compose.sendWithPasswordShort') : t('compose.send');
   const closeQuestion = () => setScheduleQuestion(null);
   // The server's question about a message that may already have gone out (confirm_uncertain) or
   // one a restored backup paused (confirm_restored), in the words of what the user was doing:
@@ -2397,6 +2506,7 @@ export default function ComposeModal() {
           onSendNow={() => handleSendNow()}
           initialView={sendLaterView}
           returnFocusRef={sendLaterBtnRef}
+          sendOptions={sendOptions}
           busy={sending}
         />
       )}
@@ -2597,13 +2707,12 @@ export default function ComposeModal() {
                 <line x1="4" y1="22" x2="4" y2="15" stroke="currentColor" strokeWidth="2" fill="none"/>
               </svg>
             </button>
-            {!scheduledEdit && <SecureSendToggle value={protectionMode ? {} : null} onChange={v => toggleProtection(v != null)} disabled={sending} mobile />}
             <button
               ref={sendLaterBtnRef}
               type="button"
               onClick={() => { setSendLaterView('root'); setSendLaterOpen(true); }}
               disabled={sendLaterDisabled}
-              aria-label={scheduledEdit ? t('compose.scheduleSend.edit.options') : t('compose.scheduleSend.title')}
+              aria-label={scheduledEdit ? t('compose.scheduleSend.edit.options') : t('compose.sendOptions')}
               aria-haspopup="dialog"
               aria-expanded={sendLaterOpen}
               data-send-later=""
@@ -2631,7 +2740,12 @@ export default function ComposeModal() {
                 transition: 'color 0.15s',
               }}
             >
-              {sending ? sendSpinner : sendLabel}
+              {sending ? sendSpinner : (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  {(sendsEncrypted || secure) && <LockIcon size={15} />}
+                  {sendLabel}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -2771,6 +2885,8 @@ export default function ComposeModal() {
               />
             </div>
           )}
+
+          {renderEncryptionLine(true)}
 
           {/* Subject */}
           <div style={fieldStyle}>
@@ -3414,6 +3530,8 @@ export default function ComposeModal() {
           </div>
         )}
 
+        {renderEncryptionLine(false)}
+
         {/* Subject */}
         <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', padding: '0 12px' }}>
           <span style={{ fontSize: 12, color: 'var(--text-tertiary)', width: 52, flexShrink: 0 }}>{t('compose.subject')}</span>
@@ -3563,7 +3681,7 @@ export default function ComposeModal() {
               transition: 'opacity 0.15s',
             }}
           >
-            {sending ? sendSpinner : sendIcon}
+            {sending ? sendSpinner : (sendsEncrypted || secure) ? <LockIcon size={14} /> : sendIcon}
             {sending ? (scheduledEdit ? t('compose.scheduleSend.edit.updating') : t('compose.sending')) : sendLabel}
           </button>
           <button
@@ -3571,8 +3689,8 @@ export default function ComposeModal() {
             type="button"
             onClick={() => { setSendLaterView('root'); setSendLaterOpen(open => !open); }}
             disabled={sendLaterDisabled}
-            aria-label={scheduledEdit ? t('compose.scheduleSend.edit.options') : t('compose.scheduleSend.title')}
-            title={scheduledEdit ? t('compose.scheduleSend.edit.options') : t('compose.scheduleSend.tooltip')}
+            aria-label={scheduledEdit ? t('compose.scheduleSend.edit.options') : t('compose.sendOptions')}
+            title={scheduledEdit ? t('compose.scheduleSend.edit.options') : t('compose.sendOptionsTooltip')}
             aria-haspopup="menu"
             aria-expanded={sendLaterOpen}
             data-send-later=""
@@ -3599,6 +3717,7 @@ export default function ComposeModal() {
               onSendNow={() => handleSendNow()}
               initialView={sendLaterView}
               busy={sending}
+              sendOptions={sendOptions}
             />
           )}
         </div>
@@ -3619,7 +3738,6 @@ export default function ComposeModal() {
           </button>
         )}
         {plaintextEmail && renderSignatureToggle()}
-        {!scheduledEdit && <SecureSendToggle value={protectionMode ? {} : null} onChange={v => toggleProtection(v != null)} disabled={sending} />}
 
         {error && <span style={{ fontSize: 12, color: 'var(--red)', flex: 1 }}>{error}</span>}
 

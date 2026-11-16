@@ -2,44 +2,14 @@ import { useTranslation } from 'react-i18next';
 import { passwordStrength } from '../utils/secureMessageCrypto.js';
 import { SECURE_DEFAULT_EXPIRY_DAYS, SECURE_EXPIRY_DAYS } from '../utils/secureSend.js';
 
-// The composer's password protection (utils/secureSend.js): the lock that turns it on, and the
-// password, confirmation and expiry it asks for. `value` is null while it is off.
+// The composer's password protection (utils/secureSend.js), "Send with a password" in the Send
+// button's menu: the password, confirmation and expiry it asks for. `value` is null while it is off.
 
-export const secureOff = null;
 export const secureDefaults = () => ({ password: '', confirm: '', expiresInDays: SECURE_DEFAULT_EXPIRY_DAYS });
-
-export function SecureSendToggle({ value, onChange, disabled, mobile }) {
-  const { t } = useTranslation();
-  const on = value != null;
-  return (
-    <button
-      type="button"
-      title={t('compose.secure.toggle')}
-      aria-label={t('compose.secure.toggle')}
-      aria-pressed={on}
-      disabled={disabled}
-      onMouseDown={e => e.preventDefault()}
-      onClick={() => onChange(on ? secureOff : secureDefaults())}
-      style={{
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-        padding: mobile ? '6px 8px' : '4px 8px', border: 'none', borderRadius: 5,
-        background: on ? 'var(--bg-hover)' : 'none',
-        color: on ? 'var(--accent)' : 'var(--text-tertiary)',
-        cursor: disabled ? 'default' : 'pointer', flexShrink: 0,
-        WebkitTapHighlightColor: 'transparent',
-      }}
-    >
-      <svg width={mobile ? 16 : 14} height={mobile ? 16 : 14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <rect x="4" y="11" width="16" height="10" rx="2" />
-        {on ? <path d="M8 11V7a4 4 0 0 1 8 0v4" /> : <path d="M8 11V7a4 4 0 0 1 7.5-1.9" />}
-      </svg>
-    </button>
-  );
-}
 
 const STRENGTH_COLOR = { tooShort: 'var(--text-tertiary)', weak: 'var(--red)', fair: 'var(--amber)', strong: 'var(--green)' };
 
-// `embedded`: inside the lock's panel (PgpSendPanel.jsx ProtectionPanel), which draws the frame.
+// `embedded`: inside the composer's protection panel (PgpSendPanel.jsx ProtectionPanel), which draws the frame.
 export default function SecureSendPanel({ value, onChange, disabled, mobile, embedded = false }) {
   const { t } = useTranslation();
   if (value == null) return null;
@@ -68,7 +38,7 @@ export default function SecureSendPanel({ value, onChange, disabled, mobile, emb
       }}
     >
       <div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>{t('compose.secure.title')}</div>
+        {!embedded && <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>{t('compose.secure.title')}</div>}
         <p style={note}>{t('compose.secure.explain')}</p>
       </div>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>

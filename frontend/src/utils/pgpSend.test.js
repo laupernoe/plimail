@@ -114,3 +114,51 @@ test('keeps the lock\'s mode for a restore, without any passphrase or password',
   assert.equal(initialPgp(null), null);
   assert.deepEqual(initialSecure({ mode: 'password', expiresInDays: 30 }, () => ({ password: '', confirm: '', expiresInDays: 7 })), { password: '', confirm: '', expiresInDays: 30 });
 });
+
+test('a message going encrypted automatically comes back encrypted, as required; one turned off stays off', async () => {
+  const { protectionForRestore, initialPgp, initialAutoOptOut, pgpDefaults } = await import('./pgpSend.js');
+  // Sent (or about to be) encrypted because every recipient had a key: an undo, a failure or the
+  // screen lock must not hand it back as plain mail that Send would deliver in the clear.
+  const auto = protectionForRestore({ autoEncrypt: true });
+  assert.deepEqual(auto, { mode: 'pgp', sign: true, auto: true });
+  assert.deepEqual(initialPgp(auto), { ...pgpDefaults(), auto: true }, 'reopens with encryption required');
+  assert.equal(initialAutoOptOut(auto), false);
+  // The user chose encryption: kept as it was, whatever automatic encryption says.
+  assert.deepEqual(protectionForRestore({ pgp: pgpDefaults(), autoEncrypt: false, optedOut: true }), { mode: 'pgp', sign: true });
+  // "Don't encrypt" for this message.
+  const off = protectionForRestore({ optedOut: true });
+  assert.deepEqual(off, { mode: 'plain' });
+  assert.equal(initialPgp(off), null);
+  assert.equal(initialAutoOptOut(off), true);
+  // A password link wins over everything else: it is what the user chose last.
+  assert.equal(protectionForRestore({ secure: { expiresInDays: 7 }, autoEncrypt: true }).mode, 'password');
+});
+
+test('encrypts automatically only when every recipient has a usable key', async () => {
+  const { encryptionDecision } = await import('./pgpSend.js');
+  const ok = email => ({ email, status: 'ok', keys: [{}] });
+  const base = { autoSetting: true, ownKey, recipients: ['a@x.org', 'b@x.org'], statuses: [ok('a@x.org'), ok('b@x.org')] };
+  assert.deepEqual(encryptionDecision(base), { mode: 'pgp', auto: true });
+  // One recipient without a key: plain, quietly.
+  assert.deepEqual(encryptionDecision({ ...base, statuses: [ok('a@x.org'), { email: 'b@x.org', status: 'missing', keys: [] }] }), { mode: 'plain' });
+  assert.deepEqual(encryptionDecision({ ...base, statuses: [ok('a@x.org')] }), { mode: 'plain' });
+  assert.deepEqual(encryptionDecision({ ...base, statuses: [ok('a@x.org'), { email: 'b@x.org', status: 'error', keys: [] }] }), { mode: 'plain' });
+  // Turned off: in Settings, or for this message.
+  assert.deepEqual(encryptionDecision({ ...base, autoSetting: false }), { mode: 'plain' });
+  assert.deepEqual(encryptionDecision({ ...base, optedOut: true }), { mode: 'plain' });
+  // No key of the user's own for the From address (the Sent copy would be unreadable), no recipient,
+  // still looking keys up, or something the browser cannot encrypt.
+  assert.deepEqual(encryptionDecision({ ...base, ownKey: null }), { mode: 'plain' });
+  assert.deepEqual(encryptionDecision({ ...base, recipients: [] }), { mode: 'plain' });
+  assert.deepEqual(encryptionDecision({ ...base, checking: true }), { mode: 'plain', checking: true });
+  assert.deepEqual(encryptionDecision({ ...base, forwardedCount: 1 }), { mode: 'plain' });
+  assert.deepEqual(encryptionDecision({ ...base, attachmentBytes: 30 * 1024 * 1024 }), { mode: 'plain' });
+  // Chosen: "Send encrypted" (required, whatever the keys) and "Send with a password".
+  assert.deepEqual(encryptionDecision({ ...base, explicit: true, statuses: [], autoSetting: false }), { mode: 'pgp', auto: false });
+  assert.deepEqual(encryptionDecision({ ...base, secure: true, explicit: true }), { mode: 'password' });
+});
+
+test('looks keys up only for addresses that look whole', async () => {
+  const { lookupAddresses } = await import('./pgpSend.js');
+  assert.deepEqual(lookupAddresses(['Bob <Bob@Example.net>', 'bob@example.net', 'carol@exa', 'dave@', '', ' eve@example.org ']), ['bob@example.net', 'eve@example.org']);
+});

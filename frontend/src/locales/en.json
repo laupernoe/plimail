@@ -88,7 +88,8 @@
       "mismatch": "Passwords do not match",
       "tooShort": "Password must be at least 8 characters",
       "doneDesc": "Your password has been updated. You can now sign in.",
-      "backToLogin": "← Back to login"
+      "backToLogin": "← Back to login",
+      "pgpWarning": "If you use encryption in Plimail, your keys stay protected by your previous password: you will be asked for it once to unlock them. Without it, your encrypted mail can no longer be read."
     },
     "showPassword": "Show password",
     "hidePassword": "Hide password"
@@ -219,7 +220,6 @@
     },
     "scheduleSend": {
       "title": "Send later",
-      "tooltip": "Send later (Ctrl+Shift+Enter)",
       "tomorrowMorning": "Tomorrow morning",
       "tomorrowAfternoon": "Tomorrow afternoon",
       "mondayMorning": "Monday morning",
@@ -292,7 +292,6 @@
     "selectAccount": "Choose an account to send from",
     "smtpAuthDisabled": "Microsoft has turned off sending from mail apps (SMTP) for this account. You can still send from Outlook on the web. For a work or school account, your admin can turn it back on.",
     "secure": {
-      "toggle": "Protect with a password",
       "title": "Password-protected message",
       "explain": "Recipients get a link instead of the message and open it with this password. The subject is not sent in the clear either.",
       "password": "Password",
@@ -318,7 +317,13 @@
       "noticeOpen": "Open it here:",
       "noticeExpires": "The link expires on {{date}}.",
       "noticePassword": "To read it, you need the password {{name}} gave you separately."
-    }
+    },
+    "sendOptions": "Send options",
+    "sendOptionsTooltip": "More ways to send: encrypted, with a password, later",
+    "sendEncrypted": "Send encrypted (PGP)",
+    "sendEncryptedShort": "Send encrypted",
+    "sendWithPassword": "Send with a password",
+    "sendWithPasswordShort": "Send with password"
   },
   "message": {
     "find": {
@@ -1713,7 +1718,10 @@
       "usernameTaken": "That username is already taken.",
       "invalidEmail": "That email address is not valid.",
       "saveFailed": "Could not save: {{message}}",
-      "passwordNotSet": "The other changes were saved, but the password was not set: {{message}}"
+      "passwordNotSet": "The other changes were saved, but the password was not set: {{message}}",
+      "newPasswordPgpWarning": "If this user uses encryption, their keys stay protected by their previous password: they will need it once to unlock them, and without it their encrypted mail can no longer be read. Suggest they export a backup of their keys first.",
+      "pgpUnlockNeeded": "Unlock your encryption keys first: they move to the new password with it.",
+      "pgpRewrapFailed": "Your encryption keys could not be moved to the new password, so the password was not changed."
     },
     "ai": {
       "title": "AI Assistant",
@@ -2568,9 +2576,7 @@
   "pgp": {
     "settings": {
       "title": "Encryption (PGP)",
-      "intro": "Your OpenPGP keys let people send you encrypted mail and let you sign and encrypt what you send. Your private key is stored here only locked with its passphrase, which never leaves your browser, so you can use it on every device you sign in on.",
-      "noKeys": "You have no key yet. Create one for an address, or import a key you already use (from Proton, Thunderbird or GnuPG, for example).",
-      "generateTitle": "Create a key",
+      "intro": "Plimail encrypts your mail with OpenPGP. Each of your addresses gets a key, unlocked automatically by your Plimail password. Mail to people who have a key is encrypted for them: only they and you can read it.",
       "address": "Address",
       "name": "Name on the key",
       "passphrase": "Passphrase",
@@ -2608,7 +2614,33 @@
       "markVerified": "Mark as verified",
       "markUnverified": "Mark as not verified",
       "export": "Export",
-      "verifyHint": "Compare this fingerprint with its owner, in person or by phone, before marking it verified."
+      "verifyHint": "Compare this fingerprint with its owner, in person or by phone, before marking it verified.",
+      "addressesTitle": "Your addresses",
+      "stateActive": "Key active, unlocked automatically",
+      "stateLocked": "Key active, locked in this tab",
+      "stateStale": "Key locked by a previous password",
+      "stateOwn": "Key active, protected by its own passphrase",
+      "stateMaking": "Creating the key…",
+      "stateNone": "No key yet",
+      "unlock": "Unlock",
+      "createKeys": "Create my keys",
+      "autoEncrypt": "Encrypt automatically when every recipient has a key",
+      "autoEncryptHint": "The message is encrypted and signed with no extra step. When a recipient has no key, it goes as ordinary mail.",
+      "resetWarning": "Your keys are unlocked by your Plimail password. If it is reset (forgotten password, or by an administrator), they open only with the old one, and without it your encrypted mail can no longer be read. Keep a backup.",
+      "backupTitle": "Export a backup of my keys",
+      "backupNote": "Choose a passphrase for the backup file (at least {{n}} characters). You need it to import the keys again; nobody can recover it.",
+      "backupNoteOwn": "Your keys are exported as they are, each locked with its own passphrase.",
+      "backupPassphrase": "Backup passphrase",
+      "backupGo": "Download backup",
+      "advanced": "Advanced",
+      "advancedIntro": "Your keys in detail: fingerprints, import and export, and keys with their own passphrase.",
+      "protectionLogin": "Unlocked with your Plimail password",
+      "protectionOwn": "Protected by its own passphrase",
+      "makeAutomatic": "Unlock automatically",
+      "makeAutomaticNote": "Enter this key's passphrase. It will then be protected by your Plimail password instead, and unlock when you sign in.",
+      "makeAutomaticGo": "Protect with my Plimail password",
+      "importAutomatic": "Unlock this key automatically with my Plimail password (instead of its own passphrase)",
+      "generateOwnTitle": "Create a key with its own passphrase"
     },
     "source": {
       "manual": "added by you",
@@ -2655,14 +2687,11 @@
       "sigPartial": "Only part of this message is signed, so its signature says nothing about the rest. It is not checked.",
       "lookUpKey": "Look up the sender's key",
       "notThisKey": "That key does not open this message. Try your next key.",
-      "showOriginal": "Show as received"
+      "showOriginal": "Show as received",
+      "unlockWithPassword": "Unlock your keys with your Plimail password to read this message.",
+      "unlock": "Unlock"
     },
     "compose": {
-      "protection": "Protection",
-      "mode": "How to protect this message",
-      "modePgp": "Encrypt with PGP",
-      "modePassword": "Password link",
-      "title": "Encrypted with OpenPGP",
       "explain": "The message, its signature, the quoted text and its attachments are encrypted here to each recipient's key and to yours.",
       "recipients": "Recipients' keys",
       "keyChecking": "looking for a key…",
@@ -2682,13 +2711,46 @@
       "plainWarning": "The message will go to everyone unencrypted, readable by their mail providers.",
       "sendPlainConfirm": "Send unencrypted",
       "subjectNote": "The subject is not encrypted.",
-      "limits": "Drafts are saved unencrypted while you write. Send later is not available, and forwarded attachments cannot be included.",
       "stillChecking": "Still looking for the recipients' keys. Try again in a moment.",
       "needPassphrase": "Enter your key's passphrase to sign, or turn signing off.",
       "noSchedule": "An encrypted message cannot be scheduled. Send it now, or turn encryption off.",
       "errorForwarded": "Attachments from forwarded messages cannot be encrypted. Remove them, or download and attach them again.",
       "errorTooLarge": "Encrypted attachments are limited to 24 MB in total.",
-      "errorEncrypt": "The message could not be encrypted. Nothing was sent."
+      "errorEncrypt": "The message could not be encrypted. Nothing was sent.",
+      "willEncrypt": "This message will be encrypted.",
+      "wontEncrypt": "This message will not be encrypted.",
+      "dontEncrypt": "Don't encrypt",
+      "encryptAgain": "Encrypt",
+      "cancelProtection": "Cancel",
+      "createKey": "Create my key",
+      "autoChanged": "A recipient's key can no longer be found, so this message would go unencrypted. Check the recipients, then press Send again.",
+      "unlockCancelled": "Unlock your keys to send this message encrypted, or choose “Don't encrypt”."
+    },
+    "unlock": {
+      "title": "Unlock encryption",
+      "body": "Enter your Plimail password to unlock your encryption keys in this tab.",
+      "bodySso": "Enter the password you chose for your encryption keys.",
+      "label": "Plimail password",
+      "go": "Unlock",
+      "working": "Unlocking…",
+      "close": "Close",
+      "wrongPassword": "Wrong password.",
+      "wrongForKeys": "This password does not open your keys.",
+      "previousTitle": "Your password has changed",
+      "previousBody": "Your keys are still protected by your previous Plimail password. Enter it once to move them to your current password.",
+      "previousLabel": "Previous password",
+      "wrongPrevious": "This password does not open your keys either.",
+      "forgotPrevious": "I don't remember it",
+      "lostTitle": "Keys locked by an old password",
+      "lostBody": "Without the previous password these keys cannot be opened, and mail encrypted to them cannot be read. If you have a backup, import it in Settings → Encryption → Advanced. You can also delete these keys there: new ones are then created for you.",
+      "createTitle": "Choose an encryption password",
+      "createBody": "You sign in without a Plimail password, so choose one for your encryption keys. It is asked once per tab. If you lose it, your encrypted mail can no longer be read.",
+      "createLabel": "Encryption password",
+      "confirmLabel": "Password again",
+      "createGo": "Create my keys",
+      "tooShort": "At least {{n}} characters.",
+      "mismatch": "The passwords do not match.",
+      "tooMany": "Too many attempts. Try again later."
     }
   }
 }

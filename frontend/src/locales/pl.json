@@ -88,7 +88,8 @@
       "mismatch": "Hasła nie są zgodne",
       "tooShort": "Hasło musi mieć co najmniej 8 znaków",
       "doneDesc": "Twoje hasło zostało zmienione. Możesz się teraz zalogować.",
-      "backToLogin": "← Powrót do logowania"
+      "backToLogin": "← Powrót do logowania",
+      "pgpWarning": "Jeśli używasz szyfrowania w Plimailu, Twoje klucze pozostaną chronione poprzednim hasłem: zostaniesz o nie poproszony raz, aby je odblokować. Bez niego zaszyfrowanej poczty nie da się już przeczytać."
     },
     "showPassword": "Pokaż hasło",
     "hidePassword": "Ukryj hasło"
@@ -219,7 +220,6 @@
     },
     "scheduleSend": {
       "title": "Wyślij później",
-      "tooltip": "Wyślij później (Ctrl+Shift+Enter)",
       "tomorrowMorning": "Jutro rano",
       "tomorrowAfternoon": "Jutro po południu",
       "mondayMorning": "W poniedziałek rano",
@@ -292,7 +292,6 @@
     "selectAccount": "Wybierz konto do wysyłki",
     "smtpAuthDisabled": "Microsoft wyłączył wysyłanie z aplikacji pocztowych (SMTP) dla tego konta. Nadal możesz wysyłać z Outlooka w przeglądarce. W przypadku konta służbowego lub szkolnego administrator może je ponownie włączyć.",
     "secure": {
-      "toggle": "Chroń hasłem",
       "title": "Wiadomość chroniona hasłem",
       "explain": "Odbiorcy dostają link zamiast wiadomości i otwierają go tym hasłem. Temat również nie jest wysyłany jawnym tekstem.",
       "password": "Hasło",
@@ -318,7 +317,13 @@
       "noticeOpen": "Otwórz ją tutaj:",
       "noticeExpires": "Link wygasa {{date}}.",
       "noticePassword": "Aby ją przeczytać, potrzebujesz hasła, które {{name}} przekazuje Ci osobno."
-    }
+    },
+    "sendOptions": "Opcje wysyłania",
+    "sendOptionsTooltip": "Inne sposoby wysyłania: zaszyfrowane, z hasłem, później",
+    "sendEncrypted": "Wyślij zaszyfrowane (PGP)",
+    "sendEncryptedShort": "Wyślij zaszyfrowane",
+    "sendWithPassword": "Wyślij z hasłem",
+    "sendWithPasswordShort": "Wyślij chronione"
   },
   "message": {
     "find": {
@@ -1732,7 +1737,10 @@
       "usernameTaken": "Ta nazwa użytkownika jest już zajęta.",
       "invalidEmail": "Ten adres e-mail jest nieprawidłowy.",
       "saveFailed": "Nie udało się zapisać: {{message}}",
-      "passwordNotSet": "Pozostałe zmiany zostały zapisane, ale hasło nie zostało ustawione: {{message}}"
+      "passwordNotSet": "Pozostałe zmiany zostały zapisane, ale hasło nie zostało ustawione: {{message}}",
+      "newPasswordPgpWarning": "Jeśli ten użytkownik używa szyfrowania, jego klucze pozostaną chronione poprzednim hasłem: będzie go potrzebował raz, aby je odblokować, a bez niego jego zaszyfrowanej poczty nie da się już przeczytać. Zaproponuj mu najpierw eksport kopii zapasowej kluczy.",
+      "pgpUnlockNeeded": "Najpierw odblokuj klucze szyfrowania: zostaną przeniesione na nowe hasło razem z nim.",
+      "pgpRewrapFailed": "Nie udało się przenieść kluczy szyfrowania na nowe hasło, więc hasło nie zostało zmienione."
     },
     "ai": {
       "title": "Asystent AI",
@@ -2587,9 +2595,7 @@
   "pgp": {
     "settings": {
       "title": "Szyfrowanie (PGP)",
-      "intro": "Twoje klucze OpenPGP pozwalają innym wysyłać Ci zaszyfrowane wiadomości, a Tobie podpisywać i szyfrować to, co wysyłasz. Klucz prywatny jest tu przechowywany wyłącznie zablokowany frazą hasła, która nigdy nie opuszcza Twojej przeglądarki, więc możesz go używać na każdym urządzeniu, na którym się logujesz.",
-      "noKeys": "Nie masz jeszcze klucza. Utwórz go dla adresu albo zaimportuj klucz, którego już używasz (na przykład z Protona, Thunderbirda lub GnuPG).",
-      "generateTitle": "Utwórz klucz",
+      "intro": "Plimail szyfruje Twoją pocztę za pomocą OpenPGP. Każdy Twój adres dostaje klucz, odblokowywany automatycznie hasłem do Plimaila. Poczta do osób, które mają klucz, jest dla nich szyfrowana: mogą ją przeczytać tylko one i Ty.",
       "address": "Adres",
       "name": "Nazwa w kluczu",
       "passphrase": "Fraza hasła",
@@ -2627,7 +2633,33 @@
       "markVerified": "Oznacz jako zweryfikowany",
       "markUnverified": "Oznacz jako niezweryfikowany",
       "export": "Eksportuj",
-      "verifyHint": "Zanim oznaczysz klucz jako zweryfikowany, porównaj ten odcisk z jego właścicielem, osobiście lub przez telefon."
+      "verifyHint": "Zanim oznaczysz klucz jako zweryfikowany, porównaj ten odcisk z jego właścicielem, osobiście lub przez telefon.",
+      "addressesTitle": "Twoje adresy",
+      "stateActive": "Klucz aktywny, odblokowywany automatycznie",
+      "stateLocked": "Klucz aktywny, zablokowany w tej karcie",
+      "stateStale": "Klucz zablokowany poprzednim hasłem",
+      "stateOwn": "Klucz aktywny, chroniony własnym hasłem",
+      "stateMaking": "Tworzenie klucza…",
+      "stateNone": "Jeszcze brak klucza",
+      "unlock": "Odblokuj",
+      "createKeys": "Utwórz moje klucze",
+      "autoEncrypt": "Szyfruj automatycznie, gdy wszyscy odbiorcy mają klucz",
+      "autoEncryptHint": "Wiadomość jest szyfrowana i podpisywana bez dodatkowego kroku. Gdy któryś odbiorca nie ma klucza, wychodzi jako zwykła poczta.",
+      "resetWarning": "Twoje klucze są odblokowywane hasłem do Plimaila. Jeśli zostanie zresetowane (zapomniane hasło lub przez administratora), otworzą się tylko starym hasłem, a bez niego zaszyfrowanej poczty nie da się już przeczytać. Zachowaj kopię zapasową.",
+      "backupTitle": "Eksportuj kopię zapasową moich kluczy",
+      "backupNote": "Wybierz hasło do pliku kopii zapasowej (co najmniej {{n}} znaków). Będzie potrzebne do ponownego zaimportowania kluczy; nikt nie może go odzyskać.",
+      "backupNoteOwn": "Twoje klucze są eksportowane bez zmian, każdy zablokowany własnym hasłem.",
+      "backupPassphrase": "Hasło kopii zapasowej",
+      "backupGo": "Pobierz kopię zapasową",
+      "advanced": "Zaawansowane",
+      "advancedIntro": "Twoje klucze w szczegółach: odciski, import i eksport oraz klucze z własnym hasłem.",
+      "protectionLogin": "Odblokowywany hasłem do Plimaila",
+      "protectionOwn": "Chroniony własnym hasłem",
+      "makeAutomatic": "Odblokowuj automatycznie",
+      "makeAutomaticNote": "Wpisz hasło tego klucza. Od tej pory będzie chroniony hasłem do Plimaila i odblokuje się przy logowaniu.",
+      "makeAutomaticGo": "Chroń moim hasłem do Plimaila",
+      "importAutomatic": "Odblokowuj ten klucz automatycznie moim hasłem do Plimaila (zamiast jego własnego hasła)",
+      "generateOwnTitle": "Utwórz klucz z własnym hasłem"
     },
     "source": {
       "manual": "dodany przez Ciebie",
@@ -2674,14 +2706,11 @@
       "sigPartial": "Podpisana jest tylko część tej wiadomości, więc podpis nie mówi nic o reszcie. Nie jest sprawdzany.",
       "lookUpKey": "Wyszukaj klucz nadawcy",
       "notThisKey": "Ten klucz nie otwiera tej wiadomości. Spróbuj następnego klucza.",
-      "showOriginal": "Pokaż w otrzymanej postaci"
+      "showOriginal": "Pokaż w otrzymanej postaci",
+      "unlockWithPassword": "Odblokuj klucze hasłem do Plimaila, aby przeczytać tę wiadomość.",
+      "unlock": "Odblokuj"
     },
     "compose": {
-      "protection": "Ochrona",
-      "mode": "Jak chronić tę wiadomość",
-      "modePgp": "Szyfruj za pomocą PGP",
-      "modePassword": "Link z hasłem",
-      "title": "Zaszyfrowano za pomocą OpenPGP",
       "explain": "Wiadomość, jej podpis, cytowany tekst i załączniki są tu szyfrowane dla klucza każdego odbiorcy i dla Twojego.",
       "recipients": "Klucze odbiorców",
       "keyChecking": "szukanie klucza…",
@@ -2701,13 +2730,46 @@
       "plainWarning": "Wiadomość trafi do wszystkich niezaszyfrowana i będzie czytelna dla ich dostawców poczty.",
       "sendPlainConfirm": "Wyślij bez szyfrowania",
       "subjectNote": "Temat nie jest szyfrowany.",
-      "limits": "Szkice są zapisywane bez szyfrowania podczas pisania. Wysyłanie później jest niedostępne, a przesyłanych dalej załączników nie można dołączyć.",
       "stillChecking": "Klucze odbiorców są nadal wyszukiwane. Spróbuj ponownie za chwilę.",
       "needPassphrase": "Wpisz frazę hasła swojego klucza, aby podpisać, albo wyłącz podpisywanie.",
       "noSchedule": "Zaszyfrowanej wiadomości nie można zaplanować. Wyślij ją teraz albo wyłącz szyfrowanie.",
       "errorForwarded": "Załączników z przesyłanych dalej wiadomości nie można szyfrować. Usuń je albo pobierz i dołącz ponownie.",
       "errorTooLarge": "Zaszyfrowane załączniki mogą mieć łącznie najwyżej 24 MB.",
-      "errorEncrypt": "Nie udało się zaszyfrować wiadomości. Nic nie zostało wysłane."
+      "errorEncrypt": "Nie udało się zaszyfrować wiadomości. Nic nie zostało wysłane.",
+      "willEncrypt": "Ta wiadomość zostanie zaszyfrowana.",
+      "wontEncrypt": "Ta wiadomość nie zostanie zaszyfrowana.",
+      "dontEncrypt": "Nie szyfruj",
+      "encryptAgain": "Szyfruj",
+      "cancelProtection": "Anuluj",
+      "createKey": "Utwórz mój klucz",
+      "autoChanged": "Nie można już znaleźć klucza jednego z odbiorców, więc wiadomość wyszłaby niezaszyfrowana. Sprawdź odbiorców i ponownie kliknij Wyślij.",
+      "unlockCancelled": "Odblokuj klucze, aby wysłać tę wiadomość zaszyfrowaną, albo wybierz „Nie szyfruj”."
+    },
+    "unlock": {
+      "title": "Odblokuj szyfrowanie",
+      "body": "Wpisz hasło do Plimaila, aby odblokować klucze szyfrowania w tej karcie.",
+      "bodySso": "Wpisz hasło wybrane dla kluczy szyfrowania.",
+      "label": "Hasło do Plimaila",
+      "go": "Odblokuj",
+      "working": "Odblokowywanie…",
+      "close": "Zamknij",
+      "wrongPassword": "Nieprawidłowe hasło.",
+      "wrongForKeys": "To hasło nie otwiera Twoich kluczy.",
+      "previousTitle": "Twoje hasło się zmieniło",
+      "previousBody": "Twoje klucze są nadal chronione poprzednim hasłem do Plimaila. Wpisz je raz, aby przenieść je na obecne hasło.",
+      "previousLabel": "Poprzednie hasło",
+      "wrongPrevious": "To hasło również nie otwiera Twoich kluczy.",
+      "forgotPrevious": "Nie pamiętam go",
+      "lostTitle": "Klucze zablokowane starym hasłem",
+      "lostBody": "Bez poprzedniego hasła tych kluczy nie da się otworzyć, a zaszyfrowanej dla nich poczty nie da się przeczytać. Jeśli masz kopię zapasową, zaimportuj ją w Ustawienia → Szyfrowanie → Zaawansowane. Możesz tam też usunąć te klucze: zostaną utworzone nowe.",
+      "createTitle": "Wybierz hasło szyfrowania",
+      "createBody": "Logujesz się bez hasła do Plimaila, więc wybierz hasło dla kluczy szyfrowania. Będzie wymagane raz na kartę. Jeśli je zgubisz, zaszyfrowanej poczty nie da się już przeczytać.",
+      "createLabel": "Hasło szyfrowania",
+      "confirmLabel": "Powtórz hasło",
+      "createGo": "Utwórz moje klucze",
+      "tooShort": "Co najmniej {{n}} znaków.",
+      "mismatch": "Hasła nie są zgodne.",
+      "tooMany": "Zbyt wiele prób. Spróbuj później."
     }
   }
 }

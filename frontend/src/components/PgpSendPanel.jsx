@@ -2,46 +2,76 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../utils/api.js';
 import { shortFingerprint } from '../utils/pgp.js';
+import { isLoginKey } from '../utils/pgpKeys.js';
+import { loadOwnKeys } from '../utils/pgpOwnKeys.js';
 import { isUnlocked } from '../utils/pgpSession.js';
 import { classifyRecipients, pgpDefaults } from '../utils/pgpSend.js';
 
-export { pgpDefaults };
+export { loadOwnKeys, pgpDefaults };
 
-// The composer's OpenPGP side of the lock: which mode the lock is in (PGP or a password link,
-// SecureSendPanel.jsx), each recipient's key, signing, and what to do when a recipient has none.
-
-// The user's own keys, asked for once per page and again after a change in Settings.
-let ownKeysPromise = null;
-export function loadOwnKeys({ fresh = false } = {}) {
-  if (fresh || !ownKeysPromise) {
-    ownKeysPromise = api.pgp.keys().then(r => r.keys || []).catch((err) => { ownKeysPromise = null; throw err; });
-  }
-  return ownKeysPromise;
-}
+// The composer's OpenPGP parts: each recipient's key, the line that says the message will be
+// encrypted, and, when "Send encrypted" cannot go as it is, what stands in the way and the ways
+// past it (a recipient without a key, a key's own passphrase, no key of the user's own).
 
 // Each recipient's key status, looked up (keyring, then WKD) as the recipients change, while
-// PGP is on. { statuses, checking, failed }.
+// `enabled`. { statuses, checking, failed, key }: `key` names the recipients `statuses` are for.
+// `remember(emails, statuses)` puts in what a send just looked up.
 export function usePgpRecipients(enabled, emails) {
-  const [state, setState] = useState({ statuses: [], checking: false, failed: false });
+  const [state, setState] = useState({ statuses: [], checking: false, failed: false, key: '' });
   const key = enabled ? emails.join(',') : '';
   const seq = useRef(0);
   useEffect(() => {
-    if (!enabled || !emails.length) { setState({ statuses: [], checking: false, failed: false }); return undefined; }
+    if (!enabled || !emails.length) { setState({ statuses: [], checking: false, failed: false, key: '' }); return undefined; }
     const mine = ++seq.current;
-    setState(s => ({ ...s, checking: true }));
+    setState(s => (s.key === key ? s : { ...s, checking: true }));
     const timer = setTimeout(async () => {
       try {
         const { results } = await api.pgp.lookup(emails);
         const statuses = await classifyRecipients(emails, results);
-        if (seq.current === mine) setState({ statuses, checking: false, failed: false });
+        if (seq.current === mine) setState({ statuses, checking: false, failed: false, key });
       } catch {
-        if (seq.current === mine) setState({ statuses: emails.map(email => ({ email, status: 'error', keys: [] })), checking: false, failed: true });
+        if (seq.current === mine) setState({ statuses: emails.map(email => ({ email, status: 'error', keys: [] })), checking: false, failed: true, key });
       }
     }, 400);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` is the recipients
   }, [key]);
-  return state;
+  const remember = (list, statuses) => {
+    seq.current += 1;
+    setState({ statuses, checking: false, failed: false, key: list.join(',') });
+  };
+  return { ...state, remember };
+}
+
+const LockIcon = ({ size = 13 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" />
+  </svg>
+);
+export { LockIcon };
+
+// Under the recipients: "This message will be encrypted", with a way to turn that off for this
+// message, or, once turned off while it could be, a way back.
+export function EncryptionLine({ encrypting, canUndo = false, onTurnOff, onTurnOn, disabled, mobile }) {
+  const { t } = useTranslation();
+  if (!encrypting && !canUndo) return null;
+  const link = {
+    background: 'none', border: 'none', padding: mobile ? '8px 2px' : '0 2px', fontSize: 'inherit', color: 'var(--accent)',
+    cursor: disabled ? 'default' : 'pointer', textDecoration: 'underline', minHeight: mobile ? 36 : undefined,
+  };
+  return (
+    <div data-encryption-line={encrypting ? 'on' : 'off'} style={{
+      display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', flexShrink: 0,
+      padding: mobile ? '4px 16px' : '4px 14px', borderBottom: '1px solid var(--border-subtle)',
+      fontSize: mobile ? 13 : 12, color: encrypting ? 'var(--text-secondary)' : 'var(--text-tertiary)',
+    }}>
+      {encrypting && <span style={{ color: 'var(--green)', display: 'flex' }}><LockIcon /></span>}
+      <span>{encrypting ? t('pgp.compose.willEncrypt') : t('pgp.compose.wontEncrypt')}</span>
+      <button type="button" disabled={disabled} onClick={encrypting ? onTurnOff : onTurnOn} style={link}>
+        {encrypting ? t('pgp.compose.dontEncrypt') : t('pgp.compose.encryptAgain')}
+      </button>
+    </div>
+  );
 }
 
 
@@ -57,21 +87,6 @@ const small = (kind = 'plain') => ({
   border: kind === 'danger' ? 'none' : '1px solid var(--border)',
 });
 const note = { fontSize: 12, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 };
-
-export function ProtectionModeSwitch({ mode, onMode, disabled }) {
-  const { t } = useTranslation();
-  const item = active => ({
-    padding: '4px 10px', fontSize: 12.5, fontWeight: 500, border: 'none', borderRadius: 5, cursor: disabled ? 'default' : 'pointer',
-    background: active ? 'var(--bg-primary)' : 'transparent', color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-    boxShadow: active ? '0 0 0 1px var(--border)' : 'none',
-  });
-  return (
-    <div role="radiogroup" aria-label={t('pgp.compose.mode')} style={{ display: 'inline-flex', gap: 2, padding: 2, borderRadius: 7, background: 'var(--bg-secondary)', alignSelf: 'flex-start' }}>
-      <button type="button" role="radio" aria-checked={mode === 'pgp'} disabled={disabled} onClick={() => onMode('pgp')} style={item(mode === 'pgp')}>{t('pgp.compose.modePgp')}</button>
-      <button type="button" role="radio" aria-checked={mode === 'password'} disabled={disabled} onClick={() => onMode('password')} style={item(mode === 'password')}>{t('pgp.compose.modePassword')}</button>
-    </div>
-  );
-}
 
 function statusText(t, s) {
   if (!s) return t('pgp.compose.keyChecking');
@@ -90,26 +105,25 @@ function statusText(t, s) {
 // From address or null; `problem` pgpSendProblem's answer once Send was pressed.
 export default function PgpSendPanel({
   value, onChange, recipients, statuses, checking, ownKey, problem, disabled,
-  onRemoveRecipient, onUsePassword, onSendPlain, onOpenSettings,
+  onRemoveRecipient, onUsePassword, onSendPlain, onCreateKey,
 }) {
   const { t } = useTranslation();
   if (value == null) return null;
   const set = patch => onChange({ ...value, ...patch });
   const byEmail = new Map((statuses || []).map(s => [s.email, s]));
-  const keyLocked = ownKey && !isUnlocked(ownKey.fingerprint);
+  // A key with its own passphrase asks for it here; one protected by the Plimail password unlocks
+  // by itself, or through the unlock prompt.
+  const keyLocked = ownKey && !isLoginKey(ownKey) && !isUnlocked(ownKey.fingerprint);
   const missing = recipients.filter(e => byEmail.get(e) && byEmail.get(e).status !== 'ok');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>{t('pgp.compose.title')}</div>
-        <p style={note}>{t('pgp.compose.explain')}</p>
-      </div>
+      <p style={note}>{t('pgp.compose.explain')}</p>
 
       {!ownKey ? (
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <p role="alert" style={{ ...note, color: 'var(--red)' }}>{t('pgp.compose.noOwnKey')}</p>
-          {onOpenSettings && <button type="button" onClick={onOpenSettings} style={small()}>{t('pgp.read.openSettings')}</button>}
+          {onCreateKey && <button type="button" disabled={disabled} onClick={onCreateKey} style={small()}>{t('pgp.compose.createKey')}</button>}
         </div>
       ) : null}
 
@@ -128,13 +142,13 @@ export default function PgpSendPanel({
         </ul>
       )}
 
-      {ownKey && (
+      {keyLocked && (
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
           <label style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 12.5, color: 'var(--text-primary)' }}>
             <input type="checkbox" checked={value.sign} disabled={disabled} onChange={e => set({ sign: e.target.checked })} />
             {t('pgp.compose.sign')}
           </label>
-          {value.sign && keyLocked && (
+          {value.sign && (
             <>
               <input
                 type="password" autoComplete="off" value={value.passphrase} disabled={disabled}
@@ -175,24 +189,30 @@ export default function PgpSendPanel({
       )}
 
       <p style={note}>{t('pgp.compose.subjectNote')}</p>
-      <p style={note}>{t('pgp.compose.limits')}</p>
     </div>
   );
 }
 
-// The lock's panel: the mode switch, then the PGP panel or the password one.
-export function ProtectionPanel({ mode, onMode, disabled, mobile, children }) {
+// The panel over the composer's footer for a protected message: "Send encrypted" that cannot go
+// as it is, or the password of "Send with a password". `onCancel` sends it as ordinary mail again.
+export function ProtectionPanel({ title, onCancel, disabled, mobile, children }) {
   const { t } = useTranslation();
-  if (!mode) return null;
   return (
     <section
-      aria-label={t('pgp.compose.protection')}
+      aria-label={title}
       style={{
         padding: mobile ? '12px 14px' : '10px 14px', borderTop: '1px solid var(--border-subtle)',
         background: 'var(--bg-tertiary)', display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0,
       }}
     >
-      <ProtectionModeSwitch mode={mode} onMode={onMode} disabled={disabled} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ color: 'var(--accent)', display: 'flex' }}><LockIcon size={14} /></span>
+        <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{title}</span>
+        <button type="button" disabled={disabled} onClick={onCancel}
+          style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: 12.5, cursor: disabled ? 'default' : 'pointer', padding: mobile ? '8px 4px' : '2px 4px' }}>
+          {t('pgp.compose.cancelProtection')}
+        </button>
+      </div>
       {children}
     </section>
   );
