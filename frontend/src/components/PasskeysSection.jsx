@@ -62,7 +62,7 @@ export default function PasskeysSection() {
 
   const [status, setStatus] = useState(undefined);
   const [passkeys, setPasskeys] = useState(null);
-  const [loadError, setLoadError] = useState('');
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState('');
@@ -82,11 +82,11 @@ export default function PasskeysSection() {
       const { passkeys: list } = await api.passkeys.list();
       if (mine !== seq.current) return;
       setPasskeys(list);
-      setLoadError('');
+      setLoadFailed(false);
     } catch {
-      if (mine === seq.current) setLoadError(t('passkeys.settings.loadFailed'));
+      if (mine === seq.current) setLoadFailed(true);
     }
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     if (!userId) return;
@@ -187,7 +187,7 @@ export default function PasskeysSection() {
         </form>
       )}
 
-      {loadError && <div role="alert" style={errorBox}>{loadError}</div>}
+      {loadFailed && <div role="alert" style={errorBox}>{t('passkeys.settings.loadFailed')}</div>}
       {passkeys && passkeys.length === 0 && !adding && <div style={hintStyle}>{t('passkeys.settings.none')}</div>}
       {passkeys && passkeys.length > 0 && (
         <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>

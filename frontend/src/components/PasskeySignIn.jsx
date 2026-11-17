@@ -27,7 +27,7 @@ export default function PasskeySignIn({ onSignedIn, disabled = false }) {
   const { t } = useTranslation();
   const [status, setStatus] = useState(undefined); // undefined while loading
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(''); // an i18n key
   const live = useRef(true);
   const manual = useRef(false);
   const done = useRef(onSignedIn);
@@ -57,11 +57,11 @@ export default function PasskeySignIn({ onSignedIn, disabled = false }) {
         const user = await signInWithPasskey({ autofill: true, proceed: () => !stop && !manual.current });
         if (!stop && live.current) done.current(user);
       } catch (err) {
-        if (!stop && live.current && !isPasskeyCancel(err)) setError(t(signInErrorKey(err)));
+        if (!stop && live.current && !isPasskeyCancel(err)) setError(signInErrorKey(err));
       }
     })();
     return () => { stop = true; };
-  }, [ready, autofillRound, t]);
+  }, [ready, autofillRound]);
 
   const click = async () => {
     if (!ready || busy) return;
@@ -73,7 +73,7 @@ export default function PasskeySignIn({ onSignedIn, disabled = false }) {
       if (live.current) done.current(user);
     } catch (err) {
       if (!live.current) return;
-      if (!isPasskeyCancel(err)) setError(t(signInErrorKey(err)));
+      if (!isPasskeyCancel(err)) setError(signInErrorKey(err));
       manual.current = false;
       setBusy(false);
       setAutofillRound(n => n + 1);
@@ -110,7 +110,7 @@ export default function PasskeySignIn({ onSignedIn, disabled = false }) {
         <div role="alert" style={{
           padding: '10px 14px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)',
           borderRadius: 8, color: 'var(--red)', fontSize: 13,
-        }}>{error}</div>
+        }}>{t(error)}</div>
       )}
     </div>
   );
