@@ -7,8 +7,8 @@
 // and the cache is dropped whenever the mail stops being this user's to read: sign-out, a session
 // that expired (401), the screen lock (locally, or the server's 423), or another user signing in.
 // A request that was under way when the cache was dropped does not write its answer back.
-
-import i18next from 'i18next';
+//
+// No imports: the backend's tests load modules that load api.js, without frontend/node_modules.
 
 const CACHE_NAME = 'plimail-offline-v1';
 // Each entry is one answer; the oldest written go first. Cache Storage moves an entry to the end
@@ -99,9 +99,13 @@ export function watchConnection(win) {
 }
 
 // What a request that could not reach the server throws: a message the user can read in a toast
-// or the composer, and code 'offline' for a caller that wants to tell.
+// or the composer, and code 'offline' for a caller that wants to tell. main.jsx hands in the
+// translation.
+let unreachableText = () => "Plimail can't reach the server. Check your connection and try again.";
+export function setUnreachableText(fn) { unreachableText = fn; }
+
 export function offlineError(cause) {
-  return Object.assign(new Error(i18next.t('app.offline.unreachable')), { code: 'offline', cause });
+  return Object.assign(new Error(unreachableText()), { code: 'offline', cause });
 }
 
 // For tests.

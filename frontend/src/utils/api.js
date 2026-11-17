@@ -42,7 +42,8 @@ async function request(method, path, body, extraHeaders, { signal } = {}) {
   try {
     res = await fetch(BASE + path, opts);
   } catch (err) {
-    if (signal?.aborted || err?.name === 'AbortError') throw err;
+    // fetch rejects with a TypeError when there is no answer at all; anything else is not ours.
+    if (signal?.aborted || !(err instanceof TypeError)) throw err;
     return unreachable(path, kept, err);
   }
   setOffline(false);
