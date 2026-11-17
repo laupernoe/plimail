@@ -2234,6 +2234,13 @@
       "errorInvalid": "Check the message, the dates and the addresses.",
       "errorExtension": "The server cannot send this reply, or cannot limit it to dates.",
       "confirmReplaceEdited": "Plimail's server script was edited by hand. Replace it with the automatic reply? The changes made by hand are lost."
+    },
+    "install": {
+      "title": "Install the app",
+      "desc": "Plimail opens in its own window, shows the unread count on its icon and can open mailto: links.",
+      "button": "Install Plimail",
+      "unavailable": "Your browser does not offer installation here. In Chrome or Edge, use the install icon in the address bar; if Plimail is already installed, open it from your applications.",
+      "dismissed": "Installation cancelled. You can still install Plimail from the browser's address bar."
     }
   },
   "blockList": {
@@ -2979,5 +2986,11 @@
     "unsupportedFile": "Not an .mbox or .eml file",
     "close": "Close",
     "selectionFailed": "Could not export the selected messages"
+  },
+  "app": {
+    "update": {
+      "available": "A new version of Plimail is available.",
+      "reload": "Reload"
+    }
   }
 }

@@ -1,17 +1,72 @@
-// MailFlow Service Worker — handles Web Push and notification clicks.
-// Intentionally minimal: no fetch interception, no caching strategy.
-// The sole purpose of this SW is push delivery and notification click handling.
+// Plimail service worker: Web Push, notification clicks, and a cache of the app's static files.
+//
+// What it caches is an allowlist: Vite's fingerprinted bundle (/assets/), pdf.js's runtime files
+// under their version, and the self-hosted fonts. Everything else goes to the network untouched,
+// and above all the API (/api), the WebSocket (/ws), sign-in and the page of a password-protected
+// message (/s/<token>): mail, sessions and decrypted content never land in a cache here.
+//
+// BUILD_ID is written in by the build (vite.config.js) from the bundle's file names, so each
+// release is a byte-different sw.js, which is what makes the browser install the new worker.
+// The new worker waits instead of taking over: the page shows "New version, reload", and the
+// worker takes over when the user agrees (SKIP_WAITING) or once every tab of the old one is gone.
+// Pages are never served from the cache, so even a tab under the old worker loads the new
+// index.html, and with it the new bundle, as soon as it is reloaded. Under the Vite dev server
+// the placeholder is left as is and nothing is cached.
+
+const BUILD_ID = '__PLIMAIL_BUILD_ID__';
+const CACHING = !BUILD_ID.startsWith('__');
+const CACHE_PREFIX = 'plimail-static-';
+const STATIC_CACHE = CACHE_PREFIX + BUILD_ID;
+
+const CACHEABLE_PATH = /^\/(?:assets|pdfjs\/[^/]+|fonts)\//;
+// Never cached, whatever CACHEABLE_PATH ever grows to include.
+const NEVER_CACHED_PATH = /^\/(?:api|ws|s|oauth|auth|carddav|\.well-known)(?:\/|$)/;
+
+function isCacheable(request) {
+  if (request.method !== 'GET') return false;
+  let url;
+  try { url = new URL(request.url); } catch (_) { return false; }
+  if (url.origin !== self.location.origin || url.search) return false;
+  if (NEVER_CACHED_PATH.test(url.pathname)) return false;
+  return CACHEABLE_PATH.test(url.pathname);
+}
+
+function cacheFirst(request) {
+  return self.caches.open(STATIC_CACHE).then((cache) =>
+    cache.match(request).then((hit) => hit || fetch(request).then((response) => {
+      // Only a whole, same-origin answer: never a 404 page, a redirect or a partial body.
+      if (response.ok && response.status === 200 && response.type === 'basic') {
+        cache.put(request, response.clone()).catch(() => {});
+      }
+      return response;
+    }))
+  );
+}
 
 self.addEventListener('install', () => {
-  // Force this SW to activate immediately, bypassing the waiting phase.
-  // Safe here because this SW does no fetch interception or caching — there
-  // is no state to hand off from the old version to the new one.
-  self.skipWaiting();
+  // No skipWaiting() here: a new release waits for the page to agree (see above). The first
+  // install has no worker to wait for and activates at once.
 });
 
 self.addEventListener('activate', (event) => {
-  // Take control of all existing clients so push events reach this SW version.
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    self.caches.keys()
+      .then((keys) => Promise.all(keys
+        .filter((key) => key.startsWith(CACHE_PREFIX) && key !== STATIC_CACHE)
+        .map((key) => self.caches.delete(key))))
+      .catch(() => {})
+      // Take control of open tabs so push and the cache work without a reload.
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
+self.addEventListener('fetch', (event) => {
+  if (!CACHING || !isCacheable(event.request)) return;
+  event.respondWith(cacheFirst(event.request));
 });
 
 const MESSAGE_ACTIONS = [

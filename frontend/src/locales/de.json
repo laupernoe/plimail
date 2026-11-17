@@ -2234,6 +2234,13 @@
       "errorInvalid": "Prüfen Sie die Nachricht, die Daten und die Adressen.",
       "errorExtension": "Der Server kann diese Antwort nicht senden oder nicht auf Daten beschränken.",
       "confirmReplaceEdited": "Das Skript von Plimail wurde von Hand bearbeitet. Durch die automatische Antwort ersetzen? Die Änderungen von Hand gehen verloren."
+    },
+    "install": {
+      "title": "App installieren",
+      "desc": "Plimail öffnet sich in einem eigenen Fenster, zeigt die Zahl ungelesener Nachrichten auf dem Symbol und kann mailto:-Links öffnen.",
+      "button": "Plimail installieren",
+      "unavailable": "Ihr Browser bietet hier keine Installation an. In Chrome oder Edge nutzen Sie das Installationssymbol in der Adressleiste; ist Plimail schon installiert, öffnen Sie es über Ihre Anwendungen.",
+      "dismissed": "Installation abgebrochen. Sie können Plimail weiterhin über die Adressleiste des Browsers installieren."
     }
   },
   "blockList": {
@@ -2979,5 +2986,11 @@
     "unsupportedFile": "Keine .mbox- oder .eml-Datei",
     "close": "Schließen",
     "selectionFailed": "Die ausgewählten Nachrichten konnten nicht exportiert werden"
+  },
+  "app": {
+    "update": {
+      "available": "Eine neue Version von Plimail ist verfügbar.",
+      "reload": "Neu laden"
+    }
   }
 }

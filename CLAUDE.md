@@ -6,8 +6,9 @@ original name on purpose.
 
 A self-hosted, unified webmail client, licensed AGPL-3.0. Node/Express backend, React frontend, PostgreSQL
 and Redis, shipped as one Docker image (`ghcr.io/laupernoe/plimail`, root `Dockerfile`) that runs
-next to `postgres` and `redis` in `docker-compose.yml`. There is no plugin platform, no native or
-desktop app and no TLS inside the image: HTTPS is the operator's reverse proxy.
+next to `postgres` and `redis` in `docker-compose.yml`. There is no plugin platform, no native app
+(the web app installs as a desktop PWA: `frontend/public/manifest.json` and `sw.js`) and no TLS
+inside the image: HTTPS is the operator's reverse proxy.
 
 This file is context for coding agents and for anyone new to the project. It says what
 MailFlow is for and how to decide what belongs in it. The mechanics live elsewhere and are

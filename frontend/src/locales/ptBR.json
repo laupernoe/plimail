@@ -2234,6 +2234,13 @@
       "errorInvalid": "Confira a mensagem, as datas e os endereços.",
       "errorExtension": "O servidor não pode enviar esta resposta ou não pode limitá-la a datas.",
       "confirmReplaceEdited": "O script do Plimail foi editado à mão. Substituí-lo pela resposta automática? As alterações feitas à mão serão perdidas."
+    },
+    "install": {
+      "title": "Instalar o aplicativo",
+      "desc": "O Plimail abre em sua própria janela, mostra o número de não lidas no ícone e pode abrir links mailto:.",
+      "button": "Instalar o Plimail",
+      "unavailable": "Seu navegador não oferece a instalação aqui. No Chrome ou no Edge, use o ícone de instalação da barra de endereço; se o Plimail já estiver instalado, abra-o pelos seus aplicativos.",
+      "dismissed": "Instalação cancelada. Você ainda pode instalar o Plimail pela barra de endereço do navegador."
     }
   },
   "blockList": {
@@ -2979,5 +2986,11 @@
     "unsupportedFile": "Não é um arquivo .mbox ou .eml",
     "close": "Fechar",
     "selectionFailed": "Não foi possível exportar as mensagens selecionadas"
+  },
+  "app": {
+    "update": {
+      "available": "Uma nova versão do Plimail está disponível.",
+      "reload": "Recarregar"
+    }
   }
 }

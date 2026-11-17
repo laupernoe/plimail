@@ -2234,6 +2234,13 @@
       "errorInvalid": "메시지, 날짜, 주소를 확인하세요.",
       "errorExtension": "서버가 이 응답을 보낼 수 없거나 날짜로 제한할 수 없습니다.",
       "confirmReplaceEdited": "Plimail 스크립트가 직접 수정되었습니다. 자동 응답으로 바꿀까요? 직접 수정한 내용은 사라집니다."
+    },
+    "install": {
+      "title": "앱 설치",
+      "desc": "Plimail이 별도 창에서 열리고, 아이콘에 읽지 않은 메일 수를 표시하며, mailto: 링크를 열 수 있습니다.",
+      "button": "Plimail 설치",
+      "unavailable": "이 브라우저에서는 설치를 제공하지 않습니다. Chrome 또는 Edge에서는 주소 표시줄의 설치 아이콘을 사용하세요. Plimail이 이미 설치되어 있다면 앱 목록에서 여세요.",
+      "dismissed": "설치가 취소되었습니다. 브라우저 주소 표시줄에서 계속 Plimail을 설치할 수 있습니다."
     }
   },
   "blockList": {
@@ -2979,5 +2986,11 @@
     "unsupportedFile": ".mbox 또는 .eml 파일이 아닙니다",
     "close": "닫기",
     "selectionFailed": "선택한 메일을 내보낼 수 없습니다"
+  },
+  "app": {
+    "update": {
+      "available": "Plimail의 새 버전을 사용할 수 있습니다.",
+      "reload": "새로고침"
+    }
   }
 }

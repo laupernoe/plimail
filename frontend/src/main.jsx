@@ -5,6 +5,13 @@ import App from './App.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import './index.css';
 import { i18nReady } from './i18n.js';
+import { stashMailtoFromLocation } from './utils/mailtoLink.js';
+import { captureInstallPrompt } from './utils/installPrompt.js';
+
+// Before the router renders: a signed-out visitor is redirected to /login, which would drop it.
+try { stashMailtoFromLocation({ location: window.location, history: window.history, storage: sessionStorage }); } catch { /* no session storage */ }
+// The browser offers installation once, early, often before Settings is open.
+captureInstallPrompt(window);
 
 // ErrorBoundary sits outside the router: a throw during routing or in any screen below it
 // would otherwise unmount everything and leave a blank page with no explanation (#441).

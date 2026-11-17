@@ -14,7 +14,8 @@ A self-hosted, unified webmail client with calendars, shipped as one Docker imag
 Plimail is a fork of [MailFlow](https://github.com/maathimself/mailflow), created because it lacked
 functionality and responsiveness for our needs. It keeps only what is necessary and aims for a
 simple stack: CalDAV calendars and invitations were added; plugins, extra themes, integrations,
-antispam and the mobile and desktop apps were removed.
+antispam and the native mobile and desktop apps were removed. On a computer, Plimail installs
+from Chrome or Edge as an app of its own (Settings, Behavior, Install the app).
 
 ## Features
 

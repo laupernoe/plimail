@@ -1,6 +1,7 @@
-import { useCallback, useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
+import { useCallback, useState, useEffect, useLayoutEffect, useRef, useMemo, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/index.js';
+import { installState, promptInstall, subscribeInstallState } from '../utils/installPrompt.js';
 import { newAiAction, AI_ACTION_LIMITS } from '../aiActions.js';
 import { useMobile } from '../hooks/useMobile.js';
 import { api } from '../utils/api.js';
@@ -2165,6 +2166,39 @@ function LayoutsTab() {
   );
 }
 
+// "Install the app": the installed app opens in its own window, shows the unread count on its icon
+// and can be the system's mail app. Desktop only. Chromium offers the prompt through
+// beforeinstallprompt (utils/installPrompt.js); elsewhere, or once installed, there is no button.
+function InstallAppGroup() {
+  const { t } = useTranslation();
+  const state = useSyncExternalStore(subscribeInstallState, installState, () => 'unavailable');
+  const [outcome, setOutcome] = useState(null);
+  if (state === 'installed') return null;
+  const install = async () => setOutcome(await promptInstall());
+  return (
+    <SettingGroup title={t('admin.install.title')} desc={t('admin.install.desc')}>
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+        {state === 'available' ? (
+          <button
+            type="button"
+            onClick={install}
+            style={{
+              height: CHIP_HEIGHT, padding: '0 14px', background: 'var(--accent)', color: 'var(--accent-text)',
+              border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500,
+            }}
+          >
+            {t('admin.install.button')}
+          </button>
+        ) : (
+          <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+            {outcome === 'dismissed' ? t('admin.install.dismissed') : t('admin.install.unavailable')}
+          </span>
+        )}
+      </div>
+    </SettingGroup>
+  );
+}
+
 // ─── Behavior ────────────────────────────────────────────────────────────────
 // How MailFlow acts: reading, writing, syncing, and opening mailto: links.
 function BehaviorTab() {
@@ -2376,6 +2410,8 @@ function BehaviorTab() {
           />
         </SettingRow>
       </SettingGroup>
+
+      {!isMobile && <InstallAppGroup />}
 
       {typeof navigator !== 'undefined' && 'registerProtocolHandler' in navigator && (
         <SettingGroup title={t('admin.messageList.defaultMailApp')} desc={t('admin.messageList.defaultMailAppDesc')}>
@@ -8121,6 +8157,7 @@ function makeSearchIndex(t) {
     { label: t('admin.messageList.markReadBehavior'), keywords: ['mark read', 'mark as read', 'read delay', 'auto read', 'manual read', 'unread'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.defaultSender'), keywords: ['from', 'sender', 'default sender', 'send from', 'alias', 'identity'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.defaultMailApp'), keywords: ['mailto', 'default app', 'default email', 'protocol handler', 'links'], tab: 'behavior', breadcrumb: behaviorCrumb },
+    { label: t('admin.install.title'), keywords: ['install', 'app', 'desktop', 'window'], tab: 'behavior', breadcrumb: behaviorCrumb },
     // Appearance > Fonts & Language
     { label: t('admin.appearance.language'), keywords: ['language', 'locale', 'french', 'english', 'spanish', 'german', 'deutsch', 'russian', 'chinese', 'italian', 'czech', 'čeština', 'portuguese', 'português', 'brasil', 'korean', '한국어', 'français', 'español'], tab: 'appearance', subtab: 'fonts', breadcrumb: fontsCrumb },
     { label: t('admin.appearance.timeFormat'), keywords: ['time format', 'clock', '12-hour', '24-hour', '12 hour', '24 hour', 'am pm', 'time'], tab: 'appearance', subtab: 'fonts', breadcrumb: fontsCrumb },

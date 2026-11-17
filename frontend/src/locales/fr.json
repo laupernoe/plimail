@@ -2234,6 +2234,13 @@
       "errorInvalid": "Vérifiez le message, les dates et les adresses.",
       "errorExtension": "Le serveur ne peut pas envoyer cette réponse, ou ne peut pas la limiter à des dates.",
       "confirmReplaceEdited": "Le script de Plimail a été modifié à la main. Le remplacer par la réponse automatique ? Les modifications faites à la main seront perdues."
+    },
+    "install": {
+      "title": "Installer l'app",
+      "desc": "Plimail s'ouvre dans sa propre fenêtre, affiche le nombre de non-lus sur son icône et peut ouvrir les liens mailto:.",
+      "button": "Installer Plimail",
+      "unavailable": "Votre navigateur ne propose pas l'installation ici. Dans Chrome ou Edge, utilisez l'icône d'installation de la barre d'adresse ; si Plimail est déjà installé, ouvrez-le depuis vos applications.",
+      "dismissed": "Installation annulée. Vous pouvez toujours installer Plimail depuis la barre d'adresse du navigateur."
     }
   },
   "blockList": {
@@ -2979,5 +2986,11 @@
     "unsupportedFile": "Ce n’est pas un fichier .mbox ou .eml",
     "close": "Fermer",
     "selectionFailed": "Impossible d'exporter les messages sélectionnés"
+  },
+  "app": {
+    "update": {
+      "available": "Une nouvelle version de Plimail est disponible.",
+      "reload": "Recharger"
+    }
   }
 }

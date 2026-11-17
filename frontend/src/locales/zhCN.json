@@ -2234,6 +2234,13 @@
       "errorInvalid": "请检查内容、日期和地址。",
       "errorExtension": "服务器无法发送此回复，或无法按日期限制它。",
       "confirmReplaceEdited": "Plimail 的脚本被手动修改过。要用自动回复替换它吗？手动修改的内容将丢失。"
+    },
+    "install": {
+      "title": "安装应用",
+      "desc": "Plimail 在独立窗口中打开，在图标上显示未读数，并可打开 mailto: 链接。",
+      "button": "安装 Plimail",
+      "unavailable": "此浏览器在这里不提供安装。在 Chrome 或 Edge 中，请使用地址栏中的安装图标；如果 Plimail 已安装，请从应用程序中打开。",
+      "dismissed": "已取消安装。您仍可以从浏览器地址栏安装 Plimail。"
     }
   },
   "blockList": {
@@ -2979,5 +2986,11 @@
     "unsupportedFile": "不是 .mbox 或 .eml 文件",
     "close": "关闭",
     "selectionFailed": "无法导出所选邮件"
+  },
+  "app": {
+    "update": {
+      "available": "Plimail 有新版本可用。",
+      "reload": "重新加载"
+    }
   }
 }

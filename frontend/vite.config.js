@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -70,8 +71,32 @@ function securePageStrings() {
   };
 }
 
+// public/sw.js names the release it belongs to, so that every release is a different file and the
+// browser installs the new worker (and drops the old one's cache). The id is a hash of the emitted
+// file names, which carry Vite's content hashes: a rebuild of the same sources keeps the same id,
+// and an unchanged app does not ask anyone to reload.
+function serviceWorkerBuildId() {
+  let buildId = null;
+  let outDir = null;
+  return {
+    name: 'service-worker-build-id',
+    apply: 'build',
+    configResolved(config) { outDir = config.build.outDir.startsWith('/') ? config.build.outDir : join(config.root, config.build.outDir); },
+    generateBundle(_options, bundle) {
+      buildId = createHash('sha256').update(Object.keys(bundle).sort().join('\n')).digest('hex').slice(0, 16);
+    },
+    closeBundle() {
+      if (!buildId) return;
+      const file = join(outDir, 'sw.js');
+      const source = readFileSync(file, 'utf8');
+      if (!source.includes('__PLIMAIL_BUILD_ID__')) this.error('sw.js has no __PLIMAIL_BUILD_ID__ placeholder');
+      writeFileSync(file, source.replace("'__PLIMAIL_BUILD_ID__'", JSON.stringify(buildId)));
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), pdfjsRuntimeAssets(), securePageStrings()],
+  plugins: [react(), pdfjsRuntimeAssets(), securePageStrings(), serviceWorkerBuildId()],
   build: {
     rollupOptions: {
       input: {

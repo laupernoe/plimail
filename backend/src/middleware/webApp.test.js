@@ -18,6 +18,7 @@ beforeAll(async () => {
   writeFileSync(path.join(dir, 'pdfjs', '6.3.289', 'wasm', 'jbig2_nowasm_fallback.js'), '//');
   writeFileSync(path.join(dir, 'sw.js'), 'self.addEventListener("push", () => {});');
   writeFileSync(path.join(dir, 'favicon.svg'), '<svg/>');
+  writeFileSync(path.join(dir, 'manifest.json'), '{"name":"Plimail"}');
   writeFileSync(path.join(dir, 'secure.html'), '<!doctype html><div id="root" data-page="secure"></div>');
 
   const app = express();
@@ -97,6 +98,22 @@ describe('the built web app', () => {
   it('never caches the service worker, and keeps unversioned files for a day', async () => {
     expect((await get('/sw.js')).headers.get('cache-control')).toBe('no-store');
     expect((await get('/favicon.svg')).headers.get('cache-control')).toBe('public, max-age=86400');
+  });
+
+  it('serves the installable app\'s worker and manifest under a policy that lets them run', async () => {
+    const sw = await get('/sw.js');
+    expect(sw.status).toBe(200);
+    expect(sw.headers.get('content-type')).toMatch(/javascript/);
+    const manifest = await get('/manifest.json');
+    expect(manifest.status).toBe(200);
+    expect(manifest.headers.get('content-type')).toMatch(/json/);
+    expect(manifest.headers.get('cache-control')).toBe('no-store');
+    // The worker and the manifest fall back to script-src and default-src: both 'self', and
+    // nothing narrower may be set for them.
+    const csp = (await get('/')).headers.get('content-security-policy');
+    expect(csp).toContain("default-src 'self'");
+    expect(csp).toContain("script-src 'self'");
+    expect(csp).not.toMatch(/worker-src|manifest-src/);
   });
 
   it('answers a missing script with a 404, not index.html', async () => {
