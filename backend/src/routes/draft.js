@@ -12,6 +12,8 @@ import { inlineSignatureImages } from '../services/signatureImages.js';
 import { imapManager } from '../index.js';
 import { noteDraftsChanged, resolveDraftsFolder, isDraftsPath, findReplacedDraft } from '../services/draftCopies.js';
 import { draftFolderPaths, createReplyGraph, replyChainIdsFor, indexReplyDrafts, createReplyDraftIndex, headerIds } from '../services/replyDraftLookup.js';
+import { checkedPgpArmor, renderPgpMime } from '../services/outgoingMail.js';
+import { PGP_ENCRYPTED_SNIPPET } from '../services/pgpDetect.js';
 
 // deleteSentDraft lived here before it moved to services/draftCopies.js.
 export { deleteSentDraft } from '../services/draftCopies.js';
@@ -212,7 +214,8 @@ router.get('/messages/:id/reply-draft', async (req, res) => {
     if (!draft.message_id) throw new Error('This draft has no verifiable Message-ID');
     const search = searches.get(draft.account_id);
     const body = await imapManager.fetchMessageBody(search.account, draft.uid, draft.folder);
-    if (body?.html == null && body?.text == null) throw new Error('Could not read the reply draft body');
+    // An encrypted draft has no text the server can read: the browser decrypts it from the source.
+    if (body?.html == null && body?.text == null && body?.pgp !== 'encrypted') throw new Error('Could not read the reply draft body');
     const confirmed = await imapManager.confirmReplyDraft(search.account, draft);
     const stillReplies = confirmed && [...headerIds(confirmed.in_reply_to), ...headerIds(confirmed.thread_references)]
       .some(id => search.ids.includes(id));
@@ -271,7 +274,10 @@ function textToHtml(text) {
     .join('');
 }
 
-async function buildRawDraft({ userId, accountId, aliasId, to, cc, bcc, subject, body, bodyIsHtml, quotedBody, quotedBodyHtml, editedSignature, inReplyTo, references, attachments = [] }) {
+// An encrypted draft (`pgpArmor`, the browser's OpenPGP message for the user's own key) is the
+// draft's headers over that ciphertext, as an encrypted message is sent (renderPgpMime), with its
+// Bcc kept: the body, signature, quoted text and files are inside it, and the server never has them.
+async function buildRawDraft({ userId, accountId, aliasId, to, cc, bcc, subject, body, bodyIsHtml, quotedBody, quotedBodyHtml, editedSignature, inReplyTo, references, attachments = [], pgpArmor = null }) {
   const replyToId = replyHeader(inReplyTo, true);
   const referenceIds = replyHeader(references) || replyToId;
   const acctResult = await query(
@@ -343,6 +349,15 @@ async function buildRawDraft({ userId, accountId, aliasId, to, cc, bcc, subject,
     ...((inlineImageAttachments.length || attachments.length) ? { attachments: [...inlineImageAttachments, ...attachments] } : {}),
   };
 
+  if (pgpArmor) {
+    const { sentRaw } = await renderPgpMime({ ...mailOptions, text: undefined, html: undefined, attachments: undefined }, pgpArmor);
+    return {
+      rawMessage: sentRaw,
+      account,
+      meta: { messageId, fromName, fromEmail, bodyHtml: null, bodyText: null, snippet: PGP_ENCRYPTED_SNIPPET, inReplyTo: replyToId, references: referenceIds },
+    };
+  }
+
   // CRLF, like the Sent copy (renderRawMessage, #365): IMAP APPEND requires it.
   const streamTransport = nodemailer.createTransport({ streamTransport: true, newline: 'windows' });
   const streamInfo = await streamTransport.sendMail(mailOptions);
@@ -368,11 +383,19 @@ router.post('/draft', async (req, res) => {
 
   if (!(await findOwnedAccount(req.session.userId, accountId, { columns: 'id' }))) return res.status(404).json({ error: 'Account not found' });
 
-  let attachments;
-  try { attachments = normalizeDraftAttachments(rawAttachments); } catch (err) { return res.status(err.status || 400).json({ error: err.message }); }
+  let attachments, pgpArmor;
+  try {
+    attachments = normalizeDraftAttachments(rawAttachments);
+    pgpArmor = checkedPgpArmor(req.body.pgp);
+  } catch (err) { return res.status(err.status || 400).json({ error: err.message }); }
+  // An encrypted draft has nothing in the clear but its headers: content next to the ciphertext
+  // is refused rather than stored unencrypted.
+  if (pgpArmor && (attachments.length || body || quotedBody || quotedBodyHtml || editedSignature)) {
+    return res.status(400).json({ error: 'An encrypted draft carries its content inside the encryption' });
+  }
 
   try {
-    const { rawMessage, account, meta } = await buildRawDraft({ userId: req.session.userId, accountId, aliasId, to, cc, bcc, subject, body, bodyIsHtml, quotedBody, quotedBodyHtml, editedSignature, inReplyTo, references, attachments });
+    const { rawMessage, account, meta } = await buildRawDraft({ userId: req.session.userId, accountId, aliasId, to, cc, bcc, subject, body, bodyIsHtml, quotedBody, quotedBodyHtml, editedSignature, inReplyTo, references, attachments, pgpArmor });
 
     const draftsFolder = await resolveDraftsFolder(account);
     if (!draftsFolder) return res.status(422).json({ error: 'No Drafts folder found for this account' });

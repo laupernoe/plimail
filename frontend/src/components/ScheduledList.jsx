@@ -20,6 +20,8 @@ import {
   storedZoneTime,
 } from '../utils/scheduledView.js';
 import { descaleCss } from '../utils/uiScaleCss.js';
+import { encryptedScheduledFields } from '../utils/encryptedDraftOpen.js';
+import { snippetText } from '../utils/pgpSnippet.js';
 
 // The Scheduled view (#543, design 5.2): every scheduled message of every account, in three
 // sections (Needs attention, Scheduled, recently Sent), with what each is doing and the actions
@@ -269,7 +271,13 @@ export default function ScheduledList() {
             }
             // An open composer is asked first, as for any message; it says why when it keeps its own.
             // Once it is open on the message, an Undo still offered for it goes.
-            return Promise.resolve(useStore.getState().openCompose(composeDataFromScheduled(detail)))
+            // An encrypted one is decrypted here first, with the user's key, to be edited.
+            const data = detail.spec.pgp === true
+              ? encryptedScheduledFields(detail).then(
+                fields => ({ ...composeDataFromScheduled(detail), ...fields }),
+                () => { throw new Error(t('pgp.draft.openFailed')); })
+              : composeDataFromScheduled(detail);
+            return Promise.resolve(data).then(d => useStore.getState().openCompose(d))
               .then(opened => { if (opened) supersedeUndo(useStore, row.id); });
           })
           .catch(err => fail(row, err))
@@ -657,7 +665,7 @@ function ScheduledRow({
         {to && (
           <span style={{ display: 'block', fontSize: isMobile ? 14 : 13, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>
             {subject}
-            {summary?.snippet && <span style={{ color: 'var(--text-tertiary)' }}>{` - ${summary.snippet}`}</span>}
+            {summary?.snippet && <span style={{ color: 'var(--text-tertiary)' }}>{` - ${snippetText(summary.snippet, t)}`}</span>}
           </span>
         )}
         {(chip || reason) && (

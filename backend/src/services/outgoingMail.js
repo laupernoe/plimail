@@ -42,8 +42,9 @@ export const MAX_PGP_ARMORED_CHARS = 35 * 1024 * 1024;
 const PGP_ARMOR_RE = /^-----BEGIN PGP MESSAGE-----\r?\n[\s\S]+\r?\n-----END PGP MESSAGE-----\s*$/;
 const PRINTABLE_LINES_RE = /^[\x20-\x7e\r\n]*$/;
 
-// The checked `pgp` field of a send body: { encrypted } with CRLF line ends, or null.
-function validatePgp(pgp, body) {
+// A `pgp` field ({ encrypted }) checked: the armored message with CRLF line ends, or null when
+// there is none. Throws SendError (400). A send, a scheduled message and a draft take the same.
+export function checkedPgpArmor(pgp) {
   if (pgp === undefined || pgp === null) return null;
   if (typeof pgp !== 'object' || Array.isArray(pgp) || typeof pgp.encrypted !== 'string') {
     throw new SendError(400, 'pgp.encrypted must be an armored OpenPGP message');
@@ -53,12 +54,19 @@ function validatePgp(pgp, body) {
   if (!PGP_ARMOR_RE.test(armored) || !PRINTABLE_LINES_RE.test(armored)) {
     throw new SendError(400, 'pgp.encrypted must be an armored OpenPGP message');
   }
+  return `${armored.replace(/\r?\n/g, '\r\n')}\r\n`;
+}
+
+// The checked `pgp` field of a send body: { encrypted } with CRLF line ends, or null.
+function validatePgp(pgp, body) {
+  const encrypted = checkedPgpArmor(pgp);
+  if (!encrypted) return null;
   // Everything goes inside the encryption. Anything the server would add in the clear next to it
   // (files, forwarded parts) is refused rather than sent unencrypted or dropped.
   if ((body.attachments || []).length || (body.forwardedAttachments || []).length || (body.forwardedMessages || []).length) {
     throw new SendError(400, 'An encrypted message carries its attachments inside the encryption');
   }
-  return { encrypted: `${armored.replace(/\r?\n/g, '\r\n')}\r\n` };
+  return { encrypted };
 }
 
 // How long a send waits for its Sent copy's APPEND. It stays short: without Undo send the browser

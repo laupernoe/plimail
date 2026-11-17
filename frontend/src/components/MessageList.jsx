@@ -14,6 +14,7 @@ import { keepDraftsApart } from '../utils/conversationActions.js';
 import { unreadDeltaByAccount } from '../utils/countSnapshots.js';
 import { splitDraftSignature } from '../utils/draftSignature.js';
 import { draftAttachmentFields } from '../utils/openSavedDraft.js';
+import { encryptedDraftFields } from '../utils/encryptedDraftOpen.js';
 import { useSwipeRow } from '../hooks/useSwipeRow.js';
 import { useHoverPrefetch } from '../hooks/useHoverPrefetch.js';
 import ContextMenu from './ContextMenu.jsx';
@@ -2592,6 +2593,21 @@ function MailboxList() {
         // it over as the body left the signature inline AND had compose render a fresh one, so
         // every save/reopen cycle added another copy (#432). Lift the signature back out, or
         // suppress compose's own when it is present but cannot be lifted safely.
+        // A draft saved encrypted (utils/pgpDraft.js) is decrypted here and reopens encrypted.
+        // One that cannot be opened for editing is shown in the reader, which decrypts it there.
+        let encrypted = null;
+        if (bodyData.pgp === 'encrypted') {
+          try {
+            encrypted = await encryptedDraftFields(message.id);
+          } catch (err) {
+            addNotification({
+              type: 'error', title: message.subject || t('common.noSubject'), allowWrap: true,
+              body: err?.code === 'hasAttachments' ? t('pgp.draft.hasAttachments') : t('pgp.draft.openFailed'),
+            });
+            selectListedMessage(useStore, message.id);
+            return;
+          }
+        }
         const raw = bodyData.html || bodyData.text || '';
         const { body, signature, inline } = bodyData.html
           ? splitDraftSignature(raw)
@@ -2614,6 +2630,7 @@ function MailboxList() {
           // Saving the reopened draft replaces it, and compose saves no attachments, so a draft
           // with any opened as if it had none lost them on the next save.
           ...draftAttachmentFields(message, bodyData),
+          ...(encrypted || {}),
         });
       } catch (err) {
         console.error('Failed to open draft:', err.message);

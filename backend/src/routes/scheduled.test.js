@@ -63,8 +63,8 @@ describe('POST /scheduled checks before storing anything', () => {
     [{ sendAt: 'tomorrow-ish' }, 400, 'sendAt must be a date and time'],
     [{ accountId: 'not-an-id' }, 400, 'accountId is invalid'],
     [{ aliasId: 'not-an-id' }, 400, 'aliasId is invalid'],
-    // Stored as plain content, it would go out later without its encryption.
-    [{ pgp: { encrypted: '-----BEGIN PGP MESSAGE-----\n\nwV4D\n-----END PGP MESSAGE-----' } }, 400, 'An encrypted message cannot be scheduled'],
+    // Encrypted, its files go inside the encryption; next to it they would be stored in the clear.
+    [{ pgp: { encrypted: '-----BEGIN PGP MESSAGE-----\n\nwV4D\n-----END PGP MESSAGE-----' }, attachments: [{ filename: 'a.pdf', content: 'AAAA' }] }, 400, 'An encrypted message carries its attachments inside the encryption'],
   ])('%j: %i %s', async (extra, status, error) => {
     const r = await call('POST', '', createBody(extra));
     expect(r).toMatchObject({ status, body: { error } });

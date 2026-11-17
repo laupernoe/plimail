@@ -2773,7 +2773,6 @@
       "subjectNote": "Temat nie jest szyfrowany.",
       "stillChecking": "Klucze odbiorców są nadal wyszukiwane. Spróbuj ponownie za chwilę.",
       "needPassphrase": "Wpisz frazę hasła swojego klucza, aby podpisać, albo wyłącz podpisywanie.",
-      "noSchedule": "Zaszyfrowanej wiadomości nie można zaplanować. Wyślij ją teraz albo wyłącz szyfrowanie.",
       "errorForwarded": "Załączników z przesyłanych dalej wiadomości nie można szyfrować. Usuń je albo pobierz i dołącz ponownie.",
       "errorTooLarge": "Zaszyfrowane załączniki mogą mieć łącznie najwyżej 24 MB.",
       "errorEncrypt": "Nie udało się zaszyfrować wiadomości. Nic nie zostało wysłane.",
@@ -2817,6 +2816,12 @@
       "body": "Twój klucz dla {{email}} jest zablokowany poprzednim hasłem do Plimaila. Zaszyfrowanej dla niego poczty nie da się czytać, dopóki go nie odzyskasz, i nie jest już publikowany. Odzyskaj go starym hasłem albo utwórz nowy klucz (stary zostanie dla poczty, którą jeszcze otwiera).",
       "recover": "Odzyskaj starym hasłem",
       "newKey": "Utwórz nowy klucz"
+    },
+    "draft": {
+      "notSaved": "Wersja robocza nie została zapisana: nie udało się jej zaszyfrować. Nic nie zostało zapisane bez szyfrowania.",
+      "notSavedNoKey": "Wersja robocza nie została zapisana: zaszyfrowane wersje robocze wymagają własnego klucza dla tego adresu. Nic nie zostało zapisane bez szyfrowania.",
+      "openFailed": "Nie udało się otworzyć tej zaszyfrowanej wersji roboczej do edycji. Zamiast tego jest wyświetlana w czytniku.",
+      "hasAttachments": "Ta zaszyfrowana wersja robocza ma załączniki, których Plimail nie może zachować w wersji roboczej, więc jest wyświetlana w czytniku zamiast otwierać się do edycji."
     }
   }
 }

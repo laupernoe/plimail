@@ -3,6 +3,7 @@ import { api } from './api.js';
 import { useStore } from '../store/index.js';
 import { groupsMessageList } from './conversationMode.js';
 import { savedDraftToComposeData } from './openSavedDraft.js';
+import { encryptedDraftFields } from './encryptedDraftOpen.js';
 
 let requestSequence = 0;
 let manualRequest = 0;
@@ -62,7 +63,18 @@ export async function openReplyDraft(messageId, { automatic = false, liveResult,
       : await api.getReplyDraft(messageId, { ...scope, open: true });
     if (!current()) return cancelled();
     if (!result.draft) { useStore.getState().setReplyDraftStatus(messageId, { exists: false }, 'live', useStore.getState().replyDraftRevision); notice(i18n.t('messageList.replyDraftUnavailable')); return false; }
-    let data = savedDraftToComposeData(result.draft, result.body, useStore.getState().accounts);
+    // A draft saved encrypted reopens decrypted and encrypted (utils/pgpDraft.js). Opened on its
+    // own, it never asks for the password: it waits for the user to open it.
+    const composeDataOf = async r => ({
+      ...savedDraftToComposeData(r.draft, r.body, useStore.getState().accounts),
+      ...(r.body?.pgp === 'encrypted' ? await encryptedDraftFields(r.draft.id, { prompt: !automatic }) : {}),
+    });
+    let data;
+    try { data = await composeDataOf(result); } catch (err) {
+      if (automatic) return false;
+      notice(err?.code === 'hasAttachments' ? i18n.t('pgp.draft.hasAttachments') : i18n.t('pgp.draft.openFailed'));
+      return false;
+    }
     if (initial.composing && initial.composeData?.persistedKey === data.persistedKey) {
       if (!automatic) useStore.setState({ composeData: { ...useStore.getState().composeData, source: 'manualReplyDraft' } });
       return true;
@@ -76,7 +88,7 @@ export async function openReplyDraft(messageId, { automatic = false, liveResult,
       result = await api.getReplyDraft(messageId, { ...scope, open: true });
       if (!current()) return cancelled();
       if (!result.draft || identity(result.draft) !== expected) { notice(i18n.t('messageList.replyDraftChanged')); return false; }
-      data = savedDraftToComposeData(result.draft, result.body, useStore.getState().accounts);
+      try { data = await composeDataOf(result); } catch { notice(i18n.t('pgp.draft.openFailed')); return false; }
     }
     if (!current()) return cancelled();
     useStore.getState().setReplyDraftStatus(messageId, { exists: true, accountId: result.draft.account_id }, 'live', useStore.getState().replyDraftRevision);

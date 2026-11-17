@@ -2754,7 +2754,6 @@
       "subjectNote": "L'objet n'est pas chiffré.",
       "stillChecking": "Recherche des clés des destinataires en cours. Réessayez dans un instant.",
       "needPassphrase": "Saisissez la phrase secrète de votre clé pour signer, ou désactivez la signature.",
-      "noSchedule": "Un message chiffré ne peut pas être programmé. Envoyez-le maintenant ou désactivez le chiffrement.",
       "errorForwarded": "Les pièces jointes de messages transférés ne peuvent pas être chiffrées. Retirez-les, ou téléchargez-les et joignez-les à nouveau.",
       "errorTooLarge": "Les pièces jointes chiffrées sont limitées à 24 Mo au total.",
       "errorEncrypt": "Impossible de chiffrer le message. Rien n'a été envoyé.",
@@ -2798,6 +2797,12 @@
       "body": "Votre clé pour {{email}} est verrouillée par un ancien mot de passe Plimail. Les messages chiffrés pour elle ne peuvent pas être lus tant qu’elle n’est pas récupérée, et elle n’est plus publiée. Récupérez-la avec l’ancien mot de passe, ou créez une nouvelle clé (l’ancienne est gardée pour les messages qu’elle peut encore ouvrir).",
       "recover": "Récupérer avec l’ancien mot de passe",
       "newKey": "Créer une nouvelle clé"
+    },
+    "draft": {
+      "notSaved": "Brouillon non enregistré : il n’a pas pu être chiffré. Rien n’a été enregistré en clair.",
+      "notSavedNoKey": "Brouillon non enregistré : un brouillon chiffré demande une clé à vous pour cette adresse. Rien n’a été enregistré en clair.",
+      "openFailed": "Ce brouillon chiffré n’a pas pu être ouvert pour modification. Il est affiché dans le lecteur à la place.",
+      "hasAttachments": "Ce brouillon chiffré contient des pièces jointes que Plimail ne peut pas garder dans un brouillon : il est affiché dans le lecteur au lieu d’être ouvert pour modification."
     }
   }
 }

@@ -2754,7 +2754,6 @@
       "subjectNote": "Der Betreff wird nicht verschlüsselt.",
       "stillChecking": "Die Schlüssel der Empfänger werden noch gesucht. Versuchen Sie es gleich noch einmal.",
       "needPassphrase": "Geben Sie das Passwort Ihres Schlüssels zum Signieren ein oder schalten Sie das Signieren aus.",
-      "noSchedule": "Eine verschlüsselte Nachricht kann nicht geplant werden. Senden Sie sie jetzt oder schalten Sie die Verschlüsselung aus.",
       "errorForwarded": "Anhänge aus weitergeleiteten Nachrichten können nicht verschlüsselt werden. Entfernen Sie sie oder laden Sie sie herunter und hängen Sie sie erneut an.",
       "errorTooLarge": "Verschlüsselte Anhänge sind insgesamt auf 24 MB begrenzt.",
       "errorEncrypt": "Die Nachricht konnte nicht verschlüsselt werden. Es wurde nichts gesendet.",
@@ -2798,6 +2797,12 @@
       "body": "Ihr Schlüssel für {{email}} ist mit einem früheren Plimail-Passwort gesperrt. An ihn verschlüsselte Nachrichten können erst nach der Wiederherstellung gelesen werden, und er wird nicht mehr veröffentlicht. Stellen Sie ihn mit dem alten Passwort wieder her oder erstellen Sie einen neuen Schlüssel (der alte bleibt für die Nachrichten, die er noch öffnen kann).",
       "recover": "Mit dem alten Passwort wiederherstellen",
       "newKey": "Neuen Schlüssel erstellen"
+    },
+    "draft": {
+      "notSaved": "Entwurf nicht gespeichert: Er konnte nicht verschlüsselt werden. Nichts wurde unverschlüsselt gespeichert.",
+      "notSavedNoKey": "Entwurf nicht gespeichert: Verschlüsselte Entwürfe brauchen einen eigenen Schlüssel für diese Adresse. Nichts wurde unverschlüsselt gespeichert.",
+      "openFailed": "Dieser verschlüsselte Entwurf konnte nicht zum Bearbeiten geöffnet werden. Er wird stattdessen in der Leseansicht angezeigt.",
+      "hasAttachments": "Dieser verschlüsselte Entwurf hat Anhänge, die Plimail in einem Entwurf nicht behalten kann. Er wird daher in der Leseansicht angezeigt statt zum Bearbeiten geöffnet."
     }
   }
 }

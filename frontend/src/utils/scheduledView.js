@@ -280,7 +280,9 @@ export function composeDataFromScheduled(detail) {
       version: detail.version,
       sendAt: detail.sendAt,
       timeZone: detail.timeZone ?? null,
-      attachments: (detail.attachments || []).map(a => ({
+      // An encrypted message's ciphertext is not a file of it: the composer gets what is inside
+      // (encryptedScheduledFields), and the edit is encrypted again.
+      attachments: (detail.attachments || []).filter(a => a.kind !== 'pgp').map(a => ({
         index: a.index, filename: a.filename, size: a.size, contentType: a.contentType, kind: a.kind,
       })),
     },

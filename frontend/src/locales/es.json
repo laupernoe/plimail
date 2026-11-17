@@ -2754,7 +2754,6 @@
       "subjectNote": "El asunto no se cifra.",
       "stillChecking": "Aún se buscan las claves de los destinatarios. Inténtalo de nuevo en un momento.",
       "needPassphrase": "Introduce la frase de contraseña de tu clave para firmar o desactiva la firma.",
-      "noSchedule": "Un mensaje cifrado no se puede programar. Envíalo ahora o desactiva el cifrado.",
       "errorForwarded": "Los adjuntos de mensajes reenviados no se pueden cifrar. Quítalos, o descárgalos y adjúntalos de nuevo.",
       "errorTooLarge": "Los adjuntos cifrados están limitados a 24 MB en total.",
       "errorEncrypt": "No se pudo cifrar el mensaje. No se envió nada.",
@@ -2798,6 +2797,12 @@
       "body": "Su clave para {{email}} está bloqueada por una contraseña anterior de Plimail. El correo cifrado para ella no puede leerse hasta recuperarla, y ya no se publica. Recupérela con la contraseña antigua o cree una clave nueva (la antigua se conserva para el correo que aún puede abrir).",
       "recover": "Recuperar con la contraseña antigua",
       "newKey": "Crear una clave nueva"
+    },
+    "draft": {
+      "notSaved": "Borrador no guardado: no se pudo cifrar. No se guardó nada sin cifrar.",
+      "notSavedNoKey": "Borrador no guardado: los borradores cifrados necesitan una clave propia para esta dirección. No se guardó nada sin cifrar.",
+      "openFailed": "Este borrador cifrado no se pudo abrir para editarlo. Se muestra en el lector en su lugar.",
+      "hasAttachments": "Este borrador cifrado tiene adjuntos que Plimail no puede conservar en un borrador, así que se muestra en el lector en lugar de abrirse para editarlo."
     }
   }
 }

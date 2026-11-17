@@ -14,6 +14,7 @@ import {
   replaceContent, sealJson, storeScheduledMessage,
 } from '../services/scheduledSend.js';
 import { attachmentDisposition } from '../utils/contentDisposition.js';
+import { PGP_ENCRYPTED_SNIPPET } from '../services/pgpDetect.js';
 import { imapManager } from '../index.js';
 
 // The scheduled messages API (#543, design section 2). Every route is the signed-in user's:
@@ -136,9 +137,6 @@ function snippetOf(input) {
 // parts and messages fetched now (open question 12) and the Message-ID fixed (design 4.1).
 // `messageId` keeps an existing one unless From moved to another domain.
 async function buildSpec(userId, body, { messageId } = {}) {
-  // What a scheduled message stores is its plain content, so an encrypted one cannot be kept for
-  // later: refused, rather than sent later without its encryption.
-  if (body?.pgp != null) throw new SendError(400, 'An encrypted message cannot be scheduled');
   const input = validateSendInput(body);
   if (!UUID_RE.test(String(input.accountId))) throw new SendError(400, 'accountId is invalid');
   if (input.aliasId && !UUID_RE.test(String(input.aliasId))) throw new SendError(400, 'aliasId is invalid');
@@ -159,21 +157,28 @@ async function buildSpec(userId, body, { messageId } = {}) {
     cc: input.cc,
     bcc: input.bcc,
     subject: input.subject,
-    body: input.body ?? '',
+    body: input.pgp ? '' : input.body ?? '',
     bodyIsHtml: input.bodyIsHtml === true,
-    quotedBody: input.quotedBody ?? null,
-    quotedBodyHtml: input.quotedBodyHtml ?? null,
-    signature: identity.signature ?? null,
+    quotedBody: input.pgp ? null : input.quotedBody ?? null,
+    quotedBodyHtml: input.pgp ? null : input.quotedBodyHtml ?? null,
+    // An encrypted message's signature is inside its encryption.
+    signature: input.pgp ? null : identity.signature ?? null,
     plaintextEmail: identity.plaintextEmail === true,
     inReplyTo: input.inReplyTo ?? null,
     references: input.references ?? null,
     priority: input.priority,
+    // Encrypted in the browser (RFC 3156, as Send sends it): its ciphertext is the 'pgp' attachment
+    // below, sent as it is at the time. The server never has its text.
+    ...(input.pgp ? { pgp: true } : {}),
     ...(body.compose && typeof body.compose === 'object' && !Array.isArray(body.compose) ? { compose: body.compose } : {}),
   };
   if (Buffer.byteLength(JSON.stringify(payload), 'utf8') > LIMITS.payloadBytes) {
     throw Object.assign(new SendError(413, 'The message is too large to schedule: its text and inline images may take at most 10 MB.'), { code: 'payload_too_large' });
   }
   const attachments = [
+    ...(input.pgp ? [{
+      filename: 'encrypted.asc', contentType: 'application/pgp-encrypted', kind: 'pgp', content: Buffer.from(input.pgp.encrypted, 'latin1'),
+    }] : []),
     ...(input.attachments || []).map(a => ({
       filename: a.filename, contentType: (typeof a.contentType === 'string' && headerSafe(a.contentType)) || 'application/octet-stream',
       kind: 'upload', content: Buffer.from(a.content, 'base64'),
@@ -190,7 +195,7 @@ function summaryOf(input, attachmentCount) {
     to: input.to,
     ccCount: input.cc.length,
     bccCount: input.bcc.length,
-    snippet: snippetOf(input),
+    snippet: input.pgp ? PGP_ENCRYPTED_SNIPPET : snippetOf(input),
     attachmentCount,
   };
 }
@@ -578,11 +583,16 @@ router.put('/scheduled/:id', validId, async (req, res) => {
       if (confirmation) return { confirmation };
       const kept = keep.length ? (await readAttachments(client, row)).filter(a => keep.includes(a.index)) : [];
       if (kept.length !== new Set(keep).size) throw new SendError(400, 'keepAttachments names an attachment the message does not have');
+      // An edit of an encrypted message comes encrypted again, its files inside: an old ciphertext
+      // kept next to it would be a second message, or one in the clear next to plain text.
+      if (kept.some(a => a.meta.kind === 'pgp')) throw new SendError(400, 'keepAttachments names the encrypted message itself');
+      if (spec.input.pgp && kept.length) throw new SendError(400, 'An encrypted message carries its attachments inside the encryption');
       const attachments = [
         ...kept.map(({ meta, content }) => ({ filename: meta.filename, contentType: meta.contentType, disposition: meta.disposition, kind: meta.kind, content })),
         ...spec.attachments,
       ];
-      if (attachments.reduce((sum, a) => sum + a.content.length, 0) > LIMITS.attachmentBytes) {
+      // The ciphertext is bounded on its own (checkedPgpArmor): armor makes it a third larger.
+      if (attachments.filter(a => a.kind !== 'pgp').reduce((sum, a) => sum + a.content.length, 0) > LIMITS.attachmentBytes) {
         throw new SendError(400, 'Total attachment size exceeds 25 MB');
       }
       await checkUserLimits(client, userId, { adding: 1, addingBytes: bytesOf(spec.payload, attachments), exceptId: row.id });

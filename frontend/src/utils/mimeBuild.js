@@ -129,8 +129,9 @@ export function extractDataImages(html) {
 
 // The whole entity. `headers` are the protected headers (draft-ietf-lamps-header-protection):
 // Subject, From, To, Cc as the message has them, so a reader that supports them shows them from
-// inside the encryption. html may be null for a plain-text message.
-export function buildMimeEntity({ html = null, text = '', attachments = [], headers = null }) {
+// inside the encryption. html may be null for a plain-text message. `extraHeaders` are more
+// header lines for the top entity, written as given (an encrypted draft's own mark).
+export function buildMimeEntity({ html = null, text = '', attachments = [], headers = null, extraHeaders = [] }) {
   let body;
   const textNode = textPart('text/plain', text || '');
   if (html) {
@@ -153,7 +154,7 @@ export function buildMimeEntity({ html = null, text = '', attachments = [], head
   // always when it carries protected headers, which belong on a multipart (the convention).
   const bodyPart = body.single || `${body.header}${CRLF}${CRLF}${body.body}`;
   const mixed = multipart('mixed', [bodyPart, ...attachments.map(a => filePart(a))], headers ? `;${CRLF} protected-headers="v1"` : '');
-  return [mixed.header, ...protectedHeaders, 'MIME-Version: 1.0', '', mixed.body, ''].join(CRLF);
+  return [mixed.header, ...protectedHeaders, ...extraHeaders, 'MIME-Version: 1.0', '', mixed.body, ''].join(CRLF);
 }
 
 export function entityBytes(entity) {
