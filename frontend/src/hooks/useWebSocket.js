@@ -299,6 +299,16 @@ export function useWebSocket() {
         break;
       }
 
+      case 'mail_import_progress': {
+        // A bulk import (see mailTransfer.js route) reports how far it is; the import dialog listens.
+        window.dispatchEvent(new CustomEvent('plimail:mail_import_progress', { detail: data }));
+        if (data.done) {
+          window.dispatchEvent(new CustomEvent('mailflow:refresh'));
+          api.getUnreadCounts().then(_applyServerCounts).catch(() => {});
+        }
+        break;
+      }
+
       case 'rules_run_complete': {
         // Background "Run rules on inbox" finished (see rules.js /run). Toast the outcome,
         // hand the counts to the settings panel if it is open, and refresh views and

@@ -60,6 +60,7 @@ import {
 } from '../utils/threadedArchive.js';
 import { createUndoableCommit, holdUndoable, releaseUndoable, UNDO_COMMIT_DELAY_MS } from '../utils/undoableAction.js';
 import { resolveConversationSelection, selectListedMessage } from '../utils/conversation.js';
+import { saveBlob, selectionExportName } from '../utils/mailTransfer.js';
 
 // Folder icon for move picker
 function FolderIcon({ specialUse, size = 13 }) {
@@ -2462,6 +2463,13 @@ function MailboxList() {
         store.setShowAdmin(true);
         break;
       }
+      case 'exportSelection': {
+        if (!selectedIds.has(message.id)) break;
+        api.exportSelection([...selectedIds])
+          .then(blob => saveBlob(blob, selectionExportName()))
+          .catch(err => addNotification({ type: 'error', title: t('mailTransfer.selectionFailed'), body: err.message }));
+        break;
+      }
       case 'addToBlockList': {
         const email = message.from_email;
         if (!email) break;
@@ -4069,6 +4077,7 @@ function MailboxList() {
             message={contextMenu.message}
             defaultMoveView={contextMenu.defaultMoveView}
             defaultSnoozeView={contextMenu.defaultSnoozeView}
+            selectionCount={selectedIds.has(contextMenu.message.id) ? selectedIds.size : 0}
             onClose={() => setContextMenu(null)}
             onAction={(action, data) => handleContextAction(action, contextMenu.message, data)}
           />

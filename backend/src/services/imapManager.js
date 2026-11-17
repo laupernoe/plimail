@@ -6089,6 +6089,83 @@ export class ImapManager {
     return { uid, folder };
   }
 
+  // Mail import (mailImport.js): appends a batch to `folder` in one session, each message with its
+  // own internal date and flags, and answers per message { status: 'imported' | 'duplicate' | 'failed',
+  // reason }. A message whose Message-ID the server already has in the folder is not appended
+  // again: the database is only a cache of the folder, so an earlier, interrupted import may have
+  // stored mail it has not synced yet. This only ever APPENDs and SEARCHes. When the connection
+  // breaks the error carries the results so far (partialResults), so what was stored is still
+  // counted. No stall timeout, for the reason given in appendToFolder.
+  async appendImportBatch(account, folder, items) {
+    const results = [];
+    try {
+      await withFreshClient(account, async (client) => {
+        const lock = await client.getMailboxLock(folder);
+        try {
+          for (const item of items) {
+            try {
+              if (item.messageId) {
+                const found = await client.search({ header: { 'message-id': item.messageId } }, { uid: true });
+                if (Array.isArray(found) && found.length > 0) { results.push({ status: 'duplicate' }); continue; }
+              }
+              const result = await client.append(folder, item.raw, item.flags || [], item.date || undefined);
+              if (result === false) throw new Error('The server did not confirm it stored the message');
+              results.push({ status: 'imported', uid: typeof result?.uid === 'number' ? result.uid : null });
+            } catch (err) {
+              results.push({ status: 'failed', reason: extractImapError(err) });
+              if (!client.usable) throw err;
+            }
+          }
+        } finally {
+          try { lock.release(); } catch { /* the connection is already gone */ }
+        }
+      }, { stallTimeout: false });
+    } catch (err) {
+      err.partialResults = results;
+      throw err;
+    }
+    console.log(`Imported ${results.filter(r => r.status === 'imported').length}/${items.length} into ${logAccount(account)}/${folder}`);
+    return results;
+  }
+
+  // Every UID in a folder, ascending, for an export. Asked of the server, not read from the
+  // database: the database is a cache, and an export that quietly left out mail it had not
+  // synced yet would look complete.
+  async listFolderUids(account, folder) {
+    return withFreshClient(account, async (client) => {
+      const lock = await client.getMailboxLock(folder);
+      try {
+        const uids = await client.search({ all: true }, { uid: true });
+        return Array.isArray(uids) ? uids.sort((a, b) => a - b) : [];
+      } finally {
+        lock.release();
+      }
+    });
+  }
+
+  // The raw source, internal date and flags of a few messages, for an export. The caller keeps the
+  // batch small, because it is held in memory. A UID that is gone is left out of the answer.
+  async fetchRawBatch(account, folder, uids) {
+    return withFreshClient(account, async (client) => {
+      const lock = await client.getMailboxLock(folder);
+      try {
+        const out = [];
+        for await (const msg of client.fetch(uids.join(','), { uid: true, source: true, internalDate: true, flags: true }, { uid: true })) {
+          if (!msg.source) continue;
+          out.push({
+            uid: msg.uid,
+            source: Buffer.isBuffer(msg.source) ? msg.source : Buffer.from(msg.source),
+            internalDate: msg.internalDate instanceof Date ? msg.internalDate : null,
+            flags: msg.flags instanceof Set ? msg.flags : new Set(),
+          });
+        }
+        return out.sort((a, b) => a.uid - b.uid);
+      } finally {
+        lock.release();
+      }
+    });
+  }
+
   async appendToSent(account, folder, rawMessage) {
     return this.appendToFolder(account, folder, rawMessage, ['\\Seen']);
   }

@@ -711,7 +711,9 @@
       "syncFolder": "폴더 동기화",
       "createSubfolder": "하위 폴더 만들기",
       "hide": "폴더 숨기기",
-      "unhide": "폴더 숨기기 해제"
+      "unhide": "폴더 숨기기 해제",
+      "export": "폴더 내보내기…",
+      "import": "메시지 가져오기…"
     },
     "hiddenFolders_other": "{{count}} 숨겨진 폴더",
     "blockImages": "이미지 차단",
@@ -929,7 +931,8 @@
       "empty": "폴더를 찾을 수 없습니다.",
       "back": "폴더로 이동",
       "search": "폴더 검색…"
-    }
+    },
+    "exportSelection": "선택한 메일 내보내기 (.mbox)"
   },
   "commandPalette": {
     "labelPicker": {
@@ -2936,5 +2939,39 @@
       "openFailed": "이 암호화된 임시 메일을 편집하기 위해 열 수 없습니다. 대신 읽기 화면에 표시됩니다.",
       "hasAttachments": "이 암호화된 임시 메일에는 Plimail이 임시 메일에 보관할 수 없는 첨부 파일이 있어, 편집하는 대신 읽기 화면에 표시됩니다."
     }
+  },
+  "mailTransfer": {
+    "exportTitle": "{{name}} 내보내기",
+    "importTitle": "{{name}}(으)로 가져오기",
+    "exportIntro": "메시지는 메일 서버에서 읽어 오는 대로 다운로드됩니다. 큰 폴더는 시간이 걸립니다.",
+    "formatMbox": ".mbox 파일 하나",
+    "formatMboxHint": "mboxrd 형식이며 Thunderbird와 대부분의 메일 클라이언트에서 열 수 있습니다",
+    "formatZip": "여러 .eml 파일이 담긴 .zip",
+    "formatZipHint": "메시지당 파일 하나",
+    "exportStart": "내보내기",
+    "exportStarted": "다운로드가 시작되었습니다. 큰 폴더는 한동안 계속 다운로드됩니다. 끝날 때까지 이 페이지를 열어 두세요.",
+    "importIntro": ".mbox 파일 하나 또는 .eml 파일 여러 개를 선택하세요. 메시지는 원래 날짜로 추가됩니다. 폴더에 이미 있는 항목은 변경되거나 삭제되지 않습니다.",
+    "chooseFiles": "파일 선택…",
+    "noFiles": "선택한 파일 없음",
+    "filesChosen": "파일 {{count}}개 선택됨",
+    "destination": "대상 폴더",
+    "markRead": "파일에 읽음 여부가 없으면 가져온 메일을 읽음으로 표시",
+    "importStart": "가져오기",
+    "importing": "가져오는 중",
+    "fileOf": "파일 {{current}} / {{total}}",
+    "liveCounts": "{{imported}}개 가져옴, {{duplicates}}개 이미 있음, {{failed}}개 실패",
+    "reportTitle": "가져오기 완료",
+    "reportImported": "가져옴",
+    "reportDuplicates": "건너뜀, 이미 폴더에 있음",
+    "reportFailed": "실패",
+    "failuresTitle": "실패 목록",
+    "failuresMore": "나머지 실패 {{count}}건은 표시되지 않습니다.",
+    "abortedTooLarge": "중지됨: 파일이 서버에 설정된 크기 제한을 초과합니다.",
+    "abortedImap": "중지됨: 메일 서버가 계속 메시지를 거부했습니다.",
+    "abortedCancelled": "파일 끝나기 전에 중지됨.",
+    "abortedError": "중지됨: {{reason}}",
+    "unsupportedFile": ".mbox 또는 .eml 파일이 아닙니다",
+    "close": "닫기",
+    "selectionFailed": "선택한 메일을 내보낼 수 없습니다"
   }
 }

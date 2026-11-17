@@ -732,7 +732,9 @@
       "hide": "Ukryj folder",
       "unhide": "Pokaż folder",
       "empty": "Opróżnij folder",
-      "delete": "Usuń folder"
+      "delete": "Usuń folder",
+      "export": "Eksportuj folder…",
+      "import": "Importuj wiadomości…"
     },
     "accountMenu": {
       "newFolder": "Nowy folder",
@@ -945,7 +947,8 @@
       "favorites": "Ulubione",
       "search": "Szukaj folderów…"
     },
-    "copyLink": "Kopiuj link"
+    "copyLink": "Kopiuj link",
+    "exportSelection": "Eksportuj zaznaczone wiadomości (.mbox)"
   },
   "commandPalette": {
     "labelPicker": {
@@ -2955,5 +2958,39 @@
       "openFailed": "Nie udało się otworzyć tej zaszyfrowanej wersji roboczej do edycji. Zamiast tego jest wyświetlana w czytniku.",
       "hasAttachments": "Ta zaszyfrowana wersja robocza ma załączniki, których Plimail nie może zachować w wersji roboczej, więc jest wyświetlana w czytniku zamiast otwierać się do edycji."
     }
+  },
+  "mailTransfer": {
+    "exportTitle": "Eksportuj: {{name}}",
+    "importTitle": "Importuj do: {{name}}",
+    "exportIntro": "Wiadomości są odczytywane z Twojego serwera poczty i pobierane na bieżąco. Duży folder zajmuje trochę czasu.",
+    "formatMbox": "Jeden plik .mbox",
+    "formatMboxHint": "Format mboxrd, otwiera się w Thunderbirdzie i większości programów pocztowych",
+    "formatZip": "Archiwum .zip z plikami .eml",
+    "formatZipHint": "Jeden plik na wiadomość",
+    "exportStart": "Eksportuj",
+    "exportStarted": "Pobieranie się rozpoczęło. Duży folder pobiera się jeszcze jakiś czas; nie zamykaj tej strony do końca.",
+    "importIntro": "Wybierz plik .mbox albo jeden lub więcej plików .eml. Wiadomości są dodawane z oryginalną datą. Nic, co już jest w folderze, nie jest zmieniane ani usuwane.",
+    "chooseFiles": "Wybierz pliki…",
+    "noFiles": "Nie wybrano pliku",
+    "filesChosen": "Wybrane pliki: {{count}}",
+    "destination": "Folder docelowy",
+    "markRead": "Oznacz importowane wiadomości jako przeczytane, chyba że plik zapisuje, czy były przeczytane",
+    "importStart": "Importuj",
+    "importing": "Trwa import",
+    "fileOf": "Plik {{current}} z {{total}}",
+    "liveCounts": "Zaimportowano: {{imported}}, już były: {{duplicates}}, błędy: {{failed}}",
+    "reportTitle": "Import zakończony",
+    "reportImported": "Zaimportowano",
+    "reportDuplicates": "Pominięto, już są w folderze",
+    "reportFailed": "Niepowodzenia",
+    "failuresTitle": "Błędy",
+    "failuresMore": "Pozostałe błędy ({{count}}) nie są wyświetlone.",
+    "abortedTooLarge": "Zatrzymano: plik przekracza limit rozmiaru ustawiony na serwerze.",
+    "abortedImap": "Zatrzymano: serwer poczty wciąż odrzucał wiadomości.",
+    "abortedCancelled": "Zatrzymano przed końcem pliku.",
+    "abortedError": "Zatrzymano: {{reason}}",
+    "unsupportedFile": "To nie jest plik .mbox ani .eml",
+    "close": "Zamknij",
+    "selectionFailed": "Nie udało się wyeksportować zaznaczonych wiadomości"
   }
 }

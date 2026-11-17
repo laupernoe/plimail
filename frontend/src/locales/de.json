@@ -716,7 +716,9 @@
       "hide": "Ordner ausblenden",
       "unhide": "Ordner einblenden",
       "empty": "Ordner leeren",
-      "delete": "Ordner löschen"
+      "delete": "Ordner löschen",
+      "export": "Ordner exportieren…",
+      "import": "Nachrichten importieren…"
     },
     "accountMenu": {
       "newFolder": "Neuer Ordner",
@@ -929,7 +931,8 @@
     "createRule": "Regel aus Nachricht erstellen",
     "addToBlockList": "Zur Blockliste hinzufügen",
     "markAsSpam": "Als Spam markieren",
-    "markAsHam": "Als kein Spam markieren"
+    "markAsHam": "Als kein Spam markieren",
+    "exportSelection": "Ausgewählte Nachrichten exportieren (.mbox)"
   },
   "commandPalette": {
     "labelPicker": {
@@ -2936,5 +2939,39 @@
       "openFailed": "Dieser verschlüsselte Entwurf konnte nicht zum Bearbeiten geöffnet werden. Er wird stattdessen in der Leseansicht angezeigt.",
       "hasAttachments": "Dieser verschlüsselte Entwurf hat Anhänge, die Plimail in einem Entwurf nicht behalten kann. Er wird daher in der Leseansicht angezeigt statt zum Bearbeiten geöffnet."
     }
+  },
+  "mailTransfer": {
+    "exportTitle": "{{name}} exportieren",
+    "importTitle": "In {{name}} importieren",
+    "exportIntro": "Die Nachrichten werden von Ihrem Mailserver gelesen und laufend heruntergeladen. Ein großer Ordner dauert eine Weile.",
+    "formatMbox": "Eine einzelne .mbox-Datei",
+    "formatMboxHint": "mboxrd-Format, lässt sich in Thunderbird und den meisten Mailprogrammen öffnen",
+    "formatZip": "Eine .zip-Datei mit .eml-Dateien",
+    "formatZipHint": "Eine Datei pro Nachricht",
+    "exportStart": "Exportieren",
+    "exportStarted": "Der Download hat begonnen. Bei einem großen Ordner dauert er noch eine Weile; lassen Sie diese Seite bis zum Ende geöffnet.",
+    "importIntro": "Wählen Sie eine .mbox-Datei oder eine oder mehrere .eml-Dateien. Die Nachrichten werden mit ihrem ursprünglichen Datum hinzugefügt. Was bereits im Ordner liegt, wird weder geändert noch gelöscht.",
+    "chooseFiles": "Dateien wählen…",
+    "noFiles": "Keine Datei gewählt",
+    "filesChosen": "{{count}} Dateien gewählt",
+    "destination": "Zielordner",
+    "markRead": "Importierte Nachrichten als gelesen markieren, sofern die Datei nicht festhält, ob sie gelesen wurden",
+    "importStart": "Importieren",
+    "importing": "Import läuft",
+    "fileOf": "Datei {{current}} von {{total}}",
+    "liveCounts": "{{imported}} importiert, {{duplicates}} bereits vorhanden, {{failed}} fehlgeschlagen",
+    "reportTitle": "Import abgeschlossen",
+    "reportImported": "Importiert",
+    "reportDuplicates": "Übersprungen, bereits im Ordner",
+    "reportFailed": "Fehlgeschlagen",
+    "failuresTitle": "Fehler",
+    "failuresMore": "{{count}} weitere Fehler sind nicht aufgeführt.",
+    "abortedTooLarge": "Abgebrochen: Die Datei überschreitet die auf dem Server festgelegte Größenbeschränkung.",
+    "abortedImap": "Abgebrochen: Der Mailserver hat die Nachrichten immer wieder abgelehnt.",
+    "abortedCancelled": "Vor dem Ende der Datei abgebrochen.",
+    "abortedError": "Abgebrochen: {{reason}}",
+    "unsupportedFile": "Keine .mbox- oder .eml-Datei",
+    "close": "Schließen",
+    "selectionFailed": "Die ausgewählten Nachrichten konnten nicht exportiert werden"
   }
 }

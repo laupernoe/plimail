@@ -64,14 +64,14 @@ const ContextMenu = (await import('./ContextMenu.jsx')).default;
 
 const ACCOUNT = { id: 'acct-1', email_address: 'a@example.com', name: 'A', enabled: true };
 let root;
-async function openMenu(message) {
+async function openMenu(message, extra = {}) {
   if (root) await React.act(async () => root.unmount());
   useStore.setState({ accounts: [ACCOUNT], categorizationEnabled: true, folders: {} });
   const calls = [];
   await React.act(async () => {
     root = createRoot(dom.window.document.getElementById('root'));
     root.render(React.createElement(ContextMenu, {
-      x: 10, y: 10, message, onClose: () => {}, onAction: (...args) => calls.push(args),
+      x: 10, y: 10, message, onClose: () => {}, onAction: (...args) => calls.push(args), ...extra,
     }));
   });
   return calls;
@@ -116,6 +116,22 @@ describe('ContextMenu — Forward as attachment (#466)', () => {
     const calls = await openMenu({ id: 'm1', account_id: 'acct-1', folder: 'INBOX', from_email: 'a@b.example', is_read: true });
     await click('contextMenu.forwardAsAttachment');
     assert.deepEqual(calls, [['forwardAsAttachment']]);
+  });
+});
+
+describe('ContextMenu — export of a selection', () => {
+  const MESSAGE = { id: 'm1', account_id: 'acct-1', folder: 'INBOX', from_email: 'a@b.example', is_read: true };
+
+  test('with several messages selected, offers them as one .mbox', async () => {
+    const calls = await openMenu(MESSAGE, { selectionCount: 3 });
+    await click('contextMenu.exportSelection');
+    assert.deepEqual(calls, [['exportSelection']]);
+  });
+
+  test('a single message has its .eml download only', async () => {
+    await openMenu(MESSAGE, { selectionCount: 1 });
+    assert.equal(byText('contextMenu.exportSelection'), undefined);
+    assert.ok(byText('message.downloadEml'));
   });
 });
 

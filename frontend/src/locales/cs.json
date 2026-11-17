@@ -142,7 +142,9 @@
       "hide": "Skrýt složku",
       "unhide": "Zobrazit složku",
       "empty": "Vyprázdnit složku",
-      "delete": "Smazat složku"
+      "delete": "Smazat složku",
+      "export": "Exportovat složku…",
+      "import": "Importovat zprávy…"
     },
     "accountMenu": {
       "newFolder": "Nová složka",
@@ -1012,7 +1014,8 @@
       "recent": "Nedávné",
       "favorites": "Oblíbené",
       "search": "Hledat složky…"
-    }
+    },
+    "exportSelection": "Exportovat vybrané zprávy (.mbox)"
   },
   "shortcuts": {
     "title": "Klávesové zkratky",
@@ -2955,5 +2958,39 @@
       "openFailed": "Tento šifrovaný koncept se nepodařilo otevřít k úpravám. Místo toho se zobrazí ve čtečce.",
       "hasAttachments": "Tento šifrovaný koncept obsahuje přílohy, které Plimail v konceptu nedokáže zachovat, proto se zobrazí ve čtečce místo otevření k úpravám."
     }
+  },
+  "mailTransfer": {
+    "exportTitle": "Export: {{name}}",
+    "importTitle": "Import do: {{name}}",
+    "exportIntro": "Zprávy se čtou z vašeho poštovního serveru a průběžně se stahují. Velká složka chvíli trvá.",
+    "formatMbox": "Jeden soubor .mbox",
+    "formatMboxHint": "Formát mboxrd, otevře se v Thunderbirdu a ve většině poštovních klientů",
+    "formatZip": "Archiv .zip se soubory .eml",
+    "formatZipHint": "Jeden soubor na zprávu",
+    "exportStart": "Exportovat",
+    "exportStarted": "Stahování začalo. Velká složka se stahuje ještě nějakou dobu; nechte tuto stránku otevřenou, dokud neskončí.",
+    "importIntro": "Vyberte soubor .mbox nebo jeden či více souborů .eml. Zprávy se přidají s původním datem. Nic, co už ve složce je, se nemění ani nemaže.",
+    "chooseFiles": "Vybrat soubory…",
+    "noFiles": "Nebyl vybrán žádný soubor",
+    "filesChosen": "Vybrané soubory: {{count}}",
+    "destination": "Cílová složka",
+    "markRead": "Označit importované zprávy jako přečtené, pokud soubor neuvádí, zda byly přečteny",
+    "importStart": "Importovat",
+    "importing": "Probíhá import",
+    "fileOf": "Soubor {{current}} z {{total}}",
+    "liveCounts": "Importováno: {{imported}}, už tam bylo: {{duplicates}}, selhalo: {{failed}}",
+    "reportTitle": "Import dokončen",
+    "reportImported": "Importováno",
+    "reportDuplicates": "Přeskočeno, už ve složce je",
+    "reportFailed": "Selhalo",
+    "failuresTitle": "Chyby",
+    "failuresMore": "Dalších chyb ({{count}}) není uvedeno.",
+    "abortedTooLarge": "Zastaveno: soubor je větší než limit velikosti nastavený na serveru.",
+    "abortedImap": "Zastaveno: poštovní server zprávy stále odmítal.",
+    "abortedCancelled": "Zastaveno před koncem souboru.",
+    "abortedError": "Zastaveno: {{reason}}",
+    "unsupportedFile": "Není to soubor .mbox ani .eml",
+    "close": "Zavřít",
+    "selectionFailed": "Vybrané zprávy se nepodařilo exportovat"
   }
 }
