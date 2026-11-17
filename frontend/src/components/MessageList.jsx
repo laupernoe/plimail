@@ -24,6 +24,8 @@ import ScheduledList from './ScheduledList.jsx';
 import { SCHEDULED_VIEW } from '../utils/scheduledCompose.js';
 import { applyListOrder, isSortableList, listOrderFor } from '../utils/listSort.js';
 import ListSortMenu from './ListSortMenu.jsx';
+import { MoreMenu } from './MessageActions.jsx';
+import { HIT, ICON, RADIUS, TOOLBAR_GAP, iconButtonBox } from '../utils/uiSizes.js';
 import { useListFirst } from '../hooks/useListFirst.js';
 import { useUiScale, descale } from '../hooks/useUiScale.js';
 import { isSelectedRow } from '../utils/messageIdentity.js';
@@ -81,7 +83,8 @@ const MANUAL_SYNC_FALLBACK_MS = [5000, 15000];
 
 // One height for the desktop list toolbar's controls, text and icon alike, so they line up (#766).
 // The mobile toolbar keeps its 44px touch targets.
-const TOOLBAR_CONTROL_HEIGHT = 24;
+const TOOLBAR_CONTROL_HEIGHT = HIT;
+const PAGE_SIZES = [25, 50, 100, 200];
 
 // color fills the swipe background, fg is the text and icon on it: --status-text on the status
 // fills and --accent-text on the accent one, because white is unreadable on the light ones.
@@ -264,11 +267,6 @@ function MailboxList() {
   // Tracks the index of the last toggled row for shift-click range selection
   const lastSelectIdxRef = useRef(-1);
 
-  // Layout picker
-  const [showLayoutPicker, setShowLayoutPicker] = useState(false);
-  const [layoutPickerPos, setLayoutPickerPos] = useState(null);
-  const layoutPickerRef = useRef(null);
-
   useEffect(() => { currentPageRef.current = currentPage; }, [currentPage]);
   useEffect(() => { setActiveCategory('primary'); }, [selectedAccountId, selectedFolder]);
   useEffect(() => {
@@ -373,7 +371,6 @@ function MailboxList() {
     const onKey = (e) => {
       if (e.key === 'Escape') {
         setShowFolderPicker(false);
-        setShowLayoutPicker(false);
         setSelectedIds(new Set());
         setSelectionModeActive(false);
       }
@@ -381,9 +378,6 @@ function MailboxList() {
     const onPointer = (e) => {
       if (folderPickerRef.current && !folderPickerRef.current.contains(e.target)) {
         setShowFolderPicker(false);
-      }
-      if (layoutPickerRef.current && !layoutPickerRef.current.contains(e.target)) {
-        setShowLayoutPicker(false);
       }
     };
     document.addEventListener('keydown', onKey);
@@ -2781,6 +2775,41 @@ function MailboxList() {
   }) : [];
   const bulkMoveFoldersEmpty = movePickerFoldersEmpty(bulkMoveSections, pickerFolders);
 
+  // The desktop header's filter, and its More menu for how the list is shown, rarely changed.
+  const unreadToggle = (
+    <button
+      onClick={() => setUnreadOnly(!unreadOnly)}
+      title={unreadOnly ? t('messageList.showAll') : t('messageList.unreadOnly')}
+      aria-pressed={unreadOnly}
+      style={{
+        background: unreadOnly ? 'var(--accent-dim)' : 'none',
+        border: `1px solid ${unreadOnly ? 'var(--accent)' : 'var(--border)'}`,
+        borderRadius: RADIUS, padding: '0 12px', height: TOOLBAR_CONTROL_HEIGHT, boxSizing: 'border-box',
+        color: unreadOnly ? 'var(--accent)' : 'var(--text-secondary)',
+        cursor: 'pointer', fontSize: 12, fontWeight: 500,
+        display: 'flex', alignItems: 'center',
+      }}
+    >
+      {t('messageList.unread')}
+    </button>
+  );
+  const viewMenu = (
+    <MoreMenu
+      label={t('messageList.viewOptions')}
+      zIndex={1000}
+      items={[
+        { key: 'layout', heading: t('messageList.layout', 'Layout') },
+        ...Object.entries(LAYOUTS).map(([key, def]) => ({
+          key: `layout-${key}`, label: t(def.labelKey, def.label), checked: layout === key, run: () => setLayout(key),
+        })),
+        { key: 'page-size', heading: t('messageList.messagesPerPage'), separator: true },
+        ...PAGE_SIZES.map(n => ({
+          key: `page-${n}`, label: String(n), checked: Number(pageSize) === n, run: () => setPageSize(n),
+        })),
+      ]}
+    />
+  );
+
   return (
     <div style={{
       width: isMobile || isColumn || listFirst ? '100%' : 'var(--list-width)',
@@ -3001,19 +3030,19 @@ function MailboxList() {
               onClick={handleSync}
               disabled={syncing}
               title={selectedAccountId ? t('messageList.syncAccount') : t('messageList.syncAll')}
+              aria-label={selectedAccountId ? t('messageList.syncAccount') : t('messageList.syncAll')}
               style={{
+                ...iconButtonBox,
                 background: 'none', border: '1px solid transparent',
-                borderRadius: 6, padding: '0 6px', height: TOOLBAR_CONTROL_HEIGHT, boxSizing: 'border-box',
                 color: syncing ? 'var(--accent)' : 'var(--text-tertiary)',
                 cursor: syncing ? 'not-allowed' : 'pointer',
-                display: 'flex', alignItems: 'center',
                 transition: 'color 0.15s, border-color 0.15s',
               }}
               onMouseEnter={e => { if (!syncing) { e.currentTarget.style.color = 'var(--accent)'; e.currentTarget.style.borderColor = 'var(--border)'; }}}
               onMouseLeave={e => { if (!syncing) { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.borderColor = 'transparent'; }}}
             >
               <svg
-                width="14" height="14" viewBox="0 0 24 24"
+                width={ICON} height={ICON} viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" strokeWidth="2"
                 style={{ animation: syncing ? 'spin 0.8s linear infinite' : 'none' }}
               >
@@ -3023,247 +3052,46 @@ function MailboxList() {
               </svg>
             </button>
 
-            {/* Layout picker — wide layouts only; narrow layouts render it in the controls row below */}
-            {!isNarrow && (
-              <div style={{ position: 'relative' }} ref={layoutPickerRef}>
-                <button
-                  onClick={() => {
-                    if (!showLayoutPicker) {
-                      const rect = layoutPickerRef.current.getBoundingClientRect();
-                      setLayoutPickerPos({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
-                    }
-                    setShowLayoutPicker(v => !v);
-                  }}
-                  title={t('messageList.changeLayout')}
-                  style={{
-                    background: showLayoutPicker ? 'var(--accent-dim)' : 'none',
-                    border: `1px solid ${showLayoutPicker ? 'var(--accent)' : 'transparent'}`,
-                    borderRadius: 6, padding: '0 6px', height: TOOLBAR_CONTROL_HEIGHT, boxSizing: 'border-box',
-                    color: showLayoutPicker ? 'var(--accent)' : 'var(--text-tertiary)',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center',
-                    transition: 'color 0.15s, border-color 0.15s, background 0.15s',
-                  }}
-                  onMouseEnter={e => { if (!showLayoutPicker) { e.currentTarget.style.color = 'var(--accent)'; e.currentTarget.style.borderColor = 'var(--border)'; }}}
-                  onMouseLeave={e => { if (!showLayoutPicker) { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.borderColor = 'transparent'; }}}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="3" width="18" height="5" rx="1"/>
-                    <rect x="3" y="11" width="8" height="10" rx="1"/>
-                    <rect x="13" y="11" width="8" height="10" rx="1"/>
-                  </svg>
-                </button>
-
-                {showLayoutPicker && layoutPickerPos && (
-                  <div style={{
-                    position: 'fixed', top: descale(layoutPickerPos.top, uiScale), right: descale(layoutPickerPos.right, uiScale),
-                    background: 'var(--bg-elevated)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 10,
-                    boxShadow: 'var(--shadow-popover)',
-                    minWidth: 200,
-                    zIndex: 1000,
-                    padding: '6px 0',
-                  }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-tertiary)', padding: '4px 12px 6px' }}>
-                      {t('messageList.layout', 'Layout')}
-                    </div>
-                    {Object.entries(LAYOUTS).map(([key, def]) => {
-                      const isActive = layout === key;
-                      return (
-                        <div
-                          key={key}
-                          onClick={() => { setLayout(key); setShowLayoutPicker(false); }}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: 10,
-                            padding: '7px 12px', cursor: 'pointer',
-                            background: isActive ? 'var(--accent-dim)' : 'transparent',
-                            transition: 'background 0.08s',
-                          }}
-                          onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--bg-hover)'; }}
-                          onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
-                        >
-                          <span style={{ fontSize: 13, color: isActive ? 'var(--accent)' : 'var(--text-primary)', fontWeight: isActive ? 500 : 400, flex: 1 }}>
-                            {t(def.labelKey, def.label)}
-                          </span>
-                          {isActive && (
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5">
-                              <polyline points="20 6 9 17 4 12"/>
-                            </svg>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* In wide layouts, keep filter + page size inline */}
+            {/* In wide layouts, keep sort + filter inline; narrow layouts render them in the row below */}
             {!isNarrow && (
               <>
                 {sortable && <ListSortMenu accountId={selectedAccountId} folder={selectedFolder} />}
-                {/* Filter unread */}
-                <button
-                  onClick={() => setUnreadOnly(!unreadOnly)}
-                  title={unreadOnly ? t('messageList.showAll') : t('messageList.unreadOnly')}
-                  style={{
-                    background: unreadOnly ? 'var(--accent-dim)' : 'none',
-                    border: `1px solid ${unreadOnly ? 'var(--accent)' : 'var(--border)'}`,
-                    borderRadius: 6, padding: '0 8px', height: TOOLBAR_CONTROL_HEIGHT, boxSizing: 'border-box',
-                    color: unreadOnly ? 'var(--accent)' : 'var(--text-tertiary)',
-                    cursor: 'pointer', fontSize: 11, fontWeight: 500,
-                    display: 'flex', alignItems: 'center',
-                  }}
-                >
-                  {t('messageList.unread')}
-                </button>
-                {/* Page size */}
-                <select
-                  value={pageSize}
-                  onChange={e => setPageSize(parseInt(e.target.value))}
-                  title={t('messageList.messagesPerPage')}
-                  style={{
-                    background: 'var(--bg-tertiary)', border: '1px solid var(--border)',
-                    borderRadius: 6, padding: '0 6px', height: TOOLBAR_CONTROL_HEIGHT, boxSizing: 'border-box',
-                    color: 'var(--text-tertiary)', cursor: 'pointer',
-                    fontSize: 11, outline: 'none',
-                  }}
-                >
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                  <option value={200}>200</option>
-                </select>
+                {unreadToggle}
               </>
             )}
             {/* Select / cancel selection */}
             <button
               onClick={() => selectionMode ? clearSelection() : setSelectionModeActive(true)}
               title={selectionMode ? t('common.cancel') : t('messageList.selectMessages')}
+              aria-label={selectionMode ? t('common.cancel') : t('messageList.selectMessages')}
+              aria-pressed={selectionMode}
               style={{
+                ...iconButtonBox,
                 background: selectionMode ? 'var(--accent-dim)' : 'none',
                 border: `1px solid ${selectionMode ? 'var(--accent)' : 'transparent'}`,
-                borderRadius: 6, padding: '0 6px', height: TOOLBAR_CONTROL_HEIGHT, boxSizing: 'border-box',
                 color: selectionMode ? 'var(--accent)' : 'var(--text-tertiary)',
-                cursor: 'pointer', display: 'flex', alignItems: 'center',
+                cursor: 'pointer',
                 transition: 'color 0.15s, border-color 0.15s, background 0.15s',
               }}
               onMouseEnter={e => { if (!selectionMode) { e.currentTarget.style.color = 'var(--accent)'; e.currentTarget.style.borderColor = 'var(--border)'; }}}
               onMouseLeave={e => { if (!selectionMode) { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.borderColor = 'transparent'; }}}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="3" width="18" height="18" rx="2"/>
                 <polyline points="9 11 12 14 22 4"/>
               </svg>
             </button>
+            {!isNarrow && viewMenu}
           </div>
         </div>
 
         {/* Narrow layouts: filter + page size + layout picker on their own row, wrapping when the
             list is dragged narrower still or the labels are long (#766) */}
         {isNarrow && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4, marginBottom: 6 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: TOOLBAR_GAP, marginBottom: 6 }}>
             {sortable && <ListSortMenu accountId={selectedAccountId} folder={selectedFolder} />}
-            <button
-              onClick={() => setUnreadOnly(!unreadOnly)}
-              title={unreadOnly ? t('messageList.showAll') : t('messageList.unreadOnly')}
-              style={{
-                background: unreadOnly ? 'var(--accent-dim)' : 'none',
-                border: `1px solid ${unreadOnly ? 'var(--accent)' : 'var(--border)'}`,
-                borderRadius: 6, padding: '0 8px', height: TOOLBAR_CONTROL_HEIGHT, boxSizing: 'border-box',
-                color: unreadOnly ? 'var(--accent)' : 'var(--text-tertiary)',
-                cursor: 'pointer', fontSize: 11, fontWeight: 500,
-                display: 'flex', alignItems: 'center',
-              }}
-            >
-              {t('messageList.unread')}
-            </button>
-            <select
-              value={pageSize}
-              onChange={e => setPageSize(parseInt(e.target.value))}
-              title={t('messageList.messagesPerPage')}
-              style={{
-                background: 'var(--bg-tertiary)', border: '1px solid var(--border)',
-                borderRadius: 6, padding: '0 6px', height: TOOLBAR_CONTROL_HEIGHT, boxSizing: 'border-box',
-                color: 'var(--text-tertiary)', cursor: 'pointer',
-                fontSize: 11, outline: 'none',
-              }}
-            >
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-              <option value={200}>200</option>
-            </select>
-            <div style={{ position: 'relative', marginLeft: 'auto' }} ref={layoutPickerRef}>
-              <button
-                onClick={() => {
-                  if (!showLayoutPicker) {
-                    const rect = layoutPickerRef.current.getBoundingClientRect();
-                    setLayoutPickerPos({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
-                  }
-                  setShowLayoutPicker(v => !v);
-                }}
-                title={t('messageList.changeLayout')}
-                style={{
-                  background: showLayoutPicker ? 'var(--accent-dim)' : 'none',
-                  border: `1px solid ${showLayoutPicker ? 'var(--accent)' : 'transparent'}`,
-                  borderRadius: 6, padding: '0 6px', height: TOOLBAR_CONTROL_HEIGHT, boxSizing: 'border-box',
-                  color: showLayoutPicker ? 'var(--accent)' : 'var(--text-tertiary)',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center',
-                  transition: 'color 0.15s, border-color 0.15s, background 0.15s',
-                }}
-                onMouseEnter={e => { if (!showLayoutPicker) { e.currentTarget.style.color = 'var(--accent)'; e.currentTarget.style.borderColor = 'var(--border)'; }}}
-                onMouseLeave={e => { if (!showLayoutPicker) { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.borderColor = 'transparent'; }}}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="3" width="18" height="5" rx="1"/>
-                  <rect x="3" y="11" width="8" height="10" rx="1"/>
-                  <rect x="13" y="11" width="8" height="10" rx="1"/>
-                </svg>
-              </button>
-              {showLayoutPicker && layoutPickerPos && (
-                <div style={{
-                  position: 'fixed', top: descale(layoutPickerPos.top, uiScale), right: descale(layoutPickerPos.right, uiScale),
-                  background: 'var(--bg-elevated)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 10,
-                  boxShadow: 'var(--shadow-popover)',
-                  minWidth: 200,
-                  zIndex: 1000,
-                  padding: '6px 0',
-                }}>
-                  <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-tertiary)', padding: '4px 12px 6px' }}>
-                    {t('messageList.layout', 'Layout')}
-                  </div>
-                  {Object.entries(LAYOUTS).map(([key, def]) => {
-                    const isActive = layout === key;
-                    return (
-                      <div
-                        key={key}
-                        onClick={() => { setLayout(key); setShowLayoutPicker(false); }}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 10,
-                          padding: '7px 12px', cursor: 'pointer',
-                          background: isActive ? 'var(--accent-dim)' : 'transparent',
-                          transition: 'background 0.08s',
-                        }}
-                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--bg-hover)'; }}
-                        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
-                      >
-                        <span style={{ fontSize: 13, color: isActive ? 'var(--accent)' : 'var(--text-primary)', fontWeight: isActive ? 500 : 400, flex: 1 }}>
-                          {t(def.labelKey, def.label)}
-                        </span>
-                        {isActive && (
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5">
-                            <polyline points="20 6 9 17 4 12"/>
-                          </svg>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            {unreadToggle}
+            <div style={{ marginLeft: 'auto' }}>{viewMenu}</div>
           </div>
         )}
 

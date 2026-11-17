@@ -140,6 +140,7 @@ const SAME_VALUE_ALLOWED = {
   // ── Composer tone presets ──────────────────────────────────────────────────
   'compose.toolbar.toneFormal':             [['en', 'es', 'ptBR']], // Formal
   'compose.toolbar.toneDiplomatic':         [['es', 'ptBR']], // Diplomático
+  'compose.toolbar.strikethrough':          [['es', 'ptBR']], // Tachado
   // ── List sort menu (#528) ───────────────────────────────────────────────────
   // ── Contact groups ──────────────────────────────────────────────────────────
   'contacts.groups.tabGroups':              [['es', 'ptBR']], // Grupos

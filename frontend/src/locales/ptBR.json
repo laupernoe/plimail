@@ -183,6 +183,11 @@
       "removeHighlight": "Remover destaque",
       "fontDefault": "Padrão",
       "moreFormatting": "Mais formatação",
+      "strikethrough": "Tachado",
+      "alignLeft": "Alinhar à esquerda",
+      "alignCenter": "Centralizar",
+      "alignRight": "Alinhar à direita",
+      "htmlSource": "Editar o código HTML",
       "aiAssist": "Assistente de IA",
       "aiWriteDraft": "Escrever rascunho",
       "aiImprove": "Melhorar",
@@ -530,6 +535,7 @@
     "sync": "Sincronizar",
     "compose": "Escrever",
     "messagesPerPage": "Mensagens por página",
+    "viewOptions": "Opções de exibição",
     "selectAll": "Selecionar tudo",
     "deselectAll": "Desmarcar tudo",
     "starSelected": "Marcar com estrela",
@@ -631,7 +637,6 @@
       "doneBody": "Salvo como regra da caixa de entrada; os e-mails já recebidos também foram atualizados.",
       "failed": "Não foi possível salvar a categoria deste remetente"
     },
-    "changeLayout": "Alterar layout",
     "layout": "Layout",
     "layouts": {
       "focused": {
@@ -1281,6 +1286,7 @@
       "microsoftImapNote": "A Microsoft não aceita mais senhas para caixas do Outlook.com, Hotmail, Live e MSN, e o login com a Microsoft não está configurado neste servidor. Peça ao administrador para ativá-lo em Provedores de e-mail.",
       "microsoftImapNoteReady": "A Microsoft não aceita mais senhas para caixas do Outlook.com, Hotmail, Live e MSN. Adicione esta caixa com \"Entrar com a Microsoft\" em Adicionar conta.",
       "reindex": "Reindexar para pesquisa",
+      "moreActions": "Mais ações da conta",
       "reindexing": "Indexando mensagens...",
       "reindexProgress": "{{synced}} / {{total}} mensagens indexadas",
       "reindexError": "Falha ao iniciar a reindexação",

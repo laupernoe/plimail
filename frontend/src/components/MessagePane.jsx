@@ -7,6 +7,8 @@ import { formatMessageDateTime } from '../utils/formatDate.js';
 import { shortcutBus } from '../utils/shortcutBus.js';
 import { canHandlePaneShortcut } from '../utils/shortcutApplicability.js';
 import { useMobile } from '../hooks/useMobile.js';
+import { useWidthAtLeast } from '../hooks/useWidthAtLeast.js';
+import { TOOLBAR_GAP, TOOLBAR_TEXT_MIN } from '../utils/uiSizes.js';
 import { useListFirst } from '../hooks/useListFirst.js';
 import { closeOpenMessage } from '../utils/closeMessage.js';
 import { useSwipeBack } from '../hooks/useSwipeBack.js';
@@ -120,6 +122,8 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
   }, []);
 
   const paneRef = useRef(null);
+  // Reply and Forward say their names beside their icons while the toolbar has room for them.
+  const [toolbarRef, toolbarRoomy] = useWidthAtLeast(TOOLBAR_TEXT_MIN);
   const autoMarkReadTimerRef = useRef(null);
   useEffect(() => () => {
     cancelScheduledMarkRead(autoMarkReadTimerRef.current);
@@ -1300,7 +1304,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
   };
   const darkToggleLabel = darkRefused ? t('message.cannotShowDark') : shownDark ? t('message.showOriginal') : t('message.showDark');
 
-  // The toolbar's tools, in order: buttons on a desktop, the More menu on a phone (MessageTools).
+  // The toolbar's tools, listed in its More menu (MessageTools).
   // Reply with AI sits by Reply. A phone's toolbar only just fits its buttons at large font sizes,
   // so there it is in More.
   // An encrypted message's plaintext exists only in this tab (PgpMessageView.jsx): no AI reads it.
@@ -1413,9 +1417,9 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
           giving way down to TOUCH_MIN when a larger font size leaves the row too narrow.
           A labeled group of plain buttons, each its own Tab stop, rather than role="toolbar", which
           promises arrow-key movement between them that the pane has never had. */}
-      <div role="group" aria-label={t('shortcuts.groups.messageActions')} style={{
-        padding: isMobile ? '0 8px' : '8px 16px', borderBottom: '1px solid var(--border-subtle)',
-        display: 'flex', alignItems: 'center', gap: isMobile ? 0 : 6, flexShrink: 0,
+      <div ref={toolbarRef} role="group" aria-label={t('shortcuts.groups.messageActions')} style={{
+        padding: isMobile ? '0 8px' : '6px 16px', borderBottom: '1px solid var(--border-subtle)',
+        display: 'flex', alignItems: 'center', gap: isMobile ? 0 : TOOLBAR_GAP, flexShrink: 0,
         boxShadow: paneScrolled ? '0 1px 10px rgba(0,0,0,0.2)' : 'none',
         transition: 'box-shadow 0.2s ease',
       }}>
@@ -1425,6 +1429,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
           onReply={handleReply}
           title={withShortcut(defaultReplyAll ? t('message.replyAll') : t('message.reply'), defaultReplyAll ? 'replyAll' : 'reply')}
           touch={isMobile}
+          showText={toolbarRoomy}
         />
 
         {aiReplyShown && !isMobile && (
@@ -1433,7 +1438,8 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
           </ActionBtn>
         )}
 
-        <ActionBtn onClick={handleForward} label={t('message.forward')} title={withShortcut(t('message.forward'), 'forward')} touch={isMobile}>
+        <ActionBtn onClick={handleForward} label={t('message.forward')} title={withShortcut(t('message.forward'), 'forward')} touch={isMobile}
+          text={toolbarRoomy ? t('message.forward') : undefined}>
           <ForwardIcon />
         </ActionBtn>
 
@@ -1521,9 +1527,6 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
 
         <div style={{ flex: 1 }} />
 
-        {/* Keyed by message, so a menu left open does not carry over to the next one. */}
-        <MessageTools key={`tools-${message.id}-${menuEpoch}`} isMobile={isMobile} items={toolItems} ai={aiTools} />
-
         <ActionBtn onClick={handleStarToggle} label={t('message.star')} pressed={Boolean(message.is_starred)} touch={isMobile}>
           <StarIcon filled={message.is_starred} />
         </ActionBtn>
@@ -1531,6 +1534,9 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
         <ActionBtn onClick={handleDelete} label={t('message.delete')} danger touch={isMobile}>
           <TrashIcon />
         </ActionBtn>
+
+        {/* Last, the More menu. Keyed by message, so a menu left open does not carry over to the next one. */}
+        <MessageTools key={`tools-${message.id}-${menuEpoch}`} isMobile={isMobile} items={toolItems} ai={aiTools} />
       </div>
 
       {/* Swiping between messages on a phone (#229): the next and previous rows of the list, opened

@@ -183,6 +183,11 @@
       "removeHighlight": "Supprimer le surlignage",
       "fontDefault": "Par défaut",
       "moreFormatting": "Plus de mise en forme",
+      "strikethrough": "Barré",
+      "alignLeft": "Aligner à gauche",
+      "alignCenter": "Centrer",
+      "alignRight": "Aligner à droite",
+      "htmlSource": "Modifier le code HTML",
       "aiAssist": "Assistance IA",
       "aiWriteDraft": "Rédiger un brouillon",
       "aiImprove": "Améliorer",
@@ -530,6 +535,7 @@
     "sync": "Synchroniser",
     "compose": "Composer",
     "messagesPerPage": "Messages par page",
+    "viewOptions": "Options d’affichage",
     "selectAll": "Tout sélectionner",
     "deselectAll": "Tout désélectionner",
     "starSelected": "Étoiler",
@@ -631,7 +637,6 @@
       "doneBody": "Enregistré comme règle de réception ; les e-mails déjà reçus ont aussi été mis à jour.",
       "failed": "Impossible d’enregistrer la catégorie pour cet expéditeur"
     },
-    "changeLayout": "Changer la disposition",
     "layout": "Disposition",
     "layouts": {
       "focused": {
@@ -1279,6 +1284,7 @@
       "microsoftImapNote": "Microsoft n'accepte plus les mots de passe pour les boîtes Outlook.com, Hotmail, Live et MSN, et la connexion avec Microsoft n'est pas configurée sur ce serveur. Demandez à votre administrateur de l'activer dans Fournisseurs de messagerie.",
       "microsoftImapNoteReady": "Microsoft n'accepte plus les mots de passe pour les boîtes Outlook.com, Hotmail, Live et MSN. Ajoutez plutôt cette boîte avec « Se connecter avec Microsoft » dans Ajouter un compte.",
       "reindex": "Réindexer pour la recherche",
+      "moreActions": "Autres actions du compte",
       "reindexing": "Indexation des messages...",
       "reindexProgress": "{{synced}} / {{total}} messages indexés",
       "reindexError": "Échec du démarrage de la réindexation",

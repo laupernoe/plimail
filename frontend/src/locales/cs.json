@@ -321,6 +321,7 @@
     "sync": "Synchronizovat",
     "compose": "Napsat",
     "messagesPerPage": "Zpráv na stránku",
+    "viewOptions": "Možnosti zobrazení",
     "selectAll": "Vybrat vše",
     "deselectAll": "Zrušit výběr",
     "starSelected": "Označit hvězdičkou",
@@ -434,7 +435,6 @@
       "doneBody": "Uloženo jako pravidlo doručené pošty; aktualizována i již přijatá pošta.",
       "failed": "Kategorii pro tohoto odesílatele se nepodařilo uložit"
     },
-    "changeLayout": "Změnit rozvržení",
     "layout": "Rozložení",
     "layouts": {
       "focused": {
@@ -758,6 +758,11 @@
       "removeHighlight": "Odebrat zvýraznění",
       "fontDefault": "Výchozí",
       "moreFormatting": "Další formátování",
+      "strikethrough": "Přeškrtnutí",
+      "alignLeft": "Zarovnat vlevo",
+      "alignCenter": "Zarovnat na střed",
+      "alignRight": "Zarovnat vpravo",
+      "htmlSource": "Upravit zdrojový kód HTML",
       "aiAssist": "Pomoc AI",
       "aiWriteDraft": "Napsat návrh",
       "aiImprove": "Vylepšit",
@@ -1356,6 +1361,7 @@
       "microsoftImapNote": "Microsoft už nepřijímá hesla pro schránky Outlook.com, Hotmail, Live a MSN a přihlášení přes Microsoft není na tomto serveru nastavené. Požádejte správce, aby ho zapnul v sekci Poskytovatelé e-mailu.",
       "microsoftImapNoteReady": "Microsoft už nepřijímá hesla pro schránky Outlook.com, Hotmail, Live a MSN. Přidejte tuto schránku raději přes „Přihlásit se přes Microsoft“ v Přidat účet.",
       "reindex": "Znovu indexovat pro vyhledávání",
+      "moreActions": "Další akce účtu",
       "reindexing": "Indexování zpráv…",
       "reindexProgress": "Indexováno {{synced}} z {{total}} zpráv",
       "reindexError": "Opětovné indexování se nepodařilo spustit",

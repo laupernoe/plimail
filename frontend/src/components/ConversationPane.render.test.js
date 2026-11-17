@@ -272,7 +272,10 @@ describe('conversation pane', () => {
       }));
     });
     await React.act(async () => { await new Promise(r => setTimeout(r, 50)); });
-    const unread = card('m3').querySelector('button[aria-label="contextMenu.markUnread"]');
+    await React.act(async () => {
+      card('m3').querySelector('button[aria-label="message.more"]').dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+    });
+    const unread = [...card('m3').querySelectorAll('[role="menuitem"]')].find(i => i.textContent.trim() === 'contextMenu.markUnread');
     assert.ok(unread, 'the open card was read and offers Mark unread');
     await React.act(async () => { unread.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true })); });
     await React.act(async () => { await new Promise(r => setTimeout(r, 50)); });
@@ -288,7 +291,10 @@ describe('conversation pane', () => {
       assert.equal(cards().length, 4, 'the new reply is in the conversation');
       assert.equal(card('m3'), mounted, 'the open card was not remounted');
       assert.deepEqual(bulkReads.slice(reads).filter(b => b.read && b.ids.includes('m3')), [], 'the card marked unread is not read again');
-      assert.ok(card('m3').querySelector('button[aria-label="contextMenu.markRead"]'), 'and still offers Mark read');
+      await React.act(async () => {
+        card('m3').querySelector('button[aria-label="message.more"]').dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+      });
+      assert.ok([...card('m3').querySelectorAll('[role="menuitem"]')].some(i => i.textContent.trim() === 'contextMenu.markRead'), 'and still offers Mark read');
     } finally {
       THREAD.pop();
       useStore.setState({ messages: [] });
@@ -400,11 +406,17 @@ describe('conversation pane', () => {
     });
     await React.act(async () => { await new Promise(r => setTimeout(r, 50)); });
     const body = () => [...document.querySelectorAll('div')].filter(el => el.textContent === 'plain body of m1').at(-1);
-    const button = label => document.querySelector(`button[aria-label="${label}"]`);
+    // The dark toggle is in the card's More menu.
+    const fire = el => React.act(async () => { el.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true })); });
+    const menuItem = async label => {
+      // The card's More, not the conversation bar's.
+      await fire(document.querySelector('[data-message-id="m1"] button[aria-label="message.more"]'));
+      return [...document.querySelectorAll('[role="menuitem"]')].find(i => i.textContent.trim() === label);
+    };
     assert.equal(body().style.background, '', 'themed, as before');
-    await React.act(async () => { button('message.showOriginal').dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true })); });
+    await fire(await menuItem('message.showOriginal'));
     assert.equal(body().style.background, 'white');
-    await React.act(async () => { button('message.showDark').dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true })); });
+    await fire(await menuItem('message.showDark'));
     assert.equal(body().style.background, '');
   });
 
@@ -504,6 +516,12 @@ describe('conversation actions', () => {
 
   const card = id => document.querySelector(`[data-message-id="${id}"]`);
   const button = (id, label) => card(id).querySelector(`button[aria-label="${label}"]`) ?? undefined;
+  // The card's tools (read toggle, headers, print...) are in its More menu: open it, find the item.
+  const menuItem = async (id, label) => {
+    const more = button(id, 'message.more');
+    if (more.getAttribute('aria-expanded') !== 'true') await click(more);
+    return [...card(id).querySelectorAll('[role="menuitem"]')].find(i => i.textContent.trim() === label);
+  };
   const starred = id => button(id, 'message.star').getAttribute('aria-pressed') === 'true';
   const click = async el => {
     await React.act(async () => { el.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true })); });
@@ -520,11 +538,22 @@ describe('conversation actions', () => {
     const toolbar = card('m1').querySelector('[role="group"]');
     assert.equal(toolbar.getAttribute('aria-label'), 'shortcuts.groups.messageActions');
     assert.deepEqual([...toolbar.querySelectorAll('button')].map(b => b.getAttribute('aria-label')), [
-      'message.reply', 'message.replyOptions', 'compose.toolbar.aiReply', 'message.forward', 'contextMenu.markUnread', 'contextMenu.viewHeaders',
-      // The dark toggle: a theme test before this one leaves the theme dark.
-      'message.downloadEml', 'message.print', 'message.showDark', 'message.aiActions', 'message.star',
+      'message.reply', 'message.replyOptions', 'compose.toolbar.aiReply', 'message.forward', 'message.star', 'message.aiActions', 'message.more',
     ]);
-    for (const b of toolbar.querySelectorAll('button')) assert.equal(b.textContent.trim(), '', `${b.getAttribute('aria-label')} is an icon`);
+    // Reply and Forward, the main actions, say their names; the rest are icons.
+    for (const b of toolbar.querySelectorAll('button')) {
+      const label = b.getAttribute('aria-label');
+      assert.equal(b.textContent.trim(), ['message.reply', 'message.forward'].includes(label) ? label : '', `${label}'s text`);
+    }
+    // The tools out of sight are one click away, in the reading pane's order.
+    await click(button('m1', 'message.more'));
+    assert.deepEqual([...card('m1').querySelectorAll('[role="menuitem"]')].map(i => i.textContent.trim()), [
+      // The dark toggle: a theme test before this one leaves the theme dark.
+      'contextMenu.markUnread', 'contextMenu.viewHeaders', 'message.print', 'message.showDark', 'message.downloadEml',
+    ]);
+    await React.act(async () => {
+      document.activeElement.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    });
   });
 
   test('the reply menu closes when the pointer leaves it, and focus goes back to its button', async () => {
@@ -562,26 +591,26 @@ describe('conversation actions', () => {
   });
 
   test('mark unread sends the unread change and the button offers mark read', async () => {
-    await click(button('m1', 'contextMenu.markUnread'));
+    await click(await menuItem('m1', 'contextMenu.markUnread'));
     assert.deepEqual(bulkReads.at(-1), { ids: ['m1'], read: false });
-    assert.equal(button('m1', 'contextMenu.markUnread'), undefined, 'an unread message offers no mark unread');
-    assert.ok(button('m1', 'contextMenu.markRead'), 'but it can be marked read again (#650)');
+    assert.equal(await menuItem('m1', 'contextMenu.markUnread'), undefined, 'an unread message offers no mark unread');
+    assert.ok(await menuItem('m1', 'contextMenu.markRead'), 'but it can be marked read again (#650)');
   });
 
   test('mark read sends the read change once and the button offers mark unread again', async () => {
     const { useStore } = await import('../store/index.js');
     const before = bulkReads.length;
-    await click(button('m1', 'contextMenu.markRead'));
+    await click(await menuItem('m1', 'contextMenu.markRead'));
     assert.deepEqual(bulkReads.slice(before), [{ ids: ['m1'], read: true }]);
-    assert.ok(button('m1', 'contextMenu.markUnread'));
+    assert.ok(await menuItem('m1', 'contextMenu.markUnread'));
     assert.notEqual(useStore.getState().messages.find(m => m.id === 'm1')?.is_read, false, 'the list copy is not left unread');
   });
 
   test('mark read on a card behind the list, read elsewhere meanwhile, only catches up', async () => {
     const { useStore } = await import('../store/index.js');
     const { clearReadGuard } = await import('../utils/pendingReads.js');
-    await click(button('m1', 'contextMenu.markUnread'));
-    assert.ok(button('m1', 'contextMenu.markRead'));
+    await click(await menuItem('m1', 'contextMenu.markUnread'));
+    assert.ok(await menuItem('m1', 'contextMenu.markRead'));
     // Read again from the list (or another device) long enough ago that its guard is gone.
     clearReadGuard('m1');
     const saved = useStore.getState();
@@ -594,10 +623,10 @@ describe('conversation actions', () => {
     });
     const before = bulkReads.length;
     try {
-      await click(button('m1', 'contextMenu.markRead'));
+      await click(await menuItem('m1', 'contextMenu.markRead'));
       assert.deepEqual(bulkReads.slice(before), [], 'nothing sent again');
       assert.deepEqual(decremented, [], 'not counted off the unread badge a second time');
-      assert.ok(button('m1', 'contextMenu.markUnread'), 'the card now shows it read');
+      assert.ok(await menuItem('m1', 'contextMenu.markUnread'), 'the card now shows it read');
     } finally {
       await React.act(async () => { useStore.setState({ messages: saved.messages, decrementUnread: saved.decrementUnread }); });
     }
@@ -609,7 +638,7 @@ describe('conversation actions', () => {
   });
 
   test('the headers dialog opens from a card and its close button has a name', async () => {
-    await click(button('m1', 'contextMenu.viewHeaders'));
+    await click(await menuItem('m1', 'contextMenu.viewHeaders'));
     assert.match(document.body.textContent, /contextMenu\.headers\.title/, 'the headers dialog is open');
     const close = document.querySelector('button[aria-label="window.close"]');
     assert.ok(close, 'its close button is named');
@@ -618,7 +647,9 @@ describe('conversation actions', () => {
   });
 
   test('print conversation loads every body in order and prints once', async () => {
-    const printAll = document.querySelector('button[aria-label="message.printConversation"]');
+    const bar = document.querySelector('[role="group"][aria-label="message.conversationActions"]');
+    await click(bar.querySelector('button[aria-label="message.more"]'));
+    const printAll = [...bar.querySelectorAll('[role="menuitem"]')].find(i => i.textContent.trim() === 'message.printConversation');
     await click(printAll);
     await React.act(async () => { await new Promise(r => setTimeout(r, 100)); });
     assert.equal(printWin.printed, 1);
@@ -677,7 +708,7 @@ describe('conversation actions', () => {
       await React.act(async () => { await new Promise(r => setTimeout(r, 50)); });
       const toolbar = container.querySelector('[data-message-id="m1"] [role="group"]');
       assert.deepEqual([...toolbar.querySelectorAll('button')].map(b => b.getAttribute('aria-label')),
-        ['message.reply', 'message.replyOptions', 'message.forward', 'message.more', 'message.star']);
+        ['message.reply', 'message.replyOptions', 'message.forward', 'message.star', 'message.more']);
       await click(toolbar.querySelector('button[aria-label="message.more"]'));
       const items = [...toolbar.querySelectorAll('[role="menuitem"]')];
       assert.equal(items[1]?.textContent, 'compose.toolbar.aiReply', 'after the read toggle');
@@ -750,7 +781,7 @@ describe('conversation pane on a phone', () => {
       const toolbar = container.querySelector('[data-message-id="m1"] [role="group"]');
       const buttons = [...toolbar.querySelectorAll('button')];
       assert.deepEqual(buttons.map(b => b.getAttribute('aria-label')),
-        ['message.reply', 'message.replyOptions', 'message.forward', 'message.more', 'message.star']);
+        ['message.reply', 'message.replyOptions', 'message.forward', 'message.star', 'message.more']);
       for (const b of buttons) assert.equal(b.style.minHeight, '44px', `${b.getAttribute('aria-label')} is 44 px tall`);
       for (const b of buttons.filter(b => b.getAttribute('aria-label') !== 'message.replyOptions')) {
         assert.equal(b.style.width, '44px', `${b.getAttribute('aria-label')} is 44 px wide`);
@@ -765,8 +796,7 @@ describe('conversation pane on a phone', () => {
       assert.equal(buttons[0].parentElement.style.minWidth, '54px', 'the reply split, both halves');
       const threadBar = container.querySelector('[role="group"][aria-label="message.conversationActions"]');
       assert.deepEqual([...threadBar.querySelectorAll('button')].map(b => b.getAttribute('aria-label')), [
-        'message.archive', 'contextMenu.moveToFolder', 'contextMenu.snooze.label',
-        'contextMenu.markAsSpam', 'message.printConversation', 'message.delete',
+        'message.archive', 'contextMenu.moveToFolder', 'contextMenu.snooze.label', 'message.delete', 'message.more',
       ]);
       const more = buttons.find(b => b.getAttribute('aria-label') === 'message.more');
       assert.equal(more.getAttribute('aria-expanded'), 'false');
@@ -936,6 +966,16 @@ describe('a conversation another account also received', () => {
   const sentIds = pattern => requests.filter(r => pattern.test(r.url)).flatMap(r => r.body?.ids || []).sort();
   const threadFetches = () => requests.filter(r => r.url.includes('/mail/thread?'));
   const button = label => document.querySelector(`button[aria-label="${label}"]`);
+  // An action of the conversation's bar, or of its More menu (Spam), opened for it.
+  const action = async label => {
+    if (button(label)) return button(label);
+    const bar = document.querySelector('[role="group"][aria-label="message.conversationActions"]');
+    const more = bar.querySelector('button[aria-label="message.more"]');
+    if (more.getAttribute('aria-expanded') !== 'true') {
+      await React.act(async () => { more.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true })); });
+    }
+    return [...bar.querySelectorAll('[role="menuitem"]')].find(i => i.textContent.trim() === label);
+  };
   const openIds = () => [...openCards()].map(c => c.closest('[data-message-id]')?.dataset.messageId).sort();
   const cardIds = () => [...document.querySelectorAll('[data-message-id]')].map(c => c.dataset.messageId).sort();
   // A boolean, not the element: a failing assertion on a jsdom node makes assert diff the whole
@@ -976,7 +1016,7 @@ describe('a conversation another account also received', () => {
 
   test('Delete sends only the row account\'s copies', async () => {
     await open();
-    await commitWindow(button('message.delete'));
+    await commitWindow(await action('message.delete'));
     assert.deepEqual(sentIds(/bulk-delete/), ['m1', 'm2', 'm3']);
   });
 
@@ -984,7 +1024,7 @@ describe('a conversation another account also received', () => {
     // The list expands the row with both copies, which look the same there and in the cards,
     // so which of the two the reader clicked must not decide whose mail is deleted.
     await open({ selected: B3, threadMessages: EXPANDED });
-    await commitWindow(button('message.delete'));
+    await commitWindow(await action('message.delete'));
     assert.deepEqual(sentIds(/bulk-delete/), ['m1', 'm2', 'm3']);
   });
 
@@ -1013,11 +1053,11 @@ describe('a conversation another account also received', () => {
     // acct-b's other draft nor acct's, which taking the conversation's drafts (keepDraftsApart)
     // would expunge with it.
     await openDrafted('bd');
-    await commitWindow(button('message.delete'));
+    await commitWindow(await action('message.delete'));
     assert.deepEqual(sentIds(/bulk-delete/), ['bd']);
     assert.deepEqual(notices(), ['messageList.deleted.conversationTitle'], 'with no notice that nothing was taken');
     await openDrafted('ad');
-    await commitWindow(button('message.delete'));
+    await commitWindow(await action('message.delete'));
     assert.deepEqual(sentIds(/bulk-delete/), ['ad'], 'acct\'s own draft picked takes acct\'s drafts, none of acct-b\'s');
   });
 
@@ -1025,7 +1065,7 @@ describe('a conversation another account also received', () => {
     // acct-b's draft stands for none of acct's mail, and acct's drafts were not picked. acct has
     // mail here, so the notice names the draft; and Move says so before a folder is picked.
     await openDrafted('bd');
-    await commitWindow(button('message.archive'));
+    await commitWindow(await action('message.archive'));
     await click(button('contextMenu.moveToFolder'));
     assert.equal(pickerOpen(), false, 'no move picker opens');
     assert.ok(!requests.some(r => /\/accounts\/[^/]+\/folders/.test(r.url)), 'no account\'s folders are listed');
@@ -1085,7 +1125,7 @@ describe('a conversation another account also received', () => {
     // Archive took one account's copies already, but the account of the copy picked: here acct-b's,
     // whose copy sits in an INBOX too.
     await open({ selected: B3, threadMessages: EXPANDED });
-    await commitWindow(button('message.archive'));
+    await commitWindow(await action('message.archive'));
     assert.deepEqual(sentIds(/bulk-archive/), ['m1', 'm3']);
   });
 
@@ -1097,7 +1137,7 @@ describe('a conversation another account also received', () => {
     // not pinned here.
     const LABELLED = { ...ROW, id: 'w3', folder: 'Work' };
     await open({ selected: LABELLED, rows: [LABELLED], folder: 'Work' });
-    await commitWindow(button('message.archive'));
+    await commitWindow(await action('message.archive'));
     const archived = sentIds(/bulk-archive/);
     assert.ok(archived.length > 0, 'something is archived');
     assert.ok(!archived.includes('b3'), 'and none of it is acct-b\'s');
@@ -1119,17 +1159,17 @@ describe('a conversation another account also received', () => {
     const sentRow = { ...served['<41@x>'][1], message_count: 2, unread_count: 0 };
 
     await open({ selected: sentRow, rows: [sentRow, NEXT], folder: 'Sent' });
-    await commitWindow(button('contextMenu.markAsSpam'));
+    await commitWindow(await action('contextMenu.markAsSpam'));
     assert.equal(useStore.getState().selectedMessageId, sentRow.id, 'Spam with only the reader\'s own mail opens nothing');
     assert.deepEqual(notices(), ['spam.nothingFromAccount']);
 
     await open({ selected: ORPHAN, threadMessages: { '__dl_c3': [ORPHAN] }, rows: [ROW, NEXT] });
-    await commitWindow(button('message.delete'));
+    await commitWindow(await action('message.delete'));
     assert.equal(useStore.getState().selectedMessageId, ORPHAN.id, 'nor Delete with none of the account\'s copies');
     assert.deepEqual(notices(), ['messageList.deleted.nothingFromAccount']);
 
     await open({ selected: B3, threadMessages: EXPANDED, rows: [ROW, NEXT] });
-    await commitWindow(button('message.delete'));
+    await commitWindow(await action('message.delete'));
     assert.equal(useStore.getState().selectedMessageId, NEXT.id, 'Delete of the row account\'s copies opens the next row');
     assert.deepEqual(sentIds(/bulk-delete/), ['m1', 'm2', 'm3']);
     assert.deepEqual(notices(), ['messageList.deleted.conversationTitle'], 'its undo toast is the only notice');
@@ -1218,7 +1258,7 @@ describe('a conversation another account also received', () => {
     // MailApp parks a deep-linked message in threadMessages without changing the selected
     // account, so the opened message, not the sidebar, says which account the action is for.
     await open({ selected: B3, threadMessages: { '__dl_b3': [B3] } });
-    await commitWindow(button('message.delete'));
+    await commitWindow(await action('message.delete'));
     assert.deepEqual(sentIds(/bulk-delete/), ['b3']);
   });
 
@@ -1226,7 +1266,7 @@ describe('a conversation another account also received', () => {
     // Expanding the row cached the same copy under the thread id. The tap, not the cache, says
     // which copy the reader opened; picking it from the list later ends that (MessageList).
     await open({ selected: B3, threadMessages: { ...EXPANDED, '__dl_b3': [B3] } });
-    await commitWindow(button('message.delete'));
+    await commitWindow(await action('message.delete'));
     assert.deepEqual(sentIds(/bulk-delete/), ['b3']);
   });
 
@@ -1250,7 +1290,7 @@ describe('a conversation another account also received', () => {
     // the list: restoreMessages adds every message the action took that the list lacks. Picked
     // there it is a row of acct-b's, which the list's actions on it act for, and so do the pane's.
     await open({ selected: B3, rows: [ROW, B3] });
-    await commitWindow(button('message.delete'));
+    await commitWindow(await action('message.delete'));
     assert.deepEqual(sentIds(/bulk-delete/), ['b3']);
     assert.deepEqual(useStore.getState().messages.map(m => m.id), [ROW.id], 'acct\'s row stays listed');
   });
@@ -1263,7 +1303,7 @@ describe('a conversation another account also received', () => {
     const NEXT = { ...ROW, id: 'n1', message_id: '<40@x>', thread_id: '<40@x>' };
     for (const [title, endpoint] of [['message.archive', /bulk-archive/], ['message.delete', /bulk-delete/]]) {
       await open({ selected: B3, threadMessages: { '__dl_b3': [B3] }, rows: [ROW, NEXT] });
-      await commitWindow(button(title));
+      await commitWindow(await action(title));
       assert.deepEqual(sentIds(endpoint), ['b3'], `${title} takes acct-b's copy`);
       assert.deepEqual(useStore.getState().messages.map(m => m.id), [ROW.id, NEXT.id], `${title} leaves acct's row listed`);
       assert.equal(useStore.getState().selectedMessageId, null, `${title} opens nothing in its place`);
@@ -1286,7 +1326,7 @@ describe('a conversation another account also received', () => {
     // reader, so the opened copy and the row act on the same thing: every unified account's copies.
     await open({ selectedAccountId: null, selected: B3, threadMessages: { '__dl_b3': [B3] }, rows: [] });
     assert.ok(threadFetches().every(r => /unified=true/.test(r.url)), 'the conversation is the unified inbox\'s');
-    await commitWindow(button('message.delete'));
+    await commitWindow(await action('message.delete'));
     assert.deepEqual(sentIds(/bulk-delete/), ['b3', 'm1', 'm2', 'm3']);
   });
 
@@ -1302,7 +1342,7 @@ describe('a conversation another account also received', () => {
     await wait(50);
     assert.equal(threadFetches().length, fetched, 'the conversation is not fetched again');
     assert.deepEqual(openIds(), ['b3', 'm1'], 'the cards the reader opened stay open');
-    await commitWindow(button('message.delete'));
+    await commitWindow(await action('message.delete'));
     assert.deepEqual(sentIds(/bulk-delete/), ['b3', 'm1', 'm2', 'm3']);
   });
 
@@ -1327,9 +1367,9 @@ describe('a conversation another account also received', () => {
       ['contextMenu.markAsSpam', 'spam.nothingFromAccount'],
     ]) {
       await open({ selected: ORPHAN, threadMessages: { '__dl_c3': [ORPHAN] } });
-      await commitWindow(button(title));
+      await commitWindow(await action(title));
       assert.equal(useStore.getState().selectedMessageId, 'c3', `${title} does not close the pane as if it had worked`);
-      assert.ok(button(title), `${title} leaves the conversation on screen`);
+      assert.ok(button('message.archive'), `${title} leaves the conversation on screen`);
       assert.ok(!requests.some(r => /bulk-archive|bulk-delete|\/messages\/[^/]+\/spam/.test(r.url)), `${title} sends nothing`);
       assert.deepEqual(notices(), [notice], `${title} says why`);
     }
@@ -1365,7 +1405,7 @@ describe('a conversation another account also received', () => {
     served['<11@x>'] = OWN;
     const row = { ...OWN[1], message_count: 2, unread_count: 0 };
     await open({ selected: row, rows: [row], folder: 'Sent' });
-    await commitWindow(button('contextMenu.markAsSpam'));
+    await commitWindow(await action('contextMenu.markAsSpam'));
     assert.equal(useStore.getState().selectedMessageId, 's2', 'the pane is not closed as if the report had worked');
     assert.ok(button('message.delete'), 'the conversation stays on screen');
     assert.ok(!requests.some(r => /\/spam$/.test(r.url)), 'nothing is reported');
@@ -1383,7 +1423,7 @@ describe('a conversation another account also received', () => {
     served['<80@x>'] = NOTES;
     const row = { ...NOTES[1], message_count: 2, unread_count: 0 };
     await open({ selectedAccountId: null, selected: row, rows: [row] });
-    await commitWindow(button('contextMenu.markAsSpam'));
+    await commitWindow(await action('contextMenu.markAsSpam'));
     assert.ok(!requests.some(r => /\/spam$/.test(r.url)), 'nothing is reported');
     assert.equal(useStore.getState().selectedMessageId, 'u2', 'the pane stays open');
     assert.deepEqual(notices(), ['spam.nothingInConversation'], 'Spam says why');
@@ -1405,7 +1445,7 @@ describe('a conversation another account also received', () => {
 
   test('in the unified inbox the conversation still acts on every account\'s copies', async () => {
     await open({ selectedAccountId: null });
-    await commitWindow(button('message.delete'));
+    await commitWindow(await action('message.delete'));
     assert.deepEqual(sentIds(/bulk-delete/), ['b3', 'm1', 'm2', 'm3']);
   });
 });

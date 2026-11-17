@@ -24,6 +24,8 @@ import { BUILTIN_SUMMARIZE } from '../aiActions.js';
 import { formatDateTime } from '../utils/formatDate.js';
 import { bodyCache } from '../utils/bodyCache.js';
 import { useMobile } from '../hooks/useMobile.js';
+import { useWidthAtLeast } from '../hooks/useWidthAtLeast.js';
+import { TOOLBAR_GAP, TOOLBAR_TEXT_MIN } from '../utils/uiSizes.js';
 import MessageHeaderModal from './MessageHeaderModal.jsx';
 import {
   ActionBtn, MessageTools, ReplySplitButton, RemoteImagesNotice, UnsubscribeNotice,
@@ -52,6 +54,7 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
   const replyDefault = useStore(s => s.replyDefault);
   const addToImageWhitelist = useStore(s => s.addToImageWhitelist);
   const isMobile = useMobile();
+  const [toolbarRef, toolbarRoomy] = useWidthAtLeast(TOOLBAR_TEXT_MIN);
   const [showHeaderModal, setShowHeaderModal] = useState(false);
   // The encrypted message shown as it was received (PgpMessageView onShowOriginal).
   const [pgpOriginal, setPgpOriginal] = useState(false);
@@ -350,28 +353,30 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
               it is handed over, not refetched. Keyed by message, as the reading pane's. In a pane
               too narrow for all of them (about 370 px) they wrap to a second line, rather than
               make the whole conversation scroll sideways. */}
-          <div role="group" aria-label={t('shortcuts.groups.messageActions')} style={{
-            display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: isMobile ? 0 : 6, rowGap: 4, margin: '0 -4px 8px',
+          <div ref={toolbarRef} role="group" aria-label={t('shortcuts.groups.messageActions')} style={{
+            display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: isMobile ? 0 : TOOLBAR_GAP, rowGap: 4, margin: '0 -4px 8px',
           }}>
             <ReplySplitButton
               key={`reply-${message.id}`}
               defaultReplyAll={replyDefault === 'replyAll'}
               onReply={replyAll => openReplyFromMessage(message, { accounts, folders: useStore.getState().folders, openCompose, getMessageBody: loadedBody, replyAll })}
               touch={isMobile}
+              showText={toolbarRoomy}
             />
             {aiReplyEnabled && !pgpCiphertext && !isMobile && (
               <ActionBtn onClick={aiReply} label={t('compose.toolbar.aiReply')}>
                 <AiReplyIcon />
               </ActionBtn>
             )}
-            <ActionBtn onClick={() => openForwardFromMessage(message, { openCompose, getMessageBody: loadedBody })} label={t('message.forward')} touch={isMobile}>
+            <ActionBtn onClick={() => openForwardFromMessage(message, { openCompose, getMessageBody: loadedBody })} label={t('message.forward')} touch={isMobile}
+              text={toolbarRoomy ? t('message.forward') : undefined}>
               <ForwardIcon />
             </ActionBtn>
             <div style={{ flex: 1 }} />
-            <MessageTools key={`tools-${message.id}`} isMobile={isMobile} items={toolItems} ai={aiTools} />
             <ActionBtn onClick={handleStar} label={t('message.star')} pressed={Boolean(message.is_starred)} touch={isMobile}>
               <StarIcon filled={message.is_starred} />
             </ActionBtn>
+            <MessageTools key={`tools-${message.id}`} isMobile={isMobile} items={toolItems} ai={aiTools} />
           </div>
           {loading && (
             <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 8 }}>

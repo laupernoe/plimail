@@ -183,6 +183,11 @@
       "removeHighlight": "Remove highlight",
       "fontDefault": "Default",
       "moreFormatting": "More formatting",
+      "strikethrough": "Strikethrough",
+      "alignLeft": "Align left",
+      "alignCenter": "Center",
+      "alignRight": "Align right",
+      "htmlSource": "Edit HTML source",
       "aiAssist": "AI assist",
       "aiWriteDraft": "Write draft",
       "aiImprove": "Improve",
@@ -530,6 +535,7 @@
     "sync": "Sync",
     "compose": "Compose",
     "messagesPerPage": "Messages per page",
+    "viewOptions": "View options",
     "selectAll": "Select all",
     "deselectAll": "Deselect all",
     "starSelected": "Star",
@@ -631,7 +637,6 @@
       "doneBody": "Saved as an inbox rule; inbox mail already received was updated too.",
       "failed": "Couldn't save the category for this sender"
     },
-    "changeLayout": "Change layout",
     "layout": "Layout",
     "layouts": {
       "focused": {
@@ -1281,6 +1286,7 @@
       "microsoftImapNote": "Microsoft no longer accepts passwords for Outlook.com, Hotmail, Live and MSN mailboxes, and sign-in with Microsoft is not set up on this server. Ask your administrator to turn it on under Email providers.",
       "microsoftImapNoteReady": "Microsoft no longer accepts passwords for Outlook.com, Hotmail, Live and MSN mailboxes. Add this mailbox with Sign in with Microsoft under Add account instead.",
       "reindex": "Re-index for search",
+      "moreActions": "More account actions",
       "reindexing": "Indexing messages...",
       "reindexProgress": "{{synced}} / {{total}} messages indexed",
       "reindexError": "Failed to start re-index",
