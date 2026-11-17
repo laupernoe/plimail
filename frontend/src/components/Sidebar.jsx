@@ -22,6 +22,7 @@ import {
 import { useMobile } from '../hooks/useMobile.js';
 import UpcomingPane from './calendar/UpcomingPane.jsx';
 import ProfileModal from './ProfileModal.jsx';
+import MailTransferDialog from './MailTransferDialog.jsx';
 import { useUiScale, descale } from '../hooks/useUiScale.js';
 import { SNOOZED_FOLDER } from '../utils/snoozeActions.js';
 import { SCHEDULED_VIEW } from '../utils/scheduledCompose.js';
@@ -524,6 +525,7 @@ export default function Sidebar() {
   // Loading state for folder ops
   const [folderOpLoading, setFolderOpLoading] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState(null); // { message, onConfirm }
+  const [transferDialog, setTransferDialog] = useState(null); // { mode: 'export' | 'import', accountId, folderPath }
 
   const toggleAccount = (id) => {
     setExpandedAccounts(prev => ({ ...prev, [id]: !prev[id] }));
@@ -791,6 +793,17 @@ export default function Sidebar() {
           ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
         action: () => isHidden ? unhideFolderFn(accountId, folderObj.path) : hideFolderFn(accountId, folderObj.path),
+      },
+      { separator: true },
+      {
+        label: t('sidebar.folderMenu.export'),
+        icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+        action: () => setTransferDialog({ mode: 'export', accountId, folderPath: folderObj.path }),
+      },
+      {
+        label: t('sidebar.folderMenu.import'),
+        icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+        action: () => setTransferDialog({ mode: 'import', accountId, folderPath: folderObj.path }),
       },
       { separator: true },
       {
@@ -2141,6 +2154,10 @@ export default function Sidebar() {
         />
       )}
       {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
+
+      {transferDialog && (
+        <MailTransferDialog {...transferDialog} onClose={() => setTransferDialog(null)} />
+      )}
 
       {confirmDialog && (
         <div style={{

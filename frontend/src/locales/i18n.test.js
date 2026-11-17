@@ -170,6 +170,12 @@ const SAME_VALUE_ALLOWED = {
   'admin.sso.scopesPh':                     'any', // openid email profile
   'login.totp.placeholder':                 'any', // 000000
 
+  // ── Mail import / export: the same verbs in Spanish and Portuguese ─────────
+  'mailTransfer.exportStart':  [['es', 'ptBR']], // Exportar
+  'mailTransfer.exportTitle':  [['es', 'ptBR']], // Exportar {{name}}
+  'mailTransfer.importStart':  [['es', 'ptBR']], // Importar
+  'mailTransfer.importing':    [['es', 'ptBR']], // Importando
+
   // ── Specific language groups ───────────────────────────────────────────────
   // "Version" — same spelling in de, en, fr
   'admin.about.version': [['de', 'en', 'fr']],

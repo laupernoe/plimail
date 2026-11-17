@@ -20,6 +20,7 @@ antispam and the mobile and desktop apps were removed.
 
 - Unified inbox across any number of IMAP/SMTP accounts, with OAuth for Google and Microsoft
 - Threads, search, snooze, rules, categories, scheduled send, drafts
+- Folder export (.mbox, .zip of .eml) and import (.mbox, .eml) that keeps dates and flags
 - CalDAV calendars and meeting invitations
 - Contacts, also served as a CardDAV address book
 - Web push notifications, keyboard shortcuts, 11 interface languages
@@ -82,6 +83,7 @@ Optional settings, also read from `.env`:
 - `MS_CLIENT_ID`, `MS_CLIENT_SECRET`, `MS_TENANT_ID`, `MS_REDIRECT_URI`, `MS_BUILTIN_APP`: Microsoft OAuth
 - `IMAP_MAX_PERSISTENT_PER_HOST`: cap always-on IMAP connections per mail server (others are polled)
 - `IMAGE_CACHE_MAX_MB`: size of the image proxy cache per user (default 512)
+- `MAIL_IMPORT_MAX_MB`: largest file the folder import (.mbox, .eml) accepts, in MB (default 500). A reverse proxy in front needs a matching body-size limit
 - `ALLOW_PRIVATE_IMAP_HOSTS=true`: allow mail servers on private addresses
 - `SMTP_EHLO_NAME`, `LOG_LEVEL`, `UPDATE_CHECK_DISABLED=true`
 - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `REDIS_URL`: external PostgreSQL or Redis (database and user default to `mailflow`)

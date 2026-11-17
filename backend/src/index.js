@@ -26,6 +26,7 @@ import integrationsRoutes, { loadIntegrationConfigs } from './routes/integration
 import authRoutes from './routes/auth.js';
 import accountRoutes from './routes/accounts.js';
 import mailRoutes from './routes/mail.js';
+import mailTransferRoutes from './routes/mailTransfer.js';
 import searchRoutes from './routes/search.js';
 import adminRoutes from './routes/admin.js';
 import totpRoutes from './routes/totp.js';
@@ -177,6 +178,7 @@ app.use('/oauth', oauthRoutes);
 app.use('/api/integrations', integrationsRoutes);
 app.use('/api/accounts', accountRoutes);
 app.use('/api/mail', mailRoutes);
+app.use('/api/mail-transfer', mailTransferRoutes);
 app.use('/api/mail', sendRoutes);
 app.use('/api/mail', readReceiptRoutes);
 app.use('/api/mail', draftRoutes);

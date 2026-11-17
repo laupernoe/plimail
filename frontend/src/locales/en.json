@@ -716,7 +716,9 @@
       "hide": "Hide folder",
       "unhide": "Unhide folder",
       "empty": "Empty folder",
-      "delete": "Delete folder"
+      "delete": "Delete folder",
+      "export": "Export folder…",
+      "import": "Import messages…"
     },
     "accountMenu": {
       "newFolder": "New folder",
@@ -929,7 +931,8 @@
       "recent": "Recent",
       "favorites": "Favorites",
       "search": "Search folders…"
-    }
+    },
+    "exportSelection": "Export selected messages (.mbox)"
   },
   "commandPalette": {
     "labelPicker": {
@@ -2840,5 +2843,39 @@
       "openFailed": "This encrypted draft could not be opened for editing. It is shown in the reader instead.",
       "hasAttachments": "This encrypted draft has attachments Plimail cannot keep in a draft, so it is shown in the reader instead of opened for editing."
     }
+  },
+  "mailTransfer": {
+    "exportTitle": "Export {{name}}",
+    "importTitle": "Import into {{name}}",
+    "exportIntro": "Messages are read from your mail server and downloaded as they come. A large folder takes a while.",
+    "formatMbox": "A single .mbox file",
+    "formatMboxHint": "mboxrd format, opens in Thunderbird and most mail clients",
+    "formatZip": "A .zip of .eml files",
+    "formatZipHint": "One file per message",
+    "exportStart": "Export",
+    "exportStarted": "The download has started. A large folder keeps downloading for a while; keep this page open until it finishes.",
+    "importIntro": "Choose an .mbox file or one or more .eml files. Messages are added with their original dates. Nothing already in the folder is changed or deleted.",
+    "chooseFiles": "Choose files…",
+    "noFiles": "No file chosen",
+    "filesChosen": "{{count}} files chosen",
+    "destination": "Destination folder",
+    "markRead": "Mark imported messages as read, unless the file records whether they were read",
+    "importStart": "Import",
+    "importing": "Importing",
+    "fileOf": "File {{current}} of {{total}}",
+    "liveCounts": "{{imported}} imported, {{duplicates}} already there, {{failed}} failed",
+    "reportTitle": "Import finished",
+    "reportImported": "Imported",
+    "reportDuplicates": "Skipped, already in the folder",
+    "reportFailed": "Failed",
+    "failuresTitle": "Failures",
+    "failuresMore": "{{count}} more failures are not listed.",
+    "abortedTooLarge": "Stopped: the file is larger than the size limit set on the server.",
+    "abortedImap": "Stopped: the mail server kept refusing the messages.",
+    "abortedCancelled": "Stopped before the end of the file.",
+    "abortedError": "Stopped: {{reason}}",
+    "unsupportedFile": "Not an .mbox or .eml file",
+    "close": "Close",
+    "selectionFailed": "Could not export the selected messages"
   }
 }

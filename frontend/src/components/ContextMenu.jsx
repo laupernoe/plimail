@@ -21,7 +21,7 @@ const SPAM_NAME_RE = /(spam|junk|bulk|indesiderata|spamverdacht|courrier\s*ind|p
 // ─── Context Menu ─────────────────────────────────────────────────────────────
 const CATEGORIES = ['primary', 'newsletter', 'promotion', 'automated', 'social'];
 
-export default function ContextMenu({ x, y, message, onClose, onAction, defaultMoveView = false, defaultSnoozeView = false, variant = 'inbox', selectedText = '' }) {
+export default function ContextMenu({ x, y, message, onClose, onAction, defaultMoveView = false, defaultSnoozeView = false, variant = 'inbox', selectedText = '', selectionCount = 0 }) {
   const { t } = useTranslation();
   const uiScale = useUiScale();
   const isMobile = useMobile();
@@ -339,6 +339,12 @@ export default function ContextMenu({ x, y, message, onClose, onAction, defaultM
           icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
           action: () => downloadEml(message.id),
         },
+        // With several messages selected, this one among them, they go out together as one .mbox.
+        ...(selectionCount > 1 ? [{
+          label: t('contextMenu.exportSelection'),
+          icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+          action: () => onAction('exportSelection'),
+        }] : []),
       ]
     },
     {

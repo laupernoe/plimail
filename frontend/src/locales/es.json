@@ -716,7 +716,9 @@
       "hide": "Ocultar carpeta",
       "unhide": "Mostrar carpeta",
       "empty": "Vaciar carpeta",
-      "delete": "Eliminar carpeta"
+      "delete": "Eliminar carpeta",
+      "export": "Exportar carpeta…",
+      "import": "Importar mensajes…"
     },
     "accountMenu": {
       "newFolder": "Nueva carpeta",
@@ -929,7 +931,8 @@
       "recent": "Recientes",
       "favorites": "Favoritos",
       "search": "Buscar carpetas…"
-    }
+    },
+    "exportSelection": "Exportar los mensajes seleccionados (.mbox)"
   },
   "commandPalette": {
     "labelPicker": {
@@ -2840,5 +2843,39 @@
       "openFailed": "Este borrador cifrado no se pudo abrir para editarlo. Se muestra en el lector en su lugar.",
       "hasAttachments": "Este borrador cifrado tiene adjuntos que Plimail no puede conservar en un borrador, así que se muestra en el lector en lugar de abrirse para editarlo."
     }
+  },
+  "mailTransfer": {
+    "exportTitle": "Exportar {{name}}",
+    "importTitle": "Importar en {{name}}",
+    "exportIntro": "Los mensajes se leen de su servidor de correo y se descargan a medida que llegan. Una carpeta grande tarda un rato.",
+    "formatMbox": "Un único archivo .mbox",
+    "formatMboxHint": "Formato mboxrd, se abre en Thunderbird y en la mayoría de los clientes de correo",
+    "formatZip": "Un .zip de archivos .eml",
+    "formatZipHint": "Un archivo por mensaje",
+    "exportStart": "Exportar",
+    "exportStarted": "La descarga ha comenzado. Una carpeta grande sigue descargándose un rato; mantenga esta página abierta hasta que termine.",
+    "importIntro": "Elija un archivo .mbox o uno o varios archivos .eml. Los mensajes se añaden con su fecha original. Nada de lo que ya hay en la carpeta se modifica ni se elimina.",
+    "chooseFiles": "Elegir archivos…",
+    "noFiles": "Ningún archivo elegido",
+    "filesChosen": "{{count}} archivos elegidos",
+    "destination": "Carpeta de destino",
+    "markRead": "Marcar los mensajes importados como leídos, salvo si el archivo indica si lo estaban",
+    "importStart": "Importar",
+    "importing": "Importando",
+    "fileOf": "Archivo {{current}} de {{total}}",
+    "liveCounts": "{{imported}} importados, {{duplicates}} ya presentes, {{failed}} con error",
+    "reportTitle": "Importación terminada",
+    "reportImported": "Importados",
+    "reportDuplicates": "Omitidos, ya están en la carpeta",
+    "reportFailed": "Con error",
+    "failuresTitle": "Errores",
+    "failuresMore": "No se muestran {{count}} errores más.",
+    "abortedTooLarge": "Detenido: el archivo supera el límite de tamaño fijado en el servidor.",
+    "abortedImap": "Detenido: el servidor de correo seguía rechazando los mensajes.",
+    "abortedCancelled": "Detenido antes del final del archivo.",
+    "abortedError": "Detenido: {{reason}}",
+    "unsupportedFile": "No es un archivo .mbox ni .eml",
+    "close": "Cerrar",
+    "selectionFailed": "No se pudieron exportar los mensajes seleccionados"
   }
 }
