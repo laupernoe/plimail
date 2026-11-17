@@ -7102,6 +7102,24 @@ export class ImapManager {
     });
   }
 
+  // The raw header block and the IMAP flags (keywords included) of one message, in one command.
+  async fetchHeadersAndFlags(account, uid, folder) {
+    return withFreshClient(account, async (client) => {
+      const lock = await client.getMailboxLock(folder);
+      try {
+        let headers = '';
+        let flags = [];
+        for await (const msg of client.fetch(String(uid), { uid: true, flags: true, headers: true }, { uid: true })) {
+          if (msg.headers) headers = headersToRawString(msg.headers);
+          if (msg.flags) flags = [...msg.flags];
+        }
+        return { headers, flags };
+      } finally {
+        lock.release();
+      }
+    });
+  }
+
   async fetchAttachment(account, uid, folder, partNum) {
     return withFreshClient(account, async (client) => {
       const lock = await client.getMailboxLock(folder);

@@ -17,6 +17,7 @@ import { truncateFilename, safeFilename } from '../utils/contentDisposition.js';
 import { SMTP_AUTH_DISABLED, isSmtpAuthDisabled } from './smtpRefusals.js';
 import { PGP_ENCRYPTED_SNIPPET } from './pgpDetect.js';
 import { autocryptFor } from './autocrypt.js';
+import { readReceiptHeaders } from './readReceipts.js';
 
 // The user's "encrypt automatically when every recipient has a key" setting, on unless turned off.
 export const pgpPreferEncrypt = preferences => preferences?.pgpAutoEncrypt !== false;
@@ -213,7 +214,7 @@ export function missingSendFields(body) {
 // subject made a safe header value, priority one of high/normal/low. Throws SendError (400).
 // Nothing here reads the database or the mail server, so it is cheap to run before anything else.
 export function validateSendInput(body) {
-  const { accountId, aliasId, to, cc = [], bcc = [], subject, body: text, bodyIsHtml = false, quotedBody, quotedBodyHtml, inReplyTo, references, attachments, editedSignature, forwardedAttachments, forwardedMessages, priority } = body || {};
+  const { accountId, aliasId, to, cc = [], bcc = [], subject, body: text, bodyIsHtml = false, quotedBody, quotedBodyHtml, inReplyTo, references, attachments, editedSignature, forwardedAttachments, forwardedMessages, priority, readReceipt } = body || {};
   const missing = missingSendFields(body);
   if (missing) throw new SendError(400, missing);
   const pgp = validatePgp(body.pgp, body);
@@ -265,6 +266,7 @@ export function validateSendInput(body) {
     forwardedAttachments,
     forwardedMessages,
     priority: VALID_PRIORITIES.has(priority) ? priority : 'normal',
+    ...(readReceipt === true ? { readReceipt: true } : {}),
     ...(pgp ? { pgp } : {}),
   };
 }
@@ -463,7 +465,14 @@ export function buildMailOptions(input, identity, forwarded = { attachments: [],
     subject: input.subject,
     ...(priority !== 'normal' ? { priority } : {}),
     // The sender's public key (services/autocrypt.js), already folded: nodemailer must not touch it.
-    ...(identity.autocrypt ? { headers: { Autocrypt: { prepared: true, value: identity.autocrypt } } } : {}),
+    // Autocrypt and the read receipt request are headers of the message itself: an encrypted
+    // message carries them outside the ciphertext too, as renderPgpMime keeps every header.
+    ...(identity.autocrypt || input.readReceipt ? {
+      headers: {
+        ...(identity.autocrypt ? { Autocrypt: { prepared: true, value: identity.autocrypt } } : {}),
+        ...readReceiptHeaders(input.readReceipt, fromEmail),
+      },
+    } : {}),
   };
   // An encrypted message has no body of the server's making: its content, signature included,
   // is the ciphertext, which prepareDelivery puts in place (renderPgpMime).

@@ -8,7 +8,8 @@ vi.mock('./db.js', () => ({ query: vi.fn(), pool: { connect: vi.fn() } }));
 vi.mock('./pushNotifications.js', () => ({ sendPushToUser: vi.fn() }));
 vi.mock('../utils/mailUtils.js', () => ({ resolveSentFolder: vi.fn() }));
 
-import { ScheduledSender } from './scheduledSend.js';
+import { ScheduledSender, sealJson, aad } from './scheduledSend.js';
+import { buildMailOptions } from './outgoingMail.js';
 import { resolveSentFolder } from '../utils/mailUtils.js';
 import { MAX_TICK_MS } from './scheduledSendRules.js';
 
@@ -261,5 +262,29 @@ describe('a claimed message', () => {
     expect(push).toHaveBeenCalledWith('u1', expect.objectContaining({
       title: 'Scheduled message', body: expect.stringMatching(/^Not sent: was scheduled for .*Plimail was offline/), url: '/?scheduled=m1',
     }));
+  });
+});
+
+describe('a scheduled message that asks for a read receipt', () => {
+  const buildFrom = async extra => {
+    const db = fakeDb();
+    db.query.mockResolvedValue({ rows: [], rowCount: 0 });
+    sender = new ScheduledSender({ db, push: vi.fn(), imap: () => ({}) });
+    const row = { id: 'm1', user_id: 'u1', account_id: 'a1', version: 1 };
+    const payload = { v: 1, to: ['you@example.net'], cc: [], bcc: [], subject: 'Hi', body: 'Hello', priority: 'normal', ...extra };
+    row.payload_enc = sealJson(payload, aad.payload(row));
+    return sender.build(row, { id: 'a1', email_address: 'me@example.com', name: 'Me' });
+  };
+
+  it('is sent with the request it was scheduled with', async () => {
+    const { input, identity } = await buildFrom({ readReceipt: true });
+    expect(input.readReceipt).toBe(true);
+    const options = buildMailOptions(input, identity, { attachments: [], messages: [] });
+    expect(options.headers).toEqual({ 'Disposition-Notification-To': 'me@example.com' });
+  });
+
+  it('asks for nothing when it was scheduled without', async () => {
+    const { input } = await buildFrom({});
+    expect(input.readReceipt).toBeUndefined();
   });
 });

@@ -325,7 +325,9 @@
     "sendEncrypted": "Enviar criptografado (PGP)",
     "sendEncryptedShort": "Enviar criptografado",
     "sendWithPassword": "Enviar com senha",
-    "sendWithPasswordShort": "Enviar protegido"
+    "sendWithPasswordShort": "Enviar protegido",
+    "readReceipt": "Solicitar confirmação de leitura",
+    "readReceiptHint": "Pede ao programa de e-mail do destinatário que confirme a abertura da mensagem. Ele pode recusar."
   },
   "message": {
     "find": {
@@ -501,6 +503,14 @@
         "replyTo": "As respostas vão para outro endereço: {{address}}",
         "displayName": "O nome do remetente mostra {{shown}} mas o e-mail vem de {{actual}}"
       }
+    },
+    "readReceipt": {
+      "info": "O remetente solicita uma confirmação de leitura.",
+      "mismatch": "O pedido vem de um endereço diferente do que enviou a mensagem; confira antes de responder.",
+      "send": "Enviar",
+      "ignore": "Ignorar",
+      "sendFailed": "Não foi possível enviar a confirmação.",
+      "ignoreFailed": "Não foi possível salvar sua escolha."
     }
   },
   "messageList": {
@@ -1447,7 +1457,17 @@
       "gravatarOff": "Desativado",
       "gravatarOffDesc": "Privado — nunca contata terceiros.",
       "gravatarOn": "Ativado",
-      "gravatarOnDesc": "Buscar fotos dos remetentes no Gravatar — compartilha hashes dos endereços dos remetentes com um terceiro."
+      "gravatarOnDesc": "Buscar fotos dos remetentes no Gravatar — compartilha hashes dos endereços dos remetentes com um terceiro.",
+      "readReceiptRequestAlways": "Solicitar confirmação de leitura em cada mensagem",
+      "readReceiptRequestAlwaysDesc": "Adiciona um pedido de confirmação de leitura a cada mensagem que você escreve. Você ainda pode removê-lo no editor.",
+      "readReceiptReply": "Pedidos de confirmação de leitura",
+      "readReceiptReplyDesc": "O que fazer quando uma mensagem pede que você confirme a leitura. Spam e listas de e-mail nunca recebem resposta.",
+      "readReceiptAsk": "Perguntar",
+      "readReceiptAskDesc": "Um aviso acima da mensagem, com Enviar e Ignorar (recomendado).",
+      "readReceiptAlways": "Enviar sempre",
+      "readReceiptAlwaysDesc": "Responder ao abrir a mensagem, a menos que o pedido pareça suspeito.",
+      "readReceiptNever": "Nunca enviar",
+      "readReceiptNeverDesc": "Nunca responder e não mostrar o aviso."
     },
     "notifications": {
       "title": "Notificações",

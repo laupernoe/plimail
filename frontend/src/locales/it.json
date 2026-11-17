@@ -325,7 +325,9 @@
     "sendEncrypted": "Invia cifrato (PGP)",
     "sendEncryptedShort": "Invia cifrato",
     "sendWithPassword": "Invia con una password",
-    "sendWithPasswordShort": "Invia protetto"
+    "sendWithPasswordShort": "Invia protetto",
+    "readReceipt": "Richiedi conferma di lettura",
+    "readReceiptHint": "Chiede al programma di posta del destinatario di confermare l’apertura del messaggio. Il destinatario può rifiutare."
   },
   "message": {
     "find": {
@@ -501,6 +503,14 @@
         "replyTo": "Le risposte vanno a un altro indirizzo: {{address}}",
         "displayName": "Il nome del mittente mostra {{shown}} ma il messaggio arriva da {{actual}}"
       }
+    },
+    "readReceipt": {
+      "info": "Il mittente richiede una conferma di lettura.",
+      "mismatch": "La richiesta proviene da un indirizzo diverso da quello che ha inviato il messaggio: verificala prima di rispondere.",
+      "send": "Invia",
+      "ignore": "Ignora",
+      "sendFailed": "Impossibile inviare la conferma.",
+      "ignoreFailed": "Impossibile salvare la tua scelta."
     }
   },
   "messageList": {
@@ -1447,7 +1457,17 @@
       "gravatarOff": "Disattivato",
       "gravatarOffDesc": "Privato: non contatta mai terze parti.",
       "gravatarOn": "Attivato",
-      "gravatarOnDesc": "Recupera le foto del mittente da Gravatar — condivide gli indirizzi hash dei mittenti con terze parti."
+      "gravatarOnDesc": "Recupera le foto del mittente da Gravatar — condivide gli indirizzi hash dei mittenti con terze parti.",
+      "readReceiptRequestAlways": "Richiedi la conferma di lettura per ogni messaggio",
+      "readReceiptRequestAlwaysDesc": "Aggiunge una richiesta di conferma di lettura a ogni messaggio che scrivi. Puoi sempre toglierla nell’editor.",
+      "readReceiptReply": "Richieste di conferma di lettura",
+      "readReceiptReplyDesc": "Cosa fare quando un messaggio chiede di confermarne la lettura. Spam e mailing list non ricevono mai risposta.",
+      "readReceiptAsk": "Chiedimelo",
+      "readReceiptAskDesc": "Un avviso sopra il messaggio, con Invia e Ignora (consigliato).",
+      "readReceiptAlways": "Invia sempre",
+      "readReceiptAlwaysDesc": "Rispondi appena apri il messaggio, a meno che la richiesta non sembri sospetta.",
+      "readReceiptNever": "Non inviare mai",
+      "readReceiptNeverDesc": "Non rispondere mai e non mostrare l’avviso."
     },
     "notifications": {
       "title": "Notifiche",

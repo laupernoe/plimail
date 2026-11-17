@@ -18,6 +18,7 @@ import { mountApiAuth } from './middleware/apiChain.js';
 import { compress, mountWebApp, securityHeaders } from './middleware/webApp.js';
 
 import sendRoutes from './routes/send.js';
+import readReceiptRoutes from './routes/readReceipts.js';
 import draftRoutes from './routes/draft.js';
 import scheduledRoutes from './routes/scheduled.js';
 import oauthRoutes from './routes/oauth.js';
@@ -176,6 +177,7 @@ app.use('/api/integrations', integrationsRoutes);
 app.use('/api/accounts', accountRoutes);
 app.use('/api/mail', mailRoutes);
 app.use('/api/mail', sendRoutes);
+app.use('/api/mail', readReceiptRoutes);
 app.use('/api/mail', draftRoutes);
 app.use('/api/mail', scheduledRoutes);
 app.use('/api/search', searchRoutes);

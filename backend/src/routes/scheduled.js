@@ -170,6 +170,7 @@ async function buildSpec(userId, body, { messageId } = {}) {
     // Encrypted in the browser (RFC 3156, as Send sends it): its ciphertext is the 'pgp' attachment
     // below, sent as it is at the time. The server never has its text.
     ...(input.pgp ? { pgp: true } : {}),
+    ...(input.readReceipt ? { readReceipt: true } : {}),
     ...(body.compose && typeof body.compose === 'object' && !Array.isArray(body.compose) ? { compose: body.compose } : {}),
   };
   if (Buffer.byteLength(JSON.stringify(payload), 'utf8') > LIMITS.payloadBytes) {
