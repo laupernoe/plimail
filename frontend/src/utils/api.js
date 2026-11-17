@@ -351,6 +351,18 @@ export const api = {
   changePassword: (currentPassword, newPassword, pgpKeys) => request('POST', '/auth/password', { currentPassword, newPassword, ...(pgpKeys ? { pgpKeys } : {}) }),
   updateRecoveryEmail: (email) => request('PATCH', '/auth/profile/recovery-email', { email }),
 
+  // Passkeys (WebAuthn): signing in with one, and the user's own in Settings → Security.
+  passkeys: {
+    status: () => request('GET', '/passkeys/status'),
+    loginOptions: () => request('POST', '/passkeys/login/options'),
+    loginVerify: (response) => request('POST', '/passkeys/login/verify', { response }),
+    list: () => request('GET', '/passkeys'),
+    registrationOptions: (password) => request('POST', '/passkeys/registration/options', { password }),
+    registrationVerify: (response, name) => request('POST', '/passkeys/registration/verify', { response, name }),
+    rename: (id, name) => request('PATCH', `/passkeys/${encodeURIComponent(id)}`, { name }),
+    remove: (id, password) => request('DELETE', `/passkeys/${encodeURIComponent(id)}`, { password }),
+  },
+
   // TOTP / 2FA
   totp: {
     setup: () => request('GET', '/totp/setup'),

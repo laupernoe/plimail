@@ -51,6 +51,7 @@ import { htmlLang } from '../utils/browserLanguage.js';
 import BackupSettings from './BackupSettings.jsx';
 import PasswordInput from './PasswordInput.jsx';
 import ApiTokensSection from './ApiTokensSection.jsx';
+import PasskeysSection from './PasskeysSection.jsx';
 import WritingStyleSection from './WritingStyleSection.jsx';
 import SecureMessagesSection from './SecureMessagesSection.jsx';
 import PgpSettingsSection from './PgpSettingsSection.jsx';
@@ -7223,6 +7224,8 @@ function SecurityTab() {
       api_token_created:   t('admin.security.eventApiTokenCreated'),
       api_token_revoked:   t('admin.security.eventApiTokenRevoked'),
       api_token_auth_fail: t('admin.security.eventApiTokenAuthFail'),
+      passkey_added:       t('admin.security.eventPasskeyAdded'),
+      passkey_removed:     t('admin.security.eventPasskeyRemoved'),
     };
     return map[type] || type;
   };
@@ -7618,6 +7621,8 @@ function SecurityTab() {
           }}>{success}</div>
         )}
       </div>
+
+      <PasskeysSection />
 
       <ApiTokensSection />
 

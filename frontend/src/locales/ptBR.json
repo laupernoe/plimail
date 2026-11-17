@@ -1611,7 +1611,9 @@
       "mfaSsoLockedNotice": "A exigência de MFA não se aplica quando o login com senha está desativado. Os usuários se autenticam via SSO, que gerencia seus próprios requisitos de MFA.",
       "recoveryEmailTitle": "E-mail de recuperação",
       "recoveryEmailDesc": "Receba um código de acesso por e-mail caso perca o acesso ao seu aplicativo autenticador.",
-      "recoveryEmailPh": "seu@email.com"
+      "recoveryEmailPh": "seu@email.com",
+      "eventPasskeyAdded": "Chave de acesso adicionada",
+      "eventPasskeyRemoved": "Chave de acesso removida"
     },
     "password": {
       "title": "Senha",
@@ -2995,6 +2997,48 @@
     "offline": {
       "banner": "Você está offline. Os e-mails abertos recentemente continuam legíveis; o envio e as alterações aguardam a conexão.",
       "unreachable": "O Plimail não consegue acessar o servidor. Verifique sua conexão e tente novamente."
+    }
+  },
+  "passkeys": {
+    "signIn": "Entrar com uma chave de acesso",
+    "signingIn": "Aguardando sua chave de acesso…",
+    "blocked": {
+      "ip": "Chaves de acesso precisam de um nome de domínio: elas não funcionam quando o Plimail é aberto por um endereço IP. Abra-o pelo nome de domínio, com um certificado válido, para usar uma.",
+      "server": "As chaves de acesso não estão configuradas neste servidor: o endereço dele (APP_URL) precisa ser um nome de domínio https://.",
+      "browser": "Este navegador não consegue usar chaves de acesso nesta página.",
+      "otherHost": "As chaves de acesso só funcionam em {{host}}. Abra o Plimail lá para usar uma."
+    },
+    "errors": {
+      "tooMany": "Tentativas demais. Tente novamente mais tarde.",
+      "refused": "Não foi possível entrar com esta chave de acesso.",
+      "expired": "A solicitação expirou. Tente novamente.",
+      "loginOff": "O login com chave de acesso está desativado neste servidor. Entre com seu provedor de SSO.",
+      "generic": "Algo deu errado com a chave de acesso. Tente novamente.",
+      "wrongPassword": "Senha incorreta.",
+      "notAdded": "Não foi possível adicionar esta chave de acesso: ela já foi adicionada ou a conta já tem o máximo permitido.",
+      "alreadyOnDevice": "Este dispositivo já tem uma chave de acesso para sua conta."
+    },
+    "settings": {
+      "title": "Chaves de acesso",
+      "description": "Entre com sua digital, seu rosto ou o PIN do dispositivo em vez da senha e do código de verificação em duas etapas.",
+      "add": "Adicionar uma chave de acesso",
+      "addGo": "Prosseguir",
+      "adding": "Aguardando seu dispositivo…",
+      "nameLabel": "Nome da chave de acesso",
+      "namePh": "Nome (ex.: Notebook, Celular)",
+      "confirmPassword": "Confirme com sua senha do Plimail.",
+      "noPassword": "Chaves de acesso exigem uma senha do Plimail, que sua conta não tem.",
+      "loadFailed": "Não foi possível carregar suas chaves de acesso.",
+      "none": "Nenhuma chave de acesso ainda.",
+      "save": "Salvar",
+      "rename": "Renomear",
+      "remove": "Remover",
+      "removeGo": "Remover a chave de acesso",
+      "removeConfirm": "Remover “{{name}}”? Digite sua senha do Plimail para confirmar.",
+      "added": "Adicionada em {{date}}",
+      "lastUsed": "último uso em {{date}}",
+      "neverUsed": "nunca utilizada",
+      "pgpNote": "Uma chave de acesso não desbloqueia suas chaves de criptografia: depois de entrar com uma, o Plimail pede sua senha uma vez por aba, na primeira vez em que uma mensagem precisa ser descriptografada ou assinada."
     }
   }
 }
