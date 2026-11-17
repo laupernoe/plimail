@@ -7,6 +7,7 @@ import { query } from '../services/db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { decrypt, encrypt } from '../services/encryption.js';
 import { findOwnedAccount } from '../services/ownership.js';
+import { isAccountMailHost } from '../services/mailPasswordHosts.js';
 import { validateHost } from '../services/hostValidation.js';
 import { getConnectionPolicy } from '../services/connectionPolicy.js';
 import { consume } from '../services/rateLimiter.js';
@@ -116,8 +117,7 @@ async function mailPassword(userId, mailAccountId) {
 async function mailPasswordMayGoTo(mail, serverUrl, policy) {
   let target;
   try { target = new URL(serverUrl); } catch { return false; }
-  const host = target.hostname.toLowerCase();
-  if ([mail.imap_host, mail.smtp_host].some(h => typeof h === 'string' && h.toLowerCase() === host)) return true;
+  if (isAccountMailHost(mail, target.hostname)) return true;
   const found = await discoverAccountSettings(mail.email_address, {
     allowPrivate: policy.allowPrivateHosts, allowNonstandardPorts: policy.allowNonstandardPorts,
   }).catch(() => null);
