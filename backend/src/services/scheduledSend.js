@@ -641,6 +641,7 @@ export class ScheduledSender {
       references: payload.references,
       priority: payload.priority,
       ...(pgp ? { pgp } : {}),
+      readReceipt: payload.readReceipt,
     });
     const identity = await this.identityFor(account, payload);
     const attachments = pgp ? [] : mailAttachments(stored);
