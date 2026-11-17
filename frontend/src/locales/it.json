@@ -1611,7 +1611,9 @@
       "mfaSsoLockedNotice": "L'applicazione MFA non è applicabile quando l'accesso con password è disabilitato. Gli utenti si autenticano tramite SSO, che gestisce i propri requisiti MFA.",
       "recoveryEmailTitle": "Email di recupero",
       "recoveryEmailDesc": "Ricevi un codice di accesso via email se perdi l’accesso alla tua app di autenticazione.",
-      "recoveryEmailPh": "tua@email.it"
+      "recoveryEmailPh": "tua@email.it",
+      "eventPasskeyAdded": "Passkey aggiunta",
+      "eventPasskeyRemoved": "Passkey rimossa"
     },
     "password": {
       "title": "Password",
@@ -2995,6 +2997,48 @@
     "offline": {
       "banner": "Sei offline. La posta aperta di recente resta leggibile; l'invio e le modifiche attendono la connessione.",
       "unreachable": "Plimail non riesce a raggiungere il server. Controlla la connessione e riprova."
+    }
+  },
+  "passkeys": {
+    "signIn": "Accedi con una passkey",
+    "signingIn": "In attesa della tua passkey…",
+    "blocked": {
+      "ip": "Le passkey richiedono un nome di dominio: non funzionano quando Plimail è aperto tramite un indirizzo IP. Aprilo con il suo nome di dominio, con un certificato valido, per usarne una.",
+      "server": "Le passkey non sono configurate su questo server: il suo indirizzo (APP_URL) deve essere un nome di dominio https://.",
+      "browser": "Questo browser non può usare le passkey in questa pagina.",
+      "otherHost": "Le passkey funzionano solo su {{host}}. Apri Plimail lì per usarne una."
+    },
+    "errors": {
+      "tooMany": "Troppi tentativi. Riprova più tardi.",
+      "refused": "Non è stato possibile accedere con questa passkey.",
+      "expired": "La richiesta è scaduta. Riprova.",
+      "loginOff": "L’accesso con passkey è disattivato su questo server. Accedi con il tuo provider SSO.",
+      "generic": "Si è verificato un problema con la passkey. Riprova.",
+      "wrongPassword": "Password errata.",
+      "notAdded": "Impossibile aggiungere questa passkey: è già stata aggiunta, oppure l’account ha già il numero massimo di passkey.",
+      "alreadyOnDevice": "Questo dispositivo contiene già una passkey per il tuo account."
+    },
+    "settings": {
+      "title": "Passkey",
+      "description": "Accedi con impronta digitale, volto o PIN del dispositivo invece di password e codice di verifica in due passaggi.",
+      "add": "Aggiungi una passkey",
+      "addGo": "Continua",
+      "adding": "In attesa del tuo dispositivo…",
+      "nameLabel": "Nome della passkey",
+      "namePh": "Nome (es. Portatile, Telefono)",
+      "confirmPassword": "Conferma con la tua password di Plimail.",
+      "noPassword": "Le passkey richiedono una password di Plimail, che il tuo account non ha.",
+      "loadFailed": "Impossibile caricare le tue passkey.",
+      "none": "Ancora nessuna passkey.",
+      "save": "Salva",
+      "rename": "Rinomina",
+      "remove": "Rimuovi",
+      "removeGo": "Rimuovi la passkey",
+      "removeConfirm": "Rimuovere «{{name}}»? Inserisci la tua password di Plimail per confermare.",
+      "added": "Aggiunta il {{date}}",
+      "lastUsed": "ultimo utilizzo il {{date}}",
+      "neverUsed": "mai usata",
+      "pgpNote": "Una passkey non sblocca le tue chiavi di crittografia: dopo un accesso con passkey, Plimail chiede la tua password una volta per scheda, la prima volta che un messaggio deve essere decifrato o firmato."
     }
   }
 }

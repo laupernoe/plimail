@@ -125,6 +125,8 @@ globalThis.fetch = async (url, init = {}) => {
   if (path === '/api/auth/profile/recovery-email') return json({ email: null });
   if (path === '/api/auth/oidc/identities') return json({ identities: [] });
   if (path === '/api/auth/oidc/providers') return json({ providers: [] });
+  if (path === '/api/passkeys/status') return json({ available: false, reason: 'ip' });
+  if (path === '/api/passkeys') return json({ passkeys: [] });
   UNEXPECTED.push(`${method} ${path}`);
   return json({ error: 'unexpected request' }, 500);
 };

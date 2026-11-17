@@ -4,6 +4,7 @@ import { useStore } from '../store/index.js';
 import { api } from '../utils/api.js';
 import LogoMark, { Wordmark } from './LogoMark.jsx';
 import PasswordInput from './PasswordInput.jsx';
+import PasskeySignIn from './PasskeySignIn.jsx';
 import { establishKeySecret } from '../utils/pgpSecret.js';
 import { passwordFitsRule } from '../utils/passwordRule.js';
 
@@ -94,6 +95,14 @@ export default function LoginPage() {
   const setUser = (user) => {
     setStoreUser(user);
     if (user?.id && password) establishKeySecret(user.id, password, { fetchSalt: () => api.pgp.kdf() });
+  };
+
+  // Signed in with a passkey: there is no password to derive the key secret from, whatever is in
+  // the password field, so the keys are unlocked by the prompt when one is first needed.
+  const passkeySignedIn = async (user) => {
+    setPassword('');
+    setStoreUser(user);
+    await loadPreferences();
   };
 
   const submit = async (e) => {
@@ -877,6 +886,8 @@ export default function LoginPage() {
                 type="text"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
+                // "webauthn": the browser also offers this site's passkeys here (PasskeySignIn.jsx).
+                autoComplete={mode === 'login' ? 'username webauthn' : 'username'}
                 autoFocus
                 style={{
                   width: '100%', padding: '10px 14px',
@@ -947,6 +958,8 @@ export default function LoginPage() {
               {loading ? t('login.pleaseWait') : (mode === 'login' ? t('login.signIn') : t('login.createAccount'))}
             </button>
           </form>
+
+          {mode === 'login' && <PasskeySignIn onSignedIn={passkeySignedIn} disabled={loading} />}
 
           {mode === 'login' && oidcProviders.length > 0 && (
             <>

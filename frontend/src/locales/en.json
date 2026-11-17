@@ -1611,7 +1611,9 @@
       "mfaSsoLockedNotice": "MFA enforcement is not applicable when password login is disabled. Users authenticate via SSO, which manages its own MFA requirements.",
       "recoveryEmailTitle": "Recovery email",
       "recoveryEmailDesc": "Receive a sign-in code by email if you lose access to your authenticator app.",
-      "recoveryEmailPh": "your@email.com"
+      "recoveryEmailPh": "your@email.com",
+      "eventPasskeyAdded": "Passkey added",
+      "eventPasskeyRemoved": "Passkey removed"
     },
     "password": {
       "title": "Password",
@@ -2995,6 +2997,48 @@
     "offline": {
       "banner": "You're offline. Mail you opened recently can still be read; sending and changes wait for the connection.",
       "unreachable": "Plimail can't reach the server. Check your connection and try again."
+    }
+  },
+  "passkeys": {
+    "signIn": "Sign in with a passkey",
+    "signingIn": "Waiting for your passkey…",
+    "blocked": {
+      "ip": "Passkeys need a domain name: they do not work when Plimail is opened at an IP address. Open it at its domain name, with a valid certificate, to use one.",
+      "server": "Passkeys are not set up on this server: its address (APP_URL) must be an https:// domain name.",
+      "browser": "This browser cannot use passkeys on this page.",
+      "otherHost": "Passkeys work only at {{host}}. Open Plimail there to use one."
+    },
+    "errors": {
+      "tooMany": "Too many attempts. Try again later.",
+      "refused": "This passkey could not sign you in.",
+      "expired": "The request expired. Try again.",
+      "loginOff": "Passkey sign-in is disabled on this server. Sign in with your SSO provider.",
+      "generic": "Something went wrong with the passkey. Try again.",
+      "wrongPassword": "Wrong password.",
+      "notAdded": "This passkey could not be added: it is already added, or the account has as many passkeys as it can.",
+      "alreadyOnDevice": "This device already holds a passkey for your account."
+    },
+    "settings": {
+      "title": "Passkeys",
+      "description": "Sign in with your fingerprint, face or device PIN instead of your password and two-factor code.",
+      "add": "Add a passkey",
+      "addGo": "Continue",
+      "adding": "Waiting for your device…",
+      "nameLabel": "Passkey name",
+      "namePh": "Name (e.g. Laptop, Phone)",
+      "confirmPassword": "Confirm with your Plimail password.",
+      "noPassword": "Passkeys need a Plimail password, which your account does not have.",
+      "loadFailed": "Your passkeys could not be loaded.",
+      "none": "No passkey yet.",
+      "save": "Save",
+      "rename": "Rename",
+      "remove": "Remove",
+      "removeGo": "Remove the passkey",
+      "removeConfirm": "Remove “{{name}}”? Enter your Plimail password to confirm.",
+      "added": "Added {{date}}",
+      "lastUsed": "last used {{date}}",
+      "neverUsed": "never used",
+      "pgpNote": "A passkey does not unlock your encryption keys: after signing in with one, Plimail asks for your password once per tab, the first time a message has to be decrypted or signed."
     }
   }
 }

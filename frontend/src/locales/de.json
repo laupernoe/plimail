@@ -1536,7 +1536,9 @@
       "mfaSsoLockedNotice": "MFA-Durchsetzung ist nicht anwendbar, wenn die Passwortanmeldung deaktiviert ist. Benutzer authentifizieren sich über SSO, das seine eigenen MFA-Anforderungen verwaltet.",
       "recoveryEmailTitle": "Wiederherstellungs-E-Mail",
       "recoveryEmailDesc": "Erhalten Sie einen Anmeldecode per E-Mail, wenn Sie den Zugang zur Authentifizierungs-App verlieren.",
-      "recoveryEmailPh": "ihre@email.de"
+      "recoveryEmailPh": "ihre@email.de",
+      "eventPasskeyAdded": "Passkey hinzugefügt",
+      "eventPasskeyRemoved": "Passkey entfernt"
     },
     "password": {
       "title": "Passwort",
@@ -2995,6 +2997,48 @@
     "offline": {
       "banner": "Sie sind offline. Kürzlich geöffnete Nachrichten bleiben lesbar; Senden und Änderungen warten auf die Verbindung.",
       "unreachable": "Plimail erreicht den Server nicht. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+    }
+  },
+  "passkeys": {
+    "signIn": "Mit einem Passkey anmelden",
+    "signingIn": "Warten auf Ihren Passkey…",
+    "blocked": {
+      "ip": "Passkeys brauchen einen Domainnamen: Sie funktionieren nicht, wenn Plimail über eine IP-Adresse geöffnet wird. Öffnen Sie es über seinen Domainnamen mit einem gültigen Zertifikat, um einen zu verwenden.",
+      "server": "Passkeys sind auf diesem Server nicht eingerichtet: Seine Adresse (APP_URL) muss ein https://-Domainname sein.",
+      "browser": "Dieser Browser kann auf dieser Seite keine Passkeys verwenden.",
+      "otherHost": "Passkeys funktionieren nur unter {{host}}. Öffnen Sie Plimail dort, um einen zu verwenden."
+    },
+    "errors": {
+      "tooMany": "Zu viele Versuche. Versuchen Sie es später erneut.",
+      "refused": "Mit diesem Passkey konnten Sie nicht angemeldet werden.",
+      "expired": "Die Anfrage ist abgelaufen. Versuchen Sie es erneut.",
+      "loginOff": "Die Anmeldung mit Passkey ist auf diesem Server deaktiviert. Melden Sie sich über Ihren SSO-Anbieter an.",
+      "generic": "Beim Passkey ist ein Fehler aufgetreten. Versuchen Sie es erneut.",
+      "wrongPassword": "Falsches Passwort.",
+      "notAdded": "Dieser Passkey konnte nicht hinzugefügt werden: Er ist bereits vorhanden, oder das Konto hat bereits die Höchstzahl an Passkeys.",
+      "alreadyOnDevice": "Auf diesem Gerät gibt es bereits einen Passkey für Ihr Konto."
+    },
+    "settings": {
+      "title": "Passkeys",
+      "description": "Melden Sie sich mit Fingerabdruck, Gesicht oder Geräte-PIN an statt mit Passwort und Zwei-Faktor-Code.",
+      "add": "Passkey hinzufügen",
+      "addGo": "Weiter",
+      "adding": "Warten auf Ihr Gerät…",
+      "nameLabel": "Name des Passkeys",
+      "namePh": "Name (z. B. Laptop, Handy)",
+      "confirmPassword": "Bestätigen Sie mit Ihrem Plimail-Passwort.",
+      "noPassword": "Passkeys erfordern ein Plimail-Passwort, das Ihr Konto nicht hat.",
+      "loadFailed": "Ihre Passkeys konnten nicht geladen werden.",
+      "none": "Noch kein Passkey.",
+      "save": "Speichern",
+      "rename": "Umbenennen",
+      "remove": "Entfernen",
+      "removeGo": "Passkey entfernen",
+      "removeConfirm": "„{{name}}“ entfernen? Geben Sie zur Bestätigung Ihr Plimail-Passwort ein.",
+      "added": "Hinzugefügt am {{date}}",
+      "lastUsed": "zuletzt verwendet am {{date}}",
+      "neverUsed": "nie verwendet",
+      "pgpNote": "Ein Passkey entsperrt Ihre Verschlüsselungsschlüssel nicht: Nach einer Anmeldung mit Passkey fragt Plimail einmal pro Tab nach Ihrem Passwort, sobald eine Nachricht entschlüsselt oder signiert werden muss."
     }
   }
 }

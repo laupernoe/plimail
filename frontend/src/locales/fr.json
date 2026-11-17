@@ -1611,7 +1611,9 @@
       "mfaSsoLockedNotice": "L'application MFA n'est pas applicable lorsque la connexion par mot de passe est désactivée. Les utilisateurs s'authentifient via SSO, qui gère ses propres exigences MFA.",
       "recoveryEmailTitle": "Email de récupération",
       "recoveryEmailDesc": "Recevez un code de connexion par email si vous perdez accès à votre application d’authentification.",
-      "recoveryEmailPh": "vous@email.fr"
+      "recoveryEmailPh": "vous@email.fr",
+      "eventPasskeyAdded": "Clé d’accès ajoutée",
+      "eventPasskeyRemoved": "Clé d’accès supprimée"
     },
     "password": {
       "title": "Mot de passe",
@@ -2995,6 +2997,48 @@
     "offline": {
       "banner": "Vous êtes hors ligne. Les messages ouverts récemment restent lisibles ; l'envoi et les modifications attendent le retour de la connexion.",
       "unreachable": "Plimail ne parvient pas à joindre le serveur. Vérifiez votre connexion et réessayez."
+    }
+  },
+  "passkeys": {
+    "signIn": "Se connecter avec une clé d’accès",
+    "signingIn": "En attente de votre clé d’accès…",
+    "blocked": {
+      "ip": "Les clés d’accès exigent un nom de domaine : elles ne fonctionnent pas quand Plimail est ouvert par une adresse IP. Ouvrez-le par son nom de domaine, avec un certificat valide, pour en utiliser une.",
+      "server": "Les clés d’accès ne sont pas configurées sur ce serveur : son adresse (APP_URL) doit être un nom de domaine en https://.",
+      "browser": "Ce navigateur ne peut pas utiliser de clé d’accès sur cette page.",
+      "otherHost": "Les clés d’accès ne fonctionnent qu’à l’adresse {{host}}. Ouvrez Plimail à cette adresse pour en utiliser une."
+    },
+    "errors": {
+      "tooMany": "Trop de tentatives. Réessayez plus tard.",
+      "refused": "Cette clé d’accès n’a pas permis de vous connecter.",
+      "expired": "La demande a expiré. Réessayez.",
+      "loginOff": "La connexion par clé d’accès est désactivée sur ce serveur. Connectez-vous avec votre fournisseur SSO.",
+      "generic": "Un problème est survenu avec la clé d’accès. Réessayez.",
+      "wrongPassword": "Mot de passe incorrect.",
+      "notAdded": "Cette clé d’accès n’a pas pu être ajoutée : elle l’est déjà, ou le compte en a déjà le nombre maximal.",
+      "alreadyOnDevice": "Cet appareil contient déjà une clé d’accès pour votre compte."
+    },
+    "settings": {
+      "title": "Clés d’accès",
+      "description": "Connectez-vous avec votre empreinte, votre visage ou le code de votre appareil au lieu du mot de passe et du code de double authentification.",
+      "add": "Ajouter une clé d’accès",
+      "addGo": "Continuer",
+      "adding": "En attente de votre appareil…",
+      "nameLabel": "Nom de la clé d’accès",
+      "namePh": "Nom (p. ex. Portable, Téléphone)",
+      "confirmPassword": "Confirmez avec votre mot de passe Plimail.",
+      "noPassword": "Les clés d’accès exigent un mot de passe Plimail, que votre compte n’a pas.",
+      "loadFailed": "Impossible de charger vos clés d’accès.",
+      "none": "Aucune clé d’accès pour l’instant.",
+      "save": "Enregistrer",
+      "rename": "Renommer",
+      "remove": "Supprimer",
+      "removeGo": "Supprimer la clé d’accès",
+      "removeConfirm": "Supprimer « {{name}} » ? Saisissez votre mot de passe Plimail pour confirmer.",
+      "added": "Ajoutée le {{date}}",
+      "lastUsed": "dernière utilisation le {{date}}",
+      "neverUsed": "jamais utilisée",
+      "pgpNote": "Une clé d’accès ne déverrouille pas vos clés de chiffrement : après une connexion par clé d’accès, Plimail demande votre mot de passe une fois par onglet, la première fois qu’un message doit être déchiffré ou signé."
     }
   }
 }

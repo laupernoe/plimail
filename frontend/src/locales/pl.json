@@ -1630,7 +1630,9 @@
       "mfaSsoLockedNotice": "Wymuszanie MFA nie ma zastosowania, gdy logowanie hasłem jest wyłączone. Użytkownicy uwierzytelniają się przez SSO, które zarządza własnymi wymaganiami MFA.",
       "recoveryEmailTitle": "Adres e-mail do odzyskiwania",
       "recoveryEmailDesc": "Odbierz kod logowania pocztą e-mail, jeśli utracisz dostęp do aplikacji uwierzytelniającej.",
-      "recoveryEmailPh": "twoj@e-mail.com"
+      "recoveryEmailPh": "twoj@e-mail.com",
+      "eventPasskeyAdded": "Dodano klucz dostępu",
+      "eventPasskeyRemoved": "Usunięto klucz dostępu"
     },
     "password": {
       "title": "Hasło",
@@ -3014,6 +3016,48 @@
     "offline": {
       "banner": "Jesteś offline. Ostatnio otwarte wiadomości nadal można czytać; wysyłanie i zmiany czekają na połączenie.",
       "unreachable": "Plimail nie może połączyć się z serwerem. Sprawdź połączenie i spróbuj ponownie."
+    }
+  },
+  "passkeys": {
+    "signIn": "Zaloguj się kluczem dostępu",
+    "signingIn": "Oczekiwanie na klucz dostępu…",
+    "blocked": {
+      "ip": "Klucze dostępu wymagają nazwy domeny: nie działają, gdy Plimail jest otwarty pod adresem IP. Otwórz go pod nazwą domeny, z ważnym certyfikatem, aby użyć klucza.",
+      "server": "Klucze dostępu nie są skonfigurowane na tym serwerze: jego adres (APP_URL) musi być nazwą domeny https://.",
+      "browser": "Ta przeglądarka nie może używać kluczy dostępu na tej stronie.",
+      "otherHost": "Klucze dostępu działają tylko pod adresem {{host}}. Otwórz tam Plimail, aby użyć klucza."
+    },
+    "errors": {
+      "tooMany": "Zbyt wiele prób. Spróbuj ponownie później.",
+      "refused": "Nie udało się zalogować tym kluczem dostępu.",
+      "expired": "Żądanie wygasło. Spróbuj ponownie.",
+      "loginOff": "Logowanie kluczem dostępu jest wyłączone na tym serwerze. Zaloguj się przez dostawcę SSO.",
+      "generic": "Wystąpił problem z kluczem dostępu. Spróbuj ponownie.",
+      "wrongPassword": "Nieprawidłowe hasło.",
+      "notAdded": "Nie udało się dodać tego klucza dostępu: jest już dodany albo konto ma już maksymalną liczbę kluczy.",
+      "alreadyOnDevice": "To urządzenie ma już klucz dostępu do Twojego konta."
+    },
+    "settings": {
+      "title": "Klucze dostępu",
+      "description": "Loguj się odciskiem palca, twarzą lub kodem PIN urządzenia zamiast hasła i kodu weryfikacji dwuetapowej.",
+      "add": "Dodaj klucz dostępu",
+      "addGo": "Dalej",
+      "adding": "Oczekiwanie na urządzenie…",
+      "nameLabel": "Nazwa klucza dostępu",
+      "namePh": "Nazwa (np. Laptop, Telefon)",
+      "confirmPassword": "Potwierdź hasłem do Plimail.",
+      "noPassword": "Klucze dostępu wymagają hasła do Plimail, którego Twoje konto nie ma.",
+      "loadFailed": "Nie udało się wczytać kluczy dostępu.",
+      "none": "Brak kluczy dostępu.",
+      "save": "Zapisz",
+      "rename": "Zmień nazwę",
+      "remove": "Usuń",
+      "removeGo": "Usuń klucz dostępu",
+      "removeConfirm": "Usunąć „{{name}}”? Wpisz hasło do Plimail, aby potwierdzić.",
+      "added": "Dodano {{date}}",
+      "lastUsed": "ostatnio użyty {{date}}",
+      "neverUsed": "nigdy nieużyty",
+      "pgpNote": "Klucz dostępu nie odblokowuje kluczy szyfrowania: po zalogowaniu kluczem dostępu Plimail raz na kartę prosi o hasło, gdy pierwszy raz trzeba odszyfrować lub podpisać wiadomość."
     }
   }
 }

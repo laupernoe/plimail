@@ -1815,7 +1815,9 @@
       "mfaSsoLockedNotice": "Vynucení MFA se nepoužije, pokud je přihlašování heslem vypnuté. Uživatelé se ověřují přes SSO, které spravuje vlastní požadavky MFA.",
       "recoveryEmailTitle": "E-mail pro obnovení",
       "recoveryEmailDesc": "Pokud ztratíte přístup k ověřovací aplikaci, obdržíte přihlašovací kód e-mailem.",
-      "recoveryEmailPh": "uzivatel@example.com"
+      "recoveryEmailPh": "uzivatel@example.com",
+      "eventPasskeyAdded": "Přístupový klíč přidán",
+      "eventPasskeyRemoved": "Přístupový klíč odebrán"
     },
     "password": {
       "title": "Heslo",
@@ -3014,6 +3016,48 @@
     "offline": {
       "banner": "Jste offline. Nedávno otevřené zprávy lze stále číst; odesílání a změny počkají na připojení.",
       "unreachable": "Plimail se nemůže spojit se serverem. Zkontrolujte připojení a zkuste to znovu."
+    }
+  },
+  "passkeys": {
+    "signIn": "Přihlásit se přístupovým klíčem",
+    "signingIn": "Čeká se na přístupový klíč…",
+    "blocked": {
+      "ip": "Přístupové klíče vyžadují doménové jméno: nefungují, když je Plimail otevřen přes IP adresu. Chcete-li klíč použít, otevřete ho přes doménové jméno s platným certifikátem.",
+      "server": "Přístupové klíče nejsou na tomto serveru nastaveny: jeho adresa (APP_URL) musí být doménové jméno https://.",
+      "browser": "Tento prohlížeč nemůže na této stránce používat přístupové klíče.",
+      "otherHost": "Přístupové klíče fungují pouze na adrese {{host}}. Chcete-li klíč použít, otevřete Plimail tam."
+    },
+    "errors": {
+      "tooMany": "Příliš mnoho pokusů. Zkuste to později.",
+      "refused": "Tímto přístupovým klíčem se nepodařilo přihlásit.",
+      "expired": "Platnost požadavku vypršela. Zkuste to znovu.",
+      "loginOff": "Přihlášení přístupovým klíčem je na tomto serveru vypnuto. Přihlaste se přes poskytovatele SSO.",
+      "generic": "S přístupovým klíčem se něco pokazilo. Zkuste to znovu.",
+      "wrongPassword": "Nesprávné heslo.",
+      "notAdded": "Tento přístupový klíč se nepodařilo přidat: už je přidán, nebo má účet maximální počet klíčů.",
+      "alreadyOnDevice": "Toto zařízení už obsahuje přístupový klíč k vašemu účtu."
+    },
+    "settings": {
+      "title": "Přístupové klíče",
+      "description": "Přihlašujte se otiskem prstu, obličejem nebo PIN zařízení místo hesla a kódu dvoufázového ověření.",
+      "add": "Přidat přístupový klíč",
+      "addGo": "Pokračovat",
+      "adding": "Čeká se na zařízení…",
+      "nameLabel": "Název přístupového klíče",
+      "namePh": "Název (např. Notebook, Telefon)",
+      "confirmPassword": "Potvrďte heslem do Plimail.",
+      "noPassword": "Přístupové klíče vyžadují heslo do Plimail, které váš účet nemá.",
+      "loadFailed": "Přístupové klíče se nepodařilo načíst.",
+      "none": "Zatím žádný přístupový klíč.",
+      "save": "Uložit",
+      "rename": "Přejmenovat",
+      "remove": "Odebrat",
+      "removeGo": "Odebrat přístupový klíč",
+      "removeConfirm": "Odebrat „{{name}}“? Pro potvrzení zadejte heslo do Plimail.",
+      "added": "Přidáno {{date}}",
+      "lastUsed": "naposledy použito {{date}}",
+      "neverUsed": "nikdy nepoužito",
+      "pgpNote": "Přístupový klíč neodemyká vaše šifrovací klíče: po přihlášení přístupovým klíčem se Plimail jednou v každé kartě zeptá na heslo, když je poprvé potřeba zprávu dešifrovat nebo podepsat."
     }
   }
 }

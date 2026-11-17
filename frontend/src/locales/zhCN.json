@@ -1611,7 +1611,9 @@
       "mfaSsoLockedNotice": "当密码登录被禁用时，MFA 强制不适用。用户通过 SSO 进行身份验证，SSO 管理自己的 MFA 要求。",
       "recoveryEmailTitle": "恢复邮箱",
       "recoveryEmailDesc": "如果您失去对认证器应用的访问权限，可通过电子邮件接收登录码。",
-      "recoveryEmailPh": "you@email.com"
+      "recoveryEmailPh": "you@email.com",
+      "eventPasskeyAdded": "已添加通行密钥",
+      "eventPasskeyRemoved": "已删除通行密钥"
     },
     "password": {
       "title": "密码",
@@ -2995,6 +2997,48 @@
     "offline": {
       "banner": "您已离线。最近打开的邮件仍可阅读；发送和更改需等待连接恢复。",
       "unreachable": "Plimail 无法连接服务器。请检查网络连接后重试。"
+    }
+  },
+  "passkeys": {
+    "signIn": "使用通行密钥登录",
+    "signingIn": "正在等待通行密钥…",
+    "blocked": {
+      "ip": "通行密钥需要域名：通过 IP 地址打开 Plimail 时无法使用。请通过带有效证书的域名打开它以使用通行密钥。",
+      "server": "此服务器未配置通行密钥：其地址（APP_URL）必须是 https:// 域名。",
+      "browser": "此浏览器无法在此页面使用通行密钥。",
+      "otherHost": "通行密钥只能在 {{host}} 使用。请在该地址打开 Plimail 以使用通行密钥。"
+    },
+    "errors": {
+      "tooMany": "尝试次数过多，请稍后再试。",
+      "refused": "无法使用此通行密钥登录。",
+      "expired": "请求已过期，请重试。",
+      "loginOff": "此服务器已禁用通行密钥登录。请通过 SSO 提供商登录。",
+      "generic": "通行密钥出现问题，请重试。",
+      "wrongPassword": "密码错误。",
+      "notAdded": "无法添加此通行密钥：它已添加，或账户的通行密钥数量已达上限。",
+      "alreadyOnDevice": "此设备上已有您账户的通行密钥。"
+    },
+    "settings": {
+      "title": "通行密钥",
+      "description": "使用指纹、面容或设备 PIN 登录，无需输入密码和两步验证码。",
+      "add": "添加通行密钥",
+      "addGo": "继续",
+      "adding": "正在等待设备…",
+      "nameLabel": "通行密钥名称",
+      "namePh": "名称（例如：笔记本、手机）",
+      "confirmPassword": "请输入 Plimail 密码确认。",
+      "noPassword": "通行密钥需要 Plimail 密码，但您的账户没有密码。",
+      "loadFailed": "无法加载您的通行密钥。",
+      "none": "尚无通行密钥。",
+      "save": "保存",
+      "rename": "重命名",
+      "remove": "删除",
+      "removeGo": "删除通行密钥",
+      "removeConfirm": "删除“{{name}}”？请输入 Plimail 密码确认。",
+      "added": "添加于 {{date}}",
+      "lastUsed": "上次使用于 {{date}}",
+      "neverUsed": "从未使用",
+      "pgpNote": "通行密钥不会解锁您的加密密钥：使用通行密钥登录后，每个标签页首次需要解密或签名邮件时，Plimail 会询问一次密码。"
     }
   }
 }

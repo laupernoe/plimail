@@ -1611,7 +1611,9 @@
       "mfaDeviceTrustDesc": "2단계 인증을 다시 요구하기 전까지 인증된 기기를 신뢰할 기간입니다. MFA가 활성화된 경우에만 적용됩니다.",
       "mfaDeviceTrustTitle": "기기 신뢰 기간",
       "recoveryEmailDesc": "인증 앱에 액세스할 수 없는 경우 이메일로 로그인 코드를 받으세요.",
-      "mfaSsoLockedNotice": "비밀번호 로그인이 비활성화된 경우 MFA 적용이 적용되지 않습니다. 사용자는 자체 MFA 요구 사항을 관리하는 SSO를 통해 인증합니다."
+      "mfaSsoLockedNotice": "비밀번호 로그인이 비활성화된 경우 MFA 적용이 적용되지 않습니다. 사용자는 자체 MFA 요구 사항을 관리하는 SSO를 통해 인증합니다.",
+      "eventPasskeyAdded": "패스키 추가됨",
+      "eventPasskeyRemoved": "패스키 삭제됨"
     },
     "password": {
       "title": "비밀번호",
@@ -2995,6 +2997,48 @@
     "offline": {
       "banner": "오프라인 상태입니다. 최근에 연 메일은 계속 읽을 수 있으며, 보내기와 변경은 연결이 돌아올 때까지 기다립니다.",
       "unreachable": "Plimail이 서버에 연결할 수 없습니다. 연결을 확인하고 다시 시도하세요."
+    }
+  },
+  "passkeys": {
+    "signIn": "패스키로 로그인",
+    "signingIn": "패스키를 기다리는 중…",
+    "blocked": {
+      "ip": "패스키에는 도메인 이름이 필요합니다. Plimail을 IP 주소로 열면 작동하지 않습니다. 패스키를 사용하려면 유효한 인증서가 있는 도메인 이름으로 여세요.",
+      "server": "이 서버에는 패스키가 설정되어 있지 않습니다. 서버 주소(APP_URL)는 https:// 도메인 이름이어야 합니다.",
+      "browser": "이 브라우저는 이 페이지에서 패스키를 사용할 수 없습니다.",
+      "otherHost": "패스키는 {{host}}에서만 작동합니다. 패스키를 사용하려면 그 주소에서 Plimail을 여세요."
+    },
+    "errors": {
+      "tooMany": "시도 횟수가 너무 많습니다. 나중에 다시 시도하세요.",
+      "refused": "이 패스키로 로그인할 수 없습니다.",
+      "expired": "요청이 만료되었습니다. 다시 시도하세요.",
+      "loginOff": "이 서버에서는 패스키 로그인이 비활성화되어 있습니다. SSO 제공자로 로그인하세요.",
+      "generic": "패스키에 문제가 발생했습니다. 다시 시도하세요.",
+      "wrongPassword": "비밀번호가 틀렸습니다.",
+      "notAdded": "이 패스키를 추가할 수 없습니다. 이미 추가되었거나 계정의 패스키 수가 최대입니다.",
+      "alreadyOnDevice": "이 기기에는 이미 계정의 패스키가 있습니다."
+    },
+    "settings": {
+      "title": "패스키",
+      "description": "비밀번호와 2단계 인증 코드 대신 지문, 얼굴 또는 기기 PIN으로 로그인하세요.",
+      "add": "패스키 추가",
+      "addGo": "계속",
+      "adding": "기기를 기다리는 중…",
+      "nameLabel": "패스키 이름",
+      "namePh": "이름 (예: 노트북, 휴대폰)",
+      "confirmPassword": "Plimail 비밀번호로 확인하세요.",
+      "noPassword": "패스키를 사용하려면 Plimail 비밀번호가 필요하지만 계정에 비밀번호가 없습니다.",
+      "loadFailed": "패스키를 불러오지 못했습니다.",
+      "none": "아직 패스키가 없습니다.",
+      "save": "저장",
+      "rename": "이름 변경",
+      "remove": "삭제",
+      "removeGo": "패스키 삭제",
+      "removeConfirm": "“{{name}}”을(를) 삭제할까요? 확인하려면 Plimail 비밀번호를 입력하세요.",
+      "added": "{{date}}에 추가됨",
+      "lastUsed": "마지막 사용 {{date}}",
+      "neverUsed": "사용한 적 없음",
+      "pgpNote": "패스키는 암호화 키의 잠금을 해제하지 않습니다. 패스키로 로그인한 뒤에는 메시지를 처음 복호화하거나 서명해야 할 때 Plimail이 탭마다 한 번 비밀번호를 묻습니다."
     }
   }
 }

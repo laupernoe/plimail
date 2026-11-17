@@ -38,6 +38,8 @@ export const SETUP_TABLES = [
   'integration_config',
   'invites',
   'oidc_providers',
+  // Sign-in credentials, like user_identities: without them every user has to add theirs again.
+  'passkeys',
   // The user's OpenPGP keys (passphrase-protected) and keyring: losing them loses encrypted mail.
   'pgp_keys',
   'pgp_public_keys',
