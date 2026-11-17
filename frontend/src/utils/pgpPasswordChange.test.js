@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPair, unlockPrivateKey } from './pgp.js';
 import { deriveKeySecret } from './pgpSecret.js';
-import { keysForNewPassword } from './pgpPasswordChange.js';
+import { keysForNewPassword, planOwnPasswordChange } from './pgpPasswordChange.js';
 
 const SALT = btoa(String.fromCharCode(...new Uint8Array(16).fill(5)));
 const derive = (pw, salt) => deriveKeySecret(pw, salt, { iterations: 1000 });
@@ -57,4 +57,41 @@ test('a key another tab made while re-encrypting is not left behind: it starts o
   const stale = { ...second, stale: true, armoredPrivate: (await generateKeyPair({ email: 'z@example.com', passphrase: 'older' })).armoredPrivate };
   const result = await keysForNewPassword({ newPassword: 'n', loadKeys: async () => [key, stale], fetchSalt, derive, currentSecret: async () => OLD });
   assert.deepEqual(result.pgpKeys.map(k => k.id), ['k1']);
+});
+
+test('changing one\'s own password derives the old secret from the current password and moves every key it opens', async () => {
+  const NEW = await derive('new password', SALT);
+  const moved = { ...key, id: 'k3', armoredPrivate: (await generateKeyPair({ email: 'moved@example.com', passphrase: NEW })).armoredPrivate };
+  const { pgpKeys, secret, unopened } = await planOwnPasswordChange({
+    currentPassword: 'old password', newPassword: 'new password', loadKeys: async () => [key, moved], fetchSalt, derive,
+  });
+  assert.equal(secret, NEW);
+  // An interrupted change run again: the key already under the new password is not sent again.
+  assert.deepEqual(pgpKeys.map(k => k.id), ['k1']);
+  assert.deepEqual(unopened, []);
+  await unlockPrivateKey(pgpKeys[0].armoredPrivate, NEW);
+});
+
+test('a key the current password does not open is reported and left out, and the others still move', async () => {
+  const older = await generateKeyPair({ email: 'old@example.com', passphrase: await derive('an earlier password', SALT) });
+  const left = { ...key, id: 'k2', fingerprint: older.fingerprint, armoredPrivate: older.armoredPrivate, stale: true };
+  const own = { ...key, id: 'k4', protection: 'passphrase' };
+  const { pgpKeys, unopened } = await planOwnPasswordChange({
+    currentPassword: 'old password', newPassword: 'new password', loadKeys: async () => [key, left, own], fetchSalt, derive,
+  });
+  assert.deepEqual(pgpKeys.map(k => k.id), ['k1']);
+  assert.deepEqual(unopened.map(k => k.id), ['k2']);
+  // With no key that opens, nothing is sent at all.
+  const none = await planOwnPasswordChange({ currentPassword: 'old password', newPassword: 'n', loadKeys: async () => [left], fetchSalt, derive });
+  assert.equal(none.pgpKeys, undefined);
+  assert.deepEqual(none.unopened.map(k => k.id), ['k2']);
+});
+
+test('a key made by another tab during one\'s own change is not left behind', async () => {
+  const newer = await generateKeyPair({ email: 'alias@example.com', passphrase: OLD });
+  const second = { ...key, id: 'k2', fingerprint: newer.fingerprint, armoredPrivate: newer.armoredPrivate };
+  let reads = 0;
+  const loadKeys = async () => { reads += 1; return reads === 1 ? [key] : [key, second]; };
+  const { pgpKeys } = await planOwnPasswordChange({ currentPassword: 'old password', newPassword: 'new password', loadKeys, fetchSalt, derive });
+  assert.deepEqual(pgpKeys.map(k => k.id), ['k1', 'k2']);
 });

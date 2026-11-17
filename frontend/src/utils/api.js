@@ -307,6 +307,8 @@ export const api = {
 
   // Recovery email (profile security)
   getRecoveryEmail: () => request('GET', '/auth/profile/recovery-email'),
+  // The user's own password, with their OpenPGP keys re-encrypted for it (utils/pgpPasswordChange.js).
+  changePassword: (currentPassword, newPassword, pgpKeys) => request('POST', '/auth/password', { currentPassword, newPassword, ...(pgpKeys ? { pgpKeys } : {}) }),
   updateRecoveryEmail: (email) => request('PATCH', '/auth/profile/recovery-email', { email }),
 
   // TOTP / 2FA

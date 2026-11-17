@@ -53,6 +53,7 @@ import ApiTokensSection from './ApiTokensSection.jsx';
 import WritingStyleSection from './WritingStyleSection.jsx';
 import SecureMessagesSection from './SecureMessagesSection.jsx';
 import PgpSettingsSection from './PgpSettingsSection.jsx';
+import PasswordChangeSection from './PasswordChangeSection.jsx';
 import { CalendarAccountsTab, CalendarListTab } from './calendar/AccountsModal.jsx';
 import CalendarOffer from './calendar/CalendarOffer.jsx';
 
@@ -7152,6 +7153,8 @@ function SecurityTab() {
       totp_success:  t('admin.security.eventTotpSuccess'),
       totp_fail:     t('admin.security.eventTotpFail'),
       sso_login:     t('admin.security.eventSsoLogin'),
+      password_changed:     t('admin.security.eventPasswordChanged'),
+      password_change_fail: t('admin.security.eventPasswordChangeFail'),
       admin_password_set: t('admin.security.eventAdminPasswordSet'),
       admin_user_update:  t('admin.security.eventAdminUserUpdate'),
       admin_totp_disable: t('admin.security.eventAdminTotpDisable'),
@@ -7233,6 +7236,8 @@ function SecurityTab() {
       <p style={{ margin: '0 0 28px', fontSize: 13, color: 'var(--text-tertiary)' }}>
         {t('admin.security.description')}
       </p>
+
+      <PasswordChangeSection />
 
       <ScreenLockSection />
 

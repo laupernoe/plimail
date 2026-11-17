@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/index.js';
 import { api } from '../utils/api.js';
 import { formatDay } from '../utils/formatDate.js';
-import { formatFingerprint, generateKeyPair, keyInfo, loadOpenpgp, preparePrivateKeyImport, readArmoredKeys } from '../utils/pgp.js';
+import { formatFingerprint, generateKeyPair } from '../utils/pgp.js';
+import { buildKeyBackup, prepareKeysFromBackup, storeRestoredKeys } from '../utils/pgpBackup.js';
 import { ensureAutoKeys, isLoginKey, lockKey, openOwnKey, senderAddresses } from '../utils/pgpKeys.js';
 import { OWN_KEYS_CHANGED, ownKeysChanged } from '../utils/pgpOwnKeys.js';
 import { keySecretEntry, subscribeKeySecret } from '../utils/pgpSecret.js';
@@ -139,28 +140,11 @@ function GenerateForm({ addresses, ownEmails, onDone, onCancel }) {
   );
 }
 
-// The private key as imported, protected by the secret from the Plimail password instead of its
-// own passphrase (or none), so it unlocks at sign-in like the keys Plimail makes.
-async function protectWithSecret(armored, passphrase, secret) {
-  const openpgp = await loadOpenpgp();
-  let key;
-  try {
-    key = await openpgp.readPrivateKey({ armoredKey: armored });
-  } catch {
-    throw Object.assign(new Error('invalidKey'), { code: 'invalidKey' });
-  }
-  if (!key.isDecrypted()) {
-    try {
-      key = await openpgp.decryptKey({ privateKey: key, passphrase });
-    } catch {
-      throw Object.assign(new Error('wrongPassphrase'), { code: 'wrongPassphrase' });
-    }
-  }
-  const armoredPrivate = await lockKey(key, secret);
-  return { armoredPrivate, armoredPublic: key.toPublic().armor() };
-}
-
-function ImportPrivateForm({ addresses, userId, keys, onDone, onCancel }) {
+// A private key from elsewhere (Proton, Thunderbird, GnuPG), or `restore`: a backup made here,
+// which may hold several keys (utils/pgpBackup.js). A key the user still has is put back as it
+// was, encrypted for what it is to unlock with now: how a key left under a forgotten password
+// comes back.
+function ImportPrivateForm({ addresses, userId, keys, restore = false, onDone, onCancel }) {
   const { t } = useTranslation();
   const [armored, setArmored] = useState('');
   const [pass, setPass] = useState('');
@@ -173,6 +157,8 @@ function ImportPrivateForm({ addresses, userId, keys, onDone, onCancel }) {
   // Keys Plimail made for the addresses of the key just imported: the imported one is used from
   // now on, and these may go (they are kept unless the user says so, for the mail they opened).
   const [replaced, setReplaced] = useState(null);
+  // Keys of the file this passphrase did not open: they come in with another try.
+  const [unopened, setUnopened] = useState(0);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -181,23 +167,25 @@ function ImportPrivateForm({ addresses, userId, keys, onDone, onCancel }) {
     setBusy(true);
     setError('');
     try {
-      let pair;
+      let secret = null;
       if (automatic) {
-        const entry = await ensureKeySecret(userId);
-        if (!entry?.secret) throw Object.assign(new Error('unlockCancelled'), { code: 'unlockCancelled' });
-        pair = await protectWithSecret(armored.trim(), pass, entry.secret);
-      } else {
-        pair = await preparePrivateKeyImport(armored.trim(), pass, needsNew ? newPass : '');
+        secret = (await ensureKeySecret(userId))?.secret;
+        if (!secret) throw Object.assign(new Error('unlockCancelled'), { code: 'unlockCancelled' });
       }
-      const [key] = await readArmoredKeys(pair.armoredPublic);
-      const emails = (await keyInfo(key)).emails;
-      const account = addresses.find(a => emails.includes(a.email));
-      await api.pgp.addKey({
-        armoredPrivate: pair.armoredPrivate, armoredPublic: pair.armoredPublic, accountId: account?.accountId || null,
-        protection: automatic ? 'login' : 'passphrase',
+      const prepared = await prepareKeysFromBackup(armored.trim(), { passphrase: pass, secret, newPassphrase: !automatic && needsNew ? newPass : '' });
+      await storeRestoredKeys(prepared.keys, {
+        ownKeys: keys, addKey: api.pgp.addKey, setProtection: api.pgp.setProtection,
+        accountFor: emails => addresses.find(a => emails.includes(a.email))?.accountId || null,
       });
-      const autos = (keys || []).filter(k => k.auto && (k.emails || []).some(a => emails.includes(a)));
-      if (autos.length) setReplaced(autos);
+      const emails = prepared.keys.flatMap(k => k.emails);
+      const fingerprints = new Set(prepared.keys.map(k => k.fingerprint.toLowerCase()));
+      const autos = (keys || []).filter(k => k.auto && !fingerprints.has(String(k.fingerprint).toLowerCase()) && (k.emails || []).some(a => emails.includes(a)));
+      if (prepared.unopened) {
+        // What did open is stored; the rest wait for their own passphrase.
+        setUnopened(prepared.unopened);
+        setPass('');
+        ownKeysChanged();
+      } else if (autos.length) setReplaced(autos);
       else onDone();
     } catch (err) {
       if (err?.code === 'unprotectedKey') setNeedsNew(true);
@@ -233,9 +221,9 @@ function ImportPrivateForm({ addresses, userId, keys, onDone, onCancel }) {
   }
 
   return (
-    <form onSubmit={submit} style={panel} aria-label={t('pgp.settings.importTitle')}>
-      <div style={{ fontSize: 13, fontWeight: 600 }}>{t('pgp.settings.importTitle')}</div>
-      <p style={{ ...muted, margin: 0 }}>{t('pgp.settings.importNote')}</p>
+    <form onSubmit={submit} style={panel} aria-label={restore ? t('pgp.settings.restoreTitle') : t('pgp.settings.importTitle')}>
+      <div style={{ fontSize: 13, fontWeight: 600 }}>{restore ? t('pgp.settings.restoreTitle') : t('pgp.settings.importTitle')}</div>
+      <p style={{ ...muted, margin: 0 }}>{restore ? t('pgp.settings.restoreNote') : t('pgp.settings.importNote')}</p>
       <textarea
         value={armored} onChange={e => setArmored(e.target.value)} rows={6} spellCheck={false}
         aria-label={t('pgp.settings.importPaste')} placeholder={PRIVATE_KEY_PLACEHOLDER}
@@ -246,7 +234,7 @@ function ImportPrivateForm({ addresses, userId, keys, onDone, onCancel }) {
         <input type="file" accept=".asc,.gpg,.key,.txt,application/pgp-keys" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setArmored(await readFileText(f)); }} />
       </label>
       <label>
-        <span style={label}>{t('pgp.settings.keyPassphrase')}</span>
+        <span style={label}>{restore ? t('pgp.settings.backupPassphrase') : t('pgp.settings.keyPassphrase')}</span>
         <input type="password" autoComplete="off" value={pass} onChange={e => setPass(e.target.value)} style={input} />
       </label>
       <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 12.5, color: 'var(--text-primary)', lineHeight: 1.45 }}>
@@ -259,6 +247,7 @@ function ImportPrivateForm({ addresses, userId, keys, onDone, onCancel }) {
           <input type="password" autoComplete="new-password" value={newPass} onChange={e => setNewPass(e.target.value)} style={input} />
         </label>
       )}
+      {unopened > 0 && <p role="status" style={{ ...muted, margin: 0, color: 'var(--amber)' }}>{t('pgp.settings.restorePartial', { count: unopened })}</p>}
       {error && <p role="alert" style={{ fontSize: 12, color: 'var(--red)', margin: 0 }}>{error}</p>}
       <div style={{ display: 'flex', gap: 8 }}>
         <button type="submit" disabled={busy || !armored.trim()} style={button('primary', busy || !armored.trim())}>
@@ -481,13 +470,7 @@ function BackupForm({ keys, userId, onCancel }) {
     setBusy(true);
     setError('');
     try {
-      const blocks = [];
-      for (const k of keys) {
-        if (!isLoginKey(k)) { blocks.push(k.armoredPrivate); continue; }
-        const key = await unlockOwnKey(k, userId);
-        blocks.push(await lockKey(key, pass));
-      }
-      downloadText('plimail-keys-backup.asc', blocks.join('\n'));
+      downloadText('plimail-keys-backup.asc', await buildKeyBackup(keys, { passphrase: pass, open: k => unlockOwnKey(k, userId) }));
       onCancel();
     } catch (err) {
       if (err?.code !== 'unlockCancelled') setError(errorText(t, err));
@@ -655,12 +638,17 @@ export default function PgpSettingsSection() {
             <span style={muted}>{t('pgp.settings.autoEncryptHint')}</span>
           </span>
         </label>
-        {keys && keys.length > 0 && (
+        {keys && (
           <div style={{ ...panel, marginTop: 14, background: 'transparent' }}>
-            <p style={{ ...muted, margin: 0, color: 'var(--text-primary)' }}>{t('pgp.settings.resetWarning')}</p>
-            {form === 'backup'
-              ? <BackupForm keys={keys} userId={userId} onCancel={() => setForm(null)} />
-              : <div><button type="button" onClick={() => setForm('backup')} style={button()}>{t('pgp.settings.backupTitle')}</button></div>}
+            {keys.length > 0 && <p style={{ ...muted, margin: 0, color: 'var(--text-primary)' }}>{t('pgp.settings.resetWarning')}</p>}
+            {form === 'backup' && <BackupForm keys={keys} userId={userId} onCancel={() => setForm(null)} />}
+            {form === 'restore' && <ImportPrivateForm restore addresses={addresses} userId={userId} keys={keys} onDone={done} onCancel={() => setForm(null)} />}
+            {form !== 'backup' && form !== 'restore' && (
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {keys.length > 0 && <button type="button" onClick={() => setForm('backup')} style={button()}>{t('pgp.settings.backupTitle')}</button>}
+                <button type="button" onClick={() => setForm('restore')} style={button()}>{t('pgp.settings.restoreTitle')}</button>
+              </div>
+            )}
           </div>
         )}
       </section>

@@ -122,6 +122,7 @@ const SAME_VALUE_ALLOWED = {
   'pgp.settings.unlock':                    [['es', 'ptBR']], // Desbloquear
   'pgp.unlock.go':                          [['es', 'ptBR']], // Desbloquear
   'pgp.unlock.working':                     [['es', 'ptBR']], // Desbloqueando…
+  'admin.password.title':                   [['en', 'it']], // Password, the word Italian uses
   // ── Composer tone presets ──────────────────────────────────────────────────
   'compose.toolbar.toneFormal':             [['en', 'es', 'ptBR']], // Formal
   'compose.toolbar.toneDiplomatic':         [['es', 'ptBR']], // Diplomático
