@@ -21,6 +21,7 @@ import {
   readFolderOrder,
 } from './folderOrder.js';
 import { removeThreadCacheEntry } from '../utils/threadedArchive.js';
+import { clearOffline } from '../utils/offlineCache.js';
 import i18n, { initialLanguage } from '../i18n.js';
 import { createPrefSaveQueue } from '../utils/prefSaveQueue.js';
 import { compareListOrder, isDefaultListOrder, listOrderFor, listSortKey } from '../utils/listSort.js';
@@ -123,8 +124,12 @@ export const useStore = create((set, get) => ({
       forgetAllUnlockedKeys({ keepSecretFor: user?.id || null });
       setKeySecretOwner(user?.id || null);
       forgetOwnKeys();
-      // The message remembered for the lock screen is the leaving user's too.
-      if (get().user) localStorage.removeItem('mailflow_locked_message');
+      // The message remembered for the lock screen is the leaving user's too, and so is the
+      // mail kept for offline reading. Not on a cold load, which may be reading it offline.
+      if (get().user) {
+        localStorage.removeItem('mailflow_locked_message');
+        clearOffline();
+      }
     }
     set(state => ({
       user,
@@ -172,6 +177,7 @@ export const useStore = create((set, get) => ({
     // server did sign out, the next load clears the lock with no user signed in, which reopens
     // this message for whoever signs in next.
     localStorage.removeItem('mailflow_locked_message');
+    clearOffline();
     let loggedOut = false;
     await signOutAndLeave({
       setUser: get().setUser,
@@ -190,6 +196,8 @@ export const useStore = create((set, get) => ({
   setLocked: (locked) => {
     // The screen lock stands between this tab and the mail, so no unlocked key outlives it.
     if (locked) forgetAllUnlockedKeys();
+    // Nor does the mail kept for offline reading: it is on disk, out of the lock screen's reach.
+    if (locked) clearOffline();
     if (locked) {
       // The lock screen replaces the mail view, and with it an open composer: this lets the
       // composer hand what it holds to keepComposeForLock first, so it reopens with it on unlock.

@@ -1,3 +1,4 @@
+import { clearOffline, keptOffline, offlineError, offlineGeneration, readOffline, saveOffline, setOffline } from './offlineCache.js';
 
 const BASE = '/api';
 
@@ -35,8 +36,19 @@ async function request(method, path, body, extraHeaders, { signal } = {}) {
     opts.headers['Content-Type'] = 'application/json';
     opts.body = JSON.stringify(body);
   }
-  const res = await fetch(BASE + path, opts);
+  const kept = keptOffline(method, path);
+  const gen = offlineGeneration();
+  let res;
+  try {
+    res = await fetch(BASE + path, opts);
+  } catch (err) {
+    if (signal?.aborted || err?.name === 'AbortError') throw err;
+    return unreachable(path, kept, err);
+  }
+  setOffline(false);
   if (!res.ok) {
+    // The mail kept for offline reading is no longer this browser's to show.
+    if (res.status === 401 || res.status === 423) clearOffline();
     if (res.status === 423) {
       // Server-enforced screen lock (#235) — surface the lock overlay from any call.
       window.dispatchEvent(new CustomEvent('mailflow:locked'));
@@ -57,7 +69,19 @@ async function request(method, path, body, extraHeaders, { signal } = {}) {
   }
   // No Content (a DELETE): there is no body to read.
   if (res.status === 204) return null;
-  return res.json();
+  const data = await res.json();
+  if (kept) saveOffline(path, data, gen).catch(() => {});
+  return data;
+}
+
+// The server could not be reached: what was kept for offline reading, or an error that says so.
+async function unreachable(path, kept, cause) {
+  setOffline(true);
+  if (kept) {
+    const saved = await readOffline(path);
+    if (saved !== undefined) return saved;
+  }
+  throw offlineError(cause);
 }
 
 // purpose is 'compose' (writing assistant), 'summarize' (summaries and AI actions) or 'reply'

@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // pdf.js fetches these at run time by URL rather than importing them, so Vite cannot see them:
@@ -89,8 +89,19 @@ function serviceWorkerBuildId() {
       if (!buildId) return;
       const file = join(outDir, 'sw.js');
       const source = readFileSync(file, 'utf8');
-      if (!source.includes('__PLIMAIL_BUILD_ID__')) this.error('sw.js has no __PLIMAIL_BUILD_ID__ placeholder');
-      writeFileSync(file, source.replace("'__PLIMAIL_BUILD_ID__'", JSON.stringify(buildId)));
+      for (const marker of ['__PLIMAIL_BUILD_ID__', '/* __PLIMAIL_PRECACHE__ */']) {
+        if (!source.includes(marker)) this.error(`sw.js has no ${marker} placeholder`);
+      }
+      // The whole bundle and the fonts, fetched when the worker installs, so the app opens offline
+      // with every screen it has. Source maps are left for whoever debugs.
+      const precache = ['assets', 'fonts']
+        .flatMap(dir => readdirSync(join(outDir, dir), { recursive: true, withFileTypes: true })
+          .filter(entry => entry.isFile() && !entry.name.endsWith('.map'))
+          .map(entry => '/' + relative(outDir, join(entry.parentPath, entry.name)).split(sep).join('/')))
+        .sort();
+      writeFileSync(file, source
+        .replace("'__PLIMAIL_BUILD_ID__'", JSON.stringify(buildId))
+        .replace('/* __PLIMAIL_PRECACHE__ */', precache.map(path => JSON.stringify(path)).join(', ')));
     },
   };
 }

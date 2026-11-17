@@ -9,14 +9,16 @@ import vm from 'node:vm';
 const RAW = readFileSync(new URL('../../public/sw.js', import.meta.url), 'utf8');
 const ORIGIN = 'https://mail.example';
 
+const keyOf = req => (typeof req === 'string' ? new URL(req, ORIGIN).href : req.url);
+
 function fakeCaches(initial = {}) {
   const stores = new Map(Object.entries(initial).map(([name, entries]) => [name, new Map(entries)]));
   const open = async (name) => {
     if (!stores.has(name)) stores.set(name, new Map());
     const store = stores.get(name);
     return {
-      match: async req => store.get(req.url),
-      put: async (req, res) => { store.set(req.url, res); },
+      match: async req => store.get(keyOf(req)),
+      put: async (req, res) => { store.set(keyOf(req), res); },
     };
   };
   return {
@@ -31,8 +33,11 @@ function response(body, { status = 200, type = 'basic' } = {}) {
   return { body, status, ok: status >= 200 && status < 300, type, clone() { return response(body, { status, type }); } };
 }
 
-function loadWorker({ buildId = 'abc123', caches = fakeCaches(), respond = () => response('net') } = {}) {
-  const source = buildId ? RAW.replace("'__PLIMAIL_BUILD_ID__'", JSON.stringify(buildId)) : RAW;
+function loadWorker({ buildId = 'abc123', precache = [], caches = fakeCaches(), respond = () => response('net') } = {}) {
+  const source = buildId
+    ? RAW.replace("'__PLIMAIL_BUILD_ID__'", JSON.stringify(buildId))
+      .replace('/* __PLIMAIL_PRECACHE__ */', precache.map(p => JSON.stringify(p)).join(', '))
+    : RAW;
   const listeners = {};
   const fetches = [];
   let skipped = 0;
@@ -45,7 +50,11 @@ function loadWorker({ buildId = 'abc123', caches = fakeCaches(), respond = () =>
     caches,
     skipWaiting: () => { skipped++; },
   };
-  const fetch = async (req) => { fetches.push(req.url); return respond(req); };
+  const fetch = async (req) => {
+    const url = keyOf(req);
+    fetches.push(url);
+    return respond({ url, mode: req.mode });
+  };
   vm.runInNewContext(source, { self, fetch, URL, JSON, Promise, Array, encodeURIComponent });
 
   // Resolves to the response the worker answered with, or undefined when it let the request
@@ -85,9 +94,8 @@ test('never touches the API, the WebSocket, sign-in or a protected message page'
   assert.equal(sw.caches.stores.size, 0);
 });
 
-test('pages, writes, query strings and other origins go to the network untouched', async () => {
+test('writes, query strings and other origins go to the network untouched', async () => {
   const sw = loadWorker();
-  assert.equal(await sw.request('/', { mode: 'navigate' }), undefined);
   assert.equal(await sw.request('/index.html'), undefined);
   assert.equal(await sw.request('/sw.js'), undefined);
   assert.equal(await sw.request('/manifest.json'), undefined);
@@ -120,4 +128,45 @@ test('a new release waits for the page, then drops the previous release\'s cache
   await sw.lifecycle('activate');
   assert.deepEqual([...caches.stores.keys()].sort(), ['plimail-static-abc123', 'someone-else']);
   assert.equal(sw.claimed, 1);
+});
+
+test('installing fetches this release\'s page, bundle and fonts, skipping what fails', async () => {
+  const sw = loadWorker({
+    precache: ['/assets/index-A1.js', '/assets/gone-B2.js', '/fonts/inter/inter.woff2'],
+    respond: ({ url }) => (url.endsWith('gone-B2.js') ? response('missing', { status: 404 }) : response('net:' + url)),
+  });
+  await sw.lifecycle('install');
+  assert.deepEqual([...sw.caches.stores.get('plimail-static-abc123').keys()].sort(), [
+    `${ORIGIN}/`, `${ORIGIN}/assets/index-A1.js`, `${ORIGIN}/fonts/inter/inter.woff2`,
+  ]);
+  assert.equal(sw.skipped, 0);
+});
+
+test('a page comes from the server whenever it answers, and the installed one only offline', async () => {
+  let online = true;
+  const sw = loadWorker({
+    respond: ({ url }) => {
+      if (!online) throw new TypeError('Failed to fetch');
+      return response(url.endsWith('/') ? 'index of this release' : 'page from the server');
+    },
+  });
+  await sw.lifecycle('install');
+  assert.equal((await sw.request('/inbox', { mode: 'navigate' })).body, 'page from the server');
+  online = false;
+  assert.equal((await sw.request('/inbox', { mode: 'navigate' })).body, 'index of this release');
+  assert.equal((await sw.request('/', { mode: 'navigate' })).body, 'index of this release');
+  // Never in place of a protected message, sign-in or the API, even offline.
+  for (const path of ['/s/AbC_123', '/oauth/callback', '/auth/oidc/callback', '/api/auth/me']) {
+    assert.equal(await sw.request(path, { mode: 'navigate' }), undefined, path);
+  }
+});
+
+test('offline with nothing installed, a page fails as it would without the worker', async () => {
+  const sw = loadWorker({ respond: () => { throw new TypeError('Failed to fetch'); } });
+  await assert.rejects(sw.request('/', { mode: 'navigate' }), TypeError);
+});
+
+test('under the Vite dev server pages are not touched either', async () => {
+  const sw = loadWorker({ buildId: null });
+  assert.equal(await sw.request('/', { mode: 'navigate' }), undefined);
 });

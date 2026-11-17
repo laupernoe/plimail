@@ -2871,6 +2871,10 @@
     "update": {
       "available": "Dostępna jest nowa wersja Plimaila.",
       "reload": "Odśwież"
+    },
+    "offline": {
+      "banner": "Jesteś offline. Ostatnio otwarte wiadomości nadal można czytać; wysyłanie i zmiany czekają na połączenie.",
+      "unreachable": "Plimail nie może połączyć się z serwerem. Sprawdź połączenie i spróbuj ponownie."
     }
   }
 }

@@ -2852,6 +2852,10 @@
     "update": {
       "available": "Une nouvelle version de Plimail est disponible.",
       "reload": "Recharger"
+    },
+    "offline": {
+      "banner": "Vous êtes hors ligne. Les messages ouverts récemment restent lisibles ; l'envoi et les modifications attendent le retour de la connexion.",
+      "unreachable": "Plimail ne parvient pas à joindre le serveur. Vérifiez votre connexion et réessayez."
     }
   }
 }

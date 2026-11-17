@@ -2852,6 +2852,10 @@
     "update": {
       "available": "Eine neue Version von Plimail ist verfügbar.",
       "reload": "Neu laden"
+    },
+    "offline": {
+      "banner": "Sie sind offline. Kürzlich geöffnete Nachrichten bleiben lesbar; Senden und Änderungen warten auf die Verbindung.",
+      "unreachable": "Plimail erreicht den Server nicht. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
     }
   }
 }
