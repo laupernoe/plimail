@@ -218,7 +218,7 @@ describe('composeDataFromScheduled', () => {
       isReply: true, isReplyAll: false, threadId: 't1', originalFrom: 'Bob <b@x>', allRecipients: ['b@x'],
       accountId: 'acct', aliasId: 'al1', to: ['Bob <b@x>'], cc: ['c@x'], bcc: [], subject: 'Re: Q4', body: '<p>Hi</p>',
       quotedBody: '> old', quotedBodyHtml: '<blockquote>old</blockquote>', signature: '', priority: 'high',
-      inReplyTo: '<orig@x>', references: '<orig@x>',
+      inReplyTo: '<orig@x>', references: '<orig@x>', readReceipt: false,
       scheduled: {
         id: 'id1', version: 4, sendAt: '2026-10-26T07:00:00Z', timeZone: 'Europe/Berlin',
         attachments: [{ index: 0, filename: 'q4.pdf', size: 10, contentType: 'application/pdf', kind: 'upload' }],
