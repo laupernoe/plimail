@@ -88,6 +88,9 @@ export function parseVCard(raw) {
     organization: null,
     notes: null,
     photoData: null,
+    kind: 'individual',
+    members: [],
+    categories: [],
   };
 
   for (const line of text.split(/\r?\n/)) {
@@ -146,6 +149,24 @@ export function parseVCard(raw) {
       case 'NOTE':
         result.notes = unescapeValue(value).trim() || null;
         break;
+      // RFC 6350 KIND:group with MEMBER; Apple's vCard 3.0 spelling is X-ADDRESSBOOKSERVER-*.
+      case 'KIND':
+      case 'X-ADDRESSBOOKSERVER-KIND':
+        if (unescapeValue(value).trim().toLowerCase() === 'group') result.kind = 'group';
+        break;
+      case 'MEMBER':
+      case 'X-ADDRESSBOOKSERVER-MEMBER': {
+        const member = unescapeValue(value).trim().replace(/^(urn:uuid:|uid:)/i, '');
+        if (member) result.members.push(member);
+        break;
+      }
+      case 'CATEGORIES':
+        // A comma separates categories; \, is a comma inside one, so split before unescaping.
+        for (const part of value.split(/(?<!\\),/)) {
+          const cat = unescapeValue(part).trim();
+          if (cat) result.categories.push(cat);
+        }
+        break;
       case 'PHOTO': {
         const v = value.trim();
         if (!v) break;
@@ -185,6 +206,7 @@ export function generateVCard(contact) {
     phones = [],
     organization,
     notes,
+    categories = [],
   } = contact;
 
   const lines = [];
@@ -219,8 +241,32 @@ export function generateVCard(contact) {
     lines.push(`NOTE:${escapeValue(notes)}`);
   }
 
+  if (categories.length) {
+    lines.push(`CATEGORIES:${categories.map(escapeValue).join(',')}`);
+  }
+
   lines.push('END:VCARD');
 
   // Fold and join
+  return lines.map(foldLine).join('');
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Generate a group card the way Apple Contacts and Nextcloud read it: vCard 4.0 with
+ * KIND:group and one MEMBER:urn:uuid:<contact uid> per member (RFC 6350 sections 6.1.4, 6.6.5).
+ * A member uid that is not a UUID is written as a uid: URI, which parseVCard reads back.
+ */
+export function generateGroupVCard({ uid, name, memberUids = [] }) {
+  const lines = [
+    'BEGIN:VCARD',
+    'VERSION:4.0',
+    'KIND:group',
+    `UID:${escapeValue(uid || '')}`,
+    `FN:${escapeValue(name || '')}`,
+    ...memberUids.map(m => `MEMBER:${UUID_RE.test(m) ? 'urn:uuid:' : 'uid:'}${m}`),
+    'END:VCARD',
+  ];
   return lines.map(foldLine).join('');
 }

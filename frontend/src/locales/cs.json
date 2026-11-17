@@ -943,6 +943,22 @@
       "work": "Pracovní",
       "home": "Domů",
       "other": "Jiný"
+    },
+    "groups": {
+      "tabGroups": "Skupiny",
+      "new": "Nová skupina",
+      "namePlaceholder": "Název skupiny",
+      "create": "Vytvořit",
+      "empty": "Zatím žádné skupiny",
+      "selectHint": "Vyberte skupinu",
+      "memberCount": "Členů: {{count}}",
+      "category": "Kategorie",
+      "rename": "Přejmenovat",
+      "deleteConfirm": "Smazat tuto skupinu? Její kontakty zůstanou zachovány.",
+      "readOnlyHint": "Tato skupina pochází z kategorií vašeho adresáře a nelze ji zde upravovat.",
+      "addMember": "Přidat kontakt do této skupiny…",
+      "noMembers": "V této skupině nejsou žádné kontakty",
+      "suggestMembers": "Skupina · kontaktů: {{count}}"
     }
   },
   "contextMenu": {

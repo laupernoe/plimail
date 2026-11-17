@@ -19,6 +19,7 @@ import { authLimiterConfig } from '../services/authLimiter.js';
 import { consume as rlConsume, release as rlRelease } from '../services/rateLimiter.js';
 import { rateLimitAddress } from '../utils/rateLimitAddress.js';
 import { logAuthEvent } from '../services/authEvents.js';
+import { GroupError, groupCards, groupCard, applyGroupCard, deleteGroupByUid, syncContactCategories } from '../services/contactGroups.js';
 
 const router = Router();
 
@@ -326,7 +327,9 @@ router.propfind('/:userId/:bookId/', async (req, res) => {
     [book.id]
   );
 
-  const cardResponses = contacts.rows.map(c =>
+  const groups = await groupCards(book.id);
+
+  const cardResponses = [...contacts.rows, ...groups].map(c =>
     response(`${bookPath}${encodeURIComponent(c.uid)}.vcf`, [
       propstat([
         '<D:resourcetype/>',
@@ -359,7 +362,10 @@ router.report('/:userId/:bookId/', async (req, res) => {
     [book.id]
   );
 
-  const cardResponses = contacts.rows.map(c => {
+  // Groups ride along as KIND:group cards, after the contacts they name.
+  const groups = await groupCards(book.id);
+
+  const cardResponses = [...contacts.rows, ...groups].map(c => {
     const href = `${bookPath}${encodeURIComponent(c.uid)}.vcf`;
     return response(href, [
       propstat([
@@ -399,9 +405,14 @@ router.get('/:userId/:bookId/:filename', async (req, res) => {
      WHERE ab.id = $1 AND ab.user_id = $2 AND c.uid = $3`,
     [req.params.bookId, userId, uid]
   );
-  if (!result.rows.length) return res.status(404).end();
+  let found = result.rows[0];
+  if (!found) {
+    const book = await findOwnedAddressBook(userId, req.params.bookId, { columns: 'id' });
+    found = book ? await groupCard(book.id, uid) : null;
+  }
+  if (!found) return res.status(404).end();
 
-  const { vcard, etag } = result.rows[0];
+  const { vcard, etag } = found;
   res.set({
     'Content-Type': 'text/vcard;charset=utf-8',
     'ETag': `"${etag}"`,
@@ -429,6 +440,23 @@ router.put('/:userId/:bookId/:filename', async (req, res) => {
     const book = await findOwnedAddressBook(userId, req.params.bookId, { columns: 'id' });
     if (!book) return res.status(404).end();
     const bookId = book.id;
+
+    if (parsed.kind === 'group') {
+      const current = await groupCard(bookId, uid);
+      const ifMatch = req.headers['if-match'];
+      if (current && ifMatch && ifMatch !== '*' && ifMatch.replace(/^"(.*)"$/, '$1') !== current.etag) {
+        return res.status(412).end();
+      }
+      const outcome = await applyGroupCard(userId, bookId, uid, parsed);
+      if (outcome === 'conflict') return res.status(409).end();
+      await query(
+        'UPDATE address_books SET sync_token = gen_random_uuid()::text, updated_at = NOW() WHERE id = $1',
+        [bookId]
+      );
+      const stored = await groupCard(bookId, uid);
+      if (stored) res.set('ETag', `"${stored.etag}"`);
+      return res.status(outcome === 'created' ? 201 : 204).end();
+    }
 
     const existing = await query(
       'SELECT id, etag FROM contacts WHERE address_book_id = $1 AND uid = $2',
@@ -459,6 +487,7 @@ router.put('/:userId/:bookId/:filename', async (req, res) => {
         parsed.organization, parsed.notes, parsed.photoData,
         existing.rows[0].id,
       ]);
+      await syncContactCategories(userId, bookId, existing.rows[0].id, parsed.categories);
       await query(
         'UPDATE address_books SET sync_token = gen_random_uuid()::text, updated_at = NOW() WHERE id = $1',
         [bookId]
@@ -466,12 +495,13 @@ router.put('/:userId/:bookId/:filename', async (req, res) => {
       res.set('ETag', `"${etag}"`).status(204).end();
     } else {
       // Create
-      await query(`
+      const inserted = await query(`
         INSERT INTO contacts (
           address_book_id, user_id, uid, vcard, etag,
           display_name, first_name, last_name, primary_email,
           emails, phones, organization, notes, photo_data, is_auto
         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14, false)
+        RETURNING id
       `, [
         bookId, userId, uid, vcard, etag,
         parsed.displayName, parsed.firstName, parsed.lastName,
@@ -479,6 +509,7 @@ router.put('/:userId/:bookId/:filename', async (req, res) => {
         JSON.stringify(parsed.emails), JSON.stringify(parsed.phones),
         parsed.organization, parsed.notes, parsed.photoData,
       ]);
+      if (inserted.rows[0]) await syncContactCategories(userId, bookId, inserted.rows[0].id, parsed.categories);
       await query(
         'UPDATE address_books SET sync_token = gen_random_uuid()::text, updated_at = NOW() WHERE id = $1',
         [bookId]
@@ -487,6 +518,7 @@ router.put('/:userId/:bookId/:filename', async (req, res) => {
     }
   } catch (err) {
     if (err.code === '23505') return res.status(409).end(); // unique conflict
+    if (err instanceof GroupError) return res.status(err.status).end();
     console.error('CardDAV PUT error:', err);
     res.status(500).end();
   }
@@ -501,6 +533,16 @@ router.delete('/:userId/:bookId/:filename', async (req, res) => {
   const uid = req.params.filename.replace(/\.vcf$/i, '');
 
   try {
+    const book = await findOwnedAddressBook(userId, req.params.bookId, { columns: 'id' });
+    if (!book) return res.status(404).end();
+    // A group card goes first, and only the group goes: its contacts are separate cards.
+    if (await deleteGroupByUid(userId, book.id, uid)) {
+      await query(
+        'UPDATE address_books SET sync_token = gen_random_uuid()::text, updated_at = NOW() WHERE id = $1',
+        [book.id]
+      );
+      return res.status(204).end();
+    }
     const result = await query(
       `DELETE FROM contacts
        USING address_books

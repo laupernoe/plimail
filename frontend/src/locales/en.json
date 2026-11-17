@@ -2185,6 +2185,22 @@
       "work": "Work",
       "home": "Home",
       "other": "Other"
+    },
+    "groups": {
+      "tabGroups": "Groups",
+      "new": "New group",
+      "namePlaceholder": "Group name",
+      "create": "Create",
+      "empty": "No groups yet",
+      "selectHint": "Select a group",
+      "memberCount": "{{count}} members",
+      "category": "Category",
+      "rename": "Rename",
+      "deleteConfirm": "Delete this group? Its contacts are kept.",
+      "readOnlyHint": "This group comes from the categories of your address book and cannot be edited here.",
+      "addMember": "Add a contact to this group…",
+      "noMembers": "No contacts in this group",
+      "suggestMembers": "Group · {{count}} contacts"
     }
   },
   "window": {

@@ -5,6 +5,7 @@ import { useStore } from '../store/index.js';
 import { useMobile } from '../hooks/useMobile.js';
 import SenderAvatarImage from './SenderAvatarImage.jsx';
 import { formatDay } from '../utils/formatDate.js';
+import ContactGroupsPanel, { ContactsTabs } from './ContactGroups.jsx';
 
 // Deterministic avatar color from a string
 function avatarColor(str) {
@@ -72,6 +73,7 @@ export default function ContactsPage() {
   const [listError, setListError]   = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showNew, setShowNew]       = useState(false);
+  const [tab, setTab]               = useState('contacts'); // 'contacts' | 'groups'
   // Mobile: 'list' shows the contact list, 'detail' shows contact/form panel
   const [mobilePanel, setMobilePanel] = useState('list');
   const searchTimer                 = useRef(null);
@@ -414,6 +416,8 @@ export default function ContactsPage() {
     </>
   );
 
+  if (tab === 'groups') return <ContactGroupsPanel tab={tab} onTab={setTab} />;
+
   // ── Mobile layout ─────────────────────────────────────────────────────────
   if (isMobile) {
     const mobileHeaderTitle = mobilePanel === 'detail' && selected
@@ -469,6 +473,8 @@ export default function ContactsPage() {
           )}
         </div>
 
+        {mobilePanel === 'list' && <ContactsTabs tab={tab} onTab={setTab} />}
+
         {/* Search bar — only on list view */}
         {mobilePanel === 'list' && (
           <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-secondary)', flexShrink: 0 }}>
@@ -513,7 +519,8 @@ export default function ContactsPage() {
         overflow: 'hidden',
       }}>
         {/* Header */}
-        <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--border-subtle)' }}>
+        <ContactsTabs tab={tab} onTab={setTab} />
+        <div style={{ padding: '10px 14px 10px', borderBottom: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
               {t('contacts.title')}

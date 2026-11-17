@@ -2185,6 +2185,22 @@
       "work": "Trabajo",
       "home": "Casa",
       "other": "Otro"
+    },
+    "groups": {
+      "tabGroups": "Grupos",
+      "new": "Nuevo grupo",
+      "namePlaceholder": "Nombre del grupo",
+      "create": "Crear",
+      "empty": "Aún no hay grupos",
+      "selectHint": "Selecciona un grupo",
+      "memberCount": "{{count}} miembros",
+      "category": "Categoría",
+      "rename": "Renombrar",
+      "deleteConfirm": "¿Eliminar este grupo? Sus contactos se conservan.",
+      "readOnlyHint": "Este grupo procede de las categorías de tu libreta de direcciones y no se puede editar aquí.",
+      "addMember": "Añadir un contacto a este grupo…",
+      "noMembers": "No hay contactos en este grupo",
+      "suggestMembers": "Grupo · {{count}} contactos"
     }
   },
   "window": {

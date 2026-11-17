@@ -2185,6 +2185,22 @@
       "work": "Travail",
       "home": "Domicile",
       "other": "Autre"
+    },
+    "groups": {
+      "tabGroups": "Groupes",
+      "new": "Nouveau groupe",
+      "namePlaceholder": "Nom du groupe",
+      "create": "Créer",
+      "empty": "Aucun groupe pour l'instant",
+      "selectHint": "Sélectionnez un groupe",
+      "memberCount": "{{count}} membres",
+      "category": "Catégorie",
+      "rename": "Renommer",
+      "deleteConfirm": "Supprimer ce groupe ? Ses contacts sont conservés.",
+      "readOnlyHint": "Ce groupe provient des catégories de votre carnet d'adresses et ne peut pas être modifié ici.",
+      "addMember": "Ajouter un contact à ce groupe…",
+      "noMembers": "Aucun contact dans ce groupe",
+      "suggestMembers": "Groupe · {{count}} contacts"
     }
   },
   "window": {

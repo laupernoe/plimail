@@ -2204,6 +2204,22 @@
       "work": "Praca",
       "home": "Dom",
       "other": "Inne"
+    },
+    "groups": {
+      "tabGroups": "Grupy",
+      "new": "Nowa grupa",
+      "namePlaceholder": "Nazwa grupy",
+      "create": "Utwórz",
+      "empty": "Brak grup",
+      "selectHint": "Wybierz grupę",
+      "memberCount": "Członkowie: {{count}}",
+      "category": "Kategoria",
+      "rename": "Zmień nazwę",
+      "deleteConfirm": "Usunąć tę grupę? Jej kontakty zostaną zachowane.",
+      "readOnlyHint": "Ta grupa pochodzi z kategorii Twojej książki adresowej i nie można jej tutaj edytować.",
+      "addMember": "Dodaj kontakt do tej grupy…",
+      "noMembers": "Brak kontaktów w tej grupie",
+      "suggestMembers": "Grupa · kontakty: {{count}}"
     }
   },
   "window": {
