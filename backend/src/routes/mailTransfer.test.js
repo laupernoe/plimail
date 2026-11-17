@@ -252,6 +252,8 @@ describe('mail import and export routes', () => {
       })());
       const res = await fetch(importUrl(base), { method: 'POST', body: stream, duplex: 'half', headers: { 'Content-Type': 'application/octet-stream' } });
       expect(res.status).toBe(200);
+      // The rest of the upload is never read, so the connection cannot be reused.
+      expect(res.headers.get('connection')).toBe('close');
       expect((await res.json()).aborted).toBe('too_large');
     });
 

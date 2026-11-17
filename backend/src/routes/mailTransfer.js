@@ -169,6 +169,11 @@ router.post('/import', async (req, res) => {
   const userId = req.session.userId;
   let slotTaken = false;
   let restoreRequestTimeout = () => {};
+  // Many answers come before the file has been read to its end (a refusal, the size limit, a file
+  // that is not mail). The connection then cannot carry another request, so it is closed once the
+  // answer is out; an import is one long request per file, so keep-alive saves nothing here.
+  res.setHeader('Connection', 'close');
+  res.once('finish', () => { if (!req.complete) req.destroy(); });
   try {
     const target = await resolveTarget(req, res, ['mbox', 'eml']);
     if (!target) return;
@@ -179,8 +184,6 @@ router.post('/import', async (req, res) => {
     const limit = maxImportBytes();
     const declared = Number(req.headers['content-length']);
     if (Number.isFinite(declared) && declared > limit) {
-      res.setHeader('Connection', 'close');
-      res.once('finish', () => req.destroy());
       return res.status(413).json({ error: `The file is larger than the import limit of ${Math.round(limit / 1024 / 1024)} MB (MAIL_IMPORT_MAX_MB).` });
     }
     if (importsRunning.has(userId)) return res.status(409).json({ error: 'An import is already running. Wait for it to finish.' });
