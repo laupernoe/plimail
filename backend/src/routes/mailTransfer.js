@@ -1,6 +1,6 @@
 import { once } from 'node:events';
-import { createRequire } from 'node:module';
 import { Router } from 'express';
+import { ZipArchive } from 'archiver';
 import { query } from '../services/db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { imapManager } from '../index.js';
@@ -13,8 +13,6 @@ import {
 import { runImport } from '../services/mailImport.js';
 import { liftRequestTimeout } from '../services/requestTimeLimit.js';
 
-const require = createRequire(import.meta.url);
-const archiver = require('archiver');
 
 // Bulk export and import of a folder. Not in the API token allowlist, so a token cannot reach
 // either: one reads a whole folder, the other writes to it.
@@ -69,7 +67,7 @@ async function streamExport(res, groups, format, filename) {
   let archive = null;
   try {
     if (format === 'zip') {
-      archive = archiver('zip', { zlib: { level: 6 } });
+      archive = new ZipArchive({ zlib: { level: 6 } });
       archive.on('error', err => res.destroy(err));
       archive.pipe(res);
     }
