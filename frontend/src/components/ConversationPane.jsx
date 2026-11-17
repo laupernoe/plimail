@@ -21,7 +21,8 @@ import ContextMenu from './ContextMenu.jsx';
 import { prefetchBody } from '../utils/bodyCache.js';
 import { applyReadGuard } from '../utils/pendingReads.js';
 import { applyDeleteGuard } from '../utils/pendingDeletes.js';
-import { ActionBtn, ArchiveIcon, MoveIcon, SnoozeIcon, SpamIcon, PrintIcon, TrashIcon, useShortcutTitle } from './MessageActions.jsx';
+import { ActionBtn, ArchiveIcon, MoreMenu, MoveIcon, SnoozeIcon, SpamIcon, PrintIcon, TrashIcon, useShortcutTitle } from './MessageActions.jsx';
+import { TOOLBAR_GAP } from '../utils/uiSizes.js';
 
 // What the reader is told when an action finds nothing to take (runAction below). In the unified
 // inbox, which has no "this account" to speak of, only Spam and Snooze can: keepDraftsApart and
@@ -335,8 +336,8 @@ export default function ConversationPane({ threadId, folder, unified = false, ac
           in its order and pinned at the top as its toolbar is (#650); snooze, which the reading pane
           keeps in its menu, sits with the other ways of putting the conversation away. */}
       <div role="group" aria-label={t('message.conversationActions')} style={{
-        padding: isMobile ? '0 8px' : '8px 16px', borderBottom: '1px solid var(--border-subtle)',
-        display: 'flex', alignItems: 'center', gap: isMobile ? 0 : 6, flexShrink: 0,
+        padding: isMobile ? '0 8px' : '6px 16px', borderBottom: '1px solid var(--border-subtle)',
+        display: 'flex', alignItems: 'center', gap: isMobile ? 0 : TOOLBAR_GAP, flexShrink: 0,
         background: 'var(--bg-primary)',
       }}>
         <ActionBtn onClick={() => runAction('archive', archiveThread)} label={t('message.archive')} title={withShortcut(t('message.archive'), 'archive')} touch={isMobile}>
@@ -349,15 +350,13 @@ export default function ConversationPane({ threadId, folder, unified = false, ac
           <SnoozeIcon />
         </ActionBtn>
         <div style={{ flex: 1 }} />
-        <ActionBtn onClick={() => runAction('spam', spamThread)} label={t('contextMenu.markAsSpam')} touch={isMobile}>
-          <SpamIcon />
-        </ActionBtn>
-        <ActionBtn onClick={printConversation} label={t('message.printConversation')} touch={isMobile}>
-          <PrintIcon />
-        </ActionBtn>
         <ActionBtn onClick={() => runAction('delete', deleteThread)} label={t('message.delete')} danger touch={isMobile}>
           <TrashIcon />
         </ActionBtn>
+        <MoreMenu touch={isMobile} items={[
+          { key: 'spam', label: t('contextMenu.markAsSpam'), icon: <SpamIcon />, run: () => runAction('spam', spamThread) },
+          { key: 'print', label: t('message.printConversation'), icon: <PrintIcon />, run: printConversation },
+        ]} />
       </div>
 
       {picker && (

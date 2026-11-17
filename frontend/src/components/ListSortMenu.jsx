@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/index.js';
 import { useUiScale, descale } from '../hooks/useUiScale.js';
 import { DEFAULT_LIST_ORDER, LIST_SORTS, isDefaultListOrder, listOrderFor, pickListSort } from '../utils/listSort.js';
+import { HIT, ICON, RADIUS } from '../utils/uiSizes.js';
 
 const SORT_LABEL_KEYS = { date: 'messageList.sortDate', from: 'messageList.sortSender', subject: 'messageList.sortSubject' };
 
@@ -117,22 +118,23 @@ export default function ListSortMenu({ accountId, folder, compact = false }) {
         title={custom ? t('messageList.sortedBy', { order: summary }) : t('messageList.sort')}
         style={{
           background: open || custom ? 'var(--accent-dim)' : 'none',
-          border: `1px solid ${open || custom ? 'var(--accent)' : compact ? 'transparent' : 'var(--border)'}`,
-          borderRadius: 6, padding: compact ? '5px 7px' : '0 8px',
+          border: `1px solid ${open || custom ? 'var(--accent)' : 'transparent'}`,
+          borderRadius: compact ? 6 : RADIUS, padding: compact ? '5px 7px' : custom ? '0 10px' : 0,
           // The desktop list toolbar's control height (TOOLBAR_CONTROL_HEIGHT in MessageList.jsx, #766).
-          height: compact ? undefined : 24, boxSizing: 'border-box',
+          height: compact ? undefined : HIT, boxSizing: 'border-box',
           color: open || custom ? 'var(--accent)' : 'var(--text-tertiary)',
-          cursor: 'pointer', fontSize: 11, fontWeight: 500, fontFamily: 'inherit',
-          display: 'flex', alignItems: 'center', gap: 5, maxWidth: 220,
-          minHeight: compact ? 44 : undefined, minWidth: compact ? 44 : undefined, justifyContent: 'center',
+          cursor: 'pointer', fontSize: 12, fontWeight: 500, fontFamily: 'inherit',
+          display: 'flex', alignItems: 'center', gap: 6, maxWidth: 220,
+          minHeight: compact ? 44 : undefined, minWidth: compact ? 44 : HIT, justifyContent: 'center',
         }}
       >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" style={{ flexShrink: 0 }}>
+        <svg width={compact ? 13 : ICON} height={compact ? 13 : ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" style={{ flexShrink: 0 }}>
           <path d="M7 4v16M3 16l4 4 4-4"/><path d="M14 6h7M14 12h5M14 18h3"/>
         </svg>
-        {!compact && (
+        {/* In the default order the icon and its tooltip say it all; a custom order is spelled out. */}
+        {!compact && custom && (
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {custom ? summary : t('messageList.sort')}
+            {summary}
           </span>
         )}
       </button>

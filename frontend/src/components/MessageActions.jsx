@@ -1,15 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/index.js';
 import { useMobile } from '../hooks/useMobile.js';
 import { getEffectiveShortcuts, parseModKey, modCompactLabel } from '../utils/defaultShortcuts.js';
+import { HIT, HIT_PRIMARY, ICON, RADIUS } from '../utils/uiSizes.js';
 
 // The action buttons of a message, shared by the single-message toolbar (MessagePane) and each
 // message of a conversation (ConversationMessageCard), and the icon buttons of the conversation's
 // own actions (ConversationPane). The conversation used to draw its own text buttons, and the two
 // views drifted apart in look, order and what they offered (#650). Both now draw these.
 
-const svg = { width: 15, height: 15, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.75, 'aria-hidden': true };
+const svg = { width: ICON, height: ICON, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.75, 'aria-hidden': true };
 
 export const ReplyIcon = () => <svg {...svg}><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 00-4-4H4"/></svg>;
 export const ReplyAllIcon = () => <svg {...svg}><polyline points="7 17 2 12 7 7"/><polyline points="13 17 8 12 13 7"/><path d="M20 18v-2a4 4 0 00-4-4H2"/></svg>;
@@ -69,7 +70,7 @@ export const AiReplyIcon = () => (
   </svg>
 );
 export const MoreIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
+  <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
     <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
   </svg>
 );
@@ -148,12 +149,14 @@ const touchSize = {
 
 // An icon button. `label` is its accessible name, `title` its tooltip, which may add the keyboard
 // shortcut. `disabled` is aria-disabled with the click ignored, not the native attribute, so the
-// title still shows on hover: it is what explains why.
+// title still shows on hover: it is what explains why. `text` is a label drawn beside the icon, for
+// a context's main actions on a desktop; it makes the button the taller HIT_PRIMARY.
 export function ActionBtn({
   children, onClick, label, title, danger, style: extraStyle, pressed, disabled = false, touch = false,
-  popup = false, expanded, btnRef,
+  popup = false, expanded, btnRef, text,
 }) {
   const [hov, setHov] = useState(false);
+  const withText = Boolean(text) && !touch;
   return (
     <button
       ref={btnRef}
@@ -171,17 +174,19 @@ export function ActionBtn({
       style={{
         background: hov ? (danger ? 'rgba(248,113,113,0.1)' : 'var(--bg-tertiary)') : 'transparent',
         border: '1px solid ' + (hov ? (danger ? 'rgba(248,113,113,0.3)' : 'var(--border)') : 'transparent'),
-        borderRadius: 6, padding: '6px 8px',
+        borderRadius: RADIUS, padding: withText ? '0 14px 0 11px' : 0,
+        minWidth: HIT, height: withText ? HIT_PRIMARY : HIT, boxSizing: 'border-box', flexShrink: 0,
         color: danger ? (hov ? 'var(--red)' : 'var(--text-tertiary)') : 'var(--text-secondary)',
-        cursor: disabled ? 'default' : 'pointer', fontSize: 13,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+        cursor: disabled ? 'default' : 'pointer', fontSize: 13, fontWeight: withText ? 500 : undefined,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: withText ? 7 : 5,
         transition: 'all 0.1s',
         opacity: disabled ? 0.45 : 1,
-        ...(touch ? touchSize : {}),
+        ...(touch ? { ...touchSize, height: 'auto' } : {}),
         ...extraStyle,
       }}
     >
       {children}
+      {withText && <span style={{ whiteSpace: 'nowrap' }}>{text}</span>}
     </button>
   );
 }
@@ -193,8 +198,20 @@ export function ActionBtn({
 // closeOnMouseLeave closes it, the same way, when the pointer leaves it.
 function MenuPopup({ triggerRef, onClose, zIndex, style, closeOnMouseLeave = false, children }) {
   const menuRef = useRef(null);
-  const items = () => [...(menuRef.current?.querySelectorAll('[role="menuitem"]') || [])];
+  const items = () => [...(menuRef.current?.querySelectorAll('[role^="menuitem"]') || [])];
   useEffect(() => { items()[0]?.focus(); }, []);
+  // Kept on screen: opened near the bottom of the window it opens upwards, and near an edge it
+  // lines up with the button's other side.
+  useLayoutEffect(() => {
+    const el = menuRef.current;
+    if (!el || typeof window === 'undefined') return;
+    const r = el.getBoundingClientRect();
+    if (r.bottom > window.innerHeight - 8 && r.height < r.top) {
+      Object.assign(el.style, { top: 'auto', bottom: '100%', marginTop: '0', marginBottom: '4px' });
+    }
+    if (r.left < 8) Object.assign(el.style, { right: 'auto', left: '0' });
+    else if (r.right > window.innerWidth - 8) Object.assign(el.style, { left: 'auto', right: '0' });
+  }, []);
   const close = (refocus = true) => {
     onClose();
     if (refocus) triggerRef.current?.focus();
@@ -238,7 +255,8 @@ const hoverBg = {
 };
 
 // Reply, split: the button replies the way the reader's setting says, the arrow offers the other.
-export function ReplySplitButton({ defaultReplyAll, onReply, title, touch = false }) {
+// `showText` draws the label beside the icon, where the toolbar has room for it.
+export function ReplySplitButton({ defaultReplyAll, onReply, title, touch = false, showText = false }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
@@ -248,7 +266,8 @@ export function ReplySplitButton({ defaultReplyAll, onReply, title, touch = fals
     : { label: t('message.replyAll'), replyAll: true };
   return (
     <div style={{ position: 'relative', display: 'flex', ...(touch ? { minWidth: REPLY_SPLIT_MIN } : {}) }}>
-      <ActionBtn onClick={() => { setOpen(false); onReply(defaultReplyAll); }} label={label} title={title ?? label} touch={touch} style={{ borderRadius: '6px 0 0 6px' }}>
+      <ActionBtn onClick={() => { setOpen(false); onReply(defaultReplyAll); }} label={label} title={title ?? label} touch={touch}
+        text={showText ? label : undefined} style={{ borderRadius: `${RADIUS}px 0 0 ${RADIUS}px` }}>
         {defaultReplyAll ? <ReplyAllIcon /> : <ReplyIcon />}
       </ActionBtn>
       <button
@@ -262,7 +281,8 @@ export function ReplySplitButton({ defaultReplyAll, onReply, title, touch = fals
         style={{
           background: 'transparent', border: '1px solid transparent',
           borderLeft: '1px solid var(--border-subtle)',
-          borderRadius: '0 6px 6px 0', padding: '5px 6px',
+          borderRadius: `0 ${RADIUS}px ${RADIUS}px 0`, padding: 0, width: 26,
+          height: showText && !touch ? HIT_PRIMARY : HIT, boxSizing: 'border-box',
           color: 'var(--text-secondary)', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           ...(touch ? { width: 28, minWidth: CHEVRON_MIN, minHeight: TOUCH_TARGET, flexShrink: 1, padding: '5px 2px', boxSizing: 'border-box' } : {}),
@@ -357,82 +377,104 @@ function AiMenuButton({ ai, touch }) {
   );
 }
 
-// The phone More menu's order, the reading pane's since before the views shared these buttons: the
-// read toggle first, as the action reached for most. Reply with AI is a toolbar button on a desktop.
+// The More menu's order, the reading pane's since before the views shared these buttons: the read
+// toggle first, as the action reached for most. Reply with AI is a toolbar button on a desktop.
 export const MORE_MENU_ORDER = ['read', 'aiReply', 'spam', 'ham', 'headers', 'print', 'dark', 'eml'];
 
-// The message's tools: buttons on a desktop, a More menu on a phone, where the toolbar has no room.
+// A More button (⋯) and the menu it opens, for the actions a toolbar keeps out of sight.
 //
-// items: [{ key, label, title?, icon, onClick, disabled?, pressed? }], in toolbar order; the More
-// menu lists them in MORE_MENU_ORDER. ai: null, or { items, results, onRun, onManage? }: the AI
-// dropdown on a desktop, its actions as menu items on a phone.
-export function MessageTools({ isMobile, items, ai = null }) {
+// items: [{ key, label, run, icon?, disabled?, danger?, checked?, role?, separator?, heading? }]. `checked`
+// makes the item one choice of a set (menuitemradio, or the `role` given, such as
+// menuitemcheckbox for an on/off) and draws a tick when it is on; `separator` draws a
+// line above it; an item with `heading` alone is a group title, not a choice. `align` is the side
+// of the button the menu lines up with. `touch`: the phone's 44 px rows.
+export function MoreMenu({ items, label, touch = false, align = 'right', zIndex = 100, minWidth = 200, btnStyle }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
-  if (!isMobile) {
-    return (
-      <>
-        {items.map(item => (
-          <ActionBtn key={item.key} onClick={item.onClick} label={item.label} title={item.title}
-            pressed={item.pressed} disabled={item.disabled}>
-            {item.icon}
-          </ActionBtn>
-        ))}
-        {ai && <AiMenuButton ai={ai} />}
-      </>
-    );
-  }
-  const rank = key => (MORE_MENU_ORDER.includes(key) ? MORE_MENU_ORDER.indexOf(key) : MORE_MENU_ORDER.length);
-  const menuItems = [...items].sort((a, b) => rank(a.key) - rank(b.key));
-  const aiItems = ai ? ai.items : [];
-  const all = [
-    ...menuItems.map(item => ({
-      key: item.key, label: item.label, icon: item.icon, disabled: item.disabled, run: item.onClick,
-    })),
-    ...aiItems.map(a => ({ key: `ai-${a.id}`, label: a.label, icon: <AiIcon />, run: () => ai.onRun(a) })),
-  ];
+  if (!items.length) return null;
+  const last = items.length - 1;
   return (
     // A flex box, so the button in it can give way as the row's own buttons do.
-    <div style={{ position: 'relative', display: 'flex', minWidth: TOUCH_MIN }}>
-      <ActionBtn btnRef={triggerRef} onClick={() => setOpen(v => !v)} label={t('message.more')} touch popup expanded={open}>
+    <div style={{ position: 'relative', display: 'flex', ...(touch ? { minWidth: TOUCH_MIN } : {}) }}>
+      <ActionBtn btnRef={triggerRef} onClick={() => setOpen(v => !v)} label={label || t('message.more')} touch={touch}
+        popup expanded={open} style={btnStyle}>
         <MoreIcon />
       </ActionBtn>
       {open && (
         <MenuPopup
           triggerRef={triggerRef}
           onClose={() => setOpen(false)}
-          zIndex={100}
+          zIndex={zIndex}
           style={{
-            top: '100%', right: 0, marginTop: 4,
+            top: '100%', [align]: 0, marginTop: 4,
             background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-            borderRadius: 8, overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.4)', minWidth: 190,
+            borderRadius: RADIUS, overflow: 'hidden',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.4)', minWidth,
           }}
         >
-          {choose => all.map((item, i) => (
+          {choose => items.map((item, i) => (item.heading ? (
+            <div key={item.key} role="presentation" style={{
+              padding: '8px 14px 4px', fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)',
+              borderTop: item.separator ? '1px solid var(--border-subtle)' : 'none',
+            }}>
+              {item.heading}
+            </div>
+          ) : (
             <button
               key={item.key}
               type="button"
-              role="menuitem"
+              role={item.role || (item.checked === undefined ? 'menuitem' : 'menuitemradio')}
+              aria-checked={item.checked === undefined ? undefined : Boolean(item.checked)}
               aria-disabled={item.disabled || undefined}
               onClick={() => choose(() => { if (!item.disabled) item.run(); })}
               style={menuItemStyle({
-                minHeight: TOUCH_TARGET,
+                minHeight: touch ? TOUCH_TARGET : HIT, padding: touch ? '11px 14px' : '8px 14px',
+                ...(touch ? {} : { fontSize: 13, whiteSpace: 'nowrap' }),
                 cursor: item.disabled ? 'default' : 'pointer',
                 opacity: item.disabled ? 0.55 : 1,
-                borderBottom: i < all.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                borderTop: item.separator ? '1px solid var(--border-subtle)' : 'none',
+                borderBottom: touch && i < last ? '1px solid var(--border-subtle)' : 'none',
+                color: item.danger ? 'var(--red)' : item.checked ? 'var(--accent)' : 'var(--text-primary)',
               })}
               {...hoverBg}
             >
-              {item.icon}
-              {item.label}
+              {item.icon && <span aria-hidden="true" style={{ display: 'inline-flex', color: item.danger ? 'inherit' : 'var(--text-secondary)' }}>{item.icon}</span>}
+              <span style={{ flex: 1 }}>{item.label}</span>
+              {item.checked && (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              )}
             </button>
-          ))}
+          )))}
         </MenuPopup>
       )}
     </div>
   );
+}
+
+// The message's tools, in a More menu: a desktop toolbar keeps its main actions in view and these
+// one click away, and a phone's has no room for them at all.
+//
+// items: [{ key, label, title?, icon, onClick, disabled?, pressed? }]; the More menu lists them in
+// MORE_MENU_ORDER. ai: null, or { items, results, onRun, onManage? }: the AI dropdown on a desktop,
+// its actions as menu items on a phone.
+export function MessageTools({ isMobile, items, ai = null }) {
+  const rank = key => (MORE_MENU_ORDER.includes(key) ? MORE_MENU_ORDER.indexOf(key) : MORE_MENU_ORDER.length);
+  const menuItems = [...items].sort((a, b) => rank(a.key) - rank(b.key)).map(item => ({
+    key: item.key, label: item.label, icon: item.icon, disabled: item.disabled, run: item.onClick,
+  }));
+  if (!isMobile) {
+    return (
+      <>
+        {ai && <AiMenuButton ai={ai} />}
+        <MoreMenu items={menuItems} />
+      </>
+    );
+  }
+  const aiItems = ai ? ai.items.map(a => ({ key: `ai-${a.id}`, label: a.label, icon: <AiIcon />, run: () => ai.onRun(a) })) : [];
+  return <MoreMenu items={[...menuItems, ...aiItems]} touch minWidth={190} />;
 }
 
 const noticeStyle = accent => ({

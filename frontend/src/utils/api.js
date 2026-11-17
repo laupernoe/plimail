@@ -1,5 +1,7 @@
 import { clearOffline, keptOffline, offlineError, offlineGeneration, readOffline, saveOffline, setOffline } from './offlineCache.js';
 
+import { importUrl } from './mailTransfer.js';
+
 const BASE = '/api';
 
 // Sent on every /api request so the backend CSRF guard accepts it. A cross-site
@@ -578,6 +580,22 @@ export const api = {
   deleteFolder: (accountId, path) => request('POST', '/mail/folders/delete', { accountId, path }),
   renameFolder: (accountId, oldPath, newName) => request('POST', '/mail/folders/rename', { accountId, oldPath, newName }),
   emptyFolder: (accountId, path) => request('POST', '/mail/folders/empty', { accountId, path }),
+  // The file is the request body, so the browser streams it from disk. Its type is forced to octet-stream:
+  // a type of application/json, which some systems give a .json-like name, would make the server parse it.
+  importMail: (accountId, folder, file, opts) => request('POST', importUrl(accountId, folder, opts), file.slice(0, file.size, 'application/octet-stream')),
+  // The selected messages as one .mbox, as a Blob: a POST cannot be a plain link download.
+  exportSelection: async (ids) => {
+    const res = await fetch(`${BASE}/mail-transfer/export-selection`, {
+      method: 'POST', credentials: 'include', cache: 'no-store',
+      headers: { [CSRF_HEADER]: CSRF_VALUE, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Request failed' }));
+      throw Object.assign(new Error(err.error || 'Request failed'), { status: res.status });
+    }
+    return res.blob();
+  },
 
   // Search
   search: (q, accountId, { offset = 0, limit, folder } = {}) => {

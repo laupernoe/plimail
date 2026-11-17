@@ -140,6 +140,7 @@ const SAME_VALUE_ALLOWED = {
   // ── Composer tone presets ──────────────────────────────────────────────────
   'compose.toolbar.toneFormal':             [['en', 'es', 'ptBR']], // Formal
   'compose.toolbar.toneDiplomatic':         [['es', 'ptBR']], // Diplomático
+  'compose.toolbar.strikethrough':          [['es', 'ptBR']], // Tachado
   // ── List sort menu (#528) ───────────────────────────────────────────────────
   // ── Contact groups ──────────────────────────────────────────────────────────
   'contacts.groups.tabGroups':              [['es', 'ptBR']], // Grupos
@@ -180,6 +181,12 @@ const SAME_VALUE_ALLOWED = {
   'admin.sso.issuerUrlPh':                  'any', // https://accounts.google.com
   'admin.sso.scopesPh':                     'any', // openid email profile
   'login.totp.placeholder':                 'any', // 000000
+
+  // ── Mail import / export: the same verbs in Spanish and Portuguese ─────────
+  'mailTransfer.exportStart':  [['es', 'ptBR']], // Exportar
+  'mailTransfer.exportTitle':  [['es', 'ptBR']], // Exportar {{name}}
+  'mailTransfer.importStart':  [['es', 'ptBR']], // Importar
+  'mailTransfer.importing':    [['es', 'ptBR']], // Importando
 
   // ── Specific language groups ───────────────────────────────────────────────
   // "Version" — same spelling in de, en, fr

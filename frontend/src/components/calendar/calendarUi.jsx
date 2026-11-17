@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { HIT, ICON_SMALL } from '../../utils/uiSizes.js';
 
 export const PALETTE = ['#4f8df7', '#7c6af7', '#e5548c', '#f0624d', '#f59e42', '#d6b100', '#3fb97f', '#1fb5a5', '#8a6d4f', '#7b8794'];
 
@@ -61,7 +62,7 @@ export function Btn({ kind = 'ghost', style, disabled, ...props }) {
   );
 }
 
-export function IconBtn({ label, icon, onClick, active, size = 28, iconSize = 16, style, iconStyle, ...rest }) {
+export function IconBtn({ label, icon, onClick, active, size = HIT, iconSize = ICON_SMALL, style, iconStyle, ...rest }) {
   return (
     <button type="button" onClick={onClick} aria-label={label} title={label} {...rest}
       onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--bg-tertiary)'; }}

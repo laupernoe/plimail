@@ -22,12 +22,14 @@ import {
 import { useMobile } from '../hooks/useMobile.js';
 import UpcomingPane from './calendar/UpcomingPane.jsx';
 import ProfileModal from './ProfileModal.jsx';
+import MailTransferDialog from './MailTransferDialog.jsx';
 import { useUiScale, descale } from '../hooks/useUiScale.js';
 import { SNOOZED_FOLDER } from '../utils/snoozeActions.js';
 import { SCHEDULED_VIEW } from '../utils/scheduledCompose.js';
 import { SendLaterIcon } from './SendLater.jsx';
 import { describeAccountError, needsSignIn } from '../utils/accountErrors.js';
 import { holdUndoable, releaseUndoable, UNDO_COMMIT_DELAY_MS } from '../utils/undoableAction.js';
+import { HIT, RADIUS } from '../utils/uiSizes.js';
 
 const ICONS = {
   snoozed: (
@@ -524,6 +526,7 @@ export default function Sidebar() {
   // Loading state for folder ops
   const [folderOpLoading, setFolderOpLoading] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState(null); // { message, onConfirm }
+  const [transferDialog, setTransferDialog] = useState(null); // { mode: 'export' | 'import', accountId, folderPath }
 
   const toggleAccount = (id) => {
     setExpandedAccounts(prev => ({ ...prev, [id]: !prev[id] }));
@@ -794,6 +797,17 @@ export default function Sidebar() {
       },
       { separator: true },
       {
+        label: t('sidebar.folderMenu.export'),
+        icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+        action: () => setTransferDialog({ mode: 'export', accountId, folderPath: folderObj.path }),
+      },
+      {
+        label: t('sidebar.folderMenu.import'),
+        icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+        action: () => setTransferDialog({ mode: 'import', accountId, folderPath: folderObj.path }),
+      },
+      { separator: true },
+      {
         label: t('sidebar.folderMenu.empty'),
         icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>,
         action: () => handleEmptyFolder(accountId, folderObj.path),
@@ -909,7 +923,7 @@ export default function Sidebar() {
           className="btn-press"
           style={{
             background: 'transparent', border: 'none', color: 'var(--text-secondary)',
-            cursor: 'pointer', width: 32, height: 32, borderRadius: 6, transition: 'background 0.1s, color 0.1s',
+            cursor: 'pointer', width: HIT, height: HIT, borderRadius: RADIUS, transition: 'background 0.1s, color 0.1s',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
           onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
@@ -1908,7 +1922,7 @@ export default function Sidebar() {
               aria-label={t('sidebar.mail')}
               aria-pressed={!showContacts && !showCalendar}
               style={{
-                width: 28, height: 28, borderRadius: 7,
+                width: HIT, height: HIT, borderRadius: RADIUS,
                 border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: !showContacts && !showCalendar ? 'var(--bg-hover)' : 'transparent',
@@ -1942,7 +1956,7 @@ export default function Sidebar() {
               aria-label={t('calendar.title')}
               aria-pressed={showCalendar}
               style={{
-                width: 28, height: 28, borderRadius: 7,
+                width: HIT, height: HIT, borderRadius: RADIUS,
                 border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: showCalendar ? 'var(--bg-hover)' : 'transparent',
@@ -2141,6 +2155,10 @@ export default function Sidebar() {
         />
       )}
       {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
+
+      {transferDialog && (
+        <MailTransferDialog {...transferDialog} onClose={() => setTransferDialog(null)} />
+      )}
 
       {confirmDialog && (
         <div style={{
