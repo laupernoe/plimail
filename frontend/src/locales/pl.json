@@ -2148,6 +2148,13 @@
       "replyReceived": "Odpowiedź otrzymana {{date}}",
       "replyToast": "Nowa odpowiedź na wiadomość chronioną hasłem",
       "replyToastAction": "Otwórz"
+    },
+    "install": {
+      "title": "Zainstaluj aplikację",
+      "desc": "Plimail otwiera się we własnym oknie, pokazuje liczbę nieprzeczytanych na ikonie i może otwierać linki mailto:.",
+      "button": "Zainstaluj Plimail",
+      "unavailable": "Przeglądarka nie oferuje tu instalacji. W Chrome lub Edge użyj ikony instalacji na pasku adresu; jeśli Plimail jest już zainstalowany, otwórz go z listy aplikacji.",
+      "dismissed": "Instalacja anulowana. Nadal możesz zainstalować Plimail z paska adresu przeglądarki."
     }
   },
   "blockList": {
@@ -2858,6 +2865,12 @@
       "notSavedNoKey": "Wersja robocza nie została zapisana: zaszyfrowane wersje robocze wymagają własnego klucza dla tego adresu. Nic nie zostało zapisane bez szyfrowania.",
       "openFailed": "Nie udało się otworzyć tej zaszyfrowanej wersji roboczej do edycji. Zamiast tego jest wyświetlana w czytniku.",
       "hasAttachments": "Ta zaszyfrowana wersja robocza ma załączniki, których Plimail nie może zachować w wersji roboczej, więc jest wyświetlana w czytniku zamiast otwierać się do edycji."
+    }
+  },
+  "app": {
+    "update": {
+      "available": "Dostępna jest nowa wersja Plimaila.",
+      "reload": "Odśwież"
     }
   }
 }

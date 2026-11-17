@@ -2224,6 +2224,13 @@
       "replyReceived": "Odpověď přijata {{date}}",
       "replyToast": "Nová odpověď na zprávu chráněnou heslem",
       "replyToastAction": "Otevřít"
+    },
+    "install": {
+      "title": "Nainstalovat aplikaci",
+      "desc": "Plimail se otevře ve vlastním okně, na ikoně ukazuje počet nepřečtených a umí otevírat odkazy mailto:.",
+      "button": "Nainstalovat Plimail",
+      "unavailable": "Prohlížeč zde instalaci nenabízí. V Chromu nebo Edgi použijte ikonu instalace v adresním řádku; pokud už je Plimail nainstalován, otevřete ho ze svých aplikací.",
+      "dismissed": "Instalace zrušena. Plimail můžete stále nainstalovat z adresního řádku prohlížeče."
     }
   },
   "diagnostics": {
@@ -2858,6 +2865,12 @@
       "notSavedNoKey": "Koncept nebyl uložen: šifrované koncepty potřebují vlastní klíč pro tuto adresu. Nic nebylo uloženo nešifrovaně.",
       "openFailed": "Tento šifrovaný koncept se nepodařilo otevřít k úpravám. Místo toho se zobrazí ve čtečce.",
       "hasAttachments": "Tento šifrovaný koncept obsahuje přílohy, které Plimail v konceptu nedokáže zachovat, proto se zobrazí ve čtečce místo otevření k úpravám."
+    }
+  },
+  "app": {
+    "update": {
+      "available": "Je k dispozici nová verze Plimailu.",
+      "reload": "Znovu načíst"
     }
   }
 }

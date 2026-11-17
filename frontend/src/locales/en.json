@@ -2129,6 +2129,13 @@
       "replyReceived": "Reply received {{date}}",
       "replyToast": "New reply to a password-protected message",
       "replyToastAction": "Open"
+    },
+    "install": {
+      "title": "Install the app",
+      "desc": "Plimail opens in its own window, shows the unread count on its icon and can open mailto: links.",
+      "button": "Install Plimail",
+      "unavailable": "Your browser does not offer installation here. In Chrome or Edge, use the install icon in the address bar; if Plimail is already installed, open it from your applications.",
+      "dismissed": "Installation cancelled. You can still install Plimail from the browser's address bar."
     }
   },
   "blockList": {
@@ -2839,6 +2846,12 @@
       "notSavedNoKey": "Draft not saved: encrypted drafts need a key of your own for this address. Nothing was stored in the clear.",
       "openFailed": "This encrypted draft could not be opened for editing. It is shown in the reader instead.",
       "hasAttachments": "This encrypted draft has attachments Plimail cannot keep in a draft, so it is shown in the reader instead of opened for editing."
+    }
+  },
+  "app": {
+    "update": {
+      "available": "A new version of Plimail is available.",
+      "reload": "Reload"
     }
   }
 }

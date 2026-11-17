@@ -2129,6 +2129,13 @@
       "replyReceived": "Réponse reçue le {{date}}",
       "replyToast": "Nouvelle réponse à un message protégé",
       "replyToastAction": "Ouvrir"
+    },
+    "install": {
+      "title": "Installer l'app",
+      "desc": "Plimail s'ouvre dans sa propre fenêtre, affiche le nombre de non-lus sur son icône et peut ouvrir les liens mailto:.",
+      "button": "Installer Plimail",
+      "unavailable": "Votre navigateur ne propose pas l'installation ici. Dans Chrome ou Edge, utilisez l'icône d'installation de la barre d'adresse ; si Plimail est déjà installé, ouvrez-le depuis vos applications.",
+      "dismissed": "Installation annulée. Vous pouvez toujours installer Plimail depuis la barre d'adresse du navigateur."
     }
   },
   "blockList": {
@@ -2839,6 +2846,12 @@
       "notSavedNoKey": "Brouillon non enregistré : un brouillon chiffré demande une clé à vous pour cette adresse. Rien n’a été enregistré en clair.",
       "openFailed": "Ce brouillon chiffré n’a pas pu être ouvert pour modification. Il est affiché dans le lecteur à la place.",
       "hasAttachments": "Ce brouillon chiffré contient des pièces jointes que Plimail ne peut pas garder dans un brouillon : il est affiché dans le lecteur au lieu d’être ouvert pour modification."
+    }
+  },
+  "app": {
+    "update": {
+      "available": "Une nouvelle version de Plimail est disponible.",
+      "reload": "Recharger"
     }
   }
 }

@@ -2129,6 +2129,13 @@
       "replyReceived": "回复收到于 {{date}}",
       "replyToast": "密码保护邮件有新回复",
       "replyToastAction": "打开"
+    },
+    "install": {
+      "title": "安装应用",
+      "desc": "Plimail 在独立窗口中打开，在图标上显示未读数，并可打开 mailto: 链接。",
+      "button": "安装 Plimail",
+      "unavailable": "此浏览器在这里不提供安装。在 Chrome 或 Edge 中，请使用地址栏中的安装图标；如果 Plimail 已安装，请从应用程序中打开。",
+      "dismissed": "已取消安装。您仍可以从浏览器地址栏安装 Plimail。"
     }
   },
   "blockList": {
@@ -2839,6 +2846,12 @@
       "notSavedNoKey": "草稿未保存：加密草稿需要您自己的此地址密钥。没有以明文保存任何内容。",
       "openFailed": "无法打开此加密草稿进行编辑，已改为在阅读视图中显示。",
       "hasAttachments": "此加密草稿含有 Plimail 无法在草稿中保留的附件，因此在阅读视图中显示，而不是打开编辑。"
+    }
+  },
+  "app": {
+    "update": {
+      "available": "Plimail 有新版本可用。",
+      "reload": "重新加载"
     }
   }
 }

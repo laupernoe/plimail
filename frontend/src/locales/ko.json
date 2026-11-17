@@ -2129,6 +2129,13 @@
       "replyReceived": "{{date}}에 받은 답장",
       "replyToast": "비밀번호로 보호된 메시지에 새 답장이 왔습니다",
       "replyToastAction": "열기"
+    },
+    "install": {
+      "title": "앱 설치",
+      "desc": "Plimail이 별도 창에서 열리고, 아이콘에 읽지 않은 메일 수를 표시하며, mailto: 링크를 열 수 있습니다.",
+      "button": "Plimail 설치",
+      "unavailable": "이 브라우저에서는 설치를 제공하지 않습니다. Chrome 또는 Edge에서는 주소 표시줄의 설치 아이콘을 사용하세요. Plimail이 이미 설치되어 있다면 앱 목록에서 여세요.",
+      "dismissed": "설치가 취소되었습니다. 브라우저 주소 표시줄에서 계속 Plimail을 설치할 수 있습니다."
     }
   },
   "blockList": {
@@ -2839,6 +2846,12 @@
       "notSavedNoKey": "임시 메일이 저장되지 않았습니다. 암호화된 임시 메일에는 이 주소에 대한 본인의 키가 필요합니다. 암호화되지 않은 상태로 저장된 내용은 없습니다.",
       "openFailed": "이 암호화된 임시 메일을 편집하기 위해 열 수 없습니다. 대신 읽기 화면에 표시됩니다.",
       "hasAttachments": "이 암호화된 임시 메일에는 Plimail이 임시 메일에 보관할 수 없는 첨부 파일이 있어, 편집하는 대신 읽기 화면에 표시됩니다."
+    }
+  },
+  "app": {
+    "update": {
+      "available": "Plimail의 새 버전을 사용할 수 있습니다.",
+      "reload": "새로고침"
     }
   }
 }

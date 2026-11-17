@@ -2129,6 +2129,13 @@
       "replyReceived": "Risposta ricevuta il {{date}}",
       "replyToast": "Nuova risposta a un messaggio protetto",
       "replyToastAction": "Apri"
+    },
+    "install": {
+      "title": "Installa l'app",
+      "desc": "Plimail si apre in una finestra propria, mostra il numero di non letti sull'icona e può aprire i link mailto:.",
+      "button": "Installa Plimail",
+      "unavailable": "Il browser non offre l'installazione qui. In Chrome o Edge usa l'icona di installazione nella barra degli indirizzi; se Plimail è già installato, aprilo dalle tue applicazioni.",
+      "dismissed": "Installazione annullata. Puoi ancora installare Plimail dalla barra degli indirizzi del browser."
     }
   },
   "blockList": {
@@ -2839,6 +2846,12 @@
       "notSavedNoKey": "Bozza non salvata: le bozze cifrate richiedono una tua chiave per questo indirizzo. Nulla è stato salvato in chiaro.",
       "openFailed": "Non è stato possibile aprire questa bozza cifrata per modificarla. Viene mostrata nel lettore.",
       "hasAttachments": "Questa bozza cifrata ha allegati che Plimail non può conservare in una bozza, quindi viene mostrata nel lettore invece di essere aperta per la modifica."
+    }
+  },
+  "app": {
+    "update": {
+      "available": "È disponibile una nuova versione di Plimail.",
+      "reload": "Ricarica"
     }
   }
 }

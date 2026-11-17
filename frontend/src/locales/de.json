@@ -2129,6 +2129,13 @@
       "replyReceived": "Antwort erhalten am {{date}}",
       "replyToast": "Neue Antwort auf eine passwortgeschützte Nachricht",
       "replyToastAction": "Öffnen"
+    },
+    "install": {
+      "title": "App installieren",
+      "desc": "Plimail öffnet sich in einem eigenen Fenster, zeigt die Zahl ungelesener Nachrichten auf dem Symbol und kann mailto:-Links öffnen.",
+      "button": "Plimail installieren",
+      "unavailable": "Ihr Browser bietet hier keine Installation an. In Chrome oder Edge nutzen Sie das Installationssymbol in der Adressleiste; ist Plimail schon installiert, öffnen Sie es über Ihre Anwendungen.",
+      "dismissed": "Installation abgebrochen. Sie können Plimail weiterhin über die Adressleiste des Browsers installieren."
     }
   },
   "blockList": {
@@ -2839,6 +2846,12 @@
       "notSavedNoKey": "Entwurf nicht gespeichert: Verschlüsselte Entwürfe brauchen einen eigenen Schlüssel für diese Adresse. Nichts wurde unverschlüsselt gespeichert.",
       "openFailed": "Dieser verschlüsselte Entwurf konnte nicht zum Bearbeiten geöffnet werden. Er wird stattdessen in der Leseansicht angezeigt.",
       "hasAttachments": "Dieser verschlüsselte Entwurf hat Anhänge, die Plimail in einem Entwurf nicht behalten kann. Er wird daher in der Leseansicht angezeigt statt zum Bearbeiten geöffnet."
+    }
+  },
+  "app": {
+    "update": {
+      "available": "Eine neue Version von Plimail ist verfügbar.",
+      "reload": "Neu laden"
     }
   }
 }

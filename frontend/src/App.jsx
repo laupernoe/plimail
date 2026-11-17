@@ -7,20 +7,16 @@ import { applyLayout } from './layouts.js';
 import LoginPage from './components/LoginPage.jsx';
 import MailApp from './components/MailApp.jsx';
 import LockScreen from './components/LockScreen.jsx';
+import UpdateBanner from './components/UpdateBanner.jsx';
+import { startServiceWorker } from './utils/swUpdate.js';
 
 export default function App() {
   const { user, setUser, loadPreferences, isLocked, setLocked, lockScreen } = useStore();
   const [checking, setChecking] = useState(true);
 
-  // Register service worker on first mount — independent of auth state.
-  // The SW itself does nothing until the user explicitly grants push permission.
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch((err) =>
-        console.warn('Service worker registration failed:', err)
-      );
-    }
-  }, []);
+  // Register the service worker on first mount, independent of auth state: push, the static-file
+  // cache, and the "New version" banner. A refused registration leaves the app as it was.
+  useEffect(() => { startServiceWorker(); }, []);
 
   useEffect(() => {
     const onExpired = () => { setUser(null); setLocked(false); };
@@ -121,10 +117,13 @@ export default function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
-      <Route path="/register" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
-      <Route path="/*" element={user ? (isLocked ? <LockScreen /> : <MailApp />) : <Navigate to="/login" replace />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+        <Route path="/register" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+        <Route path="/*" element={user ? (isLocked ? <LockScreen /> : <MailApp />) : <Navigate to="/login" replace />} />
+      </Routes>
+      <UpdateBanner />
+    </>
   );
 }

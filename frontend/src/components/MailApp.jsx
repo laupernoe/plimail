@@ -30,6 +30,7 @@ import { noticeToast, scheduledLinkId } from '../utils/scheduledView.js';
 import { openScheduledView } from '../utils/scheduledCompose.js';
 import { openSentMessage } from '../utils/openSentMessage.js';
 import { descaleCss } from '../utils/uiScaleCss.js';
+import { takePendingMailto } from '../utils/mailtoLink.js';
 
 // Opens the Scheduled view at one message, highlighted (a notification link or a toast's Open).
 function openScheduledMessage(id) {
@@ -359,36 +360,13 @@ export default function MailApp() {
     };
   }, [consumePendingDeepLink, openPendingDeepLink]);
 
-  // PWA mailto: handler (manifest protocol_handlers → /?mailto=<encoded mailto: URL>).
-  // Parse the mailto and open a pre-filled compose window. Runs once on mount; a no-op
-  // for a normal launch since the param is absent.
+  // A mailto: link (the manifest's protocol handler, or registerProtocolHandler): main.jsx took it
+  // out of the address before the router could drop it on the way through /login, and it opens
+  // in the composer once someone is signed in.
   useEffect(() => {
-    const raw = new URLSearchParams(window.location.search).get('mailto');
-    if (!raw) return;
-    // Strip only the mailto param first so a refresh doesn't reopen compose.
-    const loc = new URL(window.location.href);
-    loc.searchParams.delete('mailto');
-    history.replaceState(null, '', loc.pathname + loc.search);
-    try {
-      const mt = new URL(raw);
-      if (mt.protocol !== 'mailto:') return;
-      const safeDecode = (x) => { try { return decodeURIComponent(x); } catch { return x; } };
-      // pathname addresses are raw-encoded; searchParams values are already decoded.
-      const splitAddrs = (s, decode) => !s ? [] : s.split(',').map(a => decode ? safeDecode(a.trim()) : a.trim()).filter(Boolean);
-      const esc = (x) => x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      // A mailto body is plain text (RFC 6068); escape it so it renders literally in
-      // the HTML editor and can't inject markup.
-      const bodyText = mt.searchParams.get('body') || '';
-      openCompose({
-        to: [...splitAddrs(mt.pathname, true), ...splitAddrs(mt.searchParams.get('to'), false)],
-        cc: splitAddrs(mt.searchParams.get('cc'), false),
-        bcc: splitAddrs(mt.searchParams.get('bcc'), false),
-        subject: mt.searchParams.get('subject') || '',
-        body: bodyText ? esc(bodyText).replace(/\r?\n/g, '<br>') : '',
-      });
-    } catch (err) {
-      console.warn('Invalid mailto link:', err.message);
-    }
+    let data = null;
+    try { data = takePendingMailto(sessionStorage); } catch { /* no session storage */ }
+    if (data) openCompose(data);
   }, [openCompose]);
 
   useEffect(() => {
@@ -495,6 +473,10 @@ export default function MailApp() {
       else navigator.clearAppBadge().catch(() => {});
     }
   }, [unreadCounts, selectedAccountId, showAppBadge, showFaviconBadge]);
+  // Signed out, session expired or screen locked: the app icon no longer shows the count.
+  useEffect(() => () => {
+    if ('clearAppBadge' in navigator) navigator.clearAppBadge().catch(() => {});
+  }, []);
 
   // ── Global keyboard shortcut listener ──────────────────────────────────────
   // Uses refs for composing/showAdmin so the listener doesn't need to

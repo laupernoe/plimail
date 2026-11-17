@@ -2129,6 +2129,13 @@
       "replyReceived": "Respuesta recibida el {{date}}",
       "replyToast": "Nueva respuesta a un mensaje protegido",
       "replyToastAction": "Abrir"
+    },
+    "install": {
+      "title": "Instalar la aplicación",
+      "desc": "Plimail se abre en su propia ventana, muestra el número de no leídos en su icono y puede abrir enlaces mailto:.",
+      "button": "Instalar Plimail",
+      "unavailable": "Tu navegador no ofrece la instalación aquí. En Chrome o Edge, usa el icono de instalación de la barra de direcciones; si Plimail ya está instalado, ábrelo desde tus aplicaciones.",
+      "dismissed": "Instalación cancelada. Aún puedes instalar Plimail desde la barra de direcciones del navegador."
     }
   },
   "blockList": {
@@ -2839,6 +2846,12 @@
       "notSavedNoKey": "Borrador no guardado: los borradores cifrados necesitan una clave propia para esta dirección. No se guardó nada sin cifrar.",
       "openFailed": "Este borrador cifrado no se pudo abrir para editarlo. Se muestra en el lector en su lugar.",
       "hasAttachments": "Este borrador cifrado tiene adjuntos que Plimail no puede conservar en un borrador, así que se muestra en el lector en lugar de abrirse para editarlo."
+    }
+  },
+  "app": {
+    "update": {
+      "available": "Hay una nueva versión de Plimail disponible.",
+      "reload": "Recargar"
     }
   }
 }

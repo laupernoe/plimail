@@ -2129,6 +2129,13 @@
       "replyReceived": "Resposta recebida em {{date}}",
       "replyToast": "Nova resposta a uma mensagem protegida",
       "replyToastAction": "Abrir mensagem"
+    },
+    "install": {
+      "title": "Instalar o aplicativo",
+      "desc": "O Plimail abre em sua própria janela, mostra o número de não lidas no ícone e pode abrir links mailto:.",
+      "button": "Instalar o Plimail",
+      "unavailable": "Seu navegador não oferece a instalação aqui. No Chrome ou no Edge, use o ícone de instalação da barra de endereço; se o Plimail já estiver instalado, abra-o pelos seus aplicativos.",
+      "dismissed": "Instalação cancelada. Você ainda pode instalar o Plimail pela barra de endereço do navegador."
     }
   },
   "blockList": {
@@ -2839,6 +2846,12 @@
       "notSavedNoKey": "Rascunho não salvo: rascunhos criptografados precisam de uma chave sua para este endereço. Nada foi salvo sem criptografia.",
       "openFailed": "Não foi possível abrir este rascunho criptografado para edição. Ele é exibido no leitor.",
       "hasAttachments": "Este rascunho criptografado tem anexos que o Plimail não consegue manter em um rascunho, então ele é exibido no leitor em vez de ser aberto para edição."
+    }
+  },
+  "app": {
+    "update": {
+      "available": "Uma nova versão do Plimail está disponível.",
+      "reload": "Recarregar"
     }
   }
 }
