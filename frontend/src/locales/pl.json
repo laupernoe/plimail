@@ -1161,7 +1161,8 @@
       "calendarList": "Kalendarze",
       "secureMessages": "Chronione wiadomości",
       "pgp": "Szyfrowanie (PGP)",
-      "serverFilters": "Filtry na serwerze"
+      "serverFilters": "Filtry na serwerze",
+      "vacation": "Nieobecność"
     },
     "rules": {
       "title": "Reguły skrzynki odbiorczej",
@@ -2215,6 +2216,34 @@
       "saveRules": "Zapisz reguły",
       "saveInactive": "Zapisz bez aktywacji",
       "confirmReplaceEdited": "Skrypt Plimaila został zmieniony ręcznie. Zastąpić go regułami?"
+    },
+    "vacation": {
+      "title": "Odpowiedź o nieobecności",
+      "intro": "Automatyczna odpowiedź, którą serwer poczty wysyła podczas Twojej nieobecności, nawet gdy Plimail jest zamknięty.",
+      "needsSieve": "Automatyczne odpowiedzi wymagają filtrów Sieve na serwerze poczty, a ten nie oferuje żadnych, z których Plimail może korzystać.",
+      "noVacationExtension": "Twój serwer poczty ma filtry Sieve, ale nie może wysyłać automatycznych odpowiedzi.",
+      "enable": "Wysyłaj automatyczną odpowiedź",
+      "on": "Włączona",
+      "off": "Wyłączona",
+      "notActive": "Skrypt Plimail nie jest aktywny na serwerze, więc żadna odpowiedź nie jest wysyłana. Zapisanie go aktywuje.",
+      "subject": "Temat",
+      "subjectPh": "Zostaw puste, aby odpowiedzieć z oryginalnym tematem",
+      "body": "Wiadomość",
+      "bodyPh": "Jestem nieobecny do poniedziałku i odpowiem po powrocie.",
+      "start": "Od",
+      "end": "Do",
+      "datesHint": "Opcjonalnie. Bez dat odpowiedź jest wysyłana, dopóki jej nie wyłączysz.",
+      "noDates": "Ten serwer nie może ograniczyć odpowiedzi do dat: wyłącz ją po powrocie.",
+      "days": "Dni, po których ten sam nadawca znów dostanie odpowiedź",
+      "daysHint": "Listy mailingowe i poczta masowa nie dostają odpowiedzi.",
+      "addresses": "Odpowiadaj też na pocztę wysłaną na",
+      "addressesHint": "Twoje inne adresy tego konta (aliasy), oddzielone przecinkami. Opcjonalnie.",
+      "save": "Zapisz",
+      "savedOn": "Automatyczna odpowiedź włączona.",
+      "savedOff": "Automatyczna odpowiedź wyłączona.",
+      "errorInvalid": "Sprawdź wiadomość, daty i adresy.",
+      "errorExtension": "Serwer nie może wysłać tej odpowiedzi lub nie może ograniczyć jej do dat.",
+      "confirmReplaceEdited": "Skrypt Plimail był edytowany ręcznie. Zastąpić go automatyczną odpowiedzią? Ręczne zmiany zostaną utracone."
     }
   },
   "blockList": {

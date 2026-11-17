@@ -1,7 +1,7 @@
-// Settings → Server filters: the account's Sieve scripts over ManageSieve (RFC 5804). Plimail
-// writes only its own script, `plimail`; another script is replaced, or made inactive, only when
-// the request says the user confirmed it. Every script is checked by the server (CHECKSCRIPT)
-// before it is stored.
+// Settings → Server filters and Out of office: the account's Sieve scripts over ManageSieve
+// (RFC 5804). Plimail writes only its own script, `plimail`, which holds both; another script is
+// replaced, or made inactive, only when the request says the user confirmed it. Every script is
+// checked by the server (CHECKSCRIPT) before it is stored.
 
 import { Router } from 'express';
 import { query } from '../services/db.js';
@@ -10,7 +10,7 @@ import { findOwnedAccount } from '../services/ownership.js';
 import { consume } from '../services/rateLimiter.js';
 import { SieveError } from '../services/manageSieve.js';
 import { SIEVE_ACCOUNT_COLUMNS, withAccountSieve } from '../services/sieveAccount.js';
-import { PLIMAIL_SCRIPT, buildPlimailScript, readPlimailMeta, validateRules } from '../services/sieveScript.js';
+import { PLIMAIL_SCRIPT, buildPlimailScript, readPlimailMeta, validateRules, validateVacation } from '../services/sieveScript.js';
 import { resolveTrashFolder } from '../utils/mailUtils.js';
 
 const router = Router();
@@ -79,7 +79,7 @@ router.get('/:accountId', async (req, res) => {
         scripts,
         active,
         otherActive: active && active !== PLIMAIL_SCRIPT ? active : null,
-        plimail: { exists: !!own, managed: !!meta, rules: meta?.rules ?? [], content },
+        plimail: { exists: !!own, managed: !!meta, rules: meta?.rules ?? [], vacation: meta?.vacation ?? null, content },
       };
     });
     return res.json(state);
@@ -119,21 +119,25 @@ router.post('/:accountId/check', async (req, res) => {
 // other name only with `overwrite: true` when it exists, since Plimail did not write it.
 // `activate` makes it the active script; when another one is active that needs `replaceActive`,
 // otherwise the answer is 409 'other_active' and nothing is stored.
-// `content` is the script, or a function of the session that builds it. `fromRules`: the
-// content replaces Plimail's script with one built from rules, which needs `overwrite` when the
-// stored one was edited by hand.
-async function storeScript(res, account, { name, content: makeContent, activate, overwrite, replaceActive, fromRules = false }) {
+// `content` is the script, or for `managed` saves an async function of the session and what the
+// stored Plimail script carries ({ rules, vacation } or null), which builds it. A managed save
+// replaces a Plimail script edited by hand only with `overwrite`.
+async function storeScript(res, account, { name, content: makeContent, activate, overwrite, replaceActive, managed = false }) {
   try {
     return await withAccountSieve(account, async (session) => {
-      const content = typeof makeContent === 'function' ? makeContent(session) : makeContent;
       const scripts = await session.listScripts();
       const exists = scripts.some(s => s.name === name);
       const active = scripts.find(s => s.active)?.name ?? null;
       if (exists && name !== PLIMAIL_SCRIPT && !overwrite) {
         return res.status(409).json({ error: `The script "${name}" was not written by Plimail`, code: 'not_plimail', name });
       }
-      if (fromRules && exists && !overwrite && !readPlimailMeta(await session.getScript(name))) {
-        return res.status(409).json({ error: 'The Plimail script was edited by hand', code: 'plimail_edited' });
+      let content = makeContent;
+      if (managed) {
+        const stored = exists ? readPlimailMeta(await session.getScript(name)) : null;
+        if (exists && !stored && !overwrite) {
+          return res.status(409).json({ error: 'The Plimail script was edited by hand', code: 'plimail_edited' });
+        }
+        content = await makeContent(session, stored);
       }
       if (activate && active && active !== name && !replaceActive) {
         return res.status(409).json({ error: `"${active}" is the active script`, code: 'other_active', active });
@@ -149,7 +153,12 @@ async function storeScript(res, account, { name, content: makeContent, activate,
   }
 }
 
-// The rules editor: Plimail's script, rebuilt from the rules.
+const trashFor = (account, rules) => (rules.some(r => r.action === 'delete')
+  ? resolveTrashFolder(account.id, account.folder_mappings)
+  : null);
+
+// The rules editor: Plimail's script, rebuilt from the rules. The out-of-office reply it carries
+// is kept.
 router.put('/:accountId/rules', async (req, res) => {
   const { activate = true, replaceActive = false, overwrite = false } = req.body || {};
   const checked = validateRules(req.body?.rules);
@@ -164,17 +173,42 @@ router.put('/:accountId/rules', async (req, res) => {
     const unknown = folders.find(f => !knownPaths.has(f));
     if (unknown) return res.status(400).json({ error: `No folder named "${unknown}"`, code: 'unknown_folder' });
   }
-  const trashFolder = checked.rules.some(r => r.action === 'delete')
-    ? await resolveTrashFolder(account.id, account.folder_mappings)
-    : null;
+  const trashFolder = await trashFor(account, checked.rules);
 
   return storeScript(res, account, {
     name: PLIMAIL_SCRIPT,
-    content: session => buildPlimailScript({ rules: checked.rules }, { extensions: session.capabilities.sieve, trashFolder }),
+    content: (session, stored) => buildPlimailScript(
+      { rules: checked.rules, vacation: stored?.vacation ?? null },
+      { extensions: session.capabilities.sieve, trashFolder },
+    ),
     activate: !!activate,
     replaceActive: !!replaceActive,
     overwrite: !!overwrite,
-    fromRules: true,
+    managed: true,
+  });
+});
+
+// The out-of-office reply, written into Plimail's script next to the rules it already has.
+router.put('/:accountId/vacation', async (req, res) => {
+  const { activate = true, replaceActive = false, overwrite = false } = req.body || {};
+  const checked = validateVacation(req.body?.vacation);
+  if (checked.error) return res.status(400).json({ error: checked.error, code: 'invalid_vacation' });
+  const account = await loadAccount(req, res);
+  if (!account) return undefined;
+
+  return storeScript(res, account, {
+    name: PLIMAIL_SCRIPT,
+    content: async (session, stored) => {
+      const rules = stored?.rules ?? [];
+      return buildPlimailScript(
+        { rules, vacation: checked.vacation },
+        { extensions: session.capabilities.sieve, trashFolder: await trashFor(account, rules) },
+      );
+    },
+    activate: !!activate,
+    replaceActive: !!replaceActive,
+    overwrite: !!overwrite,
+    managed: true,
   });
 });
 

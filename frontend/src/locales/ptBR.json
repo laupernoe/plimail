@@ -1145,7 +1145,8 @@
       "calendarList": "Calendários",
       "secureMessages": "Mensagens protegidas",
       "pgp": "Criptografia (PGP)",
-      "serverFilters": "Filtros do servidor"
+      "serverFilters": "Filtros do servidor",
+      "vacation": "Ausência"
     },
     "rules": {
       "title": "Regras da caixa de entrada",
@@ -2196,6 +2197,34 @@
       "saveRules": "Salvar regras",
       "saveInactive": "Salvar sem ativar",
       "confirmReplaceEdited": "O script do Plimail foi editado à mão. Substituí-lo pelas regras?"
+    },
+    "vacation": {
+      "title": "Resposta de ausência",
+      "intro": "Uma resposta automática que seu servidor de e-mail envia enquanto você está fora, mesmo com o Plimail fechado.",
+      "needsSieve": "Respostas automáticas precisam de filtros Sieve no seu servidor de e-mail, e este não oferece nenhum que o Plimail possa usar.",
+      "noVacationExtension": "Seu servidor de e-mail tem filtros Sieve, mas não pode enviar respostas automáticas.",
+      "enable": "Enviar uma resposta automática",
+      "on": "Ligada",
+      "off": "Desligada",
+      "notActive": "O script do Plimail não está ativo no servidor, então nenhuma resposta é enviada. Salvar o ativa.",
+      "subject": "Assunto",
+      "subjectPh": "Deixe vazio para responder com o assunto original",
+      "body": "Mensagem",
+      "bodyPh": "Estou fora até segunda-feira e responderei quando voltar.",
+      "start": "De",
+      "end": "Até",
+      "datesHint": "Opcional. Sem datas, a resposta é enviada até você desligá-la.",
+      "noDates": "Este servidor não pode limitar a resposta a datas: desligue-a quando voltar.",
+      "days": "Dias até o mesmo remetente receber a resposta de novo",
+      "daysHint": "Listas de e-mail e envios em massa não recebem resposta.",
+      "addresses": "Responder também a e-mails enviados para",
+      "addressesHint": "Seus outros endereços nesta conta (aliases), separados por vírgulas. Opcional.",
+      "save": "Salvar",
+      "savedOn": "Resposta automática ligada.",
+      "savedOff": "Resposta automática desligada.",
+      "errorInvalid": "Confira a mensagem, as datas e os endereços.",
+      "errorExtension": "O servidor não pode enviar esta resposta ou não pode limitá-la a datas.",
+      "confirmReplaceEdited": "O script do Plimail foi editado à mão. Substituí-lo pela resposta automática? As alterações feitas à mão serão perdidas."
     }
   },
   "blockList": {

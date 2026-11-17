@@ -1145,7 +1145,8 @@
       "calendarList": "Kalender",
       "secureMessages": "Geschützte Nachrichten",
       "pgp": "Verschlüsselung (PGP)",
-      "serverFilters": "Serverfilter"
+      "serverFilters": "Serverfilter",
+      "vacation": "Abwesenheit"
     },
     "accounts": {
       "title": "E-Mail-Konten",
@@ -2196,6 +2197,34 @@
       "saveRules": "Regeln speichern",
       "saveInactive": "Speichern, ohne zu aktivieren",
       "confirmReplaceEdited": "Das Skript von Plimail wurde von Hand bearbeitet. Durch die Regeln ersetzen?"
+    },
+    "vacation": {
+      "title": "Abwesenheitsnotiz",
+      "intro": "Eine automatische Antwort, die Ihr Mailserver während Ihrer Abwesenheit sendet, auch wenn Plimail geschlossen ist.",
+      "needsSieve": "Automatische Antworten brauchen Sieve-Filter auf Ihrem Mailserver, und dieser bietet keine, die Plimail nutzen kann.",
+      "noVacationExtension": "Ihr Mailserver hat Sieve-Filter, kann aber keine automatischen Antworten senden.",
+      "enable": "Automatische Antwort senden",
+      "on": "An",
+      "off": "Aus",
+      "notActive": "Das Skript von Plimail ist auf dem Server nicht aktiv, daher wird keine Antwort gesendet. Speichern aktiviert es.",
+      "subject": "Betreff",
+      "subjectPh": "Leer lassen, um mit dem ursprünglichen Betreff zu antworten",
+      "body": "Nachricht",
+      "bodyPh": "Ich bin bis Montag abwesend und antworte nach meiner Rückkehr.",
+      "start": "Von",
+      "end": "Bis",
+      "datesHint": "Optional. Ohne Daten wird die Antwort gesendet, bis Sie sie ausschalten.",
+      "noDates": "Dieser Server kann die Antwort nicht auf Daten beschränken: Schalten Sie sie nach Ihrer Rückkehr aus.",
+      "days": "Tage, bevor derselbe Absender die Antwort erneut erhält",
+      "daysHint": "Mailinglisten und Massenmails werden nicht beantwortet.",
+      "addresses": "Auch E-Mails beantworten an",
+      "addressesHint": "Ihre anderen Adressen für dieses Konto (Aliasse), durch Kommas getrennt. Optional.",
+      "save": "Speichern",
+      "savedOn": "Automatische Antwort eingeschaltet.",
+      "savedOff": "Automatische Antwort ausgeschaltet.",
+      "errorInvalid": "Prüfen Sie die Nachricht, die Daten und die Adressen.",
+      "errorExtension": "Der Server kann diese Antwort nicht senden oder nicht auf Daten beschränken.",
+      "confirmReplaceEdited": "Das Skript von Plimail wurde von Hand bearbeitet. Durch die automatische Antwort ersetzen? Die Änderungen von Hand gehen verloren."
     }
   },
   "blockList": {

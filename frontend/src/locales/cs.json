@@ -1237,7 +1237,8 @@
       "calendarList": "Kalendáře",
       "secureMessages": "Chráněné zprávy",
       "pgp": "Šifrování (PGP)",
-      "serverFilters": "Filtry na serveru"
+      "serverFilters": "Filtry na serveru",
+      "vacation": "Mimo kancelář"
     },
     "categories": {
       "title": "Kategorie e-mailů",
@@ -2291,6 +2292,34 @@
       "saveRules": "Uložit pravidla",
       "saveInactive": "Uložit bez aktivace",
       "confirmReplaceEdited": "Skript Plimailu byl upraven ručně. Nahradit ho pravidly?"
+    },
+    "vacation": {
+      "title": "Odpověď v nepřítomnosti",
+      "intro": "Automatická odpověď, kterou váš poštovní server posílá, když jste pryč, i když je Plimail zavřený.",
+      "needsSieve": "Automatické odpovědi potřebují filtry Sieve na poštovním serveru a tento žádné, které by Plimail mohl použít, nenabízí.",
+      "noVacationExtension": "Váš poštovní server má filtry Sieve, ale neumí posílat automatické odpovědi.",
+      "enable": "Posílat automatickou odpověď",
+      "on": "Zapnuto",
+      "off": "Vypnuto",
+      "notActive": "Skript Plimailu není na serveru aktivní, takže se žádná odpověď neposílá. Uložení ho aktivuje.",
+      "subject": "Předmět",
+      "subjectPh": "Nechte prázdné pro odpověď s původním předmětem",
+      "body": "Zpráva",
+      "bodyPh": "Jsem pryč do pondělí a odpovím po návratu.",
+      "start": "Od",
+      "end": "Do",
+      "datesHint": "Volitelné. Bez dat se odpověď posílá, dokud ji nevypnete.",
+      "noDates": "Tento server neumí omezit odpověď na data: po návratu ji vypněte.",
+      "days": "Dny, než stejný odesílatel dostane odpověď znovu",
+      "daysHint": "Na e-mailové konference a hromadnou poštu se neodpovídá.",
+      "addresses": "Odpovídat i na poštu poslanou na",
+      "addressesHint": "Vaše další adresy tohoto účtu (aliasy), oddělené čárkami. Volitelné.",
+      "save": "Uložit",
+      "savedOn": "Automatická odpověď zapnuta.",
+      "savedOff": "Automatická odpověď vypnuta.",
+      "errorInvalid": "Zkontrolujte zprávu, data a adresy.",
+      "errorExtension": "Server neumí tuto odpověď poslat nebo ji neumí omezit na data.",
+      "confirmReplaceEdited": "Skript Plimailu byl upraven ručně. Nahradit ho automatickou odpovědí? Ruční změny budou ztraceny."
     }
   },
   "diagnostics": {

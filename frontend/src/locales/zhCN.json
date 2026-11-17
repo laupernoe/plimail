@@ -1145,7 +1145,8 @@
       "calendarList": "日历",
       "secureMessages": "受保护的邮件",
       "pgp": "加密（PGP）",
-      "serverFilters": "服务器过滤器"
+      "serverFilters": "服务器过滤器",
+      "vacation": "外出"
     },
     "rules": {
       "title": "收件箱规则",
@@ -2196,6 +2197,34 @@
       "saveRules": "保存规则",
       "saveInactive": "保存但不激活",
       "confirmReplaceEdited": "Plimail 的脚本已被手动修改。要用这些规则替换它吗？"
+    },
+    "vacation": {
+      "title": "外出自动回复",
+      "intro": "您不在时由邮件服务器自动发送的回复，即使 Plimail 已关闭也会发送。",
+      "needsSieve": "自动回复需要邮件服务器上的 Sieve 过滤器，而此服务器没有可供 Plimail 使用的过滤器。",
+      "noVacationExtension": "您的邮件服务器支持 Sieve 过滤器，但不能发送自动回复。",
+      "enable": "发送自动回复",
+      "on": "已开启",
+      "off": "已关闭",
+      "notActive": "Plimail 的脚本在服务器上未启用，因此不会发送回复。保存后会启用它。",
+      "subject": "主题",
+      "subjectPh": "留空则使用原邮件主题回复",
+      "body": "内容",
+      "bodyPh": "我在周一前不在，回来后会尽快回复。",
+      "start": "开始",
+      "end": "结束",
+      "datesHint": "可选。不设日期时，回复会一直发送，直到您关闭。",
+      "noDates": "此服务器无法按日期限制回复：回来后请手动关闭。",
+      "days": "同一发件人再次收到回复前的天数",
+      "daysHint": "不会回复邮件列表和群发邮件。",
+      "addresses": "同时回复发送到以下地址的邮件",
+      "addressesHint": "此账户的其他地址（别名），用逗号分隔。可选。",
+      "save": "保存",
+      "savedOn": "已开启自动回复。",
+      "savedOff": "已关闭自动回复。",
+      "errorInvalid": "请检查内容、日期和地址。",
+      "errorExtension": "服务器无法发送此回复，或无法按日期限制它。",
+      "confirmReplaceEdited": "Plimail 的脚本被手动修改过。要用自动回复替换它吗？手动修改的内容将丢失。"
     }
   },
   "blockList": {

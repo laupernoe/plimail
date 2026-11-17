@@ -206,4 +206,51 @@ describe('/api/sieve', () => {
     expect((await call('POST', `/${ACCOUNT}/active`, { name: null })).status).toBe(200);
     expect(sieve.state.active).toBeNull();
   });
+
+  const vacation = { enabled: true, subject: 'Away', body: 'Back on the 4th.', start: '2026-12-20', end: '2027-01-04', days: 3 };
+
+  it('writes the out-of-office reply into the Plimail script and keeps the rules it has', async () => {
+    await startSieve();
+    await call('PUT', `/${ACCOUNT}/rules`, { rules: [{ field: 'subject', contains: 'invoice', action: 'move', folder: 'Invoices' }] });
+    const res = await call('PUT', `/${ACCOUNT}/vacation`, { vacation });
+    expect(res.status).toBe(200);
+    const stored = sieve.state.scripts.get(PLIMAIL_SCRIPT);
+    expect(stored).toContain('vacation :days 3 :subject "Away" "Back on the 4th.";');
+    expect(stored).toContain('fileinto "Invoices";');
+    expect(sieve.state.active).toBe(PLIMAIL_SCRIPT);
+
+    // Saving the rules again keeps the reply.
+    await call('PUT', `/${ACCOUNT}/rules`, { rules: [] });
+    const state = await (await call('GET', `/${ACCOUNT}`)).json();
+    expect(state.plimail).toMatchObject({ managed: true, rules: [], vacation: { ...vacation, addresses: [] } });
+    expect(sieve.state.scripts.get(PLIMAIL_SCRIPT)).toContain('vacation :days 3');
+  });
+
+  it('turns the reply off without losing its text', async () => {
+    await startSieve();
+    await call('PUT', `/${ACCOUNT}/vacation`, { vacation });
+    expect((await call('PUT', `/${ACCOUNT}/vacation`, { vacation: { ...vacation, enabled: false } })).status).toBe(200);
+    expect(sieve.state.scripts.get(PLIMAIL_SCRIPT)).not.toContain('vacation :days');
+    const state = await (await call('GET', `/${ACCOUNT}`)).json();
+    expect(state.plimail.vacation).toMatchObject({ enabled: false, body: 'Back on the 4th.' });
+  });
+
+  it('refuses a reply the server cannot send, and an invalid one, storing nothing', async () => {
+    await startSieve({ extensions: ['fileinto', 'imap4flags'] });
+    const res = await call('PUT', `/${ACCOUNT}/vacation`, { vacation });
+    expect(res.status).toBe(400);
+    expect((await res.json()).code).toBe('extension_missing');
+    const bad = await call('PUT', `/${ACCOUNT}/vacation`, { vacation: { ...vacation, body: '' } });
+    expect((await bad.json()).code).toBe('invalid_vacation');
+    expect(sieve.state.scripts.size).toBe(0);
+  });
+
+  it('asks before replacing a hand-edited Plimail script or another active script with the reply', async () => {
+    await startSieve({ scripts: { [PLIMAIL_SCRIPT]: 'keep; # mine', roundcube: 'keep;' }, active: 'roundcube' });
+    expect((await (await call('PUT', `/${ACCOUNT}/vacation`, { vacation })).json()).code).toBe('plimail_edited');
+    expect((await (await call('PUT', `/${ACCOUNT}/vacation`, { vacation, overwrite: true })).json()).code).toBe('other_active');
+    expect(sieve.state.scripts.get(PLIMAIL_SCRIPT)).toBe('keep; # mine');
+    expect((await call('PUT', `/${ACCOUNT}/vacation`, { vacation, overwrite: true, replaceActive: true })).status).toBe(200);
+    expect(sieve.state.active).toBe(PLIMAIL_SCRIPT);
+  });
 });

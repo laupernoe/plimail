@@ -1,12 +1,17 @@
 // The Sieve script (RFC 5228) Plimail keeps on the server under the name `plimail`, built from
 // simple rules: when the sender, the subject or a recipient contains some text, file the message
-// into a folder, mark it read, delete it or redirect it. The rules ride along in a comment so the
-// editor can show them again; a script edited by hand has no such comment and is left to the raw
-// editor.
+// into a folder, mark it read, delete it or redirect it. It also carries the out-of-office reply
+// (RFC 5230 vacation), since a server runs only one active script. The rules and the reply ride
+// along in a comment so the editor can show them again; a script edited by hand has no such
+// comment and is left to the raw editor.
 
 export const PLIMAIL_SCRIPT = 'plimail';
 export const MAX_RULES = 100;
 const MAX_TEXT = 200;
+const MAX_VACATION_BODY = 4000;
+const MAX_VACATION_ADDRESSES = 20;
+// RFC 5230 asks servers to accept at least 1 to 30 days; some refuse more.
+export const VACATION_DAYS = { min: 1, max: 30, default: 7 };
 const META_PREFIX = '# plimail-meta: ';
 
 const FIELDS = {
@@ -59,12 +64,56 @@ export function validateRules(input) {
   return { rules };
 }
 
-// The extensions a set of rules needs.
-export function requiredExtensions(rules) {
+const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function validDate(value) {
+  const m = DATE_RE.exec(value);
+  if (!m) return false;
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  return d.getUTCFullYear() === +m[1] && d.getUTCMonth() === +m[2] - 1 && d.getUTCDate() === +m[3];
+}
+
+// Checks the out-of-office reply from the client and returns it in canonical form, or { error }.
+// A reply that is off keeps its text, so turning it on again later needs no retyping.
+export function validateVacation(input) {
+  if (!input || typeof input !== 'object') return { error: 'Invalid out-of-office reply' };
+  const enabled = input.enabled === true;
+  const subject = typeof input.subject === 'string' ? input.subject.trim() : '';
+  if (subject.length > MAX_TEXT || hasControl(subject)) return { error: 'Invalid subject' };
+  const body = typeof input.body === 'string' ? input.body.replace(/\r\n?/g, '\n').trim() : '';
+  if (body.length > MAX_VACATION_BODY || [...body].some(ch => ch !== '\n' && ch !== '\t' && hasControl(ch))) {
+    return { error: 'Invalid message' };
+  }
+  if (enabled && !body) return { error: 'Write the message to send' };
+  const start = input.start || null;
+  const end = input.end || null;
+  if ((start !== null && !validDate(start)) || (end !== null && !validDate(end))) return { error: 'Invalid date' };
+  if (start && end && end < start) return { error: 'The end date is before the start date' };
+  const days = input.days === undefined || input.days === null || input.days === '' ? VACATION_DAYS.default : Number(input.days);
+  if (!Number.isInteger(days) || days < VACATION_DAYS.min || days > VACATION_DAYS.max) {
+    return { error: `Days must be between ${VACATION_DAYS.min} and ${VACATION_DAYS.max}` };
+  }
+  const rawAddresses = input.addresses ?? [];
+  if (!Array.isArray(rawAddresses) || rawAddresses.length > MAX_VACATION_ADDRESSES) return { error: 'Invalid addresses' };
+  const addresses = [];
+  for (const a of rawAddresses) {
+    const address = cleanText(a);
+    if (!address || !EMAIL_RE.test(address)) return { error: 'Enter valid addresses' };
+    if (!addresses.includes(address)) addresses.push(address);
+  }
+  return { vacation: { enabled, subject, body, start, end, days, addresses } };
+}
+
+// The extensions a set of rules and an out-of-office reply need.
+export function requiredExtensions(rules, vacation = null) {
   const need = new Set();
   for (const r of rules) {
     if (r.action === 'move' || r.action === 'delete') need.add('fileinto');
     if (r.action === 'markRead') need.add('imap4flags');
+  }
+  if (vacation?.enabled) {
+    need.add('vacation');
+    if (vacation.start || vacation.end) { need.add('date'); need.add('relational'); }
   }
   return [...need].sort();
 }
@@ -73,8 +122,8 @@ function encodeMeta(meta) {
   return Buffer.from(JSON.stringify(meta), 'utf8').toString('base64');
 }
 
-// The rules a Plimail-written script carries, or null for a script without the comment (one
-// written elsewhere or edited by hand).
+// The rules and reply a Plimail-written script carries, or null for a script without the comment
+// (one written elsewhere or edited by hand).
 export function readPlimailMeta(script) {
   if (typeof script !== 'string') return null;
   const line = script.split(/\r?\n/).find(l => l.startsWith(META_PREFIX));
@@ -83,7 +132,10 @@ export function readPlimailMeta(script) {
     const meta = JSON.parse(Buffer.from(line.slice(META_PREFIX.length).trim(), 'base64').toString('utf8'));
     if (!meta || meta.v !== 1 || !Array.isArray(meta.rules)) return null;
     const checked = validateRules(meta.rules);
-    return checked.error ? null : { rules: checked.rules };
+    if (checked.error) return null;
+    if (meta.vacation == null) return { rules: checked.rules, vacation: null };
+    const vacation = validateVacation(meta.vacation);
+    return vacation.error ? null : { rules: checked.rules, vacation: vacation.vacation };
   } catch {
     return null;
   }
@@ -101,10 +153,27 @@ function ruleBlock(rule, { trashFolder }) {
   return [`if ${test} {`, ...actions.map(a => `  ${a}`), '}'];
 }
 
-// The script for `rules` (already validated). `trashFolder` is where 'delete' files mail.
-// Throws when a rule needs an extension the server lacks, or a delete rule has no Trash.
-export function buildPlimailScript({ rules = [] }, { extensions = [], trashFolder = null } = {}) {
-  const need = requiredExtensions(rules);
+// The reply comes before the rules, so mail a rule files away and stops on is still answered.
+// The server itself skips mailing lists, bulk mail and senders it already answered within
+// `days` (RFC 5230 4.2, 4.5).
+function vacationBlock(vacation) {
+  const args = [`:days ${vacation.days}`];
+  if (vacation.subject) args.push(`:subject ${sieveQuote(vacation.subject)}`);
+  if (vacation.addresses.length) args.push(`:addresses [${vacation.addresses.map(sieveQuote).join(', ')}]`);
+  const command = `vacation ${args.join(' ')} ${sieveQuote(vacation.body.replace(/\n/g, '\r\n'))};`;
+  const tests = [];
+  if (vacation.start) tests.push(`currentdate :value "ge" "date" ${sieveQuote(vacation.start)}`);
+  if (vacation.end) tests.push(`currentdate :value "le" "date" ${sieveQuote(vacation.end)}`);
+  if (!tests.length) return [command];
+  const test = tests.length === 1 ? tests[0] : `allof (${tests.join(', ')})`;
+  return [`if ${test} {`, `  ${command}`, '}'];
+}
+
+// The script for `rules` and `vacation` (already validated). `trashFolder` is where 'delete'
+// files mail. Throws when something needs an extension the server lacks, or a delete rule has no
+// Trash.
+export function buildPlimailScript({ rules = [], vacation = null }, { extensions = [], trashFolder = null } = {}) {
+  const need = requiredExtensions(rules, vacation);
   const missing = need.filter(e => !extensions.includes(e));
   if (missing.length) {
     throw Object.assign(new Error(`The server does not support: ${missing.join(', ')}`), { code: 'extension_missing', missing });
@@ -115,9 +184,10 @@ export function buildPlimailScript({ rules = [] }, { extensions = [], trashFolde
   const lines = [
     '# Server filters written by Plimail. Edit them in Plimail: changes made here by hand',
     '# are replaced the next time the rules are saved there.',
-    `${META_PREFIX}${encodeMeta({ v: 1, rules })}`,
+    `${META_PREFIX}${encodeMeta(vacation ? { v: 1, rules, vacation } : { v: 1, rules })}`,
   ];
   if (need.length) lines.push(`require [${need.map(sieveQuote).join(', ')}];`);
+  if (vacation?.enabled) lines.push('', ...vacationBlock(vacation));
   for (const rule of rules) lines.push('', ...ruleBlock(rule, { trashFolder }));
   return `${lines.join('\r\n')}\r\n`;
 }

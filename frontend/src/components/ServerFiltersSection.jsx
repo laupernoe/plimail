@@ -9,7 +9,7 @@ import { useStore } from '../store/index.js';
 
 export const PLIMAIL_SCRIPT = 'plimail';
 
-const button = (kind = 'plain', busy = false) => ({
+export const button = (kind = 'plain', busy = false) => ({
   padding: '5px 11px', fontSize: 12.5, fontWeight: 500, borderRadius: 6, cursor: busy ? 'default' : 'pointer',
   background: kind === 'primary' ? 'var(--accent)' : kind === 'danger' ? 'var(--red)' : 'var(--bg-tertiary)',
   color: kind === 'primary' ? 'var(--accent-text)' : kind === 'danger' ? '#fff' : 'var(--text-primary)',
@@ -17,7 +17,7 @@ const button = (kind = 'plain', busy = false) => ({
   opacity: busy ? 0.6 : 1,
 });
 
-const input = {
+export const input = {
   padding: '6px 9px', fontSize: 13, borderRadius: 6, border: '1px solid var(--border)',
   background: 'var(--bg-primary)', color: 'var(--text-primary)', minWidth: 0,
 };
@@ -32,7 +32,7 @@ export function sieveAccounts(accounts) {
   return (accounts || []).filter(a => a.protocol !== 'pop3' && !a.oauth_provider && a.enabled !== false);
 }
 
-function reasonText(t, reason) {
+export function reasonText(t, reason) {
   return {
     oauth: t('admin.serverFilters.reasonOauth'),
     no_starttls: t('admin.serverFilters.reasonNoStarttls'),
@@ -41,7 +41,7 @@ function reasonText(t, reason) {
   }[reason] || t('admin.serverFilters.reasonUnreachable');
 }
 
-function errorText(t, err) {
+export function errorText(t, err) {
   if (err?.code === 'sieve_rejected') return t('admin.serverFilters.errorRejected', { message: err.message });
   if (err?.code === 'sieve_auth_failed') return t('admin.serverFilters.errorAuth');
   if (err?.code === 'extension_missing') return t('admin.serverFilters.errorExtension');
@@ -51,7 +51,7 @@ function errorText(t, err) {
   return t('admin.serverFilters.errorGeneric');
 }
 
-function Pill({ children, color }) {
+export function Pill({ children, color }) {
   return (
     <span style={{ fontSize: 11.5, fontWeight: 500, color, border: `1px solid ${color}`, borderRadius: 999, padding: '1px 8px', whiteSpace: 'nowrap' }}>
       {children}
@@ -60,7 +60,7 @@ function Pill({ children, color }) {
 }
 
 // A question the save needs answered first, with the action that answers it.
-function Confirm({ text, confirmLabel, onConfirm, onCancel, extra, busy }) {
+export function Confirm({ text, confirmLabel, onConfirm, onCancel, extra, busy }) {
   const { t } = useTranslation();
   return (
     <div role="alertdialog" style={{ border: '1px solid var(--amber)', background: 'var(--bg-secondary)', borderRadius: 8, padding: '10px 12px', margin: '10px 0' }}>

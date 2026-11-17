@@ -231,6 +231,7 @@ export const api = {
     script: (accountId, name) => request('GET', `/sieve/${accountId}/scripts/${encodeURIComponent(name)}`),
     check: (accountId, content) => request('POST', `/sieve/${accountId}/check`, { content }),
     saveRules: (accountId, data) => request('PUT', `/sieve/${accountId}/rules`, data),
+    saveVacation: (accountId, data) => request('PUT', `/sieve/${accountId}/vacation`, data),
     saveScript: (accountId, name, data) => request('PUT', `/sieve/${accountId}/scripts/${encodeURIComponent(name)}`, data),
     setActive: (accountId, name, replaceActive = false) => request('POST', `/sieve/${accountId}/active`, { name, replaceActive }),
   },

@@ -1145,7 +1145,8 @@
       "calendarList": "Calendars",
       "secureMessages": "Protected messages",
       "pgp": "Encryption (PGP)",
-      "serverFilters": "Server filters"
+      "serverFilters": "Server filters",
+      "vacation": "Out of office"
     },
     "rules": {
       "title": "Inbox rules",
@@ -2196,6 +2197,34 @@
       "saveRules": "Save rules",
       "saveInactive": "Save without activating",
       "confirmReplaceEdited": "Plimail's script was edited by hand. Replace it with the rules?"
+    },
+    "vacation": {
+      "title": "Out of office",
+      "intro": "An automatic reply your mail server sends while you are away, even when Plimail is closed.",
+      "needsSieve": "Automatic replies need Sieve filters on your mail server, and this one has none Plimail can use.",
+      "noVacationExtension": "Your mail server has Sieve filters but cannot send automatic replies.",
+      "enable": "Send an automatic reply",
+      "on": "On",
+      "off": "Off",
+      "notActive": "Plimail's server script is not active, so no reply is sent. Saving activates it.",
+      "subject": "Subject",
+      "subjectPh": "Leave empty to reply with the original subject",
+      "body": "Message",
+      "bodyPh": "I am away until Monday and will answer when I am back.",
+      "start": "From",
+      "end": "Until",
+      "datesHint": "Optional. Without dates, the reply is sent until you turn it off.",
+      "noDates": "This server cannot limit the reply to dates: turn it off when you are back.",
+      "days": "Days before the same sender gets the reply again",
+      "daysHint": "Mailing lists and bulk mail are not answered.",
+      "addresses": "Also answer mail sent to",
+      "addressesHint": "Your other addresses for this account (aliases), separated by commas. Optional.",
+      "save": "Save",
+      "savedOn": "Automatic reply turned on.",
+      "savedOff": "Automatic reply turned off.",
+      "errorInvalid": "Check the message, the dates and the addresses.",
+      "errorExtension": "The server cannot send this reply, or cannot limit it to dates.",
+      "confirmReplaceEdited": "Plimail's server script was edited by hand. Replace it with the automatic reply? The changes made by hand are lost."
     }
   },
   "blockList": {

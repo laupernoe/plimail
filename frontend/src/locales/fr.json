@@ -1145,7 +1145,8 @@
       "calendarList": "Agendas",
       "secureMessages": "Messages protégés",
       "pgp": "Chiffrement (PGP)",
-      "serverFilters": "Filtres du serveur"
+      "serverFilters": "Filtres du serveur",
+      "vacation": "Absence"
     },
     "rules": {
       "title": "Règles de boîte de réception",
@@ -2196,6 +2197,34 @@
       "saveRules": "Enregistrer les règles",
       "saveInactive": "Enregistrer sans activer",
       "confirmReplaceEdited": "Le script de Plimail a été modifié à la main. Le remplacer par les règles ?"
+    },
+    "vacation": {
+      "title": "Réponse d'absence",
+      "intro": "Une réponse automatique que votre serveur de messagerie envoie pendant votre absence, même quand Plimail est fermé.",
+      "needsSieve": "Les réponses automatiques nécessitent des filtres Sieve sur votre serveur de messagerie, et celui-ci n'en propose aucun que Plimail puisse utiliser.",
+      "noVacationExtension": "Votre serveur de messagerie a des filtres Sieve mais ne peut pas envoyer de réponses automatiques.",
+      "enable": "Envoyer une réponse automatique",
+      "on": "Activée",
+      "off": "Désactivée",
+      "notActive": "Le script de Plimail n'est pas actif sur le serveur, aucune réponse n'est donc envoyée. L'enregistrement l'active.",
+      "subject": "Objet",
+      "subjectPh": "Laisser vide pour répondre avec l'objet d'origine",
+      "body": "Message",
+      "bodyPh": "Je suis absent jusqu'à lundi et répondrai à mon retour.",
+      "start": "Du",
+      "end": "Jusqu'au",
+      "datesHint": "Facultatif. Sans dates, la réponse est envoyée jusqu'à ce que vous la désactiviez.",
+      "noDates": "Ce serveur ne peut pas limiter la réponse à des dates : désactivez-la à votre retour.",
+      "days": "Jours avant que le même expéditeur reçoive à nouveau la réponse",
+      "daysHint": "Les listes de diffusion et les envois en masse ne reçoivent pas de réponse.",
+      "addresses": "Répondre aussi au courrier envoyé à",
+      "addressesHint": "Vos autres adresses pour ce compte (alias), séparées par des virgules. Facultatif.",
+      "save": "Enregistrer",
+      "savedOn": "Réponse automatique activée.",
+      "savedOff": "Réponse automatique désactivée.",
+      "errorInvalid": "Vérifiez le message, les dates et les adresses.",
+      "errorExtension": "Le serveur ne peut pas envoyer cette réponse, ou ne peut pas la limiter à des dates.",
+      "confirmReplaceEdited": "Le script de Plimail a été modifié à la main. Le remplacer par la réponse automatique ? Les modifications faites à la main seront perdues."
     }
   },
   "blockList": {

@@ -1145,7 +1145,8 @@
       "calendarList": "Calendarios",
       "secureMessages": "Mensajes protegidos",
       "pgp": "Cifrado (PGP)",
-      "serverFilters": "Filtros del servidor"
+      "serverFilters": "Filtros del servidor",
+      "vacation": "Fuera de la oficina"
     },
     "rules": {
       "title": "Reglas de bandeja de entrada",
@@ -2196,6 +2197,34 @@
       "saveRules": "Guardar reglas",
       "saveInactive": "Guardar sin activar",
       "confirmReplaceEdited": "El script de Plimail se editó a mano. ¿Reemplazarlo por las reglas?"
+    },
+    "vacation": {
+      "title": "Respuesta de ausencia",
+      "intro": "Una respuesta automática que tu servidor de correo envía mientras estás fuera, incluso con Plimail cerrado.",
+      "needsSieve": "Las respuestas automáticas necesitan filtros Sieve en tu servidor de correo, y este no ofrece ninguno que Plimail pueda usar.",
+      "noVacationExtension": "Tu servidor de correo tiene filtros Sieve pero no puede enviar respuestas automáticas.",
+      "enable": "Enviar una respuesta automática",
+      "on": "Activada",
+      "off": "Desactivada",
+      "notActive": "El script de Plimail no está activo en el servidor, así que no se envía ninguna respuesta. Al guardar se activa.",
+      "subject": "Asunto",
+      "subjectPh": "Déjalo vacío para responder con el asunto original",
+      "body": "Mensaje",
+      "bodyPh": "Estoy fuera hasta el lunes y responderé a mi vuelta.",
+      "start": "Desde",
+      "end": "Hasta",
+      "datesHint": "Opcional. Sin fechas, la respuesta se envía hasta que la desactives.",
+      "noDates": "Este servidor no puede limitar la respuesta a unas fechas: desactívala cuando vuelvas.",
+      "days": "Días antes de que el mismo remitente reciba de nuevo la respuesta",
+      "daysHint": "No se responde a listas de correo ni a envíos masivos.",
+      "addresses": "Responder también al correo enviado a",
+      "addressesHint": "Tus otras direcciones de esta cuenta (alias), separadas por comas. Opcional.",
+      "save": "Guardar",
+      "savedOn": "Respuesta automática activada.",
+      "savedOff": "Respuesta automática desactivada.",
+      "errorInvalid": "Revisa el mensaje, las fechas y las direcciones.",
+      "errorExtension": "El servidor no puede enviar esta respuesta o no puede limitarla a unas fechas.",
+      "confirmReplaceEdited": "El script de Plimail se editó a mano. ¿Reemplazarlo por la respuesta automática? Se perderán los cambios hechos a mano."
     }
   },
   "blockList": {
