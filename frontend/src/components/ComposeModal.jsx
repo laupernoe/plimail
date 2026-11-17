@@ -68,6 +68,7 @@ import { OWN_KEYS_CHANGED, loadOwnKeys, ownKeysChanged } from '../utils/pgpOwnKe
 import { ensureKeySecret, requestKeyUnlock, unlockOwnKey } from '../utils/pgpUnlock.js';
 import { SecureSendError, secureSettingsProblem, sendProtected } from '../utils/secureSend.js';
 import { htmlLang } from '../utils/browserLanguage.js';
+import { addSuggestionChips, mergeGroupSuggestions, suggestionKey } from '../utils/groupRecipients.js';
 
 // Resize an image blob/file to max maxW pixels wide, preserving aspect ratio.
 // Returns a Promise<string> of a base64 data URL.
@@ -383,8 +384,11 @@ export default function ComposeModal() {
 
   const getSuggestions = useCallback(async (q) => {
     try {
-      const data = await api.suggestContacts(q);
-      return data.contacts || [];
+      const [data, groups] = await Promise.all([
+        api.suggestContacts(q),
+        api.suggestContactGroups(q).catch(() => ({ groups: [] })),
+      ]);
+      return mergeGroupSuggestions(data.contacts, groups.groups);
     } catch { return []; }
   }, []);
 
@@ -5037,8 +5041,7 @@ function ChipInput({ chips, onChipsChange, value, onChange, placeholder, autoFoc
   };
 
   const commitSuggestion = (contact) => {
-    const formatted = contact.name ? `${contact.name} <${contact.email}>` : contact.email;
-    onChipsChange([...chips, formatted]);
+    onChipsChange(addSuggestionChips(chips, contact));
     onChange('');
     clearSuggestions();
   };
@@ -5168,7 +5171,7 @@ function ChipInput({ chips, onChipsChange, value, onChange, placeholder, autoFoc
           }}>
           {suggestions.map((contact, i) => (
             <div
-              key={contact.email}
+              key={suggestionKey(contact)}
               onClick={() => commitSuggestion(contact)}
               onMouseEnter={() => setSuggIdx(i)}
               style={{
@@ -5184,7 +5187,7 @@ function ChipInput({ chips, onChipsChange, value, onChange, placeholder, autoFoc
                 </div>
               )}
               <div style={{ fontSize: 11, color: 'var(--text-tertiary)', lineHeight: 1.3 }}>
-                {contact.email}
+                {contact.group ? t('contacts.groups.suggestMembers', { count: contact.members.length }) : contact.email}
               </div>
             </div>
           ))}

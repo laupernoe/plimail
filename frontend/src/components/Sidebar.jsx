@@ -1919,6 +1919,24 @@ export default function Sidebar() {
               {ICONS.inbox}
             </button>
             <button
+              onClick={() => { setShowContacts(!showContacts); if (isMobile) setMobileSidebarOpen(false); }}
+              title={t('contacts.title')}
+              aria-label={t('contacts.title')}
+              aria-pressed={showContacts}
+              style={{
+                width: 28, height: 28, borderRadius: 7,
+                border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: showContacts ? 'var(--bg-hover)' : 'transparent',
+                color: showContacts ? 'var(--accent)' : 'var(--text-tertiary)',
+                transition: 'background 0.1s, color 0.1s',
+              }}
+              onMouseEnter={e => { if (!showContacts) { e.currentTarget.style.background = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
+              onMouseLeave={e => { if (!showContacts) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; } }}
+            >
+              {ICONS.contacts}
+            </button>
+            <button
               onClick={() => { setShowCalendar(!showCalendar); if (isMobile) setMobileSidebarOpen(false); }}
               title={t('calendar.title')}
               aria-label={t('calendar.title')}

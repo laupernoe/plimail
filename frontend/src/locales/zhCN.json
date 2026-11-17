@@ -2185,6 +2185,22 @@
       "work": "工作",
       "home": "家庭",
       "other": "其他"
+    },
+    "groups": {
+      "tabGroups": "群组",
+      "new": "新建群组",
+      "namePlaceholder": "群组名称",
+      "create": "创建",
+      "empty": "暂无群组",
+      "selectHint": "选择一个群组",
+      "memberCount": "{{count}} 位成员",
+      "category": "分类",
+      "rename": "重命名",
+      "deleteConfirm": "删除此群组？其中的联系人会保留。",
+      "readOnlyHint": "此群组来自通讯录中的分类，无法在此处编辑。",
+      "addMember": "添加联系人到此群组…",
+      "noMembers": "此群组中没有联系人",
+      "suggestMembers": "群组 · {{count}} 位联系人"
     }
   },
   "window": {

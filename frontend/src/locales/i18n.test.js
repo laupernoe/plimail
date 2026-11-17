@@ -130,6 +130,9 @@ const SAME_VALUE_ALLOWED = {
   'compose.toolbar.toneFormal':             [['en', 'es', 'ptBR']], // Formal
   'compose.toolbar.toneDiplomatic':         [['es', 'ptBR']], // Diplomático
   // ── List sort menu (#528) ───────────────────────────────────────────────────
+  // ── Contact groups ──────────────────────────────────────────────────────────
+  'contacts.groups.tabGroups':              [['es', 'ptBR']], // Grupos
+  'contacts.groups.category':               [['cs', 'de'], ['it', 'ptBR']], // Kategorie / Categoria
   'messageList.sortSummary':                'any', // "{{sort}}, {{dir}}": only the placeholders and a comma
   'messageList.sortDate':                   [['en', 'fr'], ['it', 'ptBR', 'pl'], ['cs', 'de']], // Date / Data / Datum
   // ── Universal placeholders / brand names (all locales share) ───────────────

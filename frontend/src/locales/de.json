@@ -2185,6 +2185,22 @@
       "work": "Arbeit",
       "home": "Privat",
       "other": "Sonstige"
+    },
+    "groups": {
+      "tabGroups": "Gruppen",
+      "new": "Neue Gruppe",
+      "namePlaceholder": "Gruppenname",
+      "create": "Erstellen",
+      "empty": "Noch keine Gruppen",
+      "selectHint": "Wählen Sie eine Gruppe aus",
+      "memberCount": "{{count}} Mitglieder",
+      "category": "Kategorie",
+      "rename": "Umbenennen",
+      "deleteConfirm": "Diese Gruppe löschen? Ihre Kontakte bleiben erhalten.",
+      "readOnlyHint": "Diese Gruppe stammt aus den Kategorien Ihres Adressbuchs und kann hier nicht bearbeitet werden.",
+      "addMember": "Kontakt zu dieser Gruppe hinzufügen…",
+      "noMembers": "Keine Kontakte in dieser Gruppe",
+      "suggestMembers": "Gruppe · {{count}} Kontakte"
     }
   },
   "window": {

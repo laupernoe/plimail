@@ -4,6 +4,7 @@ import { findOwnedContact } from '../services/ownership.js';
 import { requireAuth } from '../middleware/auth.js';
 import { generateVCard, photoContentType } from '../utils/vcard.js';
 import { safeFetch } from '../services/safeFetch.js';
+import { categoryNames } from '../services/contactGroups.js';
 import crypto from 'crypto';
 
 const router = Router();
@@ -307,8 +308,11 @@ router.patch('/:id', async (req, res) => {
       ? c.primary_email
       : (newEmails[0]?.value ? newEmails[0].value.toLowerCase().trim() : null);
 
+    // CATEGORIES came from the address book's own client; keep them on the card we rewrite.
+    const categories = await categoryNames(userId, c.id);
     const vcard = generateVCard({
       uid: c.uid,
+      categories,
       displayName: newDisplay,
       firstName: newFirst,
       lastName: newLast,

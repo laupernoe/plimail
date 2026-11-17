@@ -567,6 +567,16 @@ export const api = {
   updateContact: (id, data) => request('PATCH',  `/contacts/${id}`, data),
   deleteContact: (id)       => request('DELETE', `/contacts/${id}`),
 
+  // Contact groups: backend/src/routes/contactGroups.js
+  getContactGroups:    ()           => request('GET',    '/contact-groups'),
+  getContactGroup:     (id)         => request('GET',    `/contact-groups/${id}`),
+  createContactGroup:  (name)       => request('POST',   '/contact-groups', { name }),
+  renameContactGroup:  (id, name)   => request('PATCH',  `/contact-groups/${id}`, { name }),
+  deleteContactGroup:  (id)         => request('DELETE', `/contact-groups/${id}`),
+  addContactGroupMembers:   (id, contactIds) => request('POST',   `/contact-groups/${id}/members`, { contactIds }),
+  removeContactGroupMember: (id, contactId)  => request('DELETE', `/contact-groups/${id}/members/${contactId}`),
+  suggestContactGroups: (q)         => request('GET',    `/contact-groups/suggest?q=${encodeURIComponent(q)}`),
+
   // CalDAV calendars: backend/src/routes/calendar.js
   calendar: {
     accounts:      ()           => request('GET',    '/calendar/accounts'),
