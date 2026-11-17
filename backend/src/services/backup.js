@@ -30,6 +30,8 @@ export const SETUP_TABLES = [
   'calendar_events',
   'calendars',
   'contacts',
+  'contact_groups',
+  'contact_group_members',
   'email_accounts',
   'inbox_rule_forwards',
   'inbox_rules',

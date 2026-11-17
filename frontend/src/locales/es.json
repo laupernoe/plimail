@@ -325,7 +325,9 @@
     "sendEncrypted": "Enviar cifrado (PGP)",
     "sendEncryptedShort": "Enviar cifrado",
     "sendWithPassword": "Enviar con contraseña",
-    "sendWithPasswordShort": "Enviar protegido"
+    "sendWithPasswordShort": "Enviar protegido",
+    "readReceipt": "Solicitar confirmación de lectura",
+    "readReceiptHint": "Pide al programa de correo del destinatario que confirme que abrió el mensaje. Puede rechazarlo."
   },
   "message": {
     "find": {
@@ -501,6 +503,14 @@
         "replyTo": "Las respuestas van a otra dirección: {{address}}",
         "displayName": "El nombre del remitente muestra {{shown}} pero el correo viene de {{actual}}"
       }
+    },
+    "readReceipt": {
+      "info": "El remitente solicita una confirmación de lectura.",
+      "mismatch": "La solicitud procede de una dirección distinta de la que envió el mensaje; compruébalo antes de responder.",
+      "send": "Enviar",
+      "ignore": "Ignorar",
+      "sendFailed": "No se pudo enviar la confirmación.",
+      "ignoreFailed": "No se pudo guardar tu elección."
     }
   },
   "messageList": {
@@ -706,7 +716,9 @@
       "hide": "Ocultar carpeta",
       "unhide": "Mostrar carpeta",
       "empty": "Vaciar carpeta",
-      "delete": "Eliminar carpeta"
+      "delete": "Eliminar carpeta",
+      "export": "Exportar carpeta…",
+      "import": "Importar mensajes…"
     },
     "accountMenu": {
       "newFolder": "Nueva carpeta",
@@ -919,7 +931,8 @@
       "recent": "Recientes",
       "favorites": "Favoritos",
       "search": "Buscar carpetas…"
-    }
+    },
+    "exportSelection": "Exportar los mensajes seleccionados (.mbox)"
   },
   "commandPalette": {
     "labelPicker": {
@@ -1134,7 +1147,9 @@
       "calendarAccounts": "Cuentas",
       "calendarList": "Calendarios",
       "secureMessages": "Mensajes protegidos",
-      "pgp": "Cifrado (PGP)"
+      "pgp": "Cifrado (PGP)",
+      "serverFilters": "Filtros del servidor",
+      "vacation": "Fuera de la oficina"
     },
     "rules": {
       "title": "Reglas de bandeja de entrada",
@@ -1447,7 +1462,17 @@
       "gravatarOff": "Desactivado",
       "gravatarOffDesc": "Privado: nunca contacta con terceros.",
       "gravatarOn": "Activado",
-      "gravatarOnDesc": "Obtiene fotos del remitente de Gravatar: comparte direcciones cifradas de remitentes con un tercero."
+      "gravatarOnDesc": "Obtiene fotos del remitente de Gravatar: comparte direcciones cifradas de remitentes con un tercero.",
+      "readReceiptRequestAlways": "Solicitar confirmación de lectura en cada mensaje",
+      "readReceiptRequestAlwaysDesc": "Añade una solicitud de confirmación de lectura a cada mensaje que escribes. Puedes quitarla en el editor.",
+      "readReceiptReply": "Solicitudes de confirmación de lectura",
+      "readReceiptReplyDesc": "Qué hacer cuando un mensaje pide que confirmes su lectura. Nunca se responde al spam ni a las listas de correo.",
+      "readReceiptAsk": "Preguntarme",
+      "readReceiptAskDesc": "Un aviso sobre el mensaje, con Enviar e Ignorar (recomendado).",
+      "readReceiptAlways": "Enviar siempre",
+      "readReceiptAlwaysDesc": "Responder al abrir el mensaje, salvo que la solicitud parezca sospechosa.",
+      "readReceiptNever": "No enviar nunca",
+      "readReceiptNeverDesc": "No responder nunca ni mostrar el aviso."
     },
     "notifications": {
       "title": "Notificaciones",
@@ -2109,6 +2134,100 @@
       "replyReceived": "Respuesta recibida el {{date}}",
       "replyToast": "Nueva respuesta a un mensaje protegido",
       "replyToastAction": "Abrir"
+    },
+    "serverFilters": {
+      "title": "Filtros del servidor",
+      "intro": "Reglas que tu servidor de correo aplica por sí mismo al llegar el correo (Sieve): funcionan aunque Plimail esté cerrado y en cualquier otra aplicación de correo.",
+      "noAccounts": "Ninguna de tus cuentas inicia sesión con contraseña, algo que los filtros del servidor necesitan.",
+      "account": "Cuenta",
+      "connecting": "Conectando con el servidor de correo…",
+      "unsupported": "No disponible",
+      "supported": "Sieve disponible",
+      "reasonOauth": "Esta cuenta inicia sesión con Google o Microsoft; los filtros del servidor necesitan un inicio de sesión con contraseña.",
+      "reasonNoStarttls": "El servidor no ofrece una conexión segura (STARTTLS) para los filtros, así que Plimail no le envía tu contraseña.",
+      "reasonTls": "No se pudo verificar el certificado del servidor.",
+      "reasonNoPlain": "El servidor no acepta inicio de sesión con contraseña para los filtros.",
+      "reasonUnreachable": "Ningún servicio de filtros (ManageSieve, puerto 4190) respondió en el servidor de esta cuenta.",
+      "errorRejected": "El servidor rechazó el script: {{message}}",
+      "errorAuth": "El servidor de correo rechazó la contraseña de la cuenta. Revísala en Cuentas.",
+      "errorExtension": "El servidor no admite una de estas acciones.",
+      "errorNoTrash": "Esta cuenta no tiene una papelera a la que mover el correo eliminado.",
+      "errorRule": "Una regla está incompleta: revisa su texto, su carpeta o su dirección.",
+      "errorRateLimited": "Demasiadas solicitudes al servidor de correo. Vuelve a intentarlo en un minuto.",
+      "errorGeneric": "No se pudo contactar con el servidor de correo. Inténtalo más tarde.",
+      "cancel": "Cancelar",
+      "fieldLabel": "Campo",
+      "fieldFrom": "Remitente",
+      "fieldSubject": "Asunto",
+      "fieldRecipient": "Un destinatario",
+      "contains": "contiene",
+      "containsLabel": "Texto que buscar",
+      "actionLabel": "Acción",
+      "actionMove": "Mover a la carpeta",
+      "actionMarkRead": "Marcar como leído",
+      "actionDelete": "Eliminar (mover a la papelera)",
+      "actionRedirect": "Redirigir a",
+      "folderLabel": "Carpeta",
+      "chooseFolder": "Elige una carpeta",
+      "addressLabel": "Dirección a la que redirigir",
+      "addressPh": "alguien@ejemplo.es",
+      "removeRule": "Quitar regla",
+      "checkWarnings": "El script es válido, con advertencias: {{warnings}}",
+      "checkOk": "El script es válido.",
+      "saved": "Guardado en el servidor.",
+      "scriptLabel": "Script que editar",
+      "notPlimailScript": "Escrito fuera de Plimail",
+      "rawLabel": "Script de Sieve",
+      "check": "Comprobar",
+      "saveScript": "Guardar script",
+      "confirmOverwrite": "El script «{{name}}» no lo escribió Plimail. ¿Reemplazarlo por este texto?",
+      "overwrite": "Reemplazarlo",
+      "confirmReplaceActive": "«{{active}}» es el script activo en el servidor. Solo se ejecuta un script a la vez: al activar el de Plimail, «{{active}}» deja de ejecutarse, aunque sigue guardado en el servidor.",
+      "replaceActive": "Activar el de Plimail",
+      "otherActiveWarning": "Otro script, «{{active}}», está activo en el servidor, así que las reglas de abajo no se aplican hasta que actives el script de Plimail.",
+      "scripts": "Scripts en el servidor",
+      "noScripts": "Todavía no hay scripts en el servidor.",
+      "plimailScript": "El de Plimail",
+      "active": "Activo",
+      "activate": "Activar",
+      "deactivate": "Desactivar",
+      "rulesTab": "Reglas",
+      "rawTab": "Editar script",
+      "editedByHand": "El script de Plimail se editó a mano. Guardar las reglas de abajo lo reemplaza.",
+      "noRules": "Todavía no hay reglas.",
+      "addRule": "Añadir regla",
+      "saving": "Guardando…",
+      "saveRules": "Guardar reglas",
+      "saveInactive": "Guardar sin activar",
+      "confirmReplaceEdited": "El script de Plimail se editó a mano. ¿Reemplazarlo por las reglas?"
+    },
+    "vacation": {
+      "title": "Respuesta de ausencia",
+      "intro": "Una respuesta automática que tu servidor de correo envía mientras estás fuera, incluso con Plimail cerrado.",
+      "needsSieve": "Las respuestas automáticas necesitan filtros Sieve en tu servidor de correo, y este no ofrece ninguno que Plimail pueda usar.",
+      "noVacationExtension": "Tu servidor de correo tiene filtros Sieve pero no puede enviar respuestas automáticas.",
+      "enable": "Enviar una respuesta automática",
+      "on": "Activada",
+      "off": "Desactivada",
+      "notActive": "El script de Plimail no está activo en el servidor, así que no se envía ninguna respuesta. Al guardar se activa.",
+      "subject": "Asunto",
+      "subjectPh": "Déjalo vacío para responder con el asunto original",
+      "body": "Mensaje",
+      "bodyPh": "Estoy fuera hasta el lunes y responderé a mi vuelta.",
+      "start": "Desde",
+      "end": "Hasta",
+      "datesHint": "Opcional. Sin fechas, la respuesta se envía hasta que la desactives.",
+      "noDates": "Este servidor no puede limitar la respuesta a unas fechas: desactívala cuando vuelvas.",
+      "days": "Días antes de que el mismo remitente reciba de nuevo la respuesta",
+      "daysHint": "No se responde a listas de correo ni a envíos masivos.",
+      "addresses": "Responder también al correo enviado a",
+      "addressesHint": "Tus otras direcciones de esta cuenta (alias), separadas por comas. Opcional.",
+      "save": "Guardar",
+      "savedOn": "Respuesta automática activada.",
+      "savedOff": "Respuesta automática desactivada.",
+      "errorInvalid": "Revisa el mensaje, las fechas y las direcciones.",
+      "errorExtension": "El servidor no puede enviar esta respuesta o no puede limitarla a unas fechas.",
+      "confirmReplaceEdited": "El script de Plimail se editó a mano. ¿Reemplazarlo por la respuesta automática? Se perderán los cambios hechos a mano."
     }
   },
   "blockList": {
@@ -2165,6 +2284,22 @@
       "work": "Trabajo",
       "home": "Casa",
       "other": "Otro"
+    },
+    "groups": {
+      "tabGroups": "Grupos",
+      "new": "Nuevo grupo",
+      "namePlaceholder": "Nombre del grupo",
+      "create": "Crear",
+      "empty": "Aún no hay grupos",
+      "selectHint": "Selecciona un grupo",
+      "memberCount": "{{count}} miembros",
+      "category": "Categoría",
+      "rename": "Renombrar",
+      "deleteConfirm": "¿Eliminar este grupo? Sus contactos se conservan.",
+      "readOnlyHint": "Este grupo procede de las categorías de tu libreta de direcciones y no se puede editar aquí.",
+      "addMember": "Añadir un contacto a este grupo…",
+      "noMembers": "No hay contactos en este grupo",
+      "suggestMembers": "Grupo · {{count}} contactos"
     }
   },
   "window": {
@@ -2804,5 +2939,39 @@
       "openFailed": "Este borrador cifrado no se pudo abrir para editarlo. Se muestra en el lector en su lugar.",
       "hasAttachments": "Este borrador cifrado tiene adjuntos que Plimail no puede conservar en un borrador, así que se muestra en el lector en lugar de abrirse para editarlo."
     }
+  },
+  "mailTransfer": {
+    "exportTitle": "Exportar {{name}}",
+    "importTitle": "Importar en {{name}}",
+    "exportIntro": "Los mensajes se leen de su servidor de correo y se descargan a medida que llegan. Una carpeta grande tarda un rato.",
+    "formatMbox": "Un único archivo .mbox",
+    "formatMboxHint": "Formato mboxrd, se abre en Thunderbird y en la mayoría de los clientes de correo",
+    "formatZip": "Un .zip de archivos .eml",
+    "formatZipHint": "Un archivo por mensaje",
+    "exportStart": "Exportar",
+    "exportStarted": "La descarga ha comenzado. Una carpeta grande sigue descargándose un rato; mantenga esta página abierta hasta que termine.",
+    "importIntro": "Elija un archivo .mbox o uno o varios archivos .eml. Los mensajes se añaden con su fecha original. Nada de lo que ya hay en la carpeta se modifica ni se elimina.",
+    "chooseFiles": "Elegir archivos…",
+    "noFiles": "Ningún archivo elegido",
+    "filesChosen": "{{count}} archivos elegidos",
+    "destination": "Carpeta de destino",
+    "markRead": "Marcar los mensajes importados como leídos, salvo si el archivo indica si lo estaban",
+    "importStart": "Importar",
+    "importing": "Importando",
+    "fileOf": "Archivo {{current}} de {{total}}",
+    "liveCounts": "{{imported}} importados, {{duplicates}} ya presentes, {{failed}} con error",
+    "reportTitle": "Importación terminada",
+    "reportImported": "Importados",
+    "reportDuplicates": "Omitidos, ya están en la carpeta",
+    "reportFailed": "Con error",
+    "failuresTitle": "Errores",
+    "failuresMore": "No se muestran {{count}} errores más.",
+    "abortedTooLarge": "Detenido: el archivo supera el límite de tamaño fijado en el servidor.",
+    "abortedImap": "Detenido: el servidor de correo seguía rechazando los mensajes.",
+    "abortedCancelled": "Detenido antes del final del archivo.",
+    "abortedError": "Detenido: {{reason}}",
+    "unsupportedFile": "No es un archivo .mbox ni .eml",
+    "close": "Cerrar",
+    "selectionFailed": "No se pudieron exportar los mensajes seleccionados"
   }
 }

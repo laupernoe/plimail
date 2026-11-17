@@ -142,7 +142,9 @@
       "hide": "Skrýt složku",
       "unhide": "Zobrazit složku",
       "empty": "Vyprázdnit složku",
-      "delete": "Smazat složku"
+      "delete": "Smazat složku",
+      "export": "Exportovat složku…",
+      "import": "Importovat zprávy…"
     },
     "accountMenu": {
       "newFolder": "Nová složka",
@@ -660,6 +662,14 @@
         "replyTo": "Odpovědi jdou na jinou adresu: {{address}}",
         "displayName": "Jméno odesílatele ukazuje {{shown}}, ale zpráva je z {{actual}}"
       }
+    },
+    "readReceipt": {
+      "info": "Odesílatel žádá o potvrzení o přečtení.",
+      "mismatch": "Žádost pochází z jiné adresy, než ze které byla zpráva odeslána. Před odpovědí ji zkontrolujte.",
+      "send": "Odeslat",
+      "ignore": "Ignorovat",
+      "sendFailed": "Potvrzení se nepodařilo odeslat.",
+      "ignoreFailed": "Vaši volbu se nepodařilo uložit."
     }
   },
   "compose": {
@@ -892,7 +902,9 @@
     "sendEncrypted": "Odeslat šifrovaně (PGP)",
     "sendEncryptedShort": "Odeslat šifrovaně",
     "sendWithPassword": "Odeslat s heslem",
-    "sendWithPasswordShort": "Odeslat chráněně"
+    "sendWithPasswordShort": "Odeslat chráněně",
+    "readReceipt": "Požádat o potvrzení o přečtení",
+    "readReceiptHint": "Požádá poštovní program příjemce o potvrzení, že zprávu otevřel. Příjemce může odmítnout."
   },
   "notifications": {
     "newMessage": "Nová zpráva"
@@ -933,6 +945,22 @@
       "work": "Pracovní",
       "home": "Domů",
       "other": "Jiný"
+    },
+    "groups": {
+      "tabGroups": "Skupiny",
+      "new": "Nová skupina",
+      "namePlaceholder": "Název skupiny",
+      "create": "Vytvořit",
+      "empty": "Zatím žádné skupiny",
+      "selectHint": "Vyberte skupinu",
+      "memberCount": "Členů: {{count}}",
+      "category": "Kategorie",
+      "rename": "Přejmenovat",
+      "deleteConfirm": "Smazat tuto skupinu? Její kontakty zůstanou zachovány.",
+      "readOnlyHint": "Tato skupina pochází z kategorií vašeho adresáře a nelze ji zde upravovat.",
+      "addMember": "Přidat kontakt do této skupiny…",
+      "noMembers": "V této skupině nejsou žádné kontakty",
+      "suggestMembers": "Skupina · kontaktů: {{count}}"
     }
   },
   "contextMenu": {
@@ -986,7 +1014,8 @@
       "recent": "Nedávné",
       "favorites": "Oblíbené",
       "search": "Hledat složky…"
-    }
+    },
+    "exportSelection": "Exportovat vybrané zprávy (.mbox)"
   },
   "shortcuts": {
     "title": "Klávesové zkratky",
@@ -1210,7 +1239,9 @@
       "calendarAccounts": "Účty",
       "calendarList": "Kalendáře",
       "secureMessages": "Chráněné zprávy",
-      "pgp": "Šifrování (PGP)"
+      "pgp": "Šifrování (PGP)",
+      "serverFilters": "Filtry na serveru",
+      "vacation": "Mimo kancelář"
     },
     "categories": {
       "title": "Kategorie e-mailů",
@@ -1647,7 +1678,17 @@
       "gravatarOnDesc": "Načítat fotografie odesílatelů z Gravataru — sdílí hashované adresy odesílatelů s třetí stranou.",
       "markReadDelaySeconds_one": "{{count}} sekunda",
       "markReadDelaySeconds_few": "{{count}} sekundy",
-      "markReadDelaySeconds_many": "{{count}} sekundy"
+      "markReadDelaySeconds_many": "{{count}} sekundy",
+      "readReceiptRequestAlways": "Žádat o potvrzení o přečtení u každé zprávy",
+      "readReceiptRequestAlwaysDesc": "Ke každé zprávě, kterou napíšete, přidá žádost o potvrzení o přečtení. V editoru ji lze stále vypnout.",
+      "readReceiptReply": "Žádosti o potvrzení o přečtení",
+      "readReceiptReplyDesc": "Co dělat, když zpráva žádá o potvrzení jejího přečtení. Na spam a konference se nikdy neodpovídá.",
+      "readReceiptAsk": "Zeptat se",
+      "readReceiptAskDesc": "Upozornění nad zprávou s tlačítky Odeslat a Ignorovat (doporučeno).",
+      "readReceiptAlways": "Vždy odeslat",
+      "readReceiptAlwaysDesc": "Odpovědět hned po otevření zprávy, pokud žádost nevypadá podezřele.",
+      "readReceiptNever": "Nikdy neodesílat",
+      "readReceiptNeverDesc": "Nikdy neodpovídat a upozornění nezobrazovat."
     },
     "lock": {
       "title": "Zámek obrazovky",
@@ -2188,6 +2229,100 @@
       "replyReceived": "Odpověď přijata {{date}}",
       "replyToast": "Nová odpověď na zprávu chráněnou heslem",
       "replyToastAction": "Otevřít"
+    },
+    "serverFilters": {
+      "title": "Filtry na serveru",
+      "intro": "Pravidla, která poštovní server používá sám při doručení pošty (Sieve): fungují, i když je Plimail zavřený, a v každé jiné poštovní aplikaci.",
+      "noAccounts": "Žádný z vašich účtů se nepřihlašuje heslem, které filtry na serveru potřebují.",
+      "account": "Účet",
+      "connecting": "Připojování k poštovnímu serveru…",
+      "unsupported": "Nedostupné",
+      "supported": "Sieve je k dispozici",
+      "reasonOauth": "Tento účet se přihlašuje přes Google nebo Microsoft; filtry na serveru vyžadují přihlášení heslem.",
+      "reasonNoStarttls": "Server pro filtry nenabízí zabezpečené spojení (STARTTLS), proto mu Plimail vaše heslo neposílá.",
+      "reasonTls": "Certifikát serveru se nepodařilo ověřit.",
+      "reasonNoPlain": "Server pro filtry nepřijímá přihlášení heslem.",
+      "reasonUnreachable": "Na poštovním serveru tohoto účtu neodpověděla žádná služba filtrů (ManageSieve, port 4190).",
+      "errorRejected": "Server skript odmítl: {{message}}",
+      "errorAuth": "Poštovní server odmítl heslo účtu. Zkontrolujte ho v části Účty.",
+      "errorExtension": "Server nepodporuje jednu z těchto akcí.",
+      "errorNoTrash": "Tento účet nemá koš, do kterého by šlo přesouvat smazanou poštu.",
+      "errorRule": "Pravidlo není úplné: zkontrolujte text, složku nebo adresu.",
+      "errorRateLimited": "Příliš mnoho požadavků na poštovní server. Zkuste to za minutu.",
+      "errorGeneric": "Poštovní server není dostupný. Zkuste to později.",
+      "cancel": "Zrušit",
+      "fieldLabel": "Pole",
+      "fieldFrom": "Odesílatel",
+      "fieldSubject": "Předmět",
+      "fieldRecipient": "Některý příjemce",
+      "contains": "obsahuje",
+      "containsLabel": "Hledaný text",
+      "actionLabel": "Akce",
+      "actionMove": "Přesunout do složky",
+      "actionMarkRead": "Označit jako přečtené",
+      "actionDelete": "Smazat (přesunout do koše)",
+      "actionRedirect": "Přesměrovat na",
+      "folderLabel": "Složka",
+      "chooseFolder": "Vyberte složku",
+      "addressLabel": "Adresa pro přesměrování",
+      "addressPh": "nekdo@priklad.cz",
+      "removeRule": "Odebrat pravidlo",
+      "checkWarnings": "Skript je platný, s varováními: {{warnings}}",
+      "checkOk": "Skript je platný.",
+      "saved": "Uloženo na serveru.",
+      "scriptLabel": "Skript",
+      "notPlimailScript": "Napsáno mimo Plimail",
+      "rawLabel": "Skript Sieve",
+      "check": "Zkontrolovat",
+      "saveScript": "Uložit skript",
+      "confirmOverwrite": "Skript „{{name}}“ nenapsal Plimail. Nahradit ho tímto textem?",
+      "overwrite": "Nahradit",
+      "confirmReplaceActive": "„{{active}}“ je na serveru aktivní skript. Běží vždy jen jeden skript: aktivací skriptu Plimailu přestane „{{active}}“ běžet. Na serveru ale zůstane uložený.",
+      "replaceActive": "Aktivovat skript Plimailu",
+      "otherActiveWarning": "Na serveru je aktivní jiný skript, „{{active}}“, takže pravidla níže nebudou fungovat, dokud neaktivujete skript Plimailu.",
+      "scripts": "Skripty na serveru",
+      "noScripts": "Na serveru zatím nejsou žádné skripty.",
+      "plimailScript": "Skript Plimailu",
+      "active": "Aktivní",
+      "activate": "Aktivovat",
+      "deactivate": "Deaktivovat",
+      "rulesTab": "Pravidla",
+      "rawTab": "Upravit skript",
+      "editedByHand": "Skript Plimailu byl upraven ručně. Uložením pravidel níže bude nahrazen.",
+      "noRules": "Zatím žádná pravidla.",
+      "addRule": "Přidat pravidlo",
+      "saving": "Ukládání…",
+      "saveRules": "Uložit pravidla",
+      "saveInactive": "Uložit bez aktivace",
+      "confirmReplaceEdited": "Skript Plimailu byl upraven ručně. Nahradit ho pravidly?"
+    },
+    "vacation": {
+      "title": "Odpověď v nepřítomnosti",
+      "intro": "Automatická odpověď, kterou váš poštovní server posílá, když jste pryč, i když je Plimail zavřený.",
+      "needsSieve": "Automatické odpovědi potřebují filtry Sieve na poštovním serveru a tento žádné, které by Plimail mohl použít, nenabízí.",
+      "noVacationExtension": "Váš poštovní server má filtry Sieve, ale neumí posílat automatické odpovědi.",
+      "enable": "Posílat automatickou odpověď",
+      "on": "Zapnuto",
+      "off": "Vypnuto",
+      "notActive": "Skript Plimailu není na serveru aktivní, takže se žádná odpověď neposílá. Uložení ho aktivuje.",
+      "subject": "Předmět",
+      "subjectPh": "Nechte prázdné pro odpověď s původním předmětem",
+      "body": "Zpráva",
+      "bodyPh": "Jsem pryč do pondělí a odpovím po návratu.",
+      "start": "Od",
+      "end": "Do",
+      "datesHint": "Volitelné. Bez dat se odpověď posílá, dokud ji nevypnete.",
+      "noDates": "Tento server neumí omezit odpověď na data: po návratu ji vypněte.",
+      "days": "Dny, než stejný odesílatel dostane odpověď znovu",
+      "daysHint": "Na e-mailové konference a hromadnou poštu se neodpovídá.",
+      "addresses": "Odpovídat i na poštu poslanou na",
+      "addressesHint": "Vaše další adresy tohoto účtu (aliasy), oddělené čárkami. Volitelné.",
+      "save": "Uložit",
+      "savedOn": "Automatická odpověď zapnuta.",
+      "savedOff": "Automatická odpověď vypnuta.",
+      "errorInvalid": "Zkontrolujte zprávu, data a adresy.",
+      "errorExtension": "Server neumí tuto odpověď poslat nebo ji neumí omezit na data.",
+      "confirmReplaceEdited": "Skript Plimailu byl upraven ručně. Nahradit ho automatickou odpovědí? Ruční změny budou ztraceny."
     }
   },
   "diagnostics": {
@@ -2823,5 +2958,39 @@
       "openFailed": "Tento šifrovaný koncept se nepodařilo otevřít k úpravám. Místo toho se zobrazí ve čtečce.",
       "hasAttachments": "Tento šifrovaný koncept obsahuje přílohy, které Plimail v konceptu nedokáže zachovat, proto se zobrazí ve čtečce místo otevření k úpravám."
     }
+  },
+  "mailTransfer": {
+    "exportTitle": "Export: {{name}}",
+    "importTitle": "Import do: {{name}}",
+    "exportIntro": "Zprávy se čtou z vašeho poštovního serveru a průběžně se stahují. Velká složka chvíli trvá.",
+    "formatMbox": "Jeden soubor .mbox",
+    "formatMboxHint": "Formát mboxrd, otevře se v Thunderbirdu a ve většině poštovních klientů",
+    "formatZip": "Archiv .zip se soubory .eml",
+    "formatZipHint": "Jeden soubor na zprávu",
+    "exportStart": "Exportovat",
+    "exportStarted": "Stahování začalo. Velká složka se stahuje ještě nějakou dobu; nechte tuto stránku otevřenou, dokud neskončí.",
+    "importIntro": "Vyberte soubor .mbox nebo jeden či více souborů .eml. Zprávy se přidají s původním datem. Nic, co už ve složce je, se nemění ani nemaže.",
+    "chooseFiles": "Vybrat soubory…",
+    "noFiles": "Nebyl vybrán žádný soubor",
+    "filesChosen": "Vybrané soubory: {{count}}",
+    "destination": "Cílová složka",
+    "markRead": "Označit importované zprávy jako přečtené, pokud soubor neuvádí, zda byly přečteny",
+    "importStart": "Importovat",
+    "importing": "Probíhá import",
+    "fileOf": "Soubor {{current}} z {{total}}",
+    "liveCounts": "Importováno: {{imported}}, už tam bylo: {{duplicates}}, selhalo: {{failed}}",
+    "reportTitle": "Import dokončen",
+    "reportImported": "Importováno",
+    "reportDuplicates": "Přeskočeno, už ve složce je",
+    "reportFailed": "Selhalo",
+    "failuresTitle": "Chyby",
+    "failuresMore": "Dalších chyb ({{count}}) není uvedeno.",
+    "abortedTooLarge": "Zastaveno: soubor je větší než limit velikosti nastavený na serveru.",
+    "abortedImap": "Zastaveno: poštovní server zprávy stále odmítal.",
+    "abortedCancelled": "Zastaveno před koncem souboru.",
+    "abortedError": "Zastaveno: {{reason}}",
+    "unsupportedFile": "Není to soubor .mbox ani .eml",
+    "close": "Zavřít",
+    "selectionFailed": "Vybrané zprávy se nepodařilo exportovat"
   }
 }

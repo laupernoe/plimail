@@ -54,6 +54,8 @@ import WritingStyleSection from './WritingStyleSection.jsx';
 import SecureMessagesSection from './SecureMessagesSection.jsx';
 import PgpSettingsSection from './PgpSettingsSection.jsx';
 import PasswordChangeSection from './PasswordChangeSection.jsx';
+import ServerFiltersSection from './ServerFiltersSection.jsx';
+import VacationSection from './VacationSection.jsx';
 import { CalendarAccountsTab, CalendarListTab } from './calendar/AccountsModal.jsx';
 import CalendarOffer from './calendar/CalendarOffer.jsx';
 
@@ -2170,7 +2172,7 @@ function LayoutsTab() {
 function BehaviorTab() {
   const { t } = useTranslation();
   const isMobile = useMobile();
-  const { swipeActions, setSwipeAction, syncInterval, setSyncInterval, folderSyncInterval, setFolderSyncInterval, autoOpenReplyDrafts, setAutoOpenReplyDrafts, undoSend, setUndoSend, plaintextEmail, setPlaintextEmail, replyDefault, setReplyDefault, afterRemove, setAfterRemove, markReadBehavior, setMarkReadBehavior, markReadDelay, setMarkReadDelay, accounts, defaultSender, setDefaultSender } = useStore();
+  const { swipeActions, setSwipeAction, syncInterval, setSyncInterval, folderSyncInterval, setFolderSyncInterval, autoOpenReplyDrafts, setAutoOpenReplyDrafts, undoSend, setUndoSend, plaintextEmail, setPlaintextEmail, replyDefault, setReplyDefault, afterRemove, setAfterRemove, markReadBehavior, setMarkReadBehavior, markReadDelay, setMarkReadDelay, accounts, defaultSender, setDefaultSender, readReceiptRequestAlways, setReadReceiptRequestAlways, readReceiptReply, setReadReceiptReply } = useStore();
 
   // "Set MailFlow as your default email app": registerProtocolHandler is the
   // cross-browser path (works in Firefox and non-installed Chromium) and must be
@@ -2261,6 +2263,14 @@ function BehaviorTab() {
           )}
         </SettingRow>
 
+        <SettingRow label={t('admin.messageList.readReceiptReply')} desc={t('admin.messageList.readReceiptReplyDesc')}>
+          <ChoiceCards value={readReceiptReply} onChange={setReadReceiptReply} options={[
+            { id: 'ask',    label: t('admin.messageList.readReceiptAsk'),    desc: t('admin.messageList.readReceiptAskDesc') },
+            { id: 'always', label: t('admin.messageList.readReceiptAlways'), desc: t('admin.messageList.readReceiptAlwaysDesc') },
+            { id: 'never',  label: t('admin.messageList.readReceiptNever'),  desc: t('admin.messageList.readReceiptNeverDesc') },
+          ]} />
+        </SettingRow>
+
         {/* What opens after the open message is deleted, archived or moved (#572) */}
         <SettingRow label={t('admin.messageList.afterRemove')}>
           <ChoiceCards value={afterRemove} onChange={setAfterRemove} options={[
@@ -2331,6 +2341,13 @@ function BehaviorTab() {
           desc={t('admin.messageList.undoSendDesc')}
           checked={undoSend}
           onChange={setUndoSend}
+        />
+
+        <ToggleRow
+          label={t('admin.messageList.readReceiptRequestAlways')}
+          desc={t('admin.messageList.readReceiptRequestAlwaysDesc')}
+          checked={readReceiptRequestAlways}
+          onChange={setReadReceiptRequestAlways}
         />
       </SettingGroup>
 
@@ -6377,7 +6394,7 @@ function RulesAndBlockListTab({ initialSubTab }) {
 }
 
 const TAB_GROUPS = [
-  { id: 'mail', labelKey: 'admin.tabs.groupMail', tabIds: ['accounts', 'rules', 'categories', 'secure-messages', 'pgp'] },
+  { id: 'mail', labelKey: 'admin.tabs.groupMail', tabIds: ['accounts', 'rules', 'server-filters', 'vacation', 'categories', 'secure-messages', 'pgp'] },
   { id: 'calendar', labelKey: 'admin.tabs.groupCalendar', tabIds: ['calendar-accounts', 'calendar-list'] },
   { id: 'preferences', labelKey: 'admin.tabs.groupPreferences', tabIds: ['appearance', 'behavior', 'notifications', 'shortcuts', 'security'] },
   { id: 'ai', labelKey: 'admin.tabs.groupAi', tabIds: ['ai-actions', 'ai'] },
@@ -6393,6 +6410,14 @@ const TABS = [
   {
     id: 'rules', labelKey: 'admin.tabs.rules',
     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
+  },
+  {
+    id: 'server-filters', labelKey: 'admin.tabs.serverFilters',
+    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="7" rx="1.5"/><rect x="3" y="14" width="18" height="7" rx="1.5"/><path d="M7 6.5h.01M7 17.5h.01"/></svg>,
+  },
+  {
+    id: 'vacation', labelKey: 'admin.tabs.vacation',
+    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M9 17H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4"/><path d="m22 7-10 6L2 7"/><path d="m16 19 2 2 4-4"/></svg>,
   },
   {
     id: 'categories', labelKey: 'admin.tabs.categories',
@@ -8065,6 +8090,8 @@ function makeSearchIndex(t) {
     { label: t('admin.accounts.signatureSection'), keywords: ['signature', 'sign off', 'footer', 'alias', 'send as'], tab: 'accounts', breadcrumb: tabLabel('accounts') },
     { label: t('admin.accounts.autoRecipientsSection'), keywords: ['cc', 'bcc', 'copy', 'carbon copy', 'blind copy', 'always bcc', 'automatic', 'copy to myself'], tab: 'accounts', breadcrumb: tabLabel('accounts') },
     { label: t('admin.secureMessages.title'), keywords: ['password', 'protected', 'secure', 'encrypted', 'link', 'revoke', 'reply'], tab: 'secure-messages', breadcrumb: tabLabel('secureMessages') },
+    { label: t('admin.vacation.title'), keywords: ['vacation', 'out of office', 'away', 'holiday', 'auto reply', 'autoreply', 'automatic reply', 'absence', 'sieve'], tab: 'vacation', breadcrumb: tabLabel('vacation') },
+    { label: t('admin.serverFilters.title'), keywords: ['sieve', 'managesieve', 'server', 'filter', 'rule', 'script', 'redirect', 'fileinto'], tab: 'server-filters', breadcrumb: tabLabel('serverFilters') },
     { label: t('pgp.settings.title'), keywords: ['pgp', 'gpg', 'openpgp', 'encryption', 'encrypt', 'key', 'public key', 'private key', 'keyring', 'sign', 'signature', 'wkd', 'proton'], tab: 'pgp', breadcrumb: tabLabel('pgp') },
     // Rules
     { label: t('admin.rules.title'), keywords: ['rule', 'filter', 'condition', 'action', 'move', 'auto', 'automate', 'inbox rule', 'sort'], tab: 'rules', subtab: 'rules', breadcrumb: `${tabLabel('rules')} › ${t('admin.rules.subTabRules')}` },
@@ -8086,6 +8113,8 @@ function makeSearchIndex(t) {
     // Behavior
     { label: t('admin.messageList.swipeActions'), keywords: ['swipe', 'gesture', 'mobile', 'swipe left', 'swipe right', 'touch'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.undoSend'), keywords: ['undo send', 'undo', 'delay', 'send delay', 'send immediately', 'cancel send'], tab: 'behavior', breadcrumb: behaviorCrumb },
+    { label: t('admin.messageList.readReceiptRequestAlways'), keywords: ['read receipt', 'return receipt', 'mdn', 'disposition notification', 'acknowledgement', 'delivery receipt'], tab: 'behavior', breadcrumb: behaviorCrumb },
+    { label: t('admin.messageList.readReceiptReply'), keywords: ['read receipt', 'return receipt', 'mdn', 'disposition notification', 'acknowledgement', 'privacy'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.syncFrequency'), keywords: ['sync', 'interval', 'frequency', 'refresh', 'poll', 'check mail', '15s', '30s', '60s'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.folderSyncFrequency'), keywords: ['folder', 'sync', 'structure', 'list', 'refresh', 'mailbox', '15 min', '30 min', '1 hour', 'never'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.composeFormat'), keywords: ['compose', 'format', 'rich text', 'plain text', 'html', 'editor'], tab: 'behavior', breadcrumb: behaviorCrumb },
@@ -8245,6 +8274,8 @@ export default function AdminPanel() {
       {adminTab === 'categories' && <CategoriesSection />}
       {adminTab === 'secure-messages' && <SecureMessagesSection />}
       {adminTab === 'pgp' && <PgpSettingsSection />}
+      {adminTab === 'server-filters' && <ServerFiltersSection />}
+      {adminTab === 'vacation' && <VacationSection />}
       {adminTab === 'appearance' && <AppearanceTab initialSubTab={pendingSubTab} />}
       {adminTab === 'mail-signin' && user?.isAdmin && <MailSignInTab />}
       {adminTab === 'users' && <UsersTab />}

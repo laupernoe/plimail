@@ -325,7 +325,9 @@
     "sendEncrypted": "Send encrypted (PGP)",
     "sendEncryptedShort": "Send encrypted",
     "sendWithPassword": "Send with a password",
-    "sendWithPasswordShort": "Send with password"
+    "sendWithPasswordShort": "Send with password",
+    "readReceipt": "Request a read receipt",
+    "readReceiptHint": "Asks the recipient’s mail program to confirm that the message was opened. They can decline."
   },
   "message": {
     "find": {
@@ -501,6 +503,14 @@
         "replyTo": "Replies go to another address: {{address}}",
         "displayName": "The sender name shows {{shown}} but the mail is from {{actual}}"
       }
+    },
+    "readReceipt": {
+      "info": "The sender is asking for a read receipt.",
+      "mismatch": "The request comes from an address other than the one that sent the message, so check it before replying.",
+      "send": "Send",
+      "ignore": "Ignore",
+      "sendFailed": "The receipt could not be sent.",
+      "ignoreFailed": "Your choice could not be saved."
     }
   },
   "messageList": {
@@ -706,7 +716,9 @@
       "hide": "Hide folder",
       "unhide": "Unhide folder",
       "empty": "Empty folder",
-      "delete": "Delete folder"
+      "delete": "Delete folder",
+      "export": "Export folder…",
+      "import": "Import messages…"
     },
     "accountMenu": {
       "newFolder": "New folder",
@@ -919,7 +931,8 @@
       "recent": "Recent",
       "favorites": "Favorites",
       "search": "Search folders…"
-    }
+    },
+    "exportSelection": "Export selected messages (.mbox)"
   },
   "commandPalette": {
     "labelPicker": {
@@ -1134,7 +1147,9 @@
       "calendarAccounts": "Accounts",
       "calendarList": "Calendars",
       "secureMessages": "Protected messages",
-      "pgp": "Encryption (PGP)"
+      "pgp": "Encryption (PGP)",
+      "serverFilters": "Server filters",
+      "vacation": "Out of office"
     },
     "rules": {
       "title": "Inbox rules",
@@ -1447,7 +1462,17 @@
       "gravatarOff": "Off",
       "gravatarOffDesc": "Private — never contacts a third party.",
       "gravatarOn": "On",
-      "gravatarOnDesc": "Fetch sender photos from Gravatar — shares hashed sender addresses with a third party."
+      "gravatarOnDesc": "Fetch sender photos from Gravatar — shares hashed sender addresses with a third party.",
+      "readReceiptRequestAlways": "Ask for a read receipt on every message",
+      "readReceiptRequestAlwaysDesc": "Adds a read receipt request to each message you write. You can still turn it off in the composer.",
+      "readReceiptReply": "Read receipt requests",
+      "readReceiptReplyDesc": "What to do when a message asks you to confirm you read it. Spam and mailing lists are never answered.",
+      "readReceiptAsk": "Ask me",
+      "readReceiptAskDesc": "A notice above the message, with Send and Ignore (recommended).",
+      "readReceiptAlways": "Send always",
+      "readReceiptAlwaysDesc": "Reply as soon as you open the message, unless the request looks suspicious.",
+      "readReceiptNever": "Never send",
+      "readReceiptNeverDesc": "Never answer, and do not show the notice."
     },
     "notifications": {
       "title": "Notifications",
@@ -2109,6 +2134,100 @@
       "replyReceived": "Reply received {{date}}",
       "replyToast": "New reply to a password-protected message",
       "replyToastAction": "Open"
+    },
+    "serverFilters": {
+      "title": "Server filters",
+      "intro": "Rules your mail server runs itself as mail arrives (Sieve), so they apply even when Plimail is closed and in every other mail app.",
+      "noAccounts": "None of your accounts signs in with a password, which server filters need.",
+      "account": "Account",
+      "connecting": "Connecting to the mail server…",
+      "unsupported": "Not available",
+      "supported": "Sieve available",
+      "reasonOauth": "This account signs in with Google or Microsoft; server filters need a password login.",
+      "reasonNoStarttls": "The server does not offer a secure connection (STARTTLS) for filters, so Plimail does not send it your password.",
+      "reasonTls": "The server's certificate could not be verified.",
+      "reasonNoPlain": "The server does not accept a password login for filters.",
+      "reasonUnreachable": "No filter service (ManageSieve, port 4190) answered on this account's mail server.",
+      "errorRejected": "The server refused the script: {{message}}",
+      "errorAuth": "The mail server refused the account's password. Check it under Accounts.",
+      "errorExtension": "The server does not support one of these actions.",
+      "errorNoTrash": "This account has no Trash folder to move deleted mail into.",
+      "errorRule": "A rule is incomplete: check its text, folder or address.",
+      "errorRateLimited": "Too many requests to the mail server. Try again in a minute.",
+      "errorGeneric": "The mail server could not be reached. Try again later.",
+      "cancel": "Cancel",
+      "fieldLabel": "Field",
+      "fieldFrom": "Sender",
+      "fieldSubject": "Subject",
+      "fieldRecipient": "A recipient",
+      "contains": "contains",
+      "containsLabel": "Text to look for",
+      "actionLabel": "Action",
+      "actionMove": "Move to folder",
+      "actionMarkRead": "Mark as read",
+      "actionDelete": "Delete (move to Trash)",
+      "actionRedirect": "Redirect to",
+      "folderLabel": "Folder",
+      "chooseFolder": "Choose a folder",
+      "addressLabel": "Address to redirect to",
+      "addressPh": "someone@example.com",
+      "removeRule": "Remove rule",
+      "checkWarnings": "The script is valid, with warnings: {{warnings}}",
+      "checkOk": "The script is valid.",
+      "saved": "Saved on the server.",
+      "scriptLabel": "Script",
+      "notPlimailScript": "Written outside Plimail",
+      "rawLabel": "Sieve script",
+      "check": "Check",
+      "saveScript": "Save script",
+      "confirmOverwrite": "The script \"{{name}}\" was not written by Plimail. Replace it with this text?",
+      "overwrite": "Replace it",
+      "confirmReplaceActive": "\"{{active}}\" is the active script on the server. Only one script runs at a time, so activating Plimail's stops \"{{active}}\" from running. It stays stored on the server.",
+      "replaceActive": "Activate Plimail's",
+      "otherActiveWarning": "Another script, \"{{active}}\", is active on the server, so the rules below do not run until you activate Plimail's script.",
+      "scripts": "Scripts on the server",
+      "noScripts": "No scripts on the server yet.",
+      "plimailScript": "Plimail's",
+      "active": "Active",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "rulesTab": "Rules",
+      "rawTab": "Edit script",
+      "editedByHand": "Plimail's script was edited by hand. Saving the rules below replaces it.",
+      "noRules": "No rules yet.",
+      "addRule": "Add rule",
+      "saving": "Saving…",
+      "saveRules": "Save rules",
+      "saveInactive": "Save without activating",
+      "confirmReplaceEdited": "Plimail's script was edited by hand. Replace it with the rules?"
+    },
+    "vacation": {
+      "title": "Out of office",
+      "intro": "An automatic reply your mail server sends while you are away, even when Plimail is closed.",
+      "needsSieve": "Automatic replies need Sieve filters on your mail server, and this one has none Plimail can use.",
+      "noVacationExtension": "Your mail server has Sieve filters but cannot send automatic replies.",
+      "enable": "Send an automatic reply",
+      "on": "On",
+      "off": "Off",
+      "notActive": "Plimail's server script is not active, so no reply is sent. Saving activates it.",
+      "subject": "Subject",
+      "subjectPh": "Leave empty to reply with the original subject",
+      "body": "Message",
+      "bodyPh": "I am away until Monday and will answer when I am back.",
+      "start": "From",
+      "end": "Until",
+      "datesHint": "Optional. Without dates, the reply is sent until you turn it off.",
+      "noDates": "This server cannot limit the reply to dates: turn it off when you are back.",
+      "days": "Days before the same sender gets the reply again",
+      "daysHint": "Mailing lists and bulk mail are not answered.",
+      "addresses": "Also answer mail sent to",
+      "addressesHint": "Your other addresses for this account (aliases), separated by commas. Optional.",
+      "save": "Save",
+      "savedOn": "Automatic reply turned on.",
+      "savedOff": "Automatic reply turned off.",
+      "errorInvalid": "Check the message, the dates and the addresses.",
+      "errorExtension": "The server cannot send this reply, or cannot limit it to dates.",
+      "confirmReplaceEdited": "Plimail's server script was edited by hand. Replace it with the automatic reply? The changes made by hand are lost."
     }
   },
   "blockList": {
@@ -2165,6 +2284,22 @@
       "work": "Work",
       "home": "Home",
       "other": "Other"
+    },
+    "groups": {
+      "tabGroups": "Groups",
+      "new": "New group",
+      "namePlaceholder": "Group name",
+      "create": "Create",
+      "empty": "No groups yet",
+      "selectHint": "Select a group",
+      "memberCount": "{{count}} members",
+      "category": "Category",
+      "rename": "Rename",
+      "deleteConfirm": "Delete this group? Its contacts are kept.",
+      "readOnlyHint": "This group comes from the categories of your address book and cannot be edited here.",
+      "addMember": "Add a contact to this group…",
+      "noMembers": "No contacts in this group",
+      "suggestMembers": "Group · {{count}} contacts"
     }
   },
   "window": {
@@ -2804,5 +2939,39 @@
       "openFailed": "This encrypted draft could not be opened for editing. It is shown in the reader instead.",
       "hasAttachments": "This encrypted draft has attachments Plimail cannot keep in a draft, so it is shown in the reader instead of opened for editing."
     }
+  },
+  "mailTransfer": {
+    "exportTitle": "Export {{name}}",
+    "importTitle": "Import into {{name}}",
+    "exportIntro": "Messages are read from your mail server and downloaded as they come. A large folder takes a while.",
+    "formatMbox": "A single .mbox file",
+    "formatMboxHint": "mboxrd format, opens in Thunderbird and most mail clients",
+    "formatZip": "A .zip of .eml files",
+    "formatZipHint": "One file per message",
+    "exportStart": "Export",
+    "exportStarted": "The download has started. A large folder keeps downloading for a while; keep this page open until it finishes.",
+    "importIntro": "Choose an .mbox file or one or more .eml files. Messages are added with their original dates. Nothing already in the folder is changed or deleted.",
+    "chooseFiles": "Choose files…",
+    "noFiles": "No file chosen",
+    "filesChosen": "{{count}} files chosen",
+    "destination": "Destination folder",
+    "markRead": "Mark imported messages as read, unless the file records whether they were read",
+    "importStart": "Import",
+    "importing": "Importing",
+    "fileOf": "File {{current}} of {{total}}",
+    "liveCounts": "{{imported}} imported, {{duplicates}} already there, {{failed}} failed",
+    "reportTitle": "Import finished",
+    "reportImported": "Imported",
+    "reportDuplicates": "Skipped, already in the folder",
+    "reportFailed": "Failed",
+    "failuresTitle": "Failures",
+    "failuresMore": "{{count}} more failures are not listed.",
+    "abortedTooLarge": "Stopped: the file is larger than the size limit set on the server.",
+    "abortedImap": "Stopped: the mail server kept refusing the messages.",
+    "abortedCancelled": "Stopped before the end of the file.",
+    "abortedError": "Stopped: {{reason}}",
+    "unsupportedFile": "Not an .mbox or .eml file",
+    "close": "Close",
+    "selectionFailed": "Could not export the selected messages"
   }
 }

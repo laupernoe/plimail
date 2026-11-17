@@ -25,6 +25,7 @@ import { consumeLoginAttempt } from '../services/loginLimiter.js';
 import { rateLimitAddress } from '../utils/rateLimitAddress.js';
 import { passwordProblem } from '../utils/passwordPolicy.js';
 import { PgpRequestError, setKeysProtection } from '../services/pgpKeyring.js';
+import { RECEIPT_REPLY_MODES } from '../services/readReceipts.js';
 
 const router = Router();
 
@@ -815,7 +816,8 @@ export async function patchPreferences(req, res) {
           autoLockMinutes, showMobileAvatars, gravatarAvatars, folderSyncInterval,
           folderOrder, senderFavicons, showMessagePreviews, defaultSender,
           conversationMode, hoverActionSet, autoOpenReplyDrafts, afterRemove, darkEmailBodies, listSort,
-          timeFormat, undoSend, pgpAutoEncrypt, pgpAutoKeys } = req.body;
+          timeFormat, undoSend, pgpAutoEncrypt, pgpAutoKeys,
+          readReceiptRequestAlways, readReceiptReply } = req.body;
   if (autoOpenReplyDrafts !== undefined && typeof autoOpenReplyDrafts !== 'boolean') {
     return res.status(400).json({ error: 'autoOpenReplyDrafts must be a boolean' });
   }
@@ -827,6 +829,12 @@ export async function patchPreferences(req, res) {
   }
   if (pgpAutoKeys !== undefined && typeof pgpAutoKeys !== 'boolean') {
     return res.status(400).json({ error: 'pgpAutoKeys must be a boolean' });
+  }
+  if (readReceiptRequestAlways !== undefined && typeof readReceiptRequestAlways !== 'boolean') {
+    return res.status(400).json({ error: 'readReceiptRequestAlways must be a boolean' });
+  }
+  if (readReceiptReply !== undefined && !RECEIPT_REPLY_MODES.includes(readReceiptReply)) {
+    return res.status(400).json({ error: 'readReceiptReply must be ask, always or never' });
   }
   if (darkEmailBodies !== undefined && typeof darkEmailBodies !== 'boolean') {
     return res.status(400).json({ error: 'darkEmailBodies must be a boolean' });
@@ -949,6 +957,8 @@ export async function patchPreferences(req, res) {
       || CASE WHEN $46::boolean IS NOT NULL THEN jsonb_build_object('undoSend', $46::boolean) ELSE '{}'::jsonb END
       || CASE WHEN $47::boolean IS NOT NULL THEN jsonb_build_object('pgpAutoEncrypt', $47::boolean) ELSE '{}'::jsonb END
       || CASE WHEN $48::boolean IS NOT NULL THEN jsonb_build_object('pgpAutoKeys', $48::boolean) ELSE '{}'::jsonb END
+      || CASE WHEN $49::boolean IS NOT NULL THEN jsonb_build_object('readReceiptRequestAlways', $49::boolean) ELSE '{}'::jsonb END
+      || CASE WHEN $50::text IS NOT NULL THEN jsonb_build_object('readReceiptReply', $50::text) ELSE '{}'::jsonb END
     WHERE id = $1
   `, [req.session.userId, themeVal, font ?? null, layout ?? null, notificationSound ?? null,
       pageSize ?? null, scrollMode ?? null, syncInterval ?? null,
@@ -960,7 +970,8 @@ export async function patchPreferences(req, res) {
       autoLockMinutesVal,
       showMobileAvatars ?? null, gravatarAvatars ?? null, folderSyncIntervalVal, folderOrderJson, senderFaviconsVal,
       showMessagePreviews ?? null, defaultSenderVal, conversationModeVal, hoverActionSetJson, autoOpenReplyDrafts ?? null,
-      afterRemoveVal, darkEmailBodies ?? null, listSortJson, timeFormatVal, undoSend ?? null, pgpAutoEncrypt ?? null, pgpAutoKeys ?? null]);
+      afterRemoveVal, darkEmailBodies ?? null, listSortJson, timeFormatVal, undoSend ?? null, pgpAutoEncrypt ?? null, pgpAutoKeys ?? null,
+      readReceiptRequestAlways ?? null, readReceiptReply ?? null]);
 
   if (syncInterval != null) {
     const ms = parseInt(syncInterval) * 1000;

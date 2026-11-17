@@ -35,6 +35,7 @@ import { useAiActions } from '../hooks/useAiActions.js';
 import { useMessageAiTools } from '../hooks/useMessageAiTools.js';
 import { MailAiPanels, withMailActions } from './MessageAiPanels.jsx';
 import PgpMessageView, { PgpSignatureBadge } from './PgpMessageView.jsx';
+import ReadReceiptBanner from './ReadReceiptBanner.jsx';
 import { pgpVisibleAttachments } from '../utils/pgpReader.js';
 import AttachmentStrip from './AttachmentStrip.jsx';
 import {
@@ -1849,6 +1850,8 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
           </div>
         )}
       </div>
+
+      <div style={{ padding: isMobile ? '0' : '0 28px' }}><ReadReceiptBanner key={message.id} message={message} /></div>
 
       {/* OpenPGP: an encrypted message is decrypted and shown here, a signed one gets its
           signature checked above the body. */}

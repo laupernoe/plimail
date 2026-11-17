@@ -1,4 +1,6 @@
 
+import { importUrl } from './mailTransfer.js';
+
 const BASE = '/api';
 
 // Sent on every /api request so the backend CSRF guard accepts it. A cross-site
@@ -53,6 +55,8 @@ async function request(method, path, body, extraHeaders, { signal } = {}) {
       ...(typeof err.serverNow === 'string' ? { serverNow: err.serverNow } : {}),
       // What a scheduled message is doing when the server refused to change it (sending, sent...).
       ...(typeof err.status === 'string' ? { state: err.status } : {}),
+      // The Sieve script that is active when a save would replace it (routes/sieve.js).
+      ...(typeof err.active === 'string' ? { active: err.active } : {}),
     });
   }
   // No Content (a DELETE): there is no body to read.
@@ -221,6 +225,17 @@ export const api = {
     markRead: (id) => request('POST', `/secure-messages/${id}/read`),
     revoke: (id) => request('POST', `/secure-messages/${id}/revoke`),
     remove: (id) => request('DELETE', `/secure-messages/${id}`),
+  },
+
+  // Server filters over ManageSieve (routes/sieve.js).
+  sieve: {
+    status: (accountId) => request('GET', `/sieve/${accountId}`),
+    script: (accountId, name) => request('GET', `/sieve/${accountId}/scripts/${encodeURIComponent(name)}`),
+    check: (accountId, content) => request('POST', `/sieve/${accountId}/check`, { content }),
+    saveRules: (accountId, data) => request('PUT', `/sieve/${accountId}/rules`, data),
+    saveVacation: (accountId, data) => request('PUT', `/sieve/${accountId}/vacation`, data),
+    saveScript: (accountId, name, data) => request('PUT', `/sieve/${accountId}/scripts/${encodeURIComponent(name)}`, data),
+    setActive: (accountId, name, replaceActive = false) => request('POST', `/sieve/${accountId}/active`, { name, replaceActive }),
   },
 
   // OpenPGP (routes/pgp.js). Private keys come and go only passphrase-protected.
@@ -490,6 +505,9 @@ export const api = {
 
   getMessageHeaders: (id) => request('GET', `/mail/messages/${id}/headers`),
   getMessageBcc: (id) => request('GET', `/mail/messages/${id}/bcc`),
+  // Read receipts (RFC 8098): whether the message asks for one, and the answer to it.
+  getReadReceipt: (id) => request('GET', `/mail/messages/${id}/receipt`),
+  answerReadReceipt: (id, action, confirm = false) => request('POST', `/mail/messages/${id}/receipt`, { action, ...(confirm ? { confirm: true } : {}) }),
   snoozeMessage: (id, until) => request('POST', `/mail/messages/${id}/snooze`, { until }),
   // The Snoozed view (#269): change when a snoozed message comes back, or bring it back now.
   changeSnooze: (id, until) => request('PATCH', `/mail/messages/${id}/snooze`, { until }),
@@ -537,6 +555,22 @@ export const api = {
   deleteFolder: (accountId, path) => request('POST', '/mail/folders/delete', { accountId, path }),
   renameFolder: (accountId, oldPath, newName) => request('POST', '/mail/folders/rename', { accountId, oldPath, newName }),
   emptyFolder: (accountId, path) => request('POST', '/mail/folders/empty', { accountId, path }),
+  // The file is the request body, so the browser streams it from disk. Its type is forced to octet-stream:
+  // a type of application/json, which some systems give a .json-like name, would make the server parse it.
+  importMail: (accountId, folder, file, opts) => request('POST', importUrl(accountId, folder, opts), file.slice(0, file.size, 'application/octet-stream')),
+  // The selected messages as one .mbox, as a Blob: a POST cannot be a plain link download.
+  exportSelection: async (ids) => {
+    const res = await fetch(`${BASE}/mail-transfer/export-selection`, {
+      method: 'POST', credentials: 'include', cache: 'no-store',
+      headers: { [CSRF_HEADER]: CSRF_VALUE, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Request failed' }));
+      throw Object.assign(new Error(err.error || 'Request failed'), { status: res.status });
+    }
+    return res.blob();
+  },
 
   // Search
   search: (q, accountId, { offset = 0, limit, folder } = {}) => {
@@ -563,6 +597,16 @@ export const api = {
   createContact: (data)     => request('POST',   '/contacts', data),
   updateContact: (id, data) => request('PATCH',  `/contacts/${id}`, data),
   deleteContact: (id)       => request('DELETE', `/contacts/${id}`),
+
+  // Contact groups: backend/src/routes/contactGroups.js
+  getContactGroups:    ()           => request('GET',    '/contact-groups'),
+  getContactGroup:     (id)         => request('GET',    `/contact-groups/${id}`),
+  createContactGroup:  (name)       => request('POST',   '/contact-groups', { name }),
+  renameContactGroup:  (id, name)   => request('PATCH',  `/contact-groups/${id}`, { name }),
+  deleteContactGroup:  (id)         => request('DELETE', `/contact-groups/${id}`),
+  addContactGroupMembers:   (id, contactIds) => request('POST',   `/contact-groups/${id}/members`, { contactIds }),
+  removeContactGroupMember: (id, contactId)  => request('DELETE', `/contact-groups/${id}/members/${contactId}`),
+  suggestContactGroups: (q)         => request('GET',    `/contact-groups/suggest?q=${encodeURIComponent(q)}`),
 
   // CalDAV calendars: backend/src/routes/calendar.js
   calendar: {

@@ -344,3 +344,28 @@ describe('PATCH /auth/preferences pgpAutoKeys', () => {
     expect(query).not.toHaveBeenCalled();
   });
 });
+
+describe('PATCH /auth/preferences read receipts', () => {
+  const res = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn() });
+  it('persists "always ask for a receipt" as a boolean and refuses anything else', async () => {
+    await patchPreferences({ session: { userId: 'user-1' }, body: { readReceiptRequestAlways: true } }, res());
+    expect(query.mock.calls[0][0]).toContain("jsonb_build_object('readReceiptRequestAlways', $49::boolean)");
+    expect(query.mock.calls[0][1][48]).toBe(true);
+    query.mockClear();
+    const r = res();
+    await patchPreferences({ session: { userId: 'user-1' }, body: { readReceiptRequestAlways: 'yes' } }, r);
+    expect(r.status).toHaveBeenCalledWith(400);
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('persists how receipt requests are answered, one of ask, always or never', async () => {
+    await patchPreferences({ session: { userId: 'user-1' }, body: { readReceiptReply: 'never' } }, res());
+    expect(query.mock.calls[0][0]).toContain("jsonb_build_object('readReceiptReply', $50::text)");
+    expect(query.mock.calls[0][1][49]).toBe('never');
+    query.mockClear();
+    const r = res();
+    await patchPreferences({ session: { userId: 'user-1' }, body: { readReceiptReply: 'auto' } }, r);
+    expect(r.status).toHaveBeenCalledWith(400);
+    expect(query).not.toHaveBeenCalled();
+  });
+});

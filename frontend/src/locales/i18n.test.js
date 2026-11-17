@@ -123,10 +123,27 @@ const SAME_VALUE_ALLOWED = {
   'pgp.unlock.go':                          [['es', 'ptBR']], // Desbloquear
   'pgp.unlock.working':                     [['es', 'ptBR']], // Desbloqueando…
   'admin.password.title':                   [['en', 'it']], // Password, the word Italian uses
+  // ── Read receipts: the same words in Spanish and Portuguese ────────────────
+  'message.readReceipt.send':               [['es', 'ptBR']], // Enviar
+  'message.readReceipt.ignore':             [['es', 'ptBR']], // Ignorar
+  // ── Server filters (Sieve): the same words in these languages ──────────────
+  'admin.serverFilters.account':            [['de', 'pl'], ['en', 'it']], // Konto / Account
+  'admin.serverFilters.fieldLabel':         [['cs', 'pl']], // Pole
+  'admin.serverFilters.fieldRecipient':     [['es', 'it']], // Un destinatario
+  'admin.serverFilters.rawLabel':           [['fr', 'it']], // Script Sieve
+  'admin.serverFilters.rawTab':             [['es', 'ptBR']], // Editar script
+  'admin.serverFilters.scriptLabel':        [['cs', 'de']], // Skript
+  'admin.serverFilters.supported':          [['es', 'fr']], // Sieve disponible
+  'admin.vacation.body':                    [['en', 'fr']], // Message
+  'admin.vacation.start':                   [['cs', 'pl']], // Od
+  'admin.vacation.end':                     [['cs', 'pl']], // Do
   // ── Composer tone presets ──────────────────────────────────────────────────
   'compose.toolbar.toneFormal':             [['en', 'es', 'ptBR']], // Formal
   'compose.toolbar.toneDiplomatic':         [['es', 'ptBR']], // Diplomático
   // ── List sort menu (#528) ───────────────────────────────────────────────────
+  // ── Contact groups ──────────────────────────────────────────────────────────
+  'contacts.groups.tabGroups':              [['es', 'ptBR']], // Grupos
+  'contacts.groups.category':               [['cs', 'de'], ['it', 'ptBR']], // Kategorie / Categoria
   'messageList.sortSummary':                'any', // "{{sort}}, {{dir}}": only the placeholders and a comma
   'messageList.sortDate':                   [['en', 'fr'], ['it', 'ptBR', 'pl'], ['cs', 'de']], // Date / Data / Datum
   // ── Universal placeholders / brand names (all locales share) ───────────────
@@ -163,6 +180,12 @@ const SAME_VALUE_ALLOWED = {
   'admin.sso.issuerUrlPh':                  'any', // https://accounts.google.com
   'admin.sso.scopesPh':                     'any', // openid email profile
   'login.totp.placeholder':                 'any', // 000000
+
+  // ── Mail import / export: the same verbs in Spanish and Portuguese ─────────
+  'mailTransfer.exportStart':  [['es', 'ptBR']], // Exportar
+  'mailTransfer.exportTitle':  [['es', 'ptBR']], // Exportar {{name}}
+  'mailTransfer.importStart':  [['es', 'ptBR']], // Importar
+  'mailTransfer.importing':    [['es', 'ptBR']], // Importando
 
   // ── Specific language groups ───────────────────────────────────────────────
   // "Version" — same spelling in de, en, fr

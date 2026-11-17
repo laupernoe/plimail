@@ -63,7 +63,9 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('ownership lookups thro
       CREATE TEMP TABLE contacts (id uuid PRIMARY KEY, user_id text, address_book_id uuid, uid text,
         display_name text, first_name text, last_name text, primary_email text, emails jsonb, phones jsonb,
         organization text, notes text, photo_data text, is_auto boolean DEFAULT false, send_count int DEFAULT 0,
-        last_sent timestamptz, etag text, vcard text, created_at timestamptz DEFAULT NOW(), updated_at timestamptz)`);
+        last_sent timestamptz, etag text, vcard text, created_at timestamptz DEFAULT NOW(), updated_at timestamptz);
+      CREATE TEMP TABLE contact_groups (id uuid PRIMARY KEY, user_id text, address_book_id uuid, uid text, name text, source text);
+      CREATE TEMP TABLE contact_group_members (group_id uuid, contact_id uuid)`);
     const app = express();
     app.use(express.json());
     app.use('/api/mail', mailRoutes);

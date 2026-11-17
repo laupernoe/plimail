@@ -31,6 +31,8 @@ import { unproxyImages } from '../utils/imageProxy.js';
 import { autoListsOf, openAutoRecipients, replyTypeFields, swapAccountFields } from '../utils/autoRecipients.js';
 import { resolveSignatureEnabled } from '../utils/composeSignature.js';
 import { undoSendSeconds, undoWindowMs, trackHeldSend, reopenCompose, sendErrorText } from '../utils/heldSend.js';
+import ReadReceiptToggle from './ReadReceiptToggle.jsx';
+import { composeReadReceipt } from '../utils/readReceipt.js';
 import { openSentMessage } from '../utils/openSentMessage.js';
 import { aiReplyAvailable, loadReplyConversation, buildReplyPrompt, MAX_INSTRUCTION_CHARS } from '../utils/aiReply.js';
 import { frameGeometry } from '../utils/frameGeometry.js';
@@ -66,6 +68,7 @@ import { OWN_KEYS_CHANGED, loadOwnKeys, ownKeysChanged } from '../utils/pgpOwnKe
 import { ensureKeySecret, requestKeyUnlock, unlockOwnKey } from '../utils/pgpUnlock.js';
 import { SecureSendError, secureSettingsProblem, sendProtected } from '../utils/secureSend.js';
 import { htmlLang } from '../utils/browserLanguage.js';
+import { addSuggestionChips, mergeGroupSuggestions, suggestionKey } from '../utils/groupRecipients.js';
 
 // Resize an image blob/file to max maxW pixels wide, preserving aspect ratio.
 // Returns a Promise<string> of a base64 data URL.
@@ -381,8 +384,11 @@ export default function ComposeModal() {
 
   const getSuggestions = useCallback(async (q) => {
     try {
-      const data = await api.suggestContacts(q);
-      return data.contacts || [];
+      const [data, groups] = await Promise.all([
+        api.suggestContacts(q),
+        api.suggestContactGroups(q).catch(() => ({ groups: [] })),
+      ]);
+      return mergeGroupSuggestions(data.contacts, groups.groups);
     } catch { return []; }
   }, []);
 
@@ -391,6 +397,7 @@ export default function ComposeModal() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(() => composeData?.sendError || (composeData?.unsupportedFrom ? t('compose.unsupportedDraftFrom', { defaultValue: 'Choose a configured sender before saving or sending this draft.' }) : ''));
   const [priority, setPriority] = useState(() => composeData?.priority || 'normal');
+  const [readReceipt, setReadReceipt] = useState(() => composeReadReceipt(composeData, useStore.getState().readReceiptRequestAlways));
   // Password protection (SecureSendPanel.jsx), "Send with a password": null while off.
   // A restored composer (undone or failed send, the screen lock) reopens with its protection.
   const [secure, setSecure] = useState(() => initialSecure(composeData?.protection, secureDefaults));
@@ -1233,6 +1240,7 @@ export default function ComposeModal() {
       inReplyTo: composeData?.inReplyTo,
       references: composeData?.references || undefined,
       ...(priority !== 'normal' ? { priority } : {}),
+      ...(readReceipt ? { readReceipt: true } : {}),
       ...(attachments.length ? {
         attachments: attachments.map(a => ({
           filename: a.name,
@@ -1283,6 +1291,7 @@ export default function ComposeModal() {
     attachments,
     forwardedAttachments: fwdAttachments,
     priority,
+    readReceipt,
     restored: true,
     autoRecipients: autoAtSend,
     draftWasPreExisting: draftWasPreExisting.current,
@@ -2079,7 +2088,7 @@ export default function ComposeModal() {
     scheduledAttachments: scheduledAttachments.map(a => a.index),
     // A scheduled message keeps its priority, so changing only that is an edit to save. Drafts do
     // not store one, so for them it would only cost a save.
-    ...(scheduledEdit ? { priority } : {}),
+    ...(scheduledEdit ? { priority, readReceipt } : {}),
   });
   unsupportedRef.current = () => sendingRef.current || attachments.length > 0 || fwdAttachments.length > 0
     || Boolean(composeData?.unresolvedExternalAttachments);
@@ -3335,6 +3344,7 @@ export default function ComposeModal() {
                 )}
               </button>
             ))}
+            <ReadReceiptToggle sheet checked={readReceipt} onChange={setReadReceipt} />
             <button onClick={() => setShowPrioritySheet(false)} style={{ width: '100%', padding: '16px 20px', textAlign: 'left', background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: 16, fontWeight: 500, cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
               {t('common.cancel')}
             </button>
@@ -3857,6 +3867,7 @@ export default function ComposeModal() {
           <option value="normal">{t('compose.priorityNormal')}</option>
           <option value="low">{t('compose.priorityLow')}</option>
         </select>
+        <ReadReceiptToggle checked={readReceipt} onChange={setReadReceipt} />
 
         {!scheduledEdit && (
           <>
@@ -5030,8 +5041,7 @@ function ChipInput({ chips, onChipsChange, value, onChange, placeholder, autoFoc
   };
 
   const commitSuggestion = (contact) => {
-    const formatted = contact.name ? `${contact.name} <${contact.email}>` : contact.email;
-    onChipsChange([...chips, formatted]);
+    onChipsChange(addSuggestionChips(chips, contact));
     onChange('');
     clearSuggestions();
   };
@@ -5161,7 +5171,7 @@ function ChipInput({ chips, onChipsChange, value, onChange, placeholder, autoFoc
           }}>
           {suggestions.map((contact, i) => (
             <div
-              key={contact.email}
+              key={suggestionKey(contact)}
               onClick={() => commitSuggestion(contact)}
               onMouseEnter={() => setSuggIdx(i)}
               style={{
@@ -5177,7 +5187,7 @@ function ChipInput({ chips, onChipsChange, value, onChange, placeholder, autoFoc
                 </div>
               )}
               <div style={{ fontSize: 11, color: 'var(--text-tertiary)', lineHeight: 1.3 }}>
-                {contact.email}
+                {contact.group ? t('contacts.groups.suggestMembers', { count: contact.members.length }) : contact.email}
               </div>
             </div>
           ))}
