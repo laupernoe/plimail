@@ -5,7 +5,7 @@ import { findOwnedAccount } from './ownership.js';
 import { sanitizeSignature } from './emailSanitizer.js';
 import { autocryptFor } from './autocrypt.js';
 import {
-  buildMailOptions, deliverAndRecord, pgpPreferEncrypt, pgpPublishKeys, prepareDelivery, renderRawMessage, sanitizeSmtpError, serverAutoSavesSent,
+  buildMailOptions, deliverAndRecord, pgpPreferEncrypt, pgpPublishKeys, prepareDelivery, renderPgpMime, renderRawMessage, sanitizeSmtpError, serverAutoSavesSent,
   validateSendInput,
 } from './outgoingMail.js';
 import { sendPushToUser } from './pushNotifications.js';
@@ -206,9 +206,9 @@ export async function readAttachments(db, row, { only } = {}) {
   return out;
 }
 
-// The attachments of a row as mailOptions.attachments wants them.
-export async function loadAttachments(db, row) {
-  return (await readAttachments(db, row)).map(({ meta, content }) => ({
+// A row's attachments (readAttachments) as mailOptions.attachments wants them.
+function mailAttachments(read) {
+  return read.map(({ meta, content }) => ({
     filename: headerSafe(meta.filename) || 'attachment',
     content,
     contentType: headerSafe(meta.contentType) || 'application/octet-stream',
@@ -614,6 +614,17 @@ export class ScheduledSender {
   async build(row, account) {
     const payload = openJson(row.payload_enc, aad.payload(row));
     if (!payload || payload.v !== 1) throw new ScheduledSendError('decrypt_failed');
+    const stored = await readAttachments(this.db, row);
+    // An encrypted message is its ciphertext, stored as the 'pgp' attachment: it goes out as Send
+    // sends one (renderPgpMime), with nothing next to it.
+    let pgp;
+    if (payload.pgp === true) {
+      const cipher = stored.filter(a => a.meta.kind === 'pgp');
+      if (cipher.length !== 1 || stored.length !== 1) throw new ScheduledSendError('decrypt_failed');
+      pgp = { encrypted: cipher[0].content.toString('latin1') };
+    } else if (stored.some(a => a.meta.kind === 'pgp')) {
+      throw new ScheduledSendError('decrypt_failed');
+    }
     // Stored data is still input, so it goes through the same checks as Send's.
     const input = validateSendInput({
       accountId: row.account_id,
@@ -629,9 +640,10 @@ export class ScheduledSender {
       inReplyTo: payload.inReplyTo,
       references: payload.references,
       priority: payload.priority,
+      ...(pgp ? { pgp } : {}),
     });
     const identity = await this.identityFor(account, payload);
-    const attachments = await loadAttachments(this.db, row);
+    const attachments = pgp ? [] : mailAttachments(stored);
     return { payload, input, identity, forwarded: { attachments, messages: [] } };
   }
 
@@ -859,7 +871,10 @@ export class ScheduledSender {
         const mailOptions = buildMailOptions(built.input, built.identity, built.forwarded, {
           messageId: built.payload.messageId, date: new Date(row.smtp_started_at),
         });
-        const raw = await renderRawMessage(mailOptions);
+        // The Sent copy of an encrypted message is its ciphertext, Bcc kept, as Send stores it.
+        const raw = built.input.pgp
+          ? (await renderPgpMime(mailOptions, built.input.pgp.encrypted)).sentRaw
+          : await renderRawMessage(mailOptions);
         // Not ours any more (taken over after a long wait): the new claimant makes the copy.
         if (!(await this.stillClaimed(row))) {
           console.warn(`[scheduledSend] message ${row.id} lost its claim during recovery; its Sent copy is left to the new claimant`);

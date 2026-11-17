@@ -2727,7 +2727,6 @@
       "subjectNote": "L'oggetto non è cifrato.",
       "stillChecking": "Le chiavi dei destinatari sono ancora in ricerca. Riprova tra un momento.",
       "needPassphrase": "Inserisci la frase d'accesso della tua chiave per firmare, oppure disattiva la firma.",
-      "noSchedule": "Un messaggio cifrato non può essere programmato. Invialo ora oppure disattiva la cifratura.",
       "errorForwarded": "Gli allegati dei messaggi inoltrati non possono essere cifrati. Rimuovili, oppure scaricali e allegali di nuovo.",
       "errorTooLarge": "Gli allegati cifrati sono limitati a 24 MB in totale.",
       "errorEncrypt": "Impossibile cifrare il messaggio. Non è stato inviato nulla.",
@@ -2771,6 +2770,12 @@
       "body": "La tua chiave per {{email}} è bloccata da una password precedente di Plimail. La posta cifrata per lei non si può leggere finché non viene recuperata, e non viene più pubblicata. Recuperala con la vecchia password o crea una nuova chiave (la vecchia resta per la posta che può ancora aprire).",
       "recover": "Recupera con la vecchia password",
       "newKey": "Crea una nuova chiave"
+    },
+    "draft": {
+      "notSaved": "Bozza non salvata: non è stato possibile cifrarla. Nulla è stato salvato in chiaro.",
+      "notSavedNoKey": "Bozza non salvata: le bozze cifrate richiedono una tua chiave per questo indirizzo. Nulla è stato salvato in chiaro.",
+      "openFailed": "Non è stato possibile aprire questa bozza cifrata per modificarla. Viene mostrata nel lettore.",
+      "hasAttachments": "Questa bozza cifrata ha allegati che Plimail non può conservare in una bozza, quindi viene mostrata nel lettore invece di essere aperta per la modifica."
     }
   }
 }

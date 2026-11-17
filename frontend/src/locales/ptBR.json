@@ -2727,7 +2727,6 @@
       "subjectNote": "O assunto não é criptografado.",
       "stillChecking": "Ainda estamos procurando as chaves dos destinatários. Tente novamente em instantes.",
       "needPassphrase": "Digite a frase secreta da sua chave para assinar ou desative a assinatura.",
-      "noSchedule": "Uma mensagem criptografada não pode ser programada. Envie agora ou desative a criptografia.",
       "errorForwarded": "Anexos de mensagens encaminhadas não podem ser criptografados. Remova-os, ou baixe e anexe novamente.",
       "errorTooLarge": "Os anexos criptografados são limitados a 24 MB no total.",
       "errorEncrypt": "Não foi possível criptografar a mensagem. Nada foi enviado.",
@@ -2771,6 +2770,12 @@
       "body": "Sua chave para {{email}} está bloqueada por uma senha anterior do Plimail. Os e-mails criptografados para ela não podem ser lidos até recuperá-la, e ela não é mais publicada. Recupere-a com a senha antiga ou crie uma nova chave (a antiga é mantida para os e-mails que ainda abre).",
       "recover": "Recuperar com a senha antiga",
       "newKey": "Criar uma nova chave"
+    },
+    "draft": {
+      "notSaved": "Rascunho não salvo: não foi possível criptografá-lo. Nada foi salvo sem criptografia.",
+      "notSavedNoKey": "Rascunho não salvo: rascunhos criptografados precisam de uma chave sua para este endereço. Nada foi salvo sem criptografia.",
+      "openFailed": "Não foi possível abrir este rascunho criptografado para edição. Ele é exibido no leitor.",
+      "hasAttachments": "Este rascunho criptografado tem anexos que o Plimail não consegue manter em um rascunho, então ele é exibido no leitor em vez de ser aberto para edição."
     }
   }
 }

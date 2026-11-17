@@ -2746,7 +2746,6 @@
       "subjectNote": "Předmět není šifrovaný.",
       "stillChecking": "Klíče příjemců se ještě hledají. Zkuste to za chvíli znovu.",
       "needPassphrase": "Pro podepsání zadejte heslovou frázi svého klíče, nebo podepisování vypněte.",
-      "noSchedule": "Šifrovanou zprávu nelze naplánovat. Odešlete ji hned, nebo vypněte šifrování.",
       "errorForwarded": "Přílohy z přeposlaných zpráv nelze šifrovat. Odeberte je, nebo je stáhněte a přiložte znovu.",
       "errorTooLarge": "Šifrované přílohy jsou omezeny na 24 MB celkem.",
       "errorEncrypt": "Zprávu se nepodařilo zašifrovat. Nic nebylo odesláno.",
@@ -2790,6 +2789,12 @@
       "body": "Váš klíč pro {{email}} je zamčený předchozím heslem k Plimailu. Poštu pro něj zašifrovanou nelze číst, dokud ho neobnovíte, a už se nezveřejňuje. Obnovte ho starým heslem, nebo vytvořte nový klíč (starý zůstane pro poštu, kterou ještě otevře).",
       "recover": "Obnovit starým heslem",
       "newKey": "Vytvořit nový klíč"
+    },
+    "draft": {
+      "notSaved": "Koncept nebyl uložen: nepodařilo se ho zašifrovat. Nic nebylo uloženo nešifrovaně.",
+      "notSavedNoKey": "Koncept nebyl uložen: šifrované koncepty potřebují vlastní klíč pro tuto adresu. Nic nebylo uloženo nešifrovaně.",
+      "openFailed": "Tento šifrovaný koncept se nepodařilo otevřít k úpravám. Místo toho se zobrazí ve čtečce.",
+      "hasAttachments": "Tento šifrovaný koncept obsahuje přílohy, které Plimail v konceptu nedokáže zachovat, proto se zobrazí ve čtečce místo otevření k úpravám."
     }
   }
 }

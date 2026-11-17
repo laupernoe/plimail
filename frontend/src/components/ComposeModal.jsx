@@ -61,6 +61,7 @@ import {
 } from '../utils/pgpSend.js';
 import { PgpError } from '../utils/pgp.js';
 import { ensureAutoKeys, senderAddresses } from '../utils/pgpKeys.js';
+import { encryptedDraftBody } from '../utils/pgpDraft.js';
 import { OWN_KEYS_CHANGED, loadOwnKeys, ownKeysChanged } from '../utils/pgpOwnKeys.js';
 import { ensureKeySecret, requestKeyUnlock, unlockOwnKey } from '../utils/pgpUnlock.js';
 import { SecureSendError, secureSettingsProblem, sendProtected } from '../utils/secureSend.js';
@@ -1725,12 +1726,39 @@ export default function ComposeModal() {
     return true;
   };
 
+  // The body a scheduled message is stored with: `built.payload`, or, when it goes encrypted, its
+  // ciphertext (encryptedPayloadFor, as Send). Null when encryption stood in the way, which is
+  // said, and the composer is left as it was.
+  const scheduledBodyFor = async (built, accountId, aliasId, { required }) => {
+    if (encryption.mode !== 'pgp') return { body: built.payload, encrypted: false };
+    // Files kept from the stored message are on the server, outside the encryption.
+    if (scheduledAttachments.length) return encryptionStopped(new PgpSendError('forwarded'), required);
+    try {
+      const result = await encryptedPayloadFor(built, accountId, aliasId, { required, state: pgp || pgpDefaults() });
+      if (result.plain) return encryptionStopped({ code: 'autoChanged' }, required);
+      return { body: result.body, encrypted: true };
+    } catch (err) {
+      return encryptionStopped(err, required);
+    }
+  };
+  const encryptionStopped = (err, required) => {
+    if (err?.code === 'autoChanged') setError(t('pgp.compose.autoChanged'));
+    else if (err?.code === 'unlockCancelled') setError(t('pgp.compose.unlockCancelled'));
+    else setError(pgpErrorText(err));
+    if (err instanceof PgpSendError && (err.code === 'missingKeys' || err.code === 'passphrase' || err.code === 'noOwnKey')) {
+      setPgp(v => v || { ...pgpDefaults(), auto: !required });
+      setPgpProblem({ code: err.code, emails: err.detail || [] });
+    }
+    sendingRef.current = false;
+    setSending(false);
+    return null;
+  };
+
   // Send later (design 2.2): the server stores the message and, once that committed, deletes the
   // draft it was written in. The create key makes a retry find the message the first try made.
   const handleSchedule = async (sendAt, opts = {}) => {
     if (scheduledEdit) return updateRef.current({ ...opts, sendAt });
     if (secure) { setError(t('compose.secure.noSchedule')); return; }
-    if (encryption.mode === 'pgp') { setError(t('pgp.compose.noSchedule')); return; }
     const from = await readyToSubmit(opts, o => scheduleRef.current(sendAt, o), { scheduling: true });
     if (!from) return;
     const { accountId, aliasId } = from;
@@ -1741,11 +1769,16 @@ export default function ComposeModal() {
     setError('');
     if (!clientKeyRef.current) clientKeyRef.current = newClientKey();
     const built = buildSendPayload(accountId, aliasId);
-    const { savedDraft, hasDraft, payload } = built;
+    const { savedDraft, hasDraft } = built;
+    // Encrypted, the message is built and encrypted here as Send does it, and the server keeps
+    // the ciphertext until it sends it; it never falls back to being stored in the clear.
+    const required = Boolean(pgp);
+    const sealed = await scheduledBodyFor(built, accountId, aliasId, { required });
+    if (!sealed) return;
     const timeZone = browserTimeZone();
     try {
       const result = await api.scheduled.create({
-        ...payload,
+        ...sealed.body,
         sendAt: sendAt.toISOString(),
         ...(timeZone ? { timeZone } : {}),
         clientKey: clientKeyRef.current,
@@ -1756,7 +1789,10 @@ export default function ComposeModal() {
       if (hasDraft) useStore.getState().invalidateReplyDrafts();
       // The server deleted the draft, so the message comes back without one, and autosave makes
       // a new one.
-      const restoreData = { ...buildRestoreData({ ...built, hasDraft: false }), draftWasPreExisting: false };
+      const restoreData = {
+        ...buildRestoreData({ ...built, hasDraft: false }, sealed.encrypted ? { encrypted: true, sent: { auto: !required } } : {}),
+        draftWasPreExisting: false,
+      };
       reportScheduled(result?.sendAt || sendAt, { id: result.id, restoreData });
     } catch (err) {
       setError(scheduleErrorText(err, t));
@@ -1780,11 +1816,12 @@ export default function ComposeModal() {
     sendingRef.current = true;
     setSending(true);
     setError('');
-    const { payload } = buildSendPayload(accountId, aliasId);
+    const sealed = await scheduledBodyFor(buildSendPayload(accountId, aliasId), accountId, aliasId, { required: Boolean(pgp) });
+    if (!sealed) return null;
     const timeZone = browserTimeZone();
     try {
       const result = await api.scheduled.update(scheduledEdit.id, {
-        ...payload,
+        ...sealed.body,
         ...(sendNow ? { sendNow: true } : { sendAt: at.toISOString() }),
         ...(timeZone ? { timeZone } : {}),
         editToken: hold.token(),
@@ -1923,10 +1960,19 @@ export default function ComposeModal() {
     setSending(true);
     setError('');
     try {
+      let content;
+      try {
+        content = await draftContentFor(draftFields(snapshotRef.current()), accountId, aliasId);
+      } catch (err) {
+        setError(draftEncryptionErrorText(err));
+        sendingRef.current = false;
+        setSending(false);
+        return;
+      }
       const result = await api.saveDraft({
         accountId,
         ...(aliasId ? { aliasId } : {}),
-        ...draftFields(snapshotRef.current()),
+        ...content,
         fromScheduled: { id: scheduledEdit.id, editToken: hold.token() },
       });
       hold.settle();
@@ -2051,6 +2097,21 @@ export default function ComposeModal() {
     ...(value.editedSignature || fromSignature != null || composeData?.signature !== undefined
       ? { editedSignature: value.bodyIsHtml ? unproxyImages(value.editedSignature) : value.editedSignature } : {}),
   });
+  // The /draft fields as they leave the browser: encrypted to the user's own key when the
+  // message goes encrypted, so a draft of it is never stored in the clear (utils/pgpDraft.js).
+  const draftContentFor = async (fields, accountId, aliasId) => {
+    if (encryption.mode !== 'pgp') return fields;
+    const account = accounts.find(a => a.id === accountId);
+    const alias = aliasId ? account?.aliases?.find(al => al.id === aliasId) : null;
+    const fromEmail = (alias?.email || account?.email_address || '').toLowerCase();
+    const keys = ownPgpKeys || await loadOwnKeys().catch(() => []);
+    return encryptedDraftBody({
+      fields, ownKey: ownKeyFor(keys, fromEmail), fromEmail,
+      fromName: alias?.name || account?.sender_name || account?.name || '',
+      auto: pgp ? pgp.auto === true : encryption.auto === true,
+    });
+  };
+  const draftEncryptionErrorText = err => (err?.code === 'noOwnKey' ? t('pgp.draft.notSavedNoKey') : t('pgp.draft.notSaved'));
   saveRef.current = async value => {
     if (useStore.getState().user?.id !== composeOwner) return false;
     // A scheduled message being edited is never copied to Drafts (design 2.3); Unschedule is the
@@ -2060,15 +2121,25 @@ export default function ComposeModal() {
     const { accountId, aliasId } = resolveFrom(value.fromValue || fromValue);
     if (unsupportedSenderRef.current) { setError(t("compose.unsupportedDraftFrom", { defaultValue: "Choose a configured sender before saving or sending this draft.", email: composeData?.unsupportedFrom })); return false; }
     if (!accountId) { setError(t('compose.selectAccount')); return false; }
+    // Encrypted, the draft is encrypted here first (utils/pgpDraft.js), or not saved at all. While
+    // the recipients' keys are still being looked up it is not known yet: the next save decides.
+    if (encryption.checking) return false;
     setSavingDraft(true);
     setError('');
     try {
+      let content;
+      try {
+        content = await draftContentFor(draftFields(value), accountId, aliasId);
+      } catch (err) {
+        setError(draftEncryptionErrorText(err));
+        return false;
+      }
       const pointer = draftPointerRef.current;
       const result = await api.saveDraft({
         accountId,
         includeIdentity: true,
         ...(aliasId ? { aliasId } : {}),
-        ...draftFields(value),
+        ...content,
         ...(pointer.uid != null && pointer.folder != null ? { existingUid: pointer.uid, existingFolder: pointer.folder, existingAccountId: pointer.accountId } : {}),
       });
       if (useStore.getState().user?.id !== composeOwner) return false;

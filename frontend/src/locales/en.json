@@ -2727,7 +2727,6 @@
       "subjectNote": "The subject is not encrypted.",
       "stillChecking": "Still looking for the recipients' keys. Try again in a moment.",
       "needPassphrase": "Enter your key's passphrase to sign, or turn signing off.",
-      "noSchedule": "An encrypted message cannot be scheduled. Send it now, or turn encryption off.",
       "errorForwarded": "Attachments from forwarded messages cannot be encrypted. Remove them, or download and attach them again.",
       "errorTooLarge": "Encrypted attachments are limited to 24 MB in total.",
       "errorEncrypt": "The message could not be encrypted. Nothing was sent.",
@@ -2771,6 +2770,12 @@
       "body": "Your key for {{email}} is locked by a previous Plimail password. Mail encrypted to it cannot be read until it is recovered, and it is no longer published. Recover it with the old password, or create a new key (the old one is kept for the mail it can still open).",
       "recover": "Recover with the old password",
       "newKey": "Create a new key"
+    },
+    "draft": {
+      "notSaved": "Draft not saved: it could not be encrypted. Nothing was stored in the clear.",
+      "notSavedNoKey": "Draft not saved: encrypted drafts need a key of your own for this address. Nothing was stored in the clear.",
+      "openFailed": "This encrypted draft could not be opened for editing. It is shown in the reader instead.",
+      "hasAttachments": "This encrypted draft has attachments Plimail cannot keep in a draft, so it is shown in the reader instead of opened for editing."
     }
   }
 }
