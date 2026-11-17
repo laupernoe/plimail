@@ -183,6 +183,11 @@
       "removeHighlight": "移除高亮",
       "fontDefault": "默认",
       "moreFormatting": "更多格式",
+      "strikethrough": "删除线",
+      "alignLeft": "左对齐",
+      "alignCenter": "居中",
+      "alignRight": "右对齐",
+      "htmlSource": "编辑 HTML 源代码",
       "aiAssist": "AI 助手",
       "aiWriteDraft": "生成草稿",
       "aiImprove": "改进",
@@ -530,6 +535,7 @@
     "sync": "同步",
     "compose": "撰写",
     "messagesPerPage": "每页邮件数",
+    "viewOptions": "视图选项",
     "selectAll": "全选",
     "deselectAll": "取消全选",
     "starSelected": "加星标",
@@ -631,7 +637,6 @@
       "doneBody": "已保存为收件箱规则；已收到的收件箱邮件也已更新。",
       "failed": "无法保存此发件人的分类"
     },
-    "changeLayout": "更改布局",
     "layout": "布局",
     "layouts": {
       "focused": {
@@ -1284,6 +1289,7 @@
       "microsoftImapNote": "Microsoft 不再接受 Outlook.com、Hotmail、Live 和 MSN 邮箱的密码，而此服务器尚未设置 Microsoft 登录。请让管理员在“邮件服务商”中开启。",
       "microsoftImapNoteReady": "Microsoft 不再接受 Outlook.com、Hotmail、Live 和 MSN 邮箱的密码。请改为在“添加帐户”中使用“使用 Microsoft 登录”添加此邮箱。",
       "reindex": "重新索引以供搜索",
+      "moreActions": "更多账户操作",
       "reindexing": "正在索引邮件...",
       "reindexProgress": "已索引 {{synced}} / {{total}} 封邮件",
       "reindexError": "无法启动重新索引",

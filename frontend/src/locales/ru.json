@@ -183,6 +183,11 @@
       "removeHighlight": "Убрать выделение",
       "fontDefault": "По умолчанию",
       "moreFormatting": "Ещё форматирование",
+      "strikethrough": "Зачёркнутый",
+      "alignLeft": "По левому краю",
+      "alignCenter": "По центру",
+      "alignRight": "По правому краю",
+      "htmlSource": "Редактировать HTML-код",
       "aiAssist": "ИИ-ассистент",
       "aiWriteDraft": "Написать черновик",
       "aiImprove": "Улучшить",
@@ -530,6 +535,7 @@
     "sync": "Синхронизировать",
     "compose": "Написать",
     "messagesPerPage": "Сообщений на странице",
+    "viewOptions": "Параметры вида",
     "selectAll": "Выбрать все",
     "deselectAll": "Снять выделение",
     "starSelected": "Отметить звездой",
@@ -631,7 +637,6 @@
       "doneBody": "Сохранено как правило входящих; уже полученные письма тоже обновлены.",
       "failed": "Не удалось сохранить категорию для этого отправителя"
     },
-    "changeLayout": "Изменить макет",
     "layout": "Макет",
     "layouts": {
       "focused": {
@@ -1282,6 +1287,7 @@
       "microsoftImapNote": "Microsoft больше не принимает пароли для ящиков Outlook.com, Hotmail, Live и MSN, а вход через Microsoft на этом сервере не настроен. Попросите администратора включить его в разделе Почтовые провайдеры.",
       "microsoftImapNoteReady": "Microsoft больше не принимает пароли для ящиков Outlook.com, Hotmail, Live и MSN. Добавьте этот ящик через «Войти через Microsoft» в разделе Добавить аккаунт.",
       "reindex": "Переиндексировать для поиска",
+      "moreActions": "Другие действия с аккаунтом",
       "reindexing": "Индексирование сообщений...",
       "reindexProgress": "Проиндексировано {{synced}} / {{total}} сообщений",
       "reindexError": "Не удалось запустить переиндексацию",

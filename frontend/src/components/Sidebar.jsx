@@ -29,6 +29,7 @@ import { SCHEDULED_VIEW } from '../utils/scheduledCompose.js';
 import { SendLaterIcon } from './SendLater.jsx';
 import { describeAccountError, needsSignIn } from '../utils/accountErrors.js';
 import { holdUndoable, releaseUndoable, UNDO_COMMIT_DELAY_MS } from '../utils/undoableAction.js';
+import { HIT, RADIUS } from '../utils/uiSizes.js';
 
 const ICONS = {
   snoozed: (
@@ -922,7 +923,7 @@ export default function Sidebar() {
           className="btn-press"
           style={{
             background: 'transparent', border: 'none', color: 'var(--text-secondary)',
-            cursor: 'pointer', width: 32, height: 32, borderRadius: 6, transition: 'background 0.1s, color 0.1s',
+            cursor: 'pointer', width: HIT, height: HIT, borderRadius: RADIUS, transition: 'background 0.1s, color 0.1s',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
           onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
@@ -1921,7 +1922,7 @@ export default function Sidebar() {
               aria-label={t('sidebar.mail')}
               aria-pressed={!showContacts && !showCalendar}
               style={{
-                width: 28, height: 28, borderRadius: 7,
+                width: HIT, height: HIT, borderRadius: RADIUS,
                 border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: !showContacts && !showCalendar ? 'var(--bg-hover)' : 'transparent',
@@ -1955,7 +1956,7 @@ export default function Sidebar() {
               aria-label={t('calendar.title')}
               aria-pressed={showCalendar}
               style={{
-                width: 28, height: 28, borderRadius: 7,
+                width: HIT, height: HIT, borderRadius: RADIUS,
                 border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: showCalendar ? 'var(--bg-hover)' : 'transparent',

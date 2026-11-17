@@ -183,6 +183,11 @@
       "removeHighlight": "Hervorhebung entfernen",
       "fontDefault": "Standard",
       "moreFormatting": "Weitere Formatierung",
+      "strikethrough": "Durchgestrichen",
+      "alignLeft": "Linksbündig",
+      "alignCenter": "Zentriert",
+      "alignRight": "Rechtsbündig",
+      "htmlSource": "HTML-Quelltext bearbeiten",
       "aiAssist": "KI-Assistent",
       "aiWriteDraft": "Entwurf schreiben",
       "aiImprove": "Verbessern",
@@ -530,6 +535,7 @@
     "sync": "Synchronisieren",
     "compose": "Verfassen",
     "messagesPerPage": "Nachrichten pro Seite",
+    "viewOptions": "Ansichtsoptionen",
     "selectAll": "Alle auswählen",
     "deselectAll": "Alle abwählen",
     "starSelected": "Mit Stern versehen",
@@ -631,7 +637,6 @@
       "doneBody": "Als Posteingangsregel gespeichert; bereits empfangene Mails im Posteingang wurden ebenfalls aktualisiert.",
       "failed": "Die Kategorie für diesen Absender konnte nicht gespeichert werden"
     },
-    "changeLayout": "Layout ändern",
     "layout": "Layout",
     "layouts": {
       "focused": {
@@ -1209,6 +1214,7 @@
       "microsoftImapNote": "Microsoft akzeptiert für Postfächer von Outlook.com, Hotmail, Live und MSN keine Passwörter mehr, und die Anmeldung mit Microsoft ist auf diesem Server nicht eingerichtet. Bitten Sie Ihren Administrator, sie unter E-Mail-Anbieter einzuschalten.",
       "microsoftImapNoteReady": "Microsoft akzeptiert für Postfächer von Outlook.com, Hotmail, Live und MSN keine Passwörter mehr. Fügen Sie dieses Postfach stattdessen unter Konto hinzufügen mit „Mit Microsoft anmelden“ hinzu.",
       "reindex": "Für die Suche neu indizieren",
+      "moreActions": "Weitere Kontoaktionen",
       "reindexing": "Nachrichten werden indiziert...",
       "reindexProgress": "{{synced}} / {{total}} Nachrichten indiziert",
       "reindexError": "Neuindizierung konnte nicht gestartet werden",

@@ -183,6 +183,11 @@
       "removeHighlight": "Rimuovi evidenziazione",
       "fontDefault": "Predefinito",
       "moreFormatting": "Altra formattazione",
+      "strikethrough": "Barrato",
+      "alignLeft": "Allinea a sinistra",
+      "alignCenter": "Centra",
+      "alignRight": "Allinea a destra",
+      "htmlSource": "Modifica il codice HTML",
       "aiAssist": "Assistente IA",
       "aiWriteDraft": "Scrivi bozza",
       "aiImprove": "Migliora",
@@ -530,6 +535,7 @@
     "sync": "Sincronizza",
     "compose": "Scrivi",
     "messagesPerPage": "Messaggi per pagina",
+    "viewOptions": "Opzioni di visualizzazione",
     "selectAll": "Seleziona tutto",
     "deselectAll": "Deseleziona tutto",
     "starSelected": "Aggiungi stella",
@@ -631,7 +637,6 @@
       "doneBody": "Salvato come regola della posta in arrivo; aggiornati anche i messaggi già ricevuti.",
       "failed": "Impossibile salvare la categoria per questo mittente"
     },
-    "changeLayout": "Cambia disposizione",
     "layout": "Layout",
     "layouts": {
       "focused": {
@@ -1282,6 +1287,7 @@
       "microsoftImapNote": "Microsoft non accetta più password per le caselle Outlook.com, Hotmail, Live e MSN, e l'accesso con Microsoft non è configurato su questo server. Chiedi al tuo amministratore di attivarlo in Provider di posta.",
       "microsoftImapNoteReady": "Microsoft non accetta più password per le caselle Outlook.com, Hotmail, Live e MSN. Aggiungi invece questa casella con «Accedi con Microsoft» in Aggiungi account.",
       "reindex": "Reindicizza per la ricerca",
+      "moreActions": "Altre azioni dell’account",
       "reindexing": "Indicizzazione messaggi...",
       "reindexProgress": "{{synced}} / {{total}} messaggi indicizzati",
       "reindexError": "Impossibile avviare la reindicizzazione",

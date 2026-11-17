@@ -58,6 +58,8 @@ import ServerFiltersSection from './ServerFiltersSection.jsx';
 import VacationSection from './VacationSection.jsx';
 import { CalendarAccountsTab, CalendarListTab } from './calendar/AccountsModal.jsx';
 import CalendarOffer from './calendar/CalendarOffer.jsx';
+import { MoreMenu } from './MessageActions.jsx';
+import { ICON, ICON_SMALL, iconButtonBox } from '../utils/uiSizes.js';
 
 // ─── Shared field component ───────────────────────────────────────────────────
 function Field({ label, required, children }) {
@@ -1392,7 +1394,7 @@ function AccountsTab() {
       {accounts.map(account => (
         <div key={account.id} ref={el => { rowRefs.current[account.id] = el; }} data-account-id={account.id} style={{
           border: `1px solid ${focusedId === account.id ? 'var(--accent)' : 'var(--border-subtle)'}`, borderRadius: 10,
-          background: 'var(--bg-tertiary)', marginBottom: 10, overflow: 'hidden',
+          background: 'var(--bg-tertiary)', marginBottom: 10,
           transition: 'border-color 0.3s',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', flexWrap: 'wrap' }}>
@@ -1427,46 +1429,41 @@ function AccountsTab() {
             <div style={{ display: 'flex', gap: 6, flexShrink: 0, marginLeft: 'auto' }}>
               {account.sync_error && (
                 <IconBtn onClick={() => handleReconnect(account.id)} title={t('sidebar.accountMenu.tryAgain')}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="23 4 23 10 17 10"/>
                     <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
                   </svg>
                 </IconBtn>
               )}
               <IconBtn onClick={() => { setEditTarget(account); setSubview('edit'); }} title={t('common.edit')}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                   <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
                 </svg>
               </IconBtn>
-              <IconBtn onClick={() => handleFolderMappingOpen(account)} title={t('admin.accounts.folderMappings')}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
-                </svg>
-              </IconBtn>
-              <IconBtn onClick={() => handleAliasOpen(account)} title={t('admin.accounts.aliases')}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="8" r="4"/>
-                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                </svg>
-              </IconBtn>
-              <IconBtn onClick={() => handleSyncFolders(account.id)} title={t('admin.accounts.syncFolders')}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
-                  <path d="M9 13a3 3 0 015.4-1.5M15 15a3 3 0 01-5.4 1.5"/>
-                </svg>
-              </IconBtn>
-              <IconBtn onClick={() => handleReindex(account.id)} title={t('admin.accounts.reindex')} disabled={!!backfillProgress[account.id]}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-              </IconBtn>
-              <IconBtn onClick={() => handleDelete(account.id)} title={t('common.remove')} danger>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="3 6 5 6 21 6"/>
-                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                </svg>
-              </IconBtn>
+              {/* Edit stays in view; the rest of what an account offers is in its More menu. */}
+              <MoreMenu label={t('admin.accounts.moreActions')} minWidth={220} items={[
+                {
+                  key: 'folders', label: t('admin.accounts.folderMappings'), run: () => handleFolderMappingOpen(account),
+                  icon: <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>,
+                },
+                {
+                  key: 'aliases', label: t('admin.accounts.aliases'), run: () => handleAliasOpen(account),
+                  icon: <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>,
+                },
+                {
+                  key: 'sync-folders', label: t('admin.accounts.syncFolders'), run: () => handleSyncFolders(account.id),
+                  icon: <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/><path d="M9 13a3 3 0 015.4-1.5M15 15a3 3 0 01-5.4 1.5"/></svg>,
+                },
+                {
+                  key: 'reindex', label: t('admin.accounts.reindex'), run: () => handleReindex(account.id), disabled: !!backfillProgress[account.id],
+                  icon: <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+                },
+                {
+                  key: 'remove', label: t('common.remove'), run: () => handleDelete(account.id), separator: true, danger: true,
+                  icon: <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>,
+                },
+              ]} />
             </div>
           </div>
 
@@ -1482,7 +1479,7 @@ function AccountsTab() {
           {/* Connection details bar */}
           <div style={{
             padding: '8px 14px', borderTop: '1px solid var(--border-subtle)',
-            background: 'var(--bg-secondary)',
+            background: 'var(--bg-secondary)', borderRadius: '0 0 9px 9px',
             display: 'flex', gap: 20, flexWrap: 'wrap',
           }}>
             {[
@@ -1686,13 +1683,14 @@ function ThemesTab() {
 function IconBtn({ children, onClick, title, danger, disabled }) {
   const [hov, setHov] = useState(false);
   return (
-    <button onClick={disabled ? undefined : onClick} title={title} disabled={disabled}
+    <button onClick={disabled ? undefined : onClick} title={title} aria-label={title} disabled={disabled}
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{
+        ...iconButtonBox,
         background: hov && !disabled ? (danger ? 'rgba(248,113,113,0.1)' : 'var(--bg-hover)') : 'transparent',
         border: `1px solid ${hov && !disabled ? (danger ? 'rgba(248,113,113,0.3)' : 'var(--border)') : 'transparent'}`,
-        borderRadius: 6, padding: '5px', color: danger && hov && !disabled ? 'var(--red)' : 'var(--text-tertiary)',
-        cursor: disabled ? 'default' : 'pointer', display: 'flex', alignItems: 'center', transition: 'all 0.1s',
+        color: danger && hov && !disabled ? 'var(--red)' : 'var(--text-tertiary)',
+        cursor: disabled ? 'default' : 'pointer', transition: 'all 0.1s',
         opacity: disabled ? 0.4 : 1,
       }}
     >

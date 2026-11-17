@@ -1626,3 +1626,37 @@ describe('locking the screen while composing', () => {
     }
   });
 });
+
+// The toolbar keeps the everyday formatting in view; strikethrough, alignment and the HTML source
+// moved into its More formatting menu, and still work from there.
+describe('the composer toolbar\'s More formatting menu', () => {
+  const moreButton = () => document.querySelector('button[aria-label="compose.toolbar.moreFormatting"]');
+  const item = (label) => [...document.querySelectorAll('[role="menu"] button')].find(b => b.textContent.trim().endsWith(label));
+  const click = (el) => React.act(async () => { el.dispatchEvent(new window.MouseEvent('click', { bubbles: true })); });
+
+  test('strikethrough and alignment are menu items, not toolbar buttons, and apply to the text', async () => {
+    const close = await openDraft({ plaintextEmail: false, body: '<p>Some words</p>' });
+    try {
+      assert.equal(document.querySelector('button[title="Strikethrough"]'), null, 'no strikethrough button in view');
+      assert.equal(document.querySelector('button[title="Align center"]'), null, 'no alignment buttons in view');
+      const editor = document.querySelector('.ProseMirror').editor;
+      await React.act(async () => { editor.commands.selectAll(); });
+
+      await click(moreButton());
+      const strike = item('compose.toolbar.strikethrough');
+      assert.equal(strike.getAttribute('role'), 'menuitemcheckbox');
+      assert.equal(strike.getAttribute('aria-checked'), 'false');
+      await click(strike);
+      assert.match(editor.getHTML(), /<s>Some words<\/s>/);
+      assert.equal(document.querySelector('[role="menu"]'), null, 'choosing closes the menu');
+
+      await click(moreButton());
+      assert.equal(item('compose.toolbar.strikethrough').getAttribute('aria-checked'), 'true', 'it shows strikethrough is on');
+      await click(item('compose.toolbar.alignCenter'));
+      assert.match(editor.getHTML(), /text-align: ?center/);
+    } finally {
+      await close();
+      useStore.setState({ composing: false, composeData: null });
+    }
+  });
+});

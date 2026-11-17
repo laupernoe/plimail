@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { HIT, ICON_SMALL } from '../../utils/uiSizes.js';
 import { useTranslation } from 'react-i18next';
 import {
   addMonths, dateFromDay, formatDayText, monthGrid, monthStart, parseDay, weekDays,
@@ -18,8 +19,8 @@ function MiniMonth({ anchor, today, firstDay, locale, rangeFirst, rangeEnd, onPi
         <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
           {formatDayText(shown, { month: 'long', year: 'numeric' }, locale)}
         </span>
-        <IconBtn label={t('calendar.previous')} icon="chevL" size={24} iconSize={14} onClick={() => setShown(addMonths(shown, -1))} />
-        <IconBtn label={t('calendar.next')} icon="chevR" size={24} iconSize={14} onClick={() => setShown(addMonths(shown, 1))} />
+        <IconBtn label={t('calendar.previous')} icon="chevL" size={HIT} iconSize={ICON_SMALL} onClick={() => setShown(addMonths(shown, -1))} />
+        <IconBtn label={t('calendar.next')} icon="chevR" size={HIT} iconSize={ICON_SMALL} onClick={() => setShown(addMonths(shown, 1))} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center' }}>
         {weekDays(weeks[0][0], firstDay).map(d => (

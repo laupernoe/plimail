@@ -1220,7 +1220,9 @@ describe('MessageList — sorting a folder (#528, #196)', () => {
     useStore.setState({ listSort: {} });
     await mount({ rows: [MESSAGE], threadedView: false });
     assert.equal(listParams().at(-1).sort, undefined, 'newest first sends no order');
-    assert.equal(sortButton().textContent.trim(), 'messageList.sort');
+    // In the default order it is an icon, named for screen readers and its tooltip.
+    assert.equal(sortButton().textContent.trim(), '');
+    assert.equal(sortButton().getAttribute('aria-label'), 'messageList.sort');
 
     CALLS = [];
     await click(sortButton());
@@ -1275,6 +1277,48 @@ describe('MessageList — sorting a folder (#528, #196)', () => {
   test('no sort in the Snoozed view', async () => {
     await mount({ rows: [], threadedView: false, folder: 'Snoozed', accountId: null });
     assert.equal(sortButton(), undefined);
+  });
+});
+
+// The layout picker and the page size moved into the header's More menu: both still work from
+// there, by mouse and by keyboard, and say which choice is current.
+describe('MessageList — the view options menu', () => {
+  const moreButton = () => container.querySelector('button[aria-label="messageList.viewOptions"]');
+  const item = (text) => [...container.querySelectorAll('[role="menuitemradio"]')].find(b => b.textContent.trim() === text);
+  const click = async (el) => { await React.act(async () => { el.click(); await new Promise(r => setTimeout(r, 0)); }); };
+
+  test('picks a layout and a page size, and shows the current ones ticked', async (t) => {
+    const saved = useStore.getState();
+    t.after(() => { useStore.setState({ layout: saved.layout, pageSize: saved.pageSize }); });
+    useStore.setState({ layout: 'comfortable', pageSize: 50 });
+    await mount({ rows: [MESSAGE], threadedView: false });
+    assert.equal(container.querySelector('select[title="messageList.messagesPerPage"]'), null, 'no page size select in view');
+    assert.equal(moreButton().getAttribute('aria-haspopup'), 'menu');
+
+    await click(moreButton());
+    assert.equal(moreButton().getAttribute('aria-expanded'), 'true');
+    assert.equal(document.activeElement, container.querySelector('[role="menu"] [role^="menuitem"]'), 'focus is on the first choice');
+    assert.equal(item('Comfortable').getAttribute('aria-checked'), 'true');
+    assert.equal(item('50').getAttribute('aria-checked'), 'true');
+    await click(item('Compact'));
+    assert.equal(useStore.getState().layout, 'compact');
+    assert.equal(container.querySelector('[role="menu"]'), null, 'choosing closes the menu');
+    assert.equal(document.activeElement, moreButton(), 'and gives focus back to its button');
+
+    CALLS = [];
+    await click(moreButton());
+    await click(item('100'));
+    assert.equal(useStore.getState().pageSize, 100);
+    await React.act(async () => { await new Promise(r => setTimeout(r, 0)); });
+    const loaded = CALLS.filter(c => c.path.includes('/mail/messages?')).at(-1);
+    assert.ok(loaded, 'the list loads again');
+    assert.equal(new URL(loaded.path, 'https://mail.example.invalid').searchParams.get('limit'), '100');
+
+    await click(moreButton());
+    await React.act(async () => {
+      document.activeElement.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    });
+    assert.equal(container.querySelector('[role="menu"]'), null, 'Escape closes it');
   });
 });
 
