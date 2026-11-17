@@ -24,6 +24,7 @@ import { consume as rlConsume, release as rlRelease, reset as rlReset } from '..
 import { consumeLoginAttempt } from '../services/loginLimiter.js';
 import { rateLimitAddress } from '../utils/rateLimitAddress.js';
 import { passwordProblem } from '../utils/passwordPolicy.js';
+import { PgpRequestError, setKeysProtection } from '../services/pgpKeyring.js';
 
 const router = Router();
 
@@ -1059,6 +1060,70 @@ router.patch('/profile/recovery-email', async (req, res) => {
   });
   res.json({ ok: true });
 });
+
+// ── Changing your own password ────────────────────────────────────────────────
+
+// Settings → Security: the signed-in user changes their password, giving the current one. That is
+// checked against the sign-in form's budget for the account (services/loginLimiter.js), as
+// verify-password is, so a stolen session cannot guess it here any faster than at the login page.
+//
+// `pgpKeys`: the user's OpenPGP keys that unlock with the password, re-encrypted in the browser for
+// the new one (frontend utils/pgpPasswordChange.js). They are stored in the same transaction as the
+// new hash, so the keys and the password cannot end up out of step: either both change or neither.
+// The KDF salt (users.pgp_kdf_salt) stays: a key left under an earlier password still opens with
+// that password and this salt, which is how the unlock prompt recovers it.
+//
+// Every other session of the user ends, as do reset links and login codes already sent, which
+// would otherwise still set a different password or sign in. The session doing this stays.
+export async function changeOwnPassword(req, res) {
+  const userId = req.session.userId;
+  if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+  const { currentPassword, newPassword, pgpKeys } = req.body ?? {};
+  if (typeof currentPassword !== 'string' || !currentPassword || currentPassword.length > 1024) {
+    return res.status(400).json({ error: 'currentPassword is required' });
+  }
+  const problem = passwordProblem(newPassword);
+  if (problem) return res.status(400).json({ error: problem });
+
+  const { rows: [user] } = await query('SELECT username, password_hash FROM users WHERE id = $1', [userId]);
+  if (!user) return res.status(401).json({ error: 'Not authenticated' });
+  if (!user.password_hash) return res.status(400).json({ error: 'This account signs in without a password', code: 'no_password' });
+  const attempt = await consumeLoginAttempt(String(user.username).toLowerCase().trim(), req.ip);
+  if (attempt.limited) {
+    res.set('Retry-After', String(Math.max(1, Math.ceil((attempt.resetMs || 1000) / 1000))));
+    return res.status(429).json({ error: 'Too many attempts. Try again later.', code: 'rate_limited' });
+  }
+  if (!(await bcrypt.compare(currentPassword, user.password_hash))) {
+    logAuthEvent('password_change_fail', { userId, username: user.username, ip: req.ip, success: false });
+    return res.status(403).json({ error: 'The current password is wrong', code: 'wrong_password' });
+  }
+  await attempt.succeeded();
+
+  const hash = await bcrypt.hash(newPassword, 12);
+  try {
+    const changed = await withTransaction(async (client) => {
+      // The hash checked above must still be the one stored: two changes at once, and only the
+      // first one wins. The second one's keys were encrypted for a password that is not stored.
+      const { rows: [locked] } = await client.query('SELECT password_hash FROM users WHERE id = $1 FOR UPDATE', [userId]);
+      if (locked?.password_hash !== user.password_hash) return false;
+      if (pgpKeys !== undefined) await setKeysProtection(userId, pgpKeys, { client });
+      await client.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, userId]);
+      await client.query('DELETE FROM password_reset_tokens WHERE user_id = $1', [userId]);
+      await client.query('DELETE FROM email_otp_tokens WHERE user_id = $1', [userId]);
+      return true;
+    });
+    if (!changed) return res.status(409).json({ error: 'The password changed meanwhile', code: 'password_changed' });
+  } catch (err) {
+    if (err instanceof PgpRequestError) return res.status(err.status).json({ error: err.message, ...(err.code ? { code: err.code } : {}) });
+    throw err;
+  }
+  // Sessions are in Redis, outside the transaction, so they end once it has committed.
+  await destroyUserSessions(userId, { exceptSessionId: req.sessionID });
+  logAuthEvent('password_changed', { userId, username: user.username, ip: req.ip, success: true });
+  console.log(`[auth] ${user.username} changed their password${pgpKeys ? ` and re-encrypted ${pgpKeys.length} key(s)` : ''}`);
+  res.json({ ok: true });
+}
+router.post('/password', changeOwnPassword);
 
 // ── Password reset ────────────────────────────────────────────────────────────
 

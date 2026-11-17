@@ -114,31 +114,6 @@ async function setConservativePreferences(openpgp, key) {
   }
 }
 
-// A private key brought from elsewhere (Proton, Thunderbird, GnuPG). It must open with
-// `passphrase`; one that has no passphrase gets `newPassphrase` (required then), since no private
-// key is stored without one. Returns the armored pair to store.
-export async function preparePrivateKeyImport(armored, passphrase, newPassphrase = '') {
-  const openpgp = await loadOpenpgp();
-  let key;
-  try {
-    key = await openpgp.readPrivateKey({ armoredKey: armored });
-  } catch {
-    throw new PgpError('invalidKey');
-  }
-  let toStore = key;
-  if (key.isDecrypted()) {
-    if (!newPassphrase) throw new PgpError('unprotectedKey');
-    toStore = await openpgp.encryptKey({ privateKey: key, passphrase: newPassphrase });
-  } else {
-    try {
-      await openpgp.decryptKey({ privateKey: key, passphrase });
-    } catch {
-      throw new PgpError('wrongPassphrase');
-    }
-  }
-  return { armoredPrivate: toStore.armor(), armoredPublic: toStore.toPublic().armor(), fingerprint: key.getFingerprint() };
-}
-
 // The private key opened with its passphrase, for this tab only (utils/pgpSession.js keeps it).
 export async function unlockPrivateKey(armoredPrivate, passphrase) {
   const openpgp = await loadOpenpgp();

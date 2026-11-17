@@ -53,7 +53,9 @@ export async function lockKey(privateKey, passphrase) {
 // user no longer has while the others move.
 // `onOpened(row, key)` gets each key opened on the way, for the caller to keep unlocked (the
 // caller's copy of a row still holds the old encryption until the keys are read again).
-export async function rewrapLoginKeys(rows, { from, to, unlock = unlockPrivateKey, lock = lockKey, onOpened = null }) {
+// `onUnopened(row)`: the caller has asked the user and lets a key `from` does not open stay as it
+// is; it is reported there and left out instead of stopping the others.
+export async function rewrapLoginKeys(rows, { from, to, unlock = unlockPrivateKey, lock = lockKey, onOpened = null, onUnopened = null }) {
   if (!from || !to) throw new PgpError('passphraseRequired');
   const updates = [];
   for (const row of (rows || []).filter(isLoginKey)) {
@@ -63,7 +65,14 @@ export async function rewrapLoginKeys(rows, { from, to, unlock = unlockPrivateKe
     } catch (err) {
       if (err?.code !== 'wrongPassphrase') throw err;
     }
-    const key = await unlock(row.armoredPrivate, from);
+    let key;
+    try {
+      key = await unlock(row.armoredPrivate, from);
+    } catch (err) {
+      if (err?.code !== 'wrongPassphrase' || !onUnopened) throw err;
+      onUnopened(row);
+      continue;
+    }
     onOpened?.(row, key);
     const armoredPrivate = await lock(key, to);
     // Opened again with the new secret before anything is sent: what is stored must open.

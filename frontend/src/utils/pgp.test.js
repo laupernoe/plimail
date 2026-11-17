@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as openpgp from 'openpgp';
 import {
-  PgpError, decryptArmored, encryptMime, encryptionKeyIds, generateKeyPair, keyInfo, keyMatches, preparePrivateKeyImport,
+  PgpError, decryptArmored, encryptMime, encryptionKeyIds, generateKeyPair, keyInfo, keyMatches,
   readArmoredKeys, unlockPrivateKey, verifyCleartext, verifyDetached,
 } from './pgp.js';
 import { buildMimeEntity, entityBytes } from './mimeBuild.js';
@@ -26,21 +26,6 @@ test('unlocks only with the right passphrase', async () => {
   await assert.rejects(unlockPrivateKey(alice.armoredPrivate, 'wrong'), e => e instanceof PgpError && e.code === 'wrongPassphrase');
   const key = await unlockPrivateKey(alice.armoredPrivate, 'alice pass');
   assert.equal(key.isDecrypted(), true);
-});
-
-test('imports a protected key after checking its passphrase, and protects an unprotected one', async () => {
-  await assert.rejects(preparePrivateKeyImport(bob.armoredPrivate, 'nope'), e => e.code === 'wrongPassphrase');
-  const ok = await preparePrivateKeyImport(bob.armoredPrivate, 'bob pass');
-  assert.equal(ok.fingerprint, bob.fingerprint);
-
-  const { privateKey: bare } = await openpgp.generateKey({ type: 'curve25519', userIDs: [{ email: 'c@example.org' }], format: 'armored' });
-  await assert.rejects(preparePrivateKeyImport(bare, ''), e => e.code === 'unprotectedKey');
-  const sealed = await preparePrivateKeyImport(bare, '', 'new pass');
-  const stored = await openpgp.readPrivateKey({ armoredKey: sealed.armoredPrivate });
-  // What goes to the server is encrypted, whatever came in.
-  assert.equal(stored.isDecrypted(), false);
-  await unlockPrivateKey(sealed.armoredPrivate, 'new pass');
-  await assert.rejects(preparePrivateKeyImport('not a key', 'x'), e => e.code === 'invalidKey');
 });
 
 test('encrypts a MIME entity to the recipients and the sender, signed, and reads it back', async () => {
