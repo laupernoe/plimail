@@ -8,6 +8,7 @@ import LoginPage from './components/LoginPage.jsx';
 import MailApp from './components/MailApp.jsx';
 import LockScreen from './components/LockScreen.jsx';
 import UpdateBanner from './components/UpdateBanner.jsx';
+import OfflineBanner from './components/OfflineBanner.jsx';
 import { startServiceWorker } from './utils/swUpdate.js';
 
 export default function App() {
@@ -123,6 +124,7 @@ export default function App() {
         <Route path="/register" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
         <Route path="/*" element={user ? (isLocked ? <LockScreen /> : <MailApp />) : <Navigate to="/login" replace />} />
       </Routes>
+      {user && !isLocked && <OfflineBanner />}
       <UpdateBanner />
     </>
   );

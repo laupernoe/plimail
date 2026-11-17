@@ -2991,6 +2991,10 @@
     "update": {
       "available": "Plimail 有新版本可用。",
       "reload": "重新加载"
+    },
+    "offline": {
+      "banner": "您已离线。最近打开的邮件仍可阅读；发送和更改需等待连接恢复。",
+      "unreachable": "Plimail 无法连接服务器。请检查网络连接后重试。"
     }
   }
 }

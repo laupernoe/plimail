@@ -190,3 +190,8 @@ Things that will bite you if you do not know them.
 - **A host with no provider profile is not a host without quirks.** `providerProfile()` in
   `imapManager.js` has entries for google, yahoo, apple, microsoft, purelymail and strato.
   Everything else, Zoho included, falls through to `generic`.
+- **What `utils/offlineCache.js` keeps sits on disk.** For offline reading, `api.js` saves the
+  answers to an allowlist of GET requests (accounts, folders, lists, messages, bodies, threads,
+  `/auth/me`) in Cache Storage and serves them only when `fetch` itself fails. The cache is
+  dropped on sign-out, lock, a 401 or 423, and a change of user. Adding a path to that list
+  puts its answer on the user's disk until then, so never one that carries a secret.

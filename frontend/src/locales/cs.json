@@ -3010,6 +3010,10 @@
     "update": {
       "available": "Je k dispozici nová verze Plimailu.",
       "reload": "Znovu načíst"
+    },
+    "offline": {
+      "banner": "Jste offline. Nedávno otevřené zprávy lze stále číst; odesílání a změny počkají na připojení.",
+      "unreachable": "Plimail se nemůže spojit se serverem. Zkontrolujte připojení a zkuste to znovu."
     }
   }
 }
