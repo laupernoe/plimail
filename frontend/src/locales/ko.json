@@ -325,7 +325,9 @@
     "sendEncrypted": "암호화하여 보내기 (PGP)",
     "sendEncryptedShort": "암호화하여 보내기",
     "sendWithPassword": "비밀번호로 보내기",
-    "sendWithPasswordShort": "보호하여 보내기"
+    "sendWithPasswordShort": "보호하여 보내기",
+    "readReceipt": "수신 확인 요청",
+    "readReceiptHint": "수신자의 메일 프로그램에 메시지를 열었는지 확인해 달라고 요청합니다. 수신자는 거절할 수 있습니다."
   },
   "message": {
     "printConversation": "대화 인쇄",
@@ -501,6 +503,14 @@
         "replyTo": "회신이 다른 주소로 갑니다: {{address}}",
         "displayName": "발신자 이름은 {{shown}}(으)로 보이지만 메일은 {{actual}}에서 왔습니다"
       }
+    },
+    "readReceipt": {
+      "info": "보낸 사람이 수신 확인을 요청했습니다.",
+      "mismatch": "요청이 메시지를 보낸 주소와 다른 주소에서 왔습니다. 답하기 전에 확인하세요.",
+      "send": "보내기",
+      "ignore": "무시",
+      "sendFailed": "수신 확인을 보내지 못했습니다.",
+      "ignoreFailed": "선택을 저장하지 못했습니다."
     }
   },
   "messageList": {
@@ -1447,7 +1457,17 @@
       "mobileAvatarsOnDesc": "각 행에 보낸 사람 아바타를 표시합니다(약간 너비 사용).",
       "gravatarOffDesc": "비공개 — 제3자에게 절대 연락하지 않습니다.",
       "defaultMailAppDesc": "Plimail가 이 브라우저의 mailto: 링크를 열도록 합니다. 브라우저에서 확인을 요청합니다. Firefox 및 Chrome/Edge에서 작동합니다. iOS에서는 사용할 수 없습니다.",
-      "markReadDelayDesc": "설정된 시간 동안 이메일을 본 후 읽음으로 표시합니다."
+      "markReadDelayDesc": "설정된 시간 동안 이메일을 본 후 읽음으로 표시합니다.",
+      "readReceiptRequestAlways": "모든 메시지에 수신 확인 요청",
+      "readReceiptRequestAlwaysDesc": "작성하는 모든 메시지에 수신 확인 요청을 추가합니다. 작성 창에서 끌 수 있습니다.",
+      "readReceiptReply": "수신 확인 요청 처리",
+      "readReceiptReplyDesc": "메시지가 읽었음을 확인해 달라고 요청할 때의 동작입니다. 스팸과 메일링 리스트에는 응답하지 않습니다.",
+      "readReceiptAsk": "물어보기",
+      "readReceiptAskDesc": "메시지 위에 보내기와 무시 버튼이 있는 알림을 표시합니다(권장).",
+      "readReceiptAlways": "항상 보내기",
+      "readReceiptAlwaysDesc": "요청이 의심스럽지 않다면 메시지를 여는 즉시 응답합니다.",
+      "readReceiptNever": "보내지 않기",
+      "readReceiptNeverDesc": "응답하지 않으며 알림도 표시하지 않습니다."
     },
     "notifications": {
       "title": "알림",

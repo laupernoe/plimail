@@ -660,6 +660,14 @@
         "replyTo": "Odpovědi jdou na jinou adresu: {{address}}",
         "displayName": "Jméno odesílatele ukazuje {{shown}}, ale zpráva je z {{actual}}"
       }
+    },
+    "readReceipt": {
+      "info": "Odesílatel žádá o potvrzení o přečtení.",
+      "mismatch": "Žádost pochází z jiné adresy, než ze které byla zpráva odeslána. Před odpovědí ji zkontrolujte.",
+      "send": "Odeslat",
+      "ignore": "Ignorovat",
+      "sendFailed": "Potvrzení se nepodařilo odeslat.",
+      "ignoreFailed": "Vaši volbu se nepodařilo uložit."
     }
   },
   "compose": {
@@ -892,7 +900,9 @@
     "sendEncrypted": "Odeslat šifrovaně (PGP)",
     "sendEncryptedShort": "Odeslat šifrovaně",
     "sendWithPassword": "Odeslat s heslem",
-    "sendWithPasswordShort": "Odeslat chráněně"
+    "sendWithPasswordShort": "Odeslat chráněně",
+    "readReceipt": "Požádat o potvrzení o přečtení",
+    "readReceiptHint": "Požádá poštovní program příjemce o potvrzení, že zprávu otevřel. Příjemce může odmítnout."
   },
   "notifications": {
     "newMessage": "Nová zpráva"
@@ -1647,7 +1657,17 @@
       "gravatarOnDesc": "Načítat fotografie odesílatelů z Gravataru — sdílí hashované adresy odesílatelů s třetí stranou.",
       "markReadDelaySeconds_one": "{{count}} sekunda",
       "markReadDelaySeconds_few": "{{count}} sekundy",
-      "markReadDelaySeconds_many": "{{count}} sekundy"
+      "markReadDelaySeconds_many": "{{count}} sekundy",
+      "readReceiptRequestAlways": "Žádat o potvrzení o přečtení u každé zprávy",
+      "readReceiptRequestAlwaysDesc": "Ke každé zprávě, kterou napíšete, přidá žádost o potvrzení o přečtení. V editoru ji lze stále vypnout.",
+      "readReceiptReply": "Žádosti o potvrzení o přečtení",
+      "readReceiptReplyDesc": "Co dělat, když zpráva žádá o potvrzení jejího přečtení. Na spam a konference se nikdy neodpovídá.",
+      "readReceiptAsk": "Zeptat se",
+      "readReceiptAskDesc": "Upozornění nad zprávou s tlačítky Odeslat a Ignorovat (doporučeno).",
+      "readReceiptAlways": "Vždy odeslat",
+      "readReceiptAlwaysDesc": "Odpovědět hned po otevření zprávy, pokud žádost nevypadá podezřele.",
+      "readReceiptNever": "Nikdy neodesílat",
+      "readReceiptNeverDesc": "Nikdy neodpovídat a upozornění nezobrazovat."
     },
     "lock": {
       "title": "Zámek obrazovky",

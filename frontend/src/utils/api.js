@@ -490,6 +490,9 @@ export const api = {
 
   getMessageHeaders: (id) => request('GET', `/mail/messages/${id}/headers`),
   getMessageBcc: (id) => request('GET', `/mail/messages/${id}/bcc`),
+  // Read receipts (RFC 8098): whether the message asks for one, and the answer to it.
+  getReadReceipt: (id) => request('GET', `/mail/messages/${id}/receipt`),
+  answerReadReceipt: (id, action, confirm = false) => request('POST', `/mail/messages/${id}/receipt`, { action, ...(confirm ? { confirm: true } : {}) }),
   snoozeMessage: (id, until) => request('POST', `/mail/messages/${id}/snooze`, { until }),
   // The Snoozed view (#269): change when a snoozed message comes back, or bring it back now.
   changeSnooze: (id, until) => request('PATCH', `/mail/messages/${id}/snooze`, { until }),

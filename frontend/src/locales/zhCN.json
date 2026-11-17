@@ -325,7 +325,9 @@
     "sendEncrypted": "加密发送 (PGP)",
     "sendEncryptedShort": "加密发送",
     "sendWithPassword": "使用密码发送",
-    "sendWithPasswordShort": "受保护发送"
+    "sendWithPasswordShort": "受保护发送",
+    "readReceipt": "请求已读回执",
+    "readReceiptHint": "请收件人的邮件程序确认已打开该邮件。对方可以拒绝。"
   },
   "message": {
     "find": {
@@ -501,6 +503,14 @@
         "replyTo": "回复会发送到另一个地址：{{address}}",
         "displayName": "发件人名称显示为 {{shown}}，但邮件来自 {{actual}}"
       }
+    },
+    "readReceipt": {
+      "info": "发件人请求已读回执。",
+      "mismatch": "该请求来自与发送邮件不同的地址，回复前请先核对。",
+      "send": "发送",
+      "ignore": "忽略",
+      "sendFailed": "无法发送回执。",
+      "ignoreFailed": "无法保存你的选择。"
     }
   },
   "messageList": {
@@ -1447,7 +1457,17 @@
       "gravatarOff": "关闭",
       "gravatarOffDesc": "私密 — 从不联系第三方。",
       "gravatarOn": "开启",
-      "gravatarOnDesc": "从 Gravatar 获取发件人照片 — 会与第三方共享经哈希处理的发件人地址。"
+      "gravatarOnDesc": "从 Gravatar 获取发件人照片 — 会与第三方共享经哈希处理的发件人地址。",
+      "readReceiptRequestAlways": "每封邮件都请求已读回执",
+      "readReceiptRequestAlwaysDesc": "为你撰写的每封邮件添加已读回执请求。仍可在写信窗口中关闭。",
+      "readReceiptReply": "已读回执请求",
+      "readReceiptReplyDesc": "当邮件请求你确认已读时如何处理。垃圾邮件和邮件列表永远不会收到回复。",
+      "readReceiptAsk": "询问我",
+      "readReceiptAskDesc": "在邮件上方显示带有“发送”和“忽略”的提示（推荐）。",
+      "readReceiptAlways": "始终发送",
+      "readReceiptAlwaysDesc": "打开邮件时立即回复，除非请求看起来可疑。",
+      "readReceiptNever": "从不发送",
+      "readReceiptNeverDesc": "从不回复，也不显示提示。"
     },
     "notifications": {
       "title": "通知",

@@ -123,6 +123,9 @@ const SAME_VALUE_ALLOWED = {
   'pgp.unlock.go':                          [['es', 'ptBR']], // Desbloquear
   'pgp.unlock.working':                     [['es', 'ptBR']], // Desbloqueando…
   'admin.password.title':                   [['en', 'it']], // Password, the word Italian uses
+  // ── Read receipts: the same words in Spanish and Portuguese ────────────────
+  'message.readReceipt.send':               [['es', 'ptBR']], // Enviar
+  'message.readReceipt.ignore':             [['es', 'ptBR']], // Ignorar
   // ── Composer tone presets ──────────────────────────────────────────────────
   'compose.toolbar.toneFormal':             [['en', 'es', 'ptBR']], // Formal
   'compose.toolbar.toneDiplomatic':         [['es', 'ptBR']], // Diplomático

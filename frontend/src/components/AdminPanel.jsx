@@ -2170,7 +2170,7 @@ function LayoutsTab() {
 function BehaviorTab() {
   const { t } = useTranslation();
   const isMobile = useMobile();
-  const { swipeActions, setSwipeAction, syncInterval, setSyncInterval, folderSyncInterval, setFolderSyncInterval, autoOpenReplyDrafts, setAutoOpenReplyDrafts, undoSend, setUndoSend, plaintextEmail, setPlaintextEmail, replyDefault, setReplyDefault, afterRemove, setAfterRemove, markReadBehavior, setMarkReadBehavior, markReadDelay, setMarkReadDelay, accounts, defaultSender, setDefaultSender } = useStore();
+  const { swipeActions, setSwipeAction, syncInterval, setSyncInterval, folderSyncInterval, setFolderSyncInterval, autoOpenReplyDrafts, setAutoOpenReplyDrafts, undoSend, setUndoSend, plaintextEmail, setPlaintextEmail, replyDefault, setReplyDefault, afterRemove, setAfterRemove, markReadBehavior, setMarkReadBehavior, markReadDelay, setMarkReadDelay, accounts, defaultSender, setDefaultSender, readReceiptRequestAlways, setReadReceiptRequestAlways, readReceiptReply, setReadReceiptReply } = useStore();
 
   // "Set MailFlow as your default email app": registerProtocolHandler is the
   // cross-browser path (works in Firefox and non-installed Chromium) and must be
@@ -2261,6 +2261,14 @@ function BehaviorTab() {
           )}
         </SettingRow>
 
+        <SettingRow label={t('admin.messageList.readReceiptReply')} desc={t('admin.messageList.readReceiptReplyDesc')}>
+          <ChoiceCards value={readReceiptReply} onChange={setReadReceiptReply} options={[
+            { id: 'ask',    label: t('admin.messageList.readReceiptAsk'),    desc: t('admin.messageList.readReceiptAskDesc') },
+            { id: 'always', label: t('admin.messageList.readReceiptAlways'), desc: t('admin.messageList.readReceiptAlwaysDesc') },
+            { id: 'never',  label: t('admin.messageList.readReceiptNever'),  desc: t('admin.messageList.readReceiptNeverDesc') },
+          ]} />
+        </SettingRow>
+
         {/* What opens after the open message is deleted, archived or moved (#572) */}
         <SettingRow label={t('admin.messageList.afterRemove')}>
           <ChoiceCards value={afterRemove} onChange={setAfterRemove} options={[
@@ -2331,6 +2339,13 @@ function BehaviorTab() {
           desc={t('admin.messageList.undoSendDesc')}
           checked={undoSend}
           onChange={setUndoSend}
+        />
+
+        <ToggleRow
+          label={t('admin.messageList.readReceiptRequestAlways')}
+          desc={t('admin.messageList.readReceiptRequestAlwaysDesc')}
+          checked={readReceiptRequestAlways}
+          onChange={setReadReceiptRequestAlways}
         />
       </SettingGroup>
 
@@ -8086,6 +8101,8 @@ function makeSearchIndex(t) {
     // Behavior
     { label: t('admin.messageList.swipeActions'), keywords: ['swipe', 'gesture', 'mobile', 'swipe left', 'swipe right', 'touch'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.undoSend'), keywords: ['undo send', 'undo', 'delay', 'send delay', 'send immediately', 'cancel send'], tab: 'behavior', breadcrumb: behaviorCrumb },
+    { label: t('admin.messageList.readReceiptRequestAlways'), keywords: ['read receipt', 'return receipt', 'mdn', 'disposition notification', 'acknowledgement', 'delivery receipt'], tab: 'behavior', breadcrumb: behaviorCrumb },
+    { label: t('admin.messageList.readReceiptReply'), keywords: ['read receipt', 'return receipt', 'mdn', 'disposition notification', 'acknowledgement', 'privacy'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.syncFrequency'), keywords: ['sync', 'interval', 'frequency', 'refresh', 'poll', 'check mail', '15s', '30s', '60s'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.folderSyncFrequency'), keywords: ['folder', 'sync', 'structure', 'list', 'refresh', 'mailbox', '15 min', '30 min', '1 hour', 'never'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.composeFormat'), keywords: ['compose', 'format', 'rich text', 'plain text', 'html', 'editor'], tab: 'behavior', breadcrumb: behaviorCrumb },

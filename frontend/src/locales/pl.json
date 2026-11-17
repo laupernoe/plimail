@@ -325,7 +325,9 @@
     "sendEncrypted": "Wyślij zaszyfrowane (PGP)",
     "sendEncryptedShort": "Wyślij zaszyfrowane",
     "sendWithPassword": "Wyślij z hasłem",
-    "sendWithPasswordShort": "Wyślij chronione"
+    "sendWithPasswordShort": "Wyślij chronione",
+    "readReceipt": "Poproś o potwierdzenie odczytu",
+    "readReceiptHint": "Prosi program pocztowy odbiorcy o potwierdzenie otwarcia wiadomości. Odbiorca może odmówić."
   },
   "message": {
     "find": {
@@ -503,6 +505,14 @@
         "replyTo": "Odpowiedzi trafiają na inny adres: {{address}}",
         "displayName": "Nazwa nadawcy pokazuje {{shown}}, ale wiadomość pochodzi z {{actual}}"
       }
+    },
+    "readReceipt": {
+      "info": "Nadawca prosi o potwierdzenie odczytu.",
+      "mismatch": "Prośba pochodzi z innego adresu niż ten, z którego wysłano wiadomość. Sprawdź ją przed odpowiedzią.",
+      "send": "Wyślij",
+      "ignore": "Zignoruj",
+      "sendFailed": "Nie udało się wysłać potwierdzenia.",
+      "ignoreFailed": "Nie udało się zapisać wyboru."
     }
   },
   "messageList": {
@@ -1466,7 +1476,17 @@
       "gravatarOnDesc": "Pobieraj zdjęcia nadawców z usługi Gravatar — do zewnętrznej usługi wysyłane są skrócone adresy nadawców.",
       "markReadDelaySeconds_one": "{{count}} sekunda",
       "markReadDelaySeconds_few": "{{count}} sekundy",
-      "markReadDelaySeconds_many": "{{count}} sekund"
+      "markReadDelaySeconds_many": "{{count}} sekund",
+      "readReceiptRequestAlways": "Proś o potwierdzenie odczytu w każdej wiadomości",
+      "readReceiptRequestAlwaysDesc": "Dodaje prośbę o potwierdzenie odczytu do każdej pisanej wiadomości. Nadal można ją wyłączyć w edytorze.",
+      "readReceiptReply": "Prośby o potwierdzenie odczytu",
+      "readReceiptReplyDesc": "Co robić, gdy wiadomość prosi o potwierdzenie jej przeczytania. Na spam i listy dyskusyjne nigdy nie odpowiadamy.",
+      "readReceiptAsk": "Pytaj mnie",
+      "readReceiptAskDesc": "Komunikat nad wiadomością z przyciskami Wyślij i Zignoruj (zalecane).",
+      "readReceiptAlways": "Zawsze wysyłaj",
+      "readReceiptAlwaysDesc": "Odpowiadaj po otwarciu wiadomości, chyba że prośba wygląda podejrzanie.",
+      "readReceiptNever": "Nigdy nie wysyłaj",
+      "readReceiptNeverDesc": "Nigdy nie odpowiadaj i nie pokazuj komunikatu."
     },
     "notifications": {
       "title": "Powiadomienia",

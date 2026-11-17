@@ -325,7 +325,9 @@
     "sendEncrypted": "Send encrypted (PGP)",
     "sendEncryptedShort": "Send encrypted",
     "sendWithPassword": "Send with a password",
-    "sendWithPasswordShort": "Send with password"
+    "sendWithPasswordShort": "Send with password",
+    "readReceipt": "Request a read receipt",
+    "readReceiptHint": "Asks the recipient’s mail program to confirm that the message was opened. They can decline."
   },
   "message": {
     "find": {
@@ -501,6 +503,14 @@
         "replyTo": "Replies go to another address: {{address}}",
         "displayName": "The sender name shows {{shown}} but the mail is from {{actual}}"
       }
+    },
+    "readReceipt": {
+      "info": "The sender is asking for a read receipt.",
+      "mismatch": "The request comes from an address other than the one that sent the message, so check it before replying.",
+      "send": "Send",
+      "ignore": "Ignore",
+      "sendFailed": "The receipt could not be sent.",
+      "ignoreFailed": "Your choice could not be saved."
     }
   },
   "messageList": {
@@ -1447,7 +1457,17 @@
       "gravatarOff": "Off",
       "gravatarOffDesc": "Private — never contacts a third party.",
       "gravatarOn": "On",
-      "gravatarOnDesc": "Fetch sender photos from Gravatar — shares hashed sender addresses with a third party."
+      "gravatarOnDesc": "Fetch sender photos from Gravatar — shares hashed sender addresses with a third party.",
+      "readReceiptRequestAlways": "Ask for a read receipt on every message",
+      "readReceiptRequestAlwaysDesc": "Adds a read receipt request to each message you write. You can still turn it off in the composer.",
+      "readReceiptReply": "Read receipt requests",
+      "readReceiptReplyDesc": "What to do when a message asks you to confirm you read it. Spam and mailing lists are never answered.",
+      "readReceiptAsk": "Ask me",
+      "readReceiptAskDesc": "A notice above the message, with Send and Ignore (recommended).",
+      "readReceiptAlways": "Send always",
+      "readReceiptAlwaysDesc": "Reply as soon as you open the message, unless the request looks suspicious.",
+      "readReceiptNever": "Never send",
+      "readReceiptNeverDesc": "Never answer, and do not show the notice."
     },
     "notifications": {
       "title": "Notifications",

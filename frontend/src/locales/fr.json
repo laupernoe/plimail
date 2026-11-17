@@ -325,7 +325,9 @@
     "sendEncrypted": "Envoyer chiffré (PGP)",
     "sendEncryptedShort": "Envoyer chiffré",
     "sendWithPassword": "Envoyer avec un mot de passe",
-    "sendWithPasswordShort": "Envoyer protégé"
+    "sendWithPasswordShort": "Envoyer protégé",
+    "readReceipt": "Demander un accusé de lecture",
+    "readReceiptHint": "Demande au logiciel de messagerie du destinataire de confirmer l’ouverture du message. Il peut refuser."
   },
   "message": {
     "find": {
@@ -501,6 +503,14 @@
         "replyTo": "Les réponses partent vers une autre adresse : {{address}}",
         "displayName": "Le nom de l'expéditeur affiche {{shown}} mais le message vient de {{actual}}"
       }
+    },
+    "readReceipt": {
+      "info": "L’expéditeur demande un accusé de lecture.",
+      "mismatch": "La demande provient d’une autre adresse que celle qui a envoyé le message : vérifiez-la avant de répondre.",
+      "send": "Envoyer",
+      "ignore": "Ignorer",
+      "sendFailed": "L’accusé n’a pas pu être envoyé.",
+      "ignoreFailed": "Votre choix n’a pas pu être enregistré."
     }
   },
   "messageList": {
@@ -1447,7 +1457,17 @@
       "gravatarOff": "Désactivé",
       "gravatarOffDesc": "Privé — ne contacte jamais de tiers.",
       "gravatarOn": "Activé",
-      "gravatarOnDesc": "Récupère les photos de l'expéditeur depuis Gravatar — partage les adresses hachées des expéditeurs avec un tiers."
+      "gravatarOnDesc": "Récupère les photos de l'expéditeur depuis Gravatar — partage les adresses hachées des expéditeurs avec un tiers.",
+      "readReceiptRequestAlways": "Demander un accusé de lecture pour chaque message",
+      "readReceiptRequestAlwaysDesc": "Ajoute une demande d’accusé de lecture à chaque message que vous écrivez. Vous pouvez toujours la retirer dans le compositeur.",
+      "readReceiptReply": "Demandes d’accusé de lecture",
+      "readReceiptReplyDesc": "Que faire lorsqu’un message vous demande de confirmer sa lecture. Les spams et les listes de diffusion ne reçoivent jamais de réponse.",
+      "readReceiptAsk": "Me demander",
+      "readReceiptAskDesc": "Un bandeau au-dessus du message, avec Envoyer et Ignorer (recommandé).",
+      "readReceiptAlways": "Toujours envoyer",
+      "readReceiptAlwaysDesc": "Répondre dès l’ouverture du message, sauf si la demande semble suspecte.",
+      "readReceiptNever": "Ne jamais envoyer",
+      "readReceiptNeverDesc": "Ne jamais répondre et ne pas afficher le bandeau."
     },
     "notifications": {
       "title": "Notifications",

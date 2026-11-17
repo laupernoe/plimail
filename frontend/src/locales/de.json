@@ -325,7 +325,9 @@
     "sendEncrypted": "Verschlüsselt senden (PGP)",
     "sendEncryptedShort": "Verschlüsselt senden",
     "sendWithPassword": "Mit Passwort senden",
-    "sendWithPasswordShort": "Geschützt senden"
+    "sendWithPasswordShort": "Geschützt senden",
+    "readReceipt": "Lesebestätigung anfordern",
+    "readReceiptHint": "Bittet das Mailprogramm des Empfängers, das Öffnen der Nachricht zu bestätigen. Der Empfänger kann ablehnen."
   },
   "message": {
     "find": {
@@ -501,6 +503,14 @@
         "replyTo": "Antworten gehen an eine andere Adresse: {{address}}",
         "displayName": "Der Absendername zeigt {{shown}}, die Mail kommt aber von {{actual}}"
       }
+    },
+    "readReceipt": {
+      "info": "Der Absender bittet um eine Lesebestätigung.",
+      "mismatch": "Die Anfrage stammt von einer anderen Adresse als der, die die Nachricht gesendet hat. Prüfen Sie sie, bevor Sie antworten.",
+      "send": "Senden",
+      "ignore": "Ignorieren",
+      "sendFailed": "Die Bestätigung konnte nicht gesendet werden.",
+      "ignoreFailed": "Ihre Auswahl konnte nicht gespeichert werden."
     }
   },
   "messageList": {
@@ -1372,7 +1382,17 @@
       "gravatarOff": "Aus",
       "gravatarOffDesc": "Privat — kontaktiert keine Drittanbieter.",
       "gravatarOn": "Ein",
-      "gravatarOnDesc": "Absenderfotos von Gravatar laden — teilt gehashte Absenderadressen mit einem Drittanbieter."
+      "gravatarOnDesc": "Absenderfotos von Gravatar laden — teilt gehashte Absenderadressen mit einem Drittanbieter.",
+      "readReceiptRequestAlways": "Bei jeder Nachricht eine Lesebestätigung anfordern",
+      "readReceiptRequestAlwaysDesc": "Fügt jeder Nachricht, die Sie schreiben, eine Lesebestätigungsanfrage hinzu. Im Editor lässt sie sich weiterhin abschalten.",
+      "readReceiptReply": "Anfragen nach Lesebestätigung",
+      "readReceiptReplyDesc": "Was geschieht, wenn eine Nachricht um Bestätigung des Lesens bittet. Spam und Mailinglisten werden nie beantwortet.",
+      "readReceiptAsk": "Nachfragen",
+      "readReceiptAskDesc": "Ein Hinweis über der Nachricht mit Senden und Ignorieren (empfohlen).",
+      "readReceiptAlways": "Immer senden",
+      "readReceiptAlwaysDesc": "Beim Öffnen der Nachricht sofort antworten, es sei denn, die Anfrage wirkt verdächtig.",
+      "readReceiptNever": "Nie senden",
+      "readReceiptNeverDesc": "Nie antworten und den Hinweis nicht anzeigen."
     },
     "notifications": {
       "title": "Benachrichtigungen",

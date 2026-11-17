@@ -157,6 +157,7 @@ export const useStore = create((set, get) => ({
         imageWhitelist: { addresses: [], domains: [] }, shortcuts: {}, aiActions: null,
         hiddenFolders: {}, categorizationEnabled: false,
         autoOpenReplyDrafts: false, afterRemove: 'next', darkEmailBodies: true, undoSend: true, pgpAutoEncrypt: true, pgpAutoKeys: true,
+        readReceiptRequestAlways: false, readReceiptReply: 'ask',
         // Folder shortcuts name the previous user's accounts and folders. Left in place, the
         // next user's first favorite saved them into that user's own preferences.
         favoriteFolders: [], recentFolders: [], defaultSender: '', listSort: {},
@@ -565,6 +566,21 @@ export const useStore = create((set, get) => ({
     localStorage.setItem('mailflow_undo_send', String(Boolean(value)));
     set({ undoSend: Boolean(value) });
     schedulePrefSave({ undoSend: Boolean(value) });
+  },
+  // Read receipts (MDN): ask for one on every message sent (off), and how to answer the requests
+  // received: 'ask' (the banner), 'always' or 'never'.
+  readReceiptRequestAlways: localStorage.getItem('mailflow_read_receipt_request') === 'true',
+  setReadReceiptRequestAlways: value => {
+    localStorage.setItem('mailflow_read_receipt_request', String(Boolean(value)));
+    set({ readReceiptRequestAlways: Boolean(value) });
+    schedulePrefSave({ readReceiptRequestAlways: Boolean(value) });
+  },
+  readReceiptReply: ['always', 'never'].includes(localStorage.getItem('mailflow_read_receipt_reply')) ? localStorage.getItem('mailflow_read_receipt_reply') : 'ask',
+  setReadReceiptReply: value => {
+    const mode = ['always', 'never'].includes(value) ? value : 'ask';
+    localStorage.setItem('mailflow_read_receipt_reply', mode);
+    set({ readReceiptReply: mode });
+    schedulePrefSave({ readReceiptReply: mode });
   },
   // OpenPGP: send encrypted, with no extra step, when every recipient has a key.
   pgpAutoEncrypt: localStorage.getItem('mailflow_pgp_auto_encrypt') !== 'false',
@@ -1211,6 +1227,14 @@ export const useStore = create((set, get) => ({
       if (typeof prefs.undoSend === 'boolean') {
         localStorage.setItem('mailflow_undo_send', String(prefs.undoSend));
         set({ undoSend: prefs.undoSend });
+      }
+      if (typeof prefs.readReceiptRequestAlways === 'boolean') {
+        localStorage.setItem('mailflow_read_receipt_request', String(prefs.readReceiptRequestAlways));
+        set({ readReceiptRequestAlways: prefs.readReceiptRequestAlways });
+      }
+      if (['ask', 'always', 'never'].includes(prefs.readReceiptReply)) {
+        localStorage.setItem('mailflow_read_receipt_reply', prefs.readReceiptReply);
+        set({ readReceiptReply: prefs.readReceiptReply });
       }
       if (typeof prefs.pgpAutoKeys === 'boolean') {
         localStorage.setItem('mailflow_pgp_auto_keys', String(prefs.pgpAutoKeys));
