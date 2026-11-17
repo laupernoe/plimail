@@ -183,6 +183,11 @@
       "removeHighlight": "Supprimer le surlignage",
       "fontDefault": "Par défaut",
       "moreFormatting": "Plus de mise en forme",
+      "strikethrough": "Barré",
+      "alignLeft": "Aligner à gauche",
+      "alignCenter": "Centrer",
+      "alignRight": "Aligner à droite",
+      "htmlSource": "Modifier le code HTML",
       "aiAssist": "Assistance IA",
       "aiWriteDraft": "Rédiger un brouillon",
       "aiImprove": "Améliorer",
@@ -530,6 +535,7 @@
     "sync": "Synchroniser",
     "compose": "Composer",
     "messagesPerPage": "Messages par page",
+    "viewOptions": "Options d’affichage",
     "selectAll": "Tout sélectionner",
     "deselectAll": "Tout désélectionner",
     "starSelected": "Étoiler",
@@ -631,7 +637,6 @@
       "doneBody": "Enregistré comme règle de réception ; les e-mails déjà reçus ont aussi été mis à jour.",
       "failed": "Impossible d’enregistrer la catégorie pour cet expéditeur"
     },
-    "changeLayout": "Changer la disposition",
     "layout": "Disposition",
     "layouts": {
       "focused": {
@@ -716,7 +721,9 @@
       "hide": "Masquer le dossier",
       "unhide": "Afficher le dossier",
       "empty": "Vider le dossier",
-      "delete": "Supprimer le dossier"
+      "delete": "Supprimer le dossier",
+      "export": "Exporter le dossier…",
+      "import": "Importer des messages…"
     },
     "accountMenu": {
       "newFolder": "Nouveau dossier",
@@ -929,7 +936,8 @@
       "recent": "Récents",
       "favorites": "Favoris",
       "search": "Rechercher des dossiers…"
-    }
+    },
+    "exportSelection": "Exporter les messages sélectionnés (.mbox)"
   },
   "commandPalette": {
     "labelPicker": {
@@ -1279,6 +1287,7 @@
       "microsoftImapNote": "Microsoft n'accepte plus les mots de passe pour les boîtes Outlook.com, Hotmail, Live et MSN, et la connexion avec Microsoft n'est pas configurée sur ce serveur. Demandez à votre administrateur de l'activer dans Fournisseurs de messagerie.",
       "microsoftImapNoteReady": "Microsoft n'accepte plus les mots de passe pour les boîtes Outlook.com, Hotmail, Live et MSN. Ajoutez plutôt cette boîte avec « Se connecter avec Microsoft » dans Ajouter un compte.",
       "reindex": "Réindexer pour la recherche",
+      "moreActions": "Autres actions du compte",
       "reindexing": "Indexation des messages...",
       "reindexProgress": "{{synced}} / {{total}} messages indexés",
       "reindexError": "Échec du démarrage de la réindexation",
@@ -2943,6 +2952,40 @@
       "openFailed": "Ce brouillon chiffré n’a pas pu être ouvert pour modification. Il est affiché dans le lecteur à la place.",
       "hasAttachments": "Ce brouillon chiffré contient des pièces jointes que Plimail ne peut pas garder dans un brouillon : il est affiché dans le lecteur au lieu d’être ouvert pour modification."
     }
+  },
+  "mailTransfer": {
+    "exportTitle": "Exporter {{name}}",
+    "importTitle": "Importer dans {{name}}",
+    "exportIntro": "Les messages sont lus sur votre serveur de messagerie et téléchargés au fur et à mesure. Un gros dossier prend du temps.",
+    "formatMbox": "Un seul fichier .mbox",
+    "formatMboxHint": "Format mboxrd, s’ouvre dans Thunderbird et la plupart des clients de messagerie",
+    "formatZip": "Un .zip de fichiers .eml",
+    "formatZipHint": "Un fichier par message",
+    "exportStart": "Exporter",
+    "exportStarted": "Le téléchargement a commencé. Un gros dossier continue de se télécharger un moment ; gardez cette page ouverte jusqu’à la fin.",
+    "importIntro": "Choisissez un fichier .mbox ou un ou plusieurs fichiers .eml. Les messages sont ajoutés avec leur date d’origine. Rien de ce qui se trouve déjà dans le dossier n’est modifié ni supprimé.",
+    "chooseFiles": "Choisir des fichiers…",
+    "noFiles": "Aucun fichier choisi",
+    "filesChosen": "{{count}} fichiers choisis",
+    "destination": "Dossier de destination",
+    "markRead": "Marquer les messages importés comme lus, sauf si le fichier indique s'ils l'étaient",
+    "importStart": "Importer",
+    "importing": "Importation en cours",
+    "fileOf": "Fichier {{current}} sur {{total}}",
+    "liveCounts": "{{imported}} importés, {{duplicates}} déjà présents, {{failed}} en échec",
+    "reportTitle": "Importation terminée",
+    "reportImported": "Importés",
+    "reportDuplicates": "Ignorés, déjà dans le dossier",
+    "reportFailed": "En échec",
+    "failuresTitle": "Échecs",
+    "failuresMore": "{{count}} autres échecs ne sont pas listés.",
+    "abortedTooLarge": "Arrêté : le fichier dépasse la taille maximale définie sur le serveur.",
+    "abortedImap": "Arrêté : le serveur de messagerie n’a cessé de refuser les messages.",
+    "abortedCancelled": "Arrêté avant la fin du fichier.",
+    "abortedError": "Arrêté : {{reason}}",
+    "unsupportedFile": "Ce n’est pas un fichier .mbox ou .eml",
+    "close": "Fermer",
+    "selectionFailed": "Impossible d'exporter les messages sélectionnés"
   },
   "app": {
     "update": {

@@ -4,6 +4,7 @@ import { useStore } from '../../store/index.js';
 import { appLocale } from '../../utils/formatDate.js';
 import { addDays, formatClock, formatDayText, formatWhen, todayDay } from '../../utils/calendarDates.js';
 import { Icon } from './calendarUi.jsx';
+import { HIT, ICON_SMALL, RADIUS } from '../../utils/uiSizes.js';
 import { useUpcoming } from './useUpcoming.js';
 
 const STORAGE_KEY = 'mailflow:calendar:upcomingOpen';
@@ -60,9 +61,9 @@ export default function UpcomingPane({ isMobile }) {
           {t('calendar.upcoming.title')}
         </button>
         <button type="button" onClick={() => openCalendar()} title={t('calendar.upcoming.open')} aria-label={t('calendar.upcoming.open')} {...hover} style={{
-          width: 26, height: 26, flexShrink: 0, border: 'none', borderRadius: 6, background: 'transparent', cursor: 'pointer',
+          width: HIT, height: HIT, flexShrink: 0, border: 'none', borderRadius: RADIUS, background: 'transparent', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)',
-        }}><Icon name="calendar" size={14} /></button>
+        }}><Icon name="calendar" size={ICON_SMALL} /></button>
       </div>
 
       {open && data.loaded && (

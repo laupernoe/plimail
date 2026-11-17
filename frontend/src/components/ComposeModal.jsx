@@ -9,6 +9,8 @@ import { useStore } from '../store/index.js';
 import { api } from '../utils/api.js';
 import { useMobile } from '../hooks/useMobile.js';
 import { useUiScale, descale } from '../hooks/useUiScale.js';
+import { MoreMenu } from './MessageActions.jsx';
+import { HIT, HIT_PRIMARY, ICON, ICON_SMALL, iconButtonBox } from '../utils/uiSizes.js';
 import { descaleCss } from '../utils/uiScaleCss.js';
 import { useEditor, EditorContent, useEditorState, NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
 import { Extension } from '@tiptap/core';
@@ -2537,7 +2539,7 @@ export default function ComposeModal() {
   const closeAsks = closeDialogMode === 'close' && isDirty();
   // The same trash glyph as the message menus' Delete.
   const trashIcon = (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+    <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
       <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
     </svg>
   );
@@ -2552,7 +2554,7 @@ export default function ComposeModal() {
     }} />
   );
   const sendIcon = (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <line x1="22" y1="2" x2="11" y2="13"/>
       <polygon points="22 2 15 22 11 13 2 9 22 2"/>
     </svg>
@@ -3517,25 +3519,25 @@ export default function ComposeModal() {
 
         <div style={{ display: 'flex', gap: 4 }}>
           <TitleBtn onClick={() => setMinimized(true)} title={t('compose.toolbar.minimize')}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
           </TitleBtn>
           <TitleBtn onClick={() => setMaximized(m => !m)} title={maximized ? t('compose.toolbar.restore') : t('compose.toolbar.maximize')}>
             {maximized ? (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/>
                 <line x1="10" y1="14" x2="3" y2="21"/><line x1="21" y1="3" x2="14" y2="10"/>
               </svg>
             ) : (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
                 <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
               </svg>
             )}
           </TitleBtn>
           <TitleBtn onClick={handleClose} danger title={t('compose.toolbar.close')}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </TitleBtn>
@@ -3782,16 +3784,16 @@ export default function ComposeModal() {
             disabled={sendDisabled}
             title={sending ? undefined : scheduledEdit ? undefined : t('compose.sendTooltip')}
             style={{
-              padding: '8px 16px 8px 20px', background: 'var(--accent)',
-              border: 'none', borderRadius: '7px 0 0 7px', color: 'var(--accent-text)',
-              fontSize: 13, fontWeight: 500,
+              padding: '0 18px 0 16px', height: HIT_PRIMARY, boxSizing: 'border-box', background: 'var(--accent)',
+              border: 'none', borderRadius: '8px 0 0 8px', color: 'var(--accent-text)',
+              fontSize: 14, fontWeight: 500,
               cursor: sendDisabled ? 'not-allowed' : 'pointer',
               opacity: sendDisabled ? 0.6 : 1,
-              display: 'flex', alignItems: 'center', gap: 6,
+              display: 'flex', alignItems: 'center', gap: 8,
               transition: 'opacity 0.15s',
             }}
           >
-            {sending ? sendSpinner : (!scheduledEdit && protectionMode) ? <LockIcon size={14} /> : sendIcon}
+            {sending ? sendSpinner : (!scheduledEdit && protectionMode) ? <LockIcon size={ICON} /> : sendIcon}
             {sending ? (scheduledEdit ? t('compose.scheduleSend.edit.updating') : t('compose.sending')) : sendLabel}
           </button>
           <button
@@ -3805,15 +3807,15 @@ export default function ComposeModal() {
             aria-expanded={sendLaterOpen}
             data-send-later=""
             style={{
-              padding: '8px 8px', background: 'var(--accent)',
-              border: 'none', borderLeft: '1px solid color-mix(in srgb, var(--accent-text) 28%, transparent)', borderRadius: '0 7px 7px 0',
-              color: 'var(--accent-text)', display: 'flex', alignItems: 'center',
+              padding: 0, width: 32, height: HIT_PRIMARY, boxSizing: 'border-box', background: 'var(--accent)',
+              border: 'none', borderLeft: '1px solid color-mix(in srgb, var(--accent-text) 28%, transparent)', borderRadius: '0 8px 8px 0',
+              color: 'var(--accent-text)', display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: sendLaterDisabled ? 'not-allowed' : 'pointer',
               opacity: sendLaterDisabled ? 0.6 : 1,
               transition: 'opacity 0.15s',
             }}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
               <polyline points="6 9 12 15 18 9"/>
             </svg>
           </button>
@@ -3838,11 +3840,11 @@ export default function ComposeModal() {
             title={t('compose.toolbar.attachFile')}
             onClick={() => fileInputRef.current?.click()}
             style={{
-              background: 'none', border: 'none', borderRadius: 5, padding: '4px 8px',
-              color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex', alignItems: 'center',
+              ...iconButtonBox, background: 'none', border: 'none',
+              color: 'var(--text-tertiary)', cursor: 'pointer',
             }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
             </svg>
           </button>
@@ -3858,7 +3860,7 @@ export default function ComposeModal() {
           style={{
             marginLeft: 'auto',
             background: 'var(--bg-tertiary)', border: '1px solid var(--border)',
-            borderRadius: 4, fontSize: 11, padding: '2px 4px',
+            borderRadius: 8, fontSize: 12, padding: '0 8px', height: HIT, boxSizing: 'border-box',
             cursor: 'pointer', outline: 'none',
             color: priority === 'high' ? 'var(--red)' : priority === 'low' ? 'var(--text-tertiary)' : 'var(--text-secondary)',
           }}
@@ -3874,7 +3876,7 @@ export default function ComposeModal() {
             <button
               onClick={() => handleSaveDraft()}
               disabled={savingDraft}
-              style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: savingDraft ? 'default' : 'pointer', fontSize: 12, padding: '4px 8px' }}
+              style={{ background: 'none', border: 'none', borderRadius: 8, color: 'var(--text-secondary)', cursor: savingDraft ? 'default' : 'pointer', fontSize: 13, padding: '0 10px', height: HIT }}
             >
               {savingDraft ? t('compose.savingDraft') : t('compose.saveDraft')}
             </button>
@@ -3883,7 +3885,7 @@ export default function ComposeModal() {
               disabled={discarding}
               aria-label={t('compose.discard')}
               title={t('compose.discard')}
-              style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: discarding ? 'default' : 'pointer', padding: '4px 6px', display: 'flex', alignItems: 'center' }}
+              style={{ ...iconButtonBox, background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: discarding ? 'default' : 'pointer' }}
             >
               {trashIcon}
             </button>
@@ -4142,11 +4144,11 @@ const TBtn = forwardRef(function TBtn({ active, title, onMouseDown, children }, 
       title={title}
       onMouseDown={onMouseDown}
       style={{
+        ...iconButtonBox,
         background: active ? 'var(--bg-hover)' : 'none',
-        border: 'none', borderRadius: 4, padding: '3px 6px',
+        border: 'none',
         color: active ? 'var(--accent)' : 'var(--text-secondary)',
-        cursor: 'pointer', fontSize: 12, fontWeight: 600,
-        display: 'inline-flex', alignItems: 'center',
+        cursor: 'pointer', fontSize: 15, fontWeight: 600,
       }}
     >
       {children}
@@ -4155,7 +4157,7 @@ const TBtn = forwardRef(function TBtn({ active, title, onMouseDown, children }, 
 });
 
 function Sep() {
-  return <span style={{ width: 1, background: 'var(--border-subtle)', margin: '2px 4px', alignSelf: 'stretch' }} />;
+  return <span style={{ width: 1, background: 'var(--border-subtle)', margin: '8px 4px', alignSelf: 'stretch' }} />;
 }
 
 function ColorMenuSection({ title, colors, activeColor, onColor, onClear, clearLabel, customColorLabel, noColorLabel, showNoColor, showClear = true }) {
@@ -4595,8 +4597,8 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
       <div ref={desktopBarRef} style={{ borderBottom: '1px solid var(--border-subtle)', display: 'flex', gap: 2, padding: '4px 10px', flexWrap: 'wrap', alignItems: 'center' }}>
         {onAttach && (
           <button title={t('compose.toolbar.attachFile')} onMouseDown={e => { e.preventDefault(); onAttach(); }}
-            style={{ background: 'none', border: 'none', borderRadius: 4, padding: '3px 6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            style={{ background: 'none', border: 'none', ...iconButtonBox, cursor: 'pointer', color: 'var(--text-secondary)' }}>
+            <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
             </svg>
           </button>
@@ -4607,15 +4609,14 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
         {tb(es.bold, 'Bold', e => { e.preventDefault(); editor.chain().focus().toggleBold().run(); }, <b>B</b>)}
         {tb(es.italic, 'Italic', e => { e.preventDefault(); editor.chain().focus().toggleItalic().run(); }, <i>I</i>)}
         {tb(es.underline, 'Underline', e => { e.preventDefault(); editor.chain().focus().toggleUnderline().run(); }, <u>U</u>)}
-        {tb(es.strike, 'Strikethrough', e => { e.preventDefault(); editor.chain().focus().toggleStrike().run(); }, <s>S</s>)}
 
         <Sep />
         
         <button ref={typeMenuBtnRef} title={t('compose.toolbar.typography')} onMouseDown={openTypeMenu}
-          style={{ background: typeMenuPos ? 'var(--bg-hover)' : 'none', border: 'none', borderRadius: 4, padding: '3px 6px', cursor: 'pointer', display: 'inline-flex', flexDirection: 'row', alignItems: 'center', gap: 1, color: typeMenuPos ? 'var(--accent)' : 'var(--text-secondary)' }}>
+          style={{ background: typeMenuPos ? 'var(--bg-hover)' : 'none', border: 'none', ...iconButtonBox, width: 'auto', padding: '0 8px', cursor: 'pointer', flexDirection: 'row', gap: 2, color: typeMenuPos ? 'var(--accent)' : 'var(--text-secondary)' }}>
           <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', lineHeight: 1 }}>A</span>
-            <span style={{ width: 12, height: 3, borderRadius: 1, background: es.color || 'var(--text-primary)' }} />
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-secondary)', lineHeight: 1 }}>A</span>
+            <span style={{ width: 14, height: 3, borderRadius: 1, background: es.color || 'var(--text-primary)' }} />
           </span>
           <svg width="9" height="9" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path d="M5.2 7.4 10 12.2l4.8-4.8 1.1 1.2L10 14.5 4.1 8.6z"/>
@@ -4624,44 +4625,35 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
         
         <Sep />
 
-        {tb(es.alignLeft, 'Align left', e => { e.preventDefault(); editor.chain().focus().setTextAlign('left').run(); },
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>)}
-        {tb(es.alignCenter, 'Align center', e => { e.preventDefault(); editor.chain().focus().setTextAlign('center').run(); },
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>)}
-        {tb(es.alignRight, 'Align right', e => { e.preventDefault(); editor.chain().focus().setTextAlign('right').run(); },
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg>)}
-
-        <Sep />
-
         {tb(es.bulletList, 'Bullet list', e => { e.preventDefault(); editor.chain().focus().toggleBulletList().run(); },
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg>)}
+          <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg>)}
         {tb(es.orderedList, 'Numbered list', e => { e.preventDefault(); editor.chain().focus().toggleOrderedList().run(); },
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><text x="1" y="8" fontSize="7" fill="currentColor" stroke="none" fontFamily="sans-serif">1.</text><text x="1" y="14" fontSize="7" fill="currentColor" stroke="none" fontFamily="sans-serif">2.</text><text x="1" y="20" fontSize="7" fill="currentColor" stroke="none" fontFamily="sans-serif">3.</text></svg>)}
+          <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><text x="1" y="8" fontSize="7" fill="currentColor" stroke="none" fontFamily="sans-serif">1.</text><text x="1" y="14" fontSize="7" fill="currentColor" stroke="none" fontFamily="sans-serif">2.</text><text x="1" y="20" fontSize="7" fill="currentColor" stroke="none" fontFamily="sans-serif">3.</text></svg>)}
 
         <Sep />
 
         <TBtn ref={linkBtnRef} active={es.link} title={t('compose.toolbar.insertLink')} onMouseDown={openLink}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
         </TBtn>
         <button ref={emojiBtnRef} title="Emoji" onMouseDown={openEmoji}
-          style={{ background: 'none', border: 'none', borderRadius: 4, padding: '3px 6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
-          <span style={{ fontSize: 13, lineHeight: 1 }}>😀</span>
+          style={{ background: 'none', border: 'none', ...iconButtonBox, cursor: 'pointer' }}>
+          <span style={{ fontSize: 16, lineHeight: 1 }}>😀</span>
         </button>
 
         <Sep />
 
         {onInsertImage && (
           <button title={t('compose.toolbar.insertImage')} onMouseDown={e => { e.preventDefault(); onInsertImage(); }}
-            style={{ background: 'none', border: 'none', borderRadius: 4, padding: '3px 6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            style={{ background: 'none', border: 'none', ...iconButtonBox, cursor: 'pointer', color: 'var(--text-secondary)' }}>
+            <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
             </svg>
           </button>
         )}
 
         <button ref={tableBtnRef} title={t('compose.toolbar.insertTable')} onMouseDown={openTable}
-          style={{ background: tablePos ? 'var(--bg-hover)' : 'none', border: 'none', borderRadius: 4, padding: '3px 6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          style={{ background: tablePos ? 'var(--bg-hover)' : 'none', border: 'none', ...iconButtonBox, cursor: 'pointer', color: 'var(--text-secondary)' }}>
+          <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="3" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/>
           </svg>
         </button>
@@ -4679,11 +4671,11 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
               const left = Math.max(4, Math.min(r.left, window.innerWidth - 160));
               setAiMenuPos({ top: r.bottom + 4, left });
             }} style={{
-              background: (aiMenuPos || aiPanelOpen) ? 'var(--accent-dim)' : 'none', border: 'none', borderRadius: 4,
-              padding: '3px 6px', cursor: aiBlockedReason ? 'not-allowed' : 'pointer', opacity: aiBlockedReason ? 0.4 : 1, display: 'inline-flex', alignItems: 'center',
+              background: (aiMenuPos || aiPanelOpen) ? 'var(--accent-dim)' : 'none', border: 'none', ...iconButtonBox,
+              cursor: aiBlockedReason ? 'not-allowed' : 'pointer', opacity: aiBlockedReason ? 0.4 : 1,
               color: (aiMenuPos || aiPanelOpen) ? 'var(--accent)' : 'var(--text-secondary)',
             }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
                 <path d="M5 3v4M19 17v4M3 5h4M17 19h4"/>
               </svg>
@@ -4693,29 +4685,26 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
               setAiMenuPos(null);
               onAiAction('grammar');
             }} style={{
-              background: 'none', border: 'none', borderRadius: 4,
-              padding: '3px 6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center',
+              background: 'none', border: 'none', ...iconButtonBox, cursor: 'pointer',
               color: 'var(--text-secondary)',
             }}>
-              <SpellCheckIcon size={13} />
+              <SpellCheckIcon size={ICON} />
             </button>}
           </>
         )}
 
-        {onToggleHtml && (
-          <>
-            <Sep />
-            <button title={htmlMode ? 'Back to rich text' : 'Edit HTML source'} onMouseDown={e => { e.preventDefault(); onToggleHtml(); }}
-              style={{
-                background: htmlMode ? 'var(--accent-dim)' : 'none', border: 'none', borderRadius: 4,
-                padding: '3px 6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center',
-                color: htmlMode ? 'var(--accent)' : 'var(--text-secondary)',
-                fontFamily: 'monospace', fontSize: 11, fontWeight: 600, letterSpacing: '-0.5px',
-              }}>
-              {'</>'}
-            </button>
-          </>
-        )}
+        {/* The rarer formatting, one click further: strikethrough, alignment, the HTML source. */}
+        <span style={{ marginLeft: 'auto' }} />
+        <MoreMenu
+          label={t('compose.toolbar.moreFormatting')}
+          items={[
+            { key: 'strike', role: 'menuitemcheckbox', checked: Boolean(es.strike), label: t('compose.toolbar.strikethrough'), icon: <s style={{ fontWeight: 600, width: ICON, textAlign: 'center' }}>S</s>, run: () => editor.chain().focus().toggleStrike().run() },
+            { key: 'left', checked: Boolean(es.alignLeft), separator: true, label: t('compose.toolbar.alignLeft'), icon: <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>, run: () => editor.chain().focus().setTextAlign('left').run() },
+            { key: 'center', checked: Boolean(es.alignCenter), label: t('compose.toolbar.alignCenter'), icon: <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>, run: () => editor.chain().focus().setTextAlign('center').run() },
+            { key: 'right', checked: Boolean(es.alignRight), label: t('compose.toolbar.alignRight'), icon: <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg>, run: () => editor.chain().focus().setTextAlign('right').run() },
+            ...(onToggleHtml ? [{ key: 'html', role: 'menuitemcheckbox', checked: Boolean(htmlMode), separator: true, label: t('compose.toolbar.htmlSource'), icon: <span style={{ fontFamily: 'monospace', fontSize: 11, fontWeight: 600, letterSpacing: '-0.5px', width: ICON, textAlign: 'center' }}>{'</>'}</span>, run: onToggleHtml }] : []),
+          ]}
+        />
 
       </div>
       )}
@@ -4916,9 +4905,9 @@ function TitleBtn({ children, onClick, danger, title }) {
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{
         background: hov ? (danger ? 'var(--red)' : 'var(--bg-hover)') : 'var(--bg-elevated)',
-        border: 'none', borderRadius: 4, padding: '4px',
+        ...iconButtonBox, border: 'none',
         color: hov && danger ? 'white' : 'var(--text-tertiary)',
-        cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'all 0.1s',
+        cursor: 'pointer', transition: 'all 0.1s',
       }}
     >
       {children}

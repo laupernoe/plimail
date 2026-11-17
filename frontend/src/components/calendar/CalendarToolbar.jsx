@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { VIEWS } from '../../utils/calendarDates.js';
 import { SEARCH_MAX } from './eventSearch.js';
 import { Btn, Icon, IconBtn } from './calendarUi.jsx';
+import { HIT, ICON, ICON_SMALL } from '../../utils/uiSizes.js';
 
 const VIEW_KEYS = {
   month: 'calendar.views.month',
@@ -18,7 +19,7 @@ function Segmented({ view, onView, compact }) {
       {VIEWS.map(v => (
         <button key={v} type="button" aria-pressed={view === v} onClick={() => onView(v)} style={{
           border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: compact ? 12 : 12.5, fontWeight: 500,
-          padding: compact ? '8px 2px' : '5px 12px', borderRadius: 6, flex: compact ? 1 : 'none', minWidth: 0, whiteSpace: 'nowrap',
+          padding: compact ? '8px 2px' : '0 14px', height: compact ? undefined : HIT - 4, borderRadius: 6, flex: compact ? 1 : 'none', minWidth: 0, whiteSpace: 'nowrap',
           background: view === v ? 'var(--bg-elevated)' : 'transparent',
           color: view === v ? 'var(--text-primary)' : 'var(--text-secondary)',
           boxShadow: view === v ? 'var(--shadow-soft)' : 'none',
@@ -40,7 +41,7 @@ function SearchField({ value, onChange, inputRef, onClose, isMobile }) {
   };
   return (
     <div role="search" style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: isMobile ? 1 : '0 1 240px', minWidth: isMobile ? 0 : 150 }}>
-      <Icon name="search" size={14} style={{ position: 'absolute', left: 9, color: 'var(--text-tertiary)', pointerEvents: 'none' }} />
+      <Icon name="search" size={ICON_SMALL} style={{ position: 'absolute', left: 9, color: 'var(--text-tertiary)', pointerEvents: 'none' }} />
       <input
         ref={inputRef} type="text" inputMode="search" enterKeyHint="search" value={value} maxLength={SEARCH_MAX} autoFocus={isMobile}
         onChange={e => onChange(e.target.value)} onKeyDown={onKeyDown}
@@ -48,7 +49,7 @@ function SearchField({ value, onChange, inputRef, onClose, isMobile }) {
         style={{
           width: '100%', boxSizing: 'border-box', padding: value ? '0 30px 0 29px' : '0 10px 0 29px', borderRadius: 7,
           border: '1px solid var(--border)', background: 'var(--bg-tertiary)', color: 'var(--text-primary)',
-          fontSize: isMobile ? 16 : 13, fontFamily: 'inherit', outline: 'none', height: isMobile ? 36 : 30,
+          fontSize: isMobile ? 16 : 13, fontFamily: 'inherit', outline: 'none', height: HIT,
         }}
       />
       {value && (
@@ -66,9 +67,9 @@ export default function CalendarToolbar({
   const [searchOpen, setSearchOpen] = useState(false);
   const nav = (
     <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-      <Btn onClick={onToday} style={{ marginRight: 4 }}>{t('calendar.today')}</Btn>
-      <IconBtn label={t('calendar.previous')} icon="chevL" onClick={onPrev} size={isMobile ? 36 : 30} />
-      <IconBtn label={t('calendar.next')} icon="chevR" onClick={onNext} size={isMobile ? 36 : 30} />
+      <Btn onClick={onToday} style={{ marginRight: 4, height: HIT, padding: '0 14px' }}>{t('calendar.today')}</Btn>
+      <IconBtn label={t('calendar.previous')} icon="chevL" onClick={onPrev} size={HIT} iconSize={ICON} />
+      <IconBtn label={t('calendar.next')} icon="chevR" onClick={onNext} size={HIT} iconSize={ICON} />
     </div>
   );
   const heading = (
@@ -79,7 +80,7 @@ export default function CalendarToolbar({
   );
   const sync = onSync ? (
     <IconBtn label={syncing ? t('calendar.accounts.syncing') : t('calendar.syncAll')} icon="sync" onClick={onSync} disabled={syncing}
-      size={isMobile ? 36 : 30} iconSize={isMobile ? 18 : 15} iconStyle={syncing ? { animation: 'spin 0.8s linear infinite' } : undefined} />
+      size={HIT} iconSize={ICON} iconStyle={syncing ? { animation: 'spin 0.8s linear infinite' } : undefined} />
   ) : null;
   const status = busy ? <span role="status" style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{t('common.saving')}</span> : null;
   const closeSearch = () => { onSearch(''); setSearchOpen(false); };

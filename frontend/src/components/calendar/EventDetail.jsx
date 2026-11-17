@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { formatWhen } from '../../utils/calendarDates.js';
 import { ATTENDEE_KEYS, linkify, recurrenceText, reminderText } from './calendarEvents.js';
 import { Btn, ErrorBox, Icon, IconBtn, Modal } from './calendarUi.jsx';
+import { HIT, ICON_SMALL } from '../../utils/uiSizes.js';
 
 const WIDTH = 340;
 
@@ -62,7 +63,7 @@ function Body({ occ, calendar, color, locale, busy, error, onEdit, onDelete, onR
         <h3 style={{ flex: 1, margin: 0, fontSize: 17, fontWeight: 600, lineHeight: 1.3, color: 'var(--text-primary)', wordBreak: 'break-word' }}>
           {occ.summary || t('common.noSubject')}
         </h3>
-        <IconBtn label={t('common.dismiss')} icon="close" onClick={onClose} size={26} iconSize={14} style={{ margin: '-3px -4px 0 0' }} />
+        <IconBtn label={t('common.dismiss')} icon="close" onClick={onClose} size={HIT} iconSize={ICON_SMALL} style={{ margin: '-3px -4px 0 0' }} />
       </div>
       {statusKey && <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: -6, paddingLeft: 22 }}>{t(statusKey)}</div>}
       <Row icon="clock">{formatWhen(occ, locale)}</Row>

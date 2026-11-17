@@ -183,6 +183,11 @@
       "removeHighlight": "移除高亮",
       "fontDefault": "默认",
       "moreFormatting": "更多格式",
+      "strikethrough": "删除线",
+      "alignLeft": "左对齐",
+      "alignCenter": "居中",
+      "alignRight": "右对齐",
+      "htmlSource": "编辑 HTML 源代码",
       "aiAssist": "AI 助手",
       "aiWriteDraft": "生成草稿",
       "aiImprove": "改进",
@@ -530,6 +535,7 @@
     "sync": "同步",
     "compose": "撰写",
     "messagesPerPage": "每页邮件数",
+    "viewOptions": "视图选项",
     "selectAll": "全选",
     "deselectAll": "取消全选",
     "starSelected": "加星标",
@@ -631,7 +637,6 @@
       "doneBody": "已保存为收件箱规则；已收到的收件箱邮件也已更新。",
       "failed": "无法保存此发件人的分类"
     },
-    "changeLayout": "更改布局",
     "layout": "布局",
     "layouts": {
       "focused": {
@@ -716,7 +721,9 @@
       "hide": "隐藏文件夹",
       "unhide": "取消隐藏",
       "empty": "清空文件夹",
-      "delete": "删除文件夹"
+      "delete": "删除文件夹",
+      "export": "导出文件夹…",
+      "import": "导入邮件…"
     },
     "accountMenu": {
       "newFolder": "新建文件夹",
@@ -929,7 +936,8 @@
       "recent": "最近",
       "favorites": "收藏夹",
       "search": "搜索文件夹…"
-    }
+    },
+    "exportSelection": "导出所选邮件 (.mbox)"
   },
   "commandPalette": {
     "labelPicker": {
@@ -1281,6 +1289,7 @@
       "microsoftImapNote": "Microsoft 不再接受 Outlook.com、Hotmail、Live 和 MSN 邮箱的密码，而此服务器尚未设置 Microsoft 登录。请让管理员在“邮件服务商”中开启。",
       "microsoftImapNoteReady": "Microsoft 不再接受 Outlook.com、Hotmail、Live 和 MSN 邮箱的密码。请改为在“添加帐户”中使用“使用 Microsoft 登录”添加此邮箱。",
       "reindex": "重新索引以供搜索",
+      "moreActions": "更多账户操作",
       "reindexing": "正在索引邮件...",
       "reindexProgress": "已索引 {{synced}} / {{total}} 封邮件",
       "reindexError": "无法启动重新索引",
@@ -2943,6 +2952,40 @@
       "openFailed": "无法打开此加密草稿进行编辑，已改为在阅读视图中显示。",
       "hasAttachments": "此加密草稿含有 Plimail 无法在草稿中保留的附件，因此在阅读视图中显示，而不是打开编辑。"
     }
+  },
+  "mailTransfer": {
+    "exportTitle": "导出 {{name}}",
+    "importTitle": "导入到 {{name}}",
+    "exportIntro": "邮件会从您的邮件服务器读取，并边读边下载。较大的文件夹需要一些时间。",
+    "formatMbox": "单个 .mbox 文件",
+    "formatMboxHint": "mboxrd 格式，可在 Thunderbird 和大多数邮件客户端中打开",
+    "formatZip": "包含 .eml 文件的 .zip",
+    "formatZipHint": "每封邮件一个文件",
+    "exportStart": "导出",
+    "exportStarted": "下载已开始。较大的文件夹还需下载一段时间，请保持此页面打开直到完成。",
+    "importIntro": "请选择一个 .mbox 文件或一个或多个 .eml 文件。邮件将以原始日期添加。文件夹中已有的内容不会被修改或删除。",
+    "chooseFiles": "选择文件…",
+    "noFiles": "未选择文件",
+    "filesChosen": "已选择 {{count}} 个文件",
+    "destination": "目标文件夹",
+    "markRead": "将导入的邮件标为已读（文件中已记录读取状态的除外）",
+    "importStart": "导入",
+    "importing": "正在导入",
+    "fileOf": "第 {{current}} 个文件，共 {{total}} 个",
+    "liveCounts": "已导入 {{imported}} 封，已存在 {{duplicates}} 封，失败 {{failed}} 封",
+    "reportTitle": "导入完成",
+    "reportImported": "已导入",
+    "reportDuplicates": "已跳过，文件夹中已有",
+    "reportFailed": "失败",
+    "failuresTitle": "失败项",
+    "failuresMore": "另有 {{count}} 项失败未列出。",
+    "abortedTooLarge": "已停止：文件超过了服务器设定的大小限制。",
+    "abortedImap": "已停止：邮件服务器一直拒绝这些邮件。",
+    "abortedCancelled": "在文件结束前已停止。",
+    "abortedError": "已停止：{{reason}}",
+    "unsupportedFile": "不是 .mbox 或 .eml 文件",
+    "close": "关闭",
+    "selectionFailed": "无法导出所选邮件"
   },
   "app": {
     "update": {

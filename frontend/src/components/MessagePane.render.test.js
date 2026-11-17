@@ -1056,48 +1056,53 @@ describe('dark email bodies', () => {
     await React.act(async () => { root.render(React.createElement(MessagePane)); });
     await React.act(async () => { await new Promise(r => setTimeout(r, 30)); });
   };
-  const toggle = () => [...document.querySelectorAll('button')]
-    .find(b => ['message.showDark', 'message.showOriginal'].includes(b.getAttribute('aria-label')));
   const textCard = () => [...document.querySelectorAll('.msg-card')].find(el => el.textContent.includes('plain words'));
   const click = el => React.act(async () => { el.dispatchEvent(new window.MouseEvent('click', { bubbles: true })); });
+  // The toggle is in the toolbar's More menu: its item, with the menu opened for it.
+  const toggle = async () => {
+    const more = [...document.querySelectorAll('button[aria-label="message.more"]')].at(-1);
+    if (more && more.getAttribute('aria-expanded') !== 'true') await click(more);
+    return [...document.querySelectorAll('[role="menuitem"]')]
+      .find(i => ['message.showDark', 'message.showOriginal'].includes(i.textContent.trim()));
+  };
+  const label = async () => (await toggle())?.textContent.trim();
 
   test('a plain-text message follows a dark theme, and switches to the original and back', async () => {
     await open('dark-text-1', { text: 'plain words' });
     assert.equal(textCard().style.background, 'var(--bg-primary)');
-    assert.equal(toggle().getAttribute('aria-label'), 'message.showOriginal');
-    assert.equal(toggle().getAttribute('aria-pressed'), 'true');
-    await click(toggle());
+    assert.equal(await label(), 'message.showOriginal');
+    await click(await toggle());
     assert.equal(textCard().style.background, 'white');
-    assert.equal(toggle().getAttribute('aria-label'), 'message.showDark');
-    await click(toggle());
+    assert.equal(await label(), 'message.showDark');
+    await click(await toggle());
     assert.equal(textCard().style.background, 'var(--bg-primary)');
   });
 
   test("HTML with its own dark design follows the setting, and the toggle switches it", async () => {
     const html = { html: '<p>styled</p>', darkCss: '@media (min-width: 0px){p{color:#eee}}', lightOnly: false, text: '' };
     await open('dark-html-own', html);
-    assert.equal(toggle().getAttribute('aria-label'), 'message.showDark');
-    await click(toggle());
-    assert.equal(toggle().getAttribute('aria-label'), 'message.showOriginal');
+    assert.equal(await label(), 'message.showDark');
+    await click(await toggle());
+    assert.equal(await label(), 'message.showOriginal');
     await open('dark-html-own-2', html, { setting: true });
-    assert.equal(toggle().getAttribute('aria-label'), 'message.showOriginal');
+    assert.equal(await label(), 'message.showOriginal');
   });
 
   test('HTML without its own dark design can be shown dark too: Plimail recolors it', async () => {
     await open('dark-html-plain', { html: '<p>plain html</p>', text: '' });
-    assert.equal(toggle().getAttribute('aria-label'), 'message.showDark');
-    await click(toggle());
-    assert.equal(toggle().getAttribute('aria-label'), 'message.showOriginal');
+    assert.equal(await label(), 'message.showDark');
+    await click(await toggle());
+    assert.equal(await label(), 'message.showOriginal');
     await open('dark-html-plain-2', { html: '<p>plain html</p>', text: '' }, { setting: true });
-    assert.equal(toggle().getAttribute('aria-label'), 'message.showOriginal');
+    assert.equal(await label(), 'message.showOriginal');
   });
 
   test('no toggle in a light theme; HTML that asks to stay light has one', async () => {
     await open('dark-text-3', { text: 'plain words' }, { theme: 'selfhostr-light', setting: true });
-    assert.equal(toggle(), undefined);
+    assert.equal(await toggle(), undefined);
     assert.equal(textCard().style.background, 'white');
     await open('dark-html-1', { html: '<p>plain html</p>', text: '', lightOnly: true }, { setting: true });
-    assert.equal(toggle().getAttribute('aria-label'), 'message.showOriginal', 'a sender asking to stay light is shown dark too, and can be switched back');
+    assert.equal(await label(), 'message.showOriginal', 'a sender asking to stay light is shown dark too, and can be switched back');
   });
 });
 
@@ -1284,7 +1289,15 @@ describe('the toolbar read toggle (#683)', () => {
     return { msg, bulkRead };
   }
 
-  const toolbarButton = (title) => [...document.querySelectorAll('button.btn-press')].find(b => b.title === title);
+  // The read toggle is in the toolbar's More menu: open it (once) and find the item by its label.
+  const toolbarButton = async (title) => {
+    const more = [...document.querySelectorAll('button[aria-label="message.more"]')].at(-1);
+    if (!more) return undefined;
+    if (more.getAttribute('aria-expanded') !== 'true') {
+      await React.act(async () => { more.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true })); });
+    }
+    return [...document.querySelectorAll('[role="menuitem"]')].find(b => b.textContent.trim() === title);
+  };
 
   async function menuLabels(message) {
     const ContextMenu = (await ContextMenuPromise).default;
@@ -1302,17 +1315,17 @@ describe('the toolbar read toggle (#683)', () => {
 
   test('after Mark as unread the toolbar offers Mark as read instead of nothing', async (t) => {
     const { msg, bulkRead } = await openRead(t);
-    const unreadBtn = toolbarButton('contextMenu.markUnread');
+    const unreadBtn = await toolbarButton('contextMenu.markUnread');
     assert.ok(unreadBtn, 'a read message offers Mark as unread');
     await React.act(async () => { click(unreadBtn); });
     assert.deepEqual(bulkRead.mock.calls[0].arguments, [[msg.id], false]);
-    assert.equal(toolbarButton('contextMenu.markUnread'), undefined);
-    const readBtn = toolbarButton('contextMenu.markRead');
+    assert.equal(await toolbarButton('contextMenu.markUnread'), undefined);
+    const readBtn = await toolbarButton('contextMenu.markRead');
     assert.ok(readBtn, 'the button stays, now offering Mark as read');
     await React.act(async () => { click(readBtn); });
     assert.deepEqual(bulkRead.mock.calls[1].arguments, [[msg.id], true]);
     assert.equal(useStore.getState().messages[0].is_read, true);
-    assert.ok(toolbarButton('contextMenu.markUnread'), 'and back again');
+    assert.ok(await toolbarButton('contextMenu.markUnread'), 'and back again');
   });
 
   test('toolbar Mark as read cancels a delayed read the list scheduled on open', async (t) => {
@@ -1321,16 +1334,17 @@ describe('the toolbar read toggle (#683)', () => {
     const { scheduleMarkReadTimer } = await import('../utils/markRead.js');
     const { msg, bulkRead } = await openRead(t, { is_read: false, unread_count: 1 });
     let delayedRan = 0;
-    scheduleMarkReadTimer(msg.id, () => { delayedRan += 1; }, 30);
-    await React.act(async () => { click(toolbarButton('contextMenu.markRead')); });
-    await React.act(async () => { await new Promise(r => setTimeout(r, 60)); });
+    // Long enough to open the More menu and click its item first, even on a loaded machine.
+    scheduleMarkReadTimer(msg.id, () => { delayedRan += 1; }, 400);
+    { const b = await toolbarButton('contextMenu.markRead'); await React.act(async () => { click(b); }); }
+    await React.act(async () => { await new Promise(r => setTimeout(r, 500)); });
     assert.equal(delayedRan, 0, 'the pending delayed read was cancelled');
     assert.deepEqual(bulkRead.mock.calls.map(c => c.arguments[1]), [true]);
   });
 
   test("the row's context menu offers Mark as read once the pane marked it unread", async (t) => {
     await openRead(t);
-    await React.act(async () => { click(toolbarButton('contextMenu.markUnread')); });
+    { const b = await toolbarButton('contextMenu.markUnread'); await React.act(async () => { click(b); }); }
     const row = useStore.getState().messages[0];
     assert.equal(row.is_read, false);
     assert.equal(row.unread_count, 1, 'unread_count follows is_read');
@@ -1349,7 +1363,15 @@ describe('the toolbar read toggle (#683)', () => {
 describe('a read in flight and the toolbar read toggle', () => {
   const ContextMenuPromise = import('./ContextMenu.jsx');
   const click = (el) => el.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
-  const toolbarButton = (title) => [...document.querySelectorAll('button.btn-press')].find(b => b.title === title);
+  // The read toggle is in the toolbar's More menu: open it (once) and find the item by its label.
+  const toolbarButton = async (title) => {
+    const more = [...document.querySelectorAll('button[aria-label="message.more"]')].at(-1);
+    if (!more) return undefined;
+    if (more.getAttribute('aria-expanded') !== 'true') {
+      await React.act(async () => { more.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true })); });
+    }
+    return [...document.querySelectorAll('[role="menuitem"]')].find(b => b.textContent.trim() === title);
+  };
 
   async function menuLabels(message) {
     const ContextMenu = (await ContextMenuPromise).default;
@@ -1392,14 +1414,14 @@ describe('a read in flight and the toolbar read toggle', () => {
     const { applyMarkRead } = await import('../utils/markRead.js');
     const { msg, reads } = await openUnread(t);
     await settle(() => applyMarkRead(msg));
-    await settle(() => click(toolbarButton('contextMenu.markUnread')));
+    { const b = await toolbarButton('contextMenu.markUnread'); await settle(() => click(b)); }
     await settle(() => reads[0].resolve({}));
 
     const row = await refreshWith({ ...msg, is_read: false, unread_count: 1 });
     assert.equal(row.is_read, false, 'the refresh does not turn it read again');
     const labels = await menuLabels(row);
     assert.ok(labels.includes('contextMenu.markRead'), `menu offers Mark as read, got ${labels}`);
-    assert.ok(toolbarButton('contextMenu.markRead'), 'and so does the toolbar');
+    assert.ok(await toolbarButton('contextMenu.markRead'), 'and so does the toolbar');
   });
 
   test('the in-flight read failing after Mark as unread does not count the message unread twice', async (t) => {
@@ -1407,7 +1429,7 @@ describe('a read in flight and the toolbar read toggle', () => {
     const { msg, reads } = await openUnread(t);
     const adjust = t.mock.method(useStore.getState(), 'adjustUnread');
     await settle(() => applyMarkRead(msg));
-    await settle(() => click(toolbarButton('contextMenu.markUnread')));
+    { const b = await toolbarButton('contextMenu.markUnread'); await settle(() => click(b)); }
     t.mock.method(console, 'error', () => {});
     await settle(() => reads[0].reject(new Error('IMAP down')));
     assert.deepEqual(adjust.mock.calls.map(c => c.arguments[1]), [-1, 1], 'read once, unread once, and no roll-back on top');
@@ -1416,7 +1438,7 @@ describe('a read in flight and the toolbar read toggle', () => {
 
   test('Mark as read from the toolbar, then a stale refresh: the row is read in every view', async (t) => {
     const { msg, reads } = await openUnread(t, { message_count: 2 });
-    await settle(() => click(toolbarButton('contextMenu.markRead')));
+    { const b = await toolbarButton('contextMenu.markRead'); await settle(() => click(b)); }
     assert.equal(reads.length, 1);
 
     const row = await refreshWith({ ...msg, is_read: false, unread_count: 1 });
@@ -1424,7 +1446,7 @@ describe('a read in flight and the toolbar read toggle', () => {
     assert.equal(row.unread_count, 0, 'unread_count comes down with is_read');
     const labels = await menuLabels(row);
     assert.ok(labels.includes('contextMenu.markUnread'), `menu offers Mark as unread, got ${labels}`);
-    assert.ok(toolbarButton('contextMenu.markUnread'));
+    assert.ok(await toolbarButton('contextMenu.markUnread'));
     await settle(() => reads[0].resolve({}));
   });
 });

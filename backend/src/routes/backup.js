@@ -7,6 +7,7 @@ import { APP_VERSION, imapManager, restartAfterRestore } from '../index.js';
 import { startScheduledSender, stopScheduledSender } from '../services/scheduledSend.js';
 import { confirmReauth, oidcConfirmationState, reauthFor, userForReauth } from '../services/apiTokenReauth.js';
 import { backupConfirmed, recordBackupConfirmation } from '../services/backupConfirmation.js';
+import { liftRequestTimeout } from '../services/requestTimeLimit.js';
 
 const router = Router();
 router.use(requireAdmin);
@@ -119,12 +120,9 @@ router.post('/restore', async (req, res) => {
     return res.status(409).json({ error: restoring ? 'A restore is already running.' : 'A backup download is running. Try again when it has finished.' });
   }
   restoring = true;
-  // Node cuts off a request still arriving after server.requestTimeout (five minutes by default),
-  // and a restore upload arrives for as long as the file takes to send and write. Only admins
-  // reach this, and a reverse proxy in front bounds a stalled client with its own timeouts.
-  const server = req.socket.server;
-  const requestTimeout = server.requestTimeout;
-  server.requestTimeout = 0;
+  // A restore upload arrives for as long as the file takes to send and write. Only admins reach
+  // this, and a reverse proxy in front bounds a stalled client with its own timeouts.
+  const restoreRequestTimeout = liftRequestTimeout(req.socket.server);
   let client = null;
   let started = false;
   let committed = false;
@@ -186,7 +184,7 @@ router.post('/restore', async (req, res) => {
     }
   } finally {
     client?.release();
-    server.requestTimeout = requestTimeout;
+    restoreRequestTimeout();
     // After a commit the process is about to restart; until then nothing else may start.
     if (!committed) restoring = false;
   }
