@@ -53,6 +53,8 @@ async function request(method, path, body, extraHeaders, { signal } = {}) {
       ...(typeof err.serverNow === 'string' ? { serverNow: err.serverNow } : {}),
       // What a scheduled message is doing when the server refused to change it (sending, sent...).
       ...(typeof err.status === 'string' ? { state: err.status } : {}),
+      // The Sieve script that is active when a save would replace it (routes/sieve.js).
+      ...(typeof err.active === 'string' ? { active: err.active } : {}),
     });
   }
   // No Content (a DELETE): there is no body to read.
@@ -221,6 +223,16 @@ export const api = {
     markRead: (id) => request('POST', `/secure-messages/${id}/read`),
     revoke: (id) => request('POST', `/secure-messages/${id}/revoke`),
     remove: (id) => request('DELETE', `/secure-messages/${id}`),
+  },
+
+  // Server filters over ManageSieve (routes/sieve.js).
+  sieve: {
+    status: (accountId) => request('GET', `/sieve/${accountId}`),
+    script: (accountId, name) => request('GET', `/sieve/${accountId}/scripts/${encodeURIComponent(name)}`),
+    check: (accountId, content) => request('POST', `/sieve/${accountId}/check`, { content }),
+    saveRules: (accountId, data) => request('PUT', `/sieve/${accountId}/rules`, data),
+    saveScript: (accountId, name, data) => request('PUT', `/sieve/${accountId}/scripts/${encodeURIComponent(name)}`, data),
+    setActive: (accountId, name, replaceActive = false) => request('POST', `/sieve/${accountId}/active`, { name, replaceActive }),
   },
 
   // OpenPGP (routes/pgp.js). Private keys come and go only passphrase-protected.

@@ -126,6 +126,14 @@ const SAME_VALUE_ALLOWED = {
   // ── Read receipts: the same words in Spanish and Portuguese ────────────────
   'message.readReceipt.send':               [['es', 'ptBR']], // Enviar
   'message.readReceipt.ignore':             [['es', 'ptBR']], // Ignorar
+  // ── Server filters (Sieve): the same words in these languages ──────────────
+  'admin.serverFilters.account':            [['de', 'pl']], // Konto
+  'admin.serverFilters.fieldLabel':         [['cs', 'pl']], // Pole
+  'admin.serverFilters.fieldRecipient':     [['es', 'it']], // Un destinatario
+  'admin.serverFilters.rawLabel':           [['fr', 'it']], // Script Sieve
+  'admin.serverFilters.rawTab':             [['es', 'ptBR']], // Editar script
+  'admin.serverFilters.scriptLabel':        [['cs', 'de']], // Skript
+  'admin.serverFilters.supported':          [['es', 'fr']], // Sieve disponible
   // ── Composer tone presets ──────────────────────────────────────────────────
   'compose.toolbar.toneFormal':             [['en', 'es', 'ptBR']], // Formal
   'compose.toolbar.toneDiplomatic':         [['es', 'ptBR']], // Diplomático
