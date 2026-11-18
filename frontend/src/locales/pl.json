@@ -217,6 +217,7 @@
       "aiNotAllowed": "administrator wyłączył AI na Twoim koncie.",
       "aiFeatureOff": "administrator wyłączył asystenta tworzenia wiadomości AI."
     },
+    "messageOptions": "Opcje wiadomości",
     "priority": "Priorytet",
     "priorityHigh": "Wysoki priorytet",
     "priorityNormal": "Normalny",

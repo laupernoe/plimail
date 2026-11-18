@@ -217,6 +217,7 @@
       "aiNotAllowed": "o administrador desativou a IA na sua conta.",
       "aiFeatureOff": "o administrador desativou o assistente de composição com IA."
     },
+    "messageOptions": "Opções da mensagem",
     "priority": "Prioridade",
     "priorityHigh": "Prioridade alta",
     "priorityNormal": "Normal",

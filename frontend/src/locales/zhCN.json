@@ -217,6 +217,7 @@
       "aiNotAllowed": "管理员已为您的账户关闭 AI。",
       "aiFeatureOff": "管理员已关闭 AI 写作助手。"
     },
+    "messageOptions": "邮件选项",
     "priority": "优先级",
     "priorityHigh": "高优先级",
     "priorityNormal": "普通",

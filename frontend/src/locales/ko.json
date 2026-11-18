@@ -203,6 +203,7 @@
       "htmlSource": "HTML 소스 편집",
       "aiPanelTitle": "AI 제안"
     },
+    "messageOptions": "메시지 옵션",
     "priority": "우선순위",
     "priorityHigh": "높은 우선순위",
     "priorityNormal": "보통",

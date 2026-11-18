@@ -754,14 +754,25 @@ describe('editing a scheduled message', () => {
     assert.equal(callsTo('release').length, 1);
   });
 
+  const optionsButton = () => document.querySelector('button[aria-label="compose.messageOptions"]');
+  const pickOption = async (selector, label) => {
+    await click(optionsButton());
+    await click([...document.querySelectorAll(selector)].find(b => b.textContent.includes(label)));
+  };
+
+  test('priority and the read receipt sit in one Message options menu, not in the footer', async () => {
+    await mount(structuredClone(SCHEDULED));
+    assert.equal(document.querySelector('select[title="compose.priority"]'), null);
+    assert.ok(optionsButton(), 'the menu button is in the footer');
+    await pickOption('[role="menuitemcheckbox"]', 'compose.readReceipt');
+    await click(optionsButton());
+    const item = [...document.querySelectorAll('[role="menuitemcheckbox"]')].find(b => b.textContent.includes('compose.readReceipt'));
+    assert.equal(item.getAttribute('aria-checked'), 'true');
+  });
+
   test('a change of priority alone is a change: closing asks, and Save changes saves it', async () => {
     await mount(structuredClone(SCHEDULED));
-    const select = document.querySelector('select[title="compose.priority"]');
-    const setter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value').set;
-    await React.act(async () => {
-      setter.call(select, 'high');
-      select.dispatchEvent(new window.Event('change', { bubbles: true }));
-    });
+    await pickOption('[role="menuitemradio"]', 'compose.priorityHigh');
     await click(document.querySelector('button[title="compose.toolbar.close"]'));
     assert.ok(document.querySelector('[role="alertdialog"]'), 'asks before it is lost');
     await click(button('compose.scheduleSend.edit.saveChanges'));

@@ -217,6 +217,7 @@
       "aiNotAllowed": "Ihr Administrator hat KI für Ihr Konto ausgeschaltet.",
       "aiFeatureOff": "Ihr Administrator hat den KI-Schreibassistenten ausgeschaltet."
     },
+    "messageOptions": "Nachrichtenoptionen",
     "priority": "Priorität",
     "priorityHigh": "Hohe Priorität",
     "priorityNormal": "Normal",
