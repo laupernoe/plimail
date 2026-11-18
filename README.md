@@ -7,7 +7,21 @@
 
 # Plimail
 
-A self-hosted, unified webmail client with calendars, shipped as one Docker image.
+A self-hosted, unified webmail client with calendars, contacts and end-to-end encryption,
+shipped as one Docker image.
+
+<p align="center">
+  <a href="https://plimail.selfhostr.io">Website</a> ·
+  <a href="https://plimail.selfhostr.io/vs-mailflow.html">What changed from MailFlow</a> ·
+  <a href="https://github.com/laupernoe/plimail/releases/latest">Latest release</a> ·
+  <a href="https://github.com/laupernoe/plimail/pkgs/container/plimail">Docker image</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/laupernoe/plimail/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/laupernoe/plimail"></a>
+  <a href="https://github.com/laupernoe/plimail/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/laupernoe/plimail/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-blue"></a>
+</p>
 
 ## Why this fork
 
@@ -19,13 +33,31 @@ from Chrome or Edge as an app of its own (Settings, Behavior, Install the app).
 
 ## Features
 
+**Mail**
 - Unified inbox across any number of IMAP/SMTP accounts, with OAuth for Google and Microsoft
-- Threads, search, snooze, rules, categories, scheduled send, drafts
-- Folder export (.mbox, .zip of .eml) and import (.mbox, .eml) that keeps dates and flags
-- CalDAV calendars and meeting invitations
-- Contacts, also served as a CardDAV address book
-- Web push notifications, keyboard shortcuts, 11 interface languages
-- Single sign-on (OIDC), TOTP, invite-only registration, API tokens
+- Threads, search, snooze, rules, categories, scheduled send, drafts, read receipts
+- Server-side filters and out-of-office reply (Sieve, on servers that offer ManageSieve)
+- Folder or selection export (.mbox, .zip of .eml) and import (.mbox, .eml) that keeps dates and flags
+
+**Encryption**
+- OpenPGP without the setup: keys created per address and unlocked by your Plimail password
+- Sends encrypted automatically when every recipient has a key (Web Key Directory, Autocrypt)
+- Encrypted drafts and scheduled encrypted mail; key backup and restore
+- Password-protected messages for recipients without PGP
+
+**Calendar and contacts**
+- CalDAV calendars, meeting invitations and calendar search
+- Contacts served as a CardDAV address book, with contact groups you can type in the To field
+
+**Everyday use**
+- Installs as a desktop app (Chrome, Edge), opens `mailto:` links, reads recent mail offline
+- A calm interface: fewer, bigger buttons, secondary actions in menus, keyboard shortcuts
+- Optional AI help with your own Claude or OpenRouter key: translate, scam check, spelling, tone
+- Web push notifications, 11 interface languages
+
+**Accounts and security**
+- Passkeys, TOTP, single sign-on (OIDC), invite-only registration, API tokens
+- Change your own password; PGP keys are re-protected in the same step
 - Message HTML sanitized before it is stored; remote images proxied
 
 ## Quick start
