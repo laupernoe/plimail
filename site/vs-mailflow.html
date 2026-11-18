@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plimail compared with MailFlow: what the fork changed</title>
+<meta name="description" content="Why Plimail forked MailFlow, what it added (OpenPGP, CalDAV calendars, Sieve, passkeys, a desktop app), what it removed, and how the two compare. Both are AGPL-3.0.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#07080a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://plimail.selfhostr.io/vs-mailflow">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preload" href="fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<script src="site.js" defer></script>
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Plimail">
+<meta property="og:title" content="Plimail compared with MailFlow">
+<meta property="og:description" content="Why the fork exists, what it added, what it removed, and a side-by-side comparison.">
+<meta property="og:url" content="https://plimail.selfhostr.io/vs-mailflow">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://plimail.selfhostr.io/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Plimail: every mail account in one self-hosted webmail, with calendars and OpenPGP.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Plimail compared with MailFlow">
+<meta name="twitter:description" content="Why the fork exists, what it added, what it removed, and a side-by-side comparison.">
+<meta name="twitter:image" content="https://plimail.selfhostr.io/og.png">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Plimail","item":"https://plimail.selfhostr.io/"},{"@type":"ListItem","position":2,"name":"Compared with MailFlow","item":"https://plimail.selfhostr.io/vs-mailflow"}]}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="Plimail home">
+      <span class="wordmark"><img class="logo-dark" src="img/plimail-logo-dark.png" alt="" width="640" height="160"><img class="logo-light" src="img/plimail-logo-light.png" alt="" width="640" height="160"></span>
+    </a>
+    <nav class="nav" id="site-nav" aria-label="Sections">
+      <a href="./#features">Features</a>
+      <a href="./#install">Install</a>
+      <a href="vs-mailflow" aria-current="page">Compared with MailFlow</a>
+      <a href="https://github.com/laupernoe/plimail/releases/latest">Releases</a>
+    </nav>
+    <div class="actions">
+      <a class="btn btn-secondary btn-sm gh" href="https://github.com/laupernoe/plimail"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.42c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.7 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg><span>GitHub</span></a>
+      <a class="btn btn-primary btn-sm" href="./#install">Install</a>
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu"><span aria-hidden="true"></span></button>
+    </div>
+  </div>
+</header>
+
+
+<main id="main">
+<section class="page-head">
+  <div class="wrap">
+    <div class="status-row"><span class="plate">Forked on 11 November 2026</span><span class="plate">Both AGPL-3.0</span></div>
+    <h1>What changed compared to MailFlow</h1>
+    <p class="lede">Plimail is a fork of <a href="https://github.com/maathimself/mailflow">MailFlow</a>, the self-hosted unified webmail by Matt. It keeps MailFlow's mail engine and adds what we were missing, then removes what we did not need, so the whole thing is one image to run.</p>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="why-h">
+  <div class="wrap two">
+    <div class="section-head tight"><h2 id="why-h">Why a fork</h2></div>
+    <div class="prose">
+      <p>MailFlow lacked features and responsiveness we needed: no calendar, no encryption, and a crowded interface with many small buttons. Plimail was started to add those, on a stack small enough for one person to run and keep up to date.</p>
+      <p>The rule for Plimail is <strong>keep what is necessary, and keep the stack simple</strong>: one application image, a 60-line compose file, a 27-line <code>.env.example</code>, and no HTTPS machinery of its own beyond a self-signed fallback. A trusted certificate comes from the reverse proxy or tunnel you already run.</p>
+      <p>Plimail still takes fixes from MailFlow. The first release ported upstream's 12/24-hour clock, menus kept on screen, the collapsible attachment list, the undo-send switch, per-account notification mute and three IMAP sync fixes.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="table-h">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 id="table-h">Side by side</h2>
+      <p>MailFlow as of 4.3.1, the version Plimail forked from, against Plimail 1.1.0.</p>
+    </div>
+    <div class="table-scroll" tabindex="0" role="region" aria-labelledby="table-h">
+      <table class="compare">
+        <thead><tr><th scope="col">Area</th><th scope="col">MailFlow</th><th scope="col">Plimail</th></tr></thead>
+        <tbody>
+          <tr class="cat"><th scope="colgroup" colspan="3">Running it</th></tr>
+          <tr><th scope="row">Images</th><td>Two: a frontend image (Caddy or nginx) and a backend image</td><td class="p">One: the backend serves the built interface itself</td></tr>
+          <tr><th scope="row">Containers</th><td>Frontend, backend, PostgreSQL, Redis</td><td class="p">Plimail, PostgreSQL, Redis</td></tr>
+          <tr><th scope="row">HTTPS</th><td>Built in: self-signed, or Let's Encrypt through the bundled Caddy</td><td class="p">HTTP on 3000 for your proxy, self-signed HTTPS on 3443</td></tr>
+          <tr><th scope="row">Setup files</th><td>137-line compose file, 211-line <code>.env.example</code>, 771-line README</td><td class="p">60-line compose file, 27-line <code>.env.example</code>, short README</td></tr>
+          <tr><th scope="row">Repository</th><td>About 1,660 files</td><td class="p">About 1,100 files</td></tr>
+          <tr><th scope="row">Licence</th><td>AGPL-3.0, plus a paid commercial licence and a requested business licence</td><td class="p">AGPL-3.0 only</td></tr>
+          <tr class="cat"><th scope="colgroup" colspan="3">Mail</th></tr>
+          <tr><th scope="row">Unified inbox, threads, search, rules, OAuth</th><td>Yes</td><td class="p">Yes, same engine</td></tr>
+          <tr><th scope="row">Account setup</th><td>No autodiscovery: enter the server settings</td><td class="p">Found from the address (autoconfig, Thunderbird ISPDB, SRV, MX)</td></tr>
+          <tr><th scope="row">Server-side filters</th><td>No</td><td class="p">Sieve over ManageSieve, plus out-of-office</td></tr>
+          <tr><th scope="row">Read receipts</th><td>No</td><td class="p">Request and answer (MDN, RFC 8098)</td></tr>
+          <tr><th scope="row">Import and export</th><td>Single message as .eml</td><td class="p">Folders and selections as .mbox or .eml, import keeping dates and flags</td></tr>
+          <tr><th scope="row">Signature images</th><td>No upload</td><td class="p">Upload, resize, sent inline</td></tr>
+          <tr><th scope="row">Spam filtering</th><td>Built-in antispam filter</td><td class="p">Left to your mail server</td></tr>
+          <tr class="cat"><th scope="colgroup" colspan="3">Privacy</th></tr>
+          <tr><th scope="row">OpenPGP</th><td>No</td><td class="p">Automatic keys, PGP/MIME, Autocrypt, encrypted drafts and Send later, backup</td></tr>
+          <tr><th scope="row">Password-protected messages</th><td>No</td><td class="p">Yes, for recipients without PGP</td></tr>
+          <tr class="cat"><th scope="colgroup" colspan="3">Calendar and contacts</th></tr>
+          <tr><th scope="row">Calendars</th><td>No</td><td class="p">CalDAV, invitations, answers, search</td></tr>
+          <tr><th scope="row">Contacts</th><td>Address book served over CardDAV, sync from external CardDAV</td><td class="p">Address book served over CardDAV, contact groups; no external sync</td></tr>
+          <tr class="cat"><th scope="colgroup" colspan="3">Apps and interface</th></tr>
+          <tr><th scope="row">Desktop</th><td>Electron app</td><td class="p">Installable web app with mailto: handling and offline reading</td></tr>
+          <tr><th scope="row">Mobile</th><td>Capacitor Android app</td><td class="p">The responsive web app</td></tr>
+          <tr><th scope="row">Themes</th><td>24</td><td class="p">2, dark and light, following the system if you like</td></tr>
+          <tr><th scope="row">Buttons</th><td>Many small ones</td><td class="p">Fewer, bigger; the rest in a More menu</td></tr>
+          <tr><th scope="row">Languages</th><td>11</td><td class="p">11</td></tr>
+          <tr class="cat"><th scope="colgroup" colspan="3">Extending and sign-in</th></tr>
+          <tr><th scope="row">Plugins</th><td>Plugin platform, GTD plugin</td><td class="p">Removed</td></tr>
+          <tr><th scope="row">Integrations</th><td>Todoist, CardDAV contact sync</td><td class="p">Removed</td></tr>
+          <tr><th scope="row">AI</th><td>Assistant with OpenRouter and other providers</td><td class="p">Same, plus Claude, translate, scam check, proofreading, tones, writing style</td></tr>
+          <tr><th scope="row">Sign-in</th><td>Password, TOTP, OIDC, API tokens</td><td class="p">Same, plus passkeys and changing your own password</td></tr>
+        </tbody>
+        <caption>Counts come from the two repositories: MailFlow at the fork point and Plimail's main branch.</caption>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="removed-h">
+  <div class="wrap two">
+    <div class="section-head tight">
+      <h2 id="removed-h">What was removed, and why</h2>
+      <p>Each removal is a part we did not use and did not want to maintain. If you rely on one of them, MailFlow is the better choice.</p>
+    </div>
+    <div class="cards">
+      <article class="card"><h3>Plugins and the GTD plugin</h3><p>A platform to maintain for features we did not use. Plimail's additions went into the core instead.</p></article>
+      <article class="card"><h3>Todoist and CardDAV contact sync</h3><p>Integrations with outside services. The CardDAV server for your own contacts stays.</p></article>
+      <article class="card"><h3>Built-in antispam and mailbox cleanup</h3><p>Spam is filtered by the mail server. Sieve rules now run there too.</p></article>
+      <article class="card"><h3>Electron and Android apps</h3><p>On a computer, the installable web app does the job of the Electron one with no separate release.</p></article>
+      <article class="card"><h3>Bundled Caddy and nginx</h3><p>One image instead of two. Let's Encrypt is left to your own proxy or tunnel.</p></article>
+      <article class="card"><h3>22 extra themes</h3><p>One design in dark and light, matching the selfhostr family.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="credit-h">
+  <div class="wrap">
+    <div class="credit">
+      <h2 id="credit-h">Thanks to MailFlow</h2>
+      <p>Plimail would not exist without <a href="https://github.com/maathimself/mailflow">MailFlow</a> and the work Matt and its contributors put into it: the IMAP engine, the sync model, the sanitizer and most of the interface come from there. Copyright in that code stays with its authors.</p>
+      <p>MailFlow is licensed under the GNU AGPL-3.0, and so is Plimail. The original notices are kept, and every change is listed in the <a href="https://github.com/laupernoe/plimail/blob/main/NOTICE">NOTICE</a> file. Internal names that installs depend on, such as <code>MAILFLOW_*</code> variables, the <code>mailflow</code> database and the volume names, are unchanged. MailFlow's commercial licence offer does not apply to Plimail.</p>
+      <div class="cta"><a class="btn btn-secondary" href="https://github.com/maathimself/mailflow">MailFlow on GitHub</a><a class="btn btn-secondary" href="https://github.com/laupernoe/plimail/blob/main/LICENSE">Plimail licence</a></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="sh-foot"><div class="wrap"><div class="sh-f-main"><a class="sh-f-brand" href="./"><img src="favicon.svg" alt="" width="24" height="24">Plimail</a><nav aria-label="Footer"><a href="./#features">Features</a><a href="./#install">Install</a><a href="vs-mailflow">Compared with MailFlow</a><a href="https://github.com/laupernoe/plimail/releases/latest">Releases</a><a href="https://github.com/laupernoe/plimail">GitHub</a><a href="https://github.com/laupernoe/plimail/issues">Issues</a></nav></div><p class="sh-note">Plimail is free software under the GNU AGPL-3.0, based on MailFlow by Matt. The messages in the mock-up are made up.</p><div class="sh-f-bar"><a class="sh-home" href="https://selfhostr.io"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="6" fill="#ecedef"/><path d="M7 9.5 10 12l-3 2.5M12.5 15H17" fill="none" stroke="#0b0c0e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>A <b>selfhostr</b> project</span><span class="sh-all">Discover all our projects</span></a><span class="sh-swiss"><svg class="ch-cross" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="3" fill="#DA291C"/><path fill="#fff" d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z"/></svg><span>Made in Switzerland</span></span></div></div></footer>
+
+</body>
+</html>
