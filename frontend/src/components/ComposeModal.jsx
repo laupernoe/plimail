@@ -3853,23 +3853,21 @@ export default function ComposeModal() {
 
         {error && <span style={{ fontSize: 12, color: 'var(--red)', flex: 1 }}>{error}</span>}
 
-        <select
-          value={priority}
-          onChange={e => setPriority(e.target.value)}
-          title={t('compose.priority')}
-          style={{
-            marginLeft: 'auto',
-            background: 'var(--bg-tertiary)', border: '1px solid var(--border)',
-            borderRadius: 8, fontSize: 12, padding: '0 8px', height: HIT, boxSizing: 'border-box',
-            cursor: 'pointer', outline: 'none',
-            color: priority === 'high' ? 'var(--red)' : priority === 'low' ? 'var(--text-tertiary)' : 'var(--text-secondary)',
-          }}
-        >
-          <option value="high">{t('compose.priorityHigh')}</option>
-          <option value="normal">{t('compose.priorityNormal')}</option>
-          <option value="low">{t('compose.priorityLow')}</option>
-        </select>
-        <ReadReceiptToggle checked={readReceipt} onChange={setReadReceipt} />
+        {/* Priority and read receipt share one small menu, so the footer keeps room for its buttons. */}
+        <div style={{ marginLeft: 'auto', display: 'flex' }}>
+          <MoreMenu
+            label={t('compose.messageOptions')}
+            minWidth={220}
+            btnStyle={priority === 'high' ? { color: 'var(--red)' } : (priority === 'low' || readReceipt) ? { color: 'var(--accent)' } : undefined}
+            items={[
+              { key: 'priority', heading: t('compose.priority') },
+              { key: 'high', label: t('compose.priorityHigh'), checked: priority === 'high', run: () => setPriority('high') },
+              { key: 'normal', label: t('compose.priorityNormal'), checked: priority === 'normal', run: () => setPriority('normal') },
+              { key: 'low', label: t('compose.priorityLow'), checked: priority === 'low', run: () => setPriority('low') },
+              { key: 'readReceipt', label: t('compose.readReceipt'), separator: true, role: 'menuitemcheckbox', checked: readReceipt, run: () => setReadReceipt(v => !v) },
+            ]}
+          />
+        </div>
 
         {!scheduledEdit && (
           <>

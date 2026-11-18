@@ -794,6 +794,7 @@
       "aiNotAllowed": "správce vypnul AI pro váš účet.",
       "aiFeatureOff": "správce vypnul asistenta psaní AI."
     },
+    "messageOptions": "Možnosti zprávy",
     "priority": "Priorita",
     "priorityHigh": "Vysoká priorita",
     "priorityNormal": "Normální",
