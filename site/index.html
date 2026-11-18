@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plimail: self-hosted webmail with calendars and OpenPGP</title>
+<meta name="description" content="Plimail is an open-source, self-hosted webmail for all your IMAP accounts, with CalDAV calendars, CardDAV contacts, automatic OpenPGP and passkeys. One Docker image, AGPL-3.0.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#07080a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://plimail.selfhostr.io/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preload" href="fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<script src="site.js" defer></script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Plimail">
+<meta property="og:title" content="Plimail: self-hosted webmail with calendars and OpenPGP">
+<meta property="og:description" content="All your IMAP accounts in one webmail, with CalDAV calendars, contacts, automatic OpenPGP and passkeys. One Docker image, AGPL-3.0.">
+<meta property="og:url" content="https://plimail.selfhostr.io/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://plimail.selfhostr.io/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Plimail: every mail account in one self-hosted webmail, with calendars and OpenPGP.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Plimail: self-hosted webmail with calendars and OpenPGP">
+<meta name="twitter:description" content="All your IMAP accounts in one webmail, with CalDAV calendars, contacts, automatic OpenPGP and passkeys. One Docker image, AGPL-3.0.">
+<meta name="twitter:image" content="https://plimail.selfhostr.io/og.png">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Plimail","description":"Open-source, self-hosted webmail for all your IMAP accounts, with CalDAV calendars, CardDAV contacts, automatic OpenPGP and passkeys. One Docker image.","applicationCategory":"CommunicationApplication","applicationSubCategory":"Webmail","operatingSystem":"Linux (Docker), amd64, arm64","softwareVersion":"1.1.0","license":"https://www.gnu.org/licenses/agpl-3.0.html","url":"https://plimail.selfhostr.io/","downloadUrl":"https://github.com/laupernoe/plimail/releases/tag/v1.1.0","installUrl":"https://plimail.selfhostr.io/#install","image":"https://plimail.selfhostr.io/og.png","inLanguage":"en","codeRepository":"https://github.com/laupernoe/plimail","isBasedOn":"https://github.com/maathimself/mailflow","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@type":"Organization","name":"selfhostr","url":"https://selfhostr.io"}}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="Plimail home">
+      <span class="wordmark"><img class="logo-dark" src="img/plimail-logo-dark.png" alt="" width="640" height="160"><img class="logo-light" src="img/plimail-logo-light.png" alt="" width="640" height="160"></span>
+    </a>
+    <nav class="nav" id="site-nav" aria-label="Sections">
+      <a href="./#features">Features</a>
+      <a href="./#install">Install</a>
+      <a href="vs-mailflow">Compared with MailFlow</a>
+      <a href="https://github.com/laupernoe/plimail/releases/latest">Releases</a>
+    </nav>
+    <div class="actions">
+      <a class="btn btn-secondary btn-sm gh" href="https://github.com/laupernoe/plimail"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.42c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.7 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg><span>GitHub</span></a>
+      <a class="btn btn-primary btn-sm" href="./#install">Install</a>
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu"><span aria-hidden="true"></span></button>
+    </div>
+  </div>
+</header>
+
+
+<main id="main">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1Z"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-offline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.7"/><path d="M19 12.9a10 10 0 0 0-2.3-1.6"/><path d="M2 8.8a15 15 0 0 1 4.2-2.6"/><path d="M22 8.8A15 15 0 0 0 10.7 5"/><path d="M12 20h.01"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-reply" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17 4 12l5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8.5V19l-4 2v-7.5Z"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-text">
+      <div class="status-row">
+        <a class="plate plate-info" href="https://github.com/laupernoe/plimail/releases/tag/v1.1.0"><svg aria-hidden="true"><use href="#i-tag"/></svg>v1.1.0 is out</a>
+        <span class="plate">AGPL-3.0, no paid edition</span>
+      </div>
+      <h1>All your mail accounts in one webmail, on your own server.</h1>
+      <p class="lede">Plimail brings every IMAP account into one inbox, with calendars, contacts and OpenPGP encryption that works without setup. It runs as a single Docker image behind the proxy you already have.</p>
+      <div class="cta">
+        <a class="btn btn-primary btn-lg" href="#install"><svg aria-hidden="true"><use href="#i-download"/></svg>Install</a>
+        <a class="btn btn-secondary btn-lg" href="vs-mailflow">Compared with MailFlow</a>
+      </div>
+    </div>
+
+    <figure class="tour">
+      <p class="tour-hint" id="tour-hint">A mock-up with made-up messages. Pick one to see what Plimail does with it.</p>
+      <div class="demo">
+        <div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i><span>mail.example.com</span></div>
+        <div class="app">
+          <aside class="app-side" aria-hidden="true">
+            <div class="app-compose"><svg><use href="#i-pen"/></svg>Compose</div>
+            <div class="app-folder on"><svg><use href="#i-inbox"/></svg>All inboxes<span class="n">2</span></div>
+            <div class="app-folder"><svg><use href="#i-file"/></svg>Drafts</div>
+            <div class="app-folder"><svg><use href="#i-send"/></svg>Sent</div>
+            <div class="app-folder"><svg><use href="#i-cal"/></svg>Calendar</div>
+            <div class="app-folder"><svg><use href="#i-user"/></svg>Contacts</div>
+            <div class="app-acct">Accounts</div>
+            <div class="app-folder"><span class="app-dot"></span>sam@example.com<span class="n">1</span></div>
+            <div class="app-folder"><span class="app-dot"></span>sam@example.org<span class="n">1</span></div>
+            <div class="app-folder"><span class="app-dot"></span>Work (Microsoft)</div>
+          </aside>
+
+          <div class="app-list">
+            <div class="app-listhead" aria-hidden="true">All inboxes <span class="n">2 unread</span><span class="app-search"><svg><use href="#i-search"/></svg>Search</span></div>
+            <div role="tablist" aria-labelledby="tour-hint" aria-orientation="vertical">
+              <button class="msg" role="tab" id="t-pgp" aria-controls="p-pgp" aria-selected="true">
+                <span class="from">Ana Ribeiro</span><span class="when">09:42</span>
+                <span class="subj"><svg aria-label="Encrypted"><use href="#i-lock"/></svg>Signed lease for the Lisbon office</span>
+                <span class="snip">Encrypted message</span>
+              </button>
+              <button class="msg unread" role="tab" id="t-mdn" aria-controls="p-mdn" aria-selected="false" tabindex="-1">
+                <span class="from">Léa Martin</span><span class="when">08:15</span>
+                <span class="subj">Minutes from Monday</span>
+                <span class="snip">Here are the notes we agreed on, with the two open questions.</span>
+              </button>
+              <button class="msg unread" role="tab" id="t-off" aria-controls="p-off" aria-selected="false" tabindex="-1">
+                <span class="from">Kenji Sato</span><span class="when">Yesterday</span>
+                <span class="subj">Train tickets for Friday</span>
+                <span class="snip">Both tickets are attached, seats 41 and 42.</span>
+              </button>
+            </div>
+            <div class="rest" aria-hidden="true">Three accounts, one list, sorted by date.</div>
+          </div>
+
+          <div class="app-read">
+            <div class="panel" role="tabpanel" id="p-pgp" aria-labelledby="t-pgp">
+              <div class="r-tools" aria-hidden="true"><span><svg><use href="#i-reply"/></svg>Reply</span><span><svg><use href="#i-archive"/></svg></span><span><svg><use href="#i-clock"/></svg></span><span><svg><use href="#i-trash"/></svg></span><span><svg><use href="#i-more"/></svg></span></div>
+              <div class="r-subj">Signed lease for the Lisbon office</div>
+              <div class="r-from"><span class="avatar" aria-hidden="true">AR</span><div>Ana Ribeiro<small>ana@example.org, to sam@example.com</small></div></div>
+              <div class="banner"><svg aria-hidden="true"><use href="#i-lock"/></svg><span>Decrypted in your browser. Nothing of it is stored on the server.</span></div>
+              <div class="banner ok"><svg aria-hidden="true"><use href="#i-check"/></svg><span>Signed by key 7A3F 19C2, which you verified. The signature is valid.</span></div>
+              <div class="r-body"><p>Hi Sam,</p><p>The landlord signed this morning. The lease is attached, with the inventory of the furniture. Keys on the 1st.</p><p>Ana</p></div>
+            </div>
+            <div class="panel" role="tabpanel" id="p-mdn" aria-labelledby="t-mdn" hidden>
+              <div class="r-tools" aria-hidden="true"><span><svg><use href="#i-reply"/></svg>Reply</span><span><svg><use href="#i-archive"/></svg></span><span><svg><use href="#i-clock"/></svg></span><span><svg><use href="#i-trash"/></svg></span><span><svg><use href="#i-more"/></svg></span></div>
+              <div class="r-subj">Minutes from Monday</div>
+              <div class="r-from"><span class="avatar" aria-hidden="true">LM</span><div>Léa Martin<small>lea@example.net, to sam@example.org</small></div></div>
+              <div class="banner"><svg aria-hidden="true"><use href="#i-receipt"/></svg><span>The sender is asking for a read receipt.</span><span class="btns" aria-hidden="true"><span class="chip-btn solid">Send</span><span class="chip-btn">Ignore</span></span></div>
+              <div class="r-body"><p>Hello all,</p><p>Here are the notes we agreed on, with the two open questions at the end. Shout if I missed anything before Thursday.</p><p>Léa</p></div>
+            </div>
+            <div class="panel" role="tabpanel" id="p-off" aria-labelledby="t-off" hidden>
+              <div class="banner"><svg aria-hidden="true"><use href="#i-offline"/></svg><span>You're offline. Mail you opened recently can still be read; sending and changes wait for the connection.</span></div>
+              <div class="r-tools" aria-hidden="true"><span><svg><use href="#i-reply"/></svg>Reply</span><span><svg><use href="#i-archive"/></svg></span><span><svg><use href="#i-clock"/></svg></span><span><svg><use href="#i-trash"/></svg></span><span><svg><use href="#i-more"/></svg></span></div>
+              <div class="r-subj">Train tickets for Friday</div>
+              <div class="r-from"><span class="avatar" aria-hidden="true">KS</span><div>Kenji Sato<small>kenji@example.com, to sam@example.com</small></div></div>
+              <div class="r-body"><p>Both tickets are attached, seats 41 and 42. The train leaves at 07:12, platform 6.</p><p>See you at the station,<br>Kenji</p></div>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+      <figcaption class="captions" aria-live="polite">
+          <p data-for="p-pgp"><strong>Encryption without setup.</strong> Plimail creates an OpenPGP key for each of your addresses and unlocks it with your sign-in password. When every recipient has a key, Send becomes Send encrypted. Messages are decrypted in the browser, never on the server.</p>
+          <p data-for="p-mdn" hidden><strong>Read receipts, on your terms.</strong> A request shows as a notice with Send and Ignore. Nothing goes out without a click unless you choose to, and spam, mailing lists and suspicious requests are never answered automatically.</p>
+          <p data-for="p-off" hidden><strong>A desktop app that works on the train.</strong> Install Plimail from Chrome or Edge, make it your mailto: handler, and keep reading mail you opened recently when the connection drops. Sending waits instead of being queued behind your back.</p>
+        </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section" id="features" aria-labelledby="features-h">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 id="features-h">Everything a mail client needs, nothing to babysit</h2>
+      <p>Plimail keeps your mail on your mail server. It stores headers and the bodies you open in its own database, so lists and search stay fast.</p>
+    </div>
+    <div class="cards cards-3">
+      <article class="card">
+        <span class="icon" aria-hidden="true"><svg><use href="#i-inbox"/></svg></span>
+        <h3>One inbox for every account</h3>
+        <ul>
+          <li>Any IMAP and SMTP account, with OAuth for Google and Microsoft</li>
+          <li>Server settings found from the address: IMAP, SMTP and CalDAV</li>
+          <li>Threads, search, snooze, rules, categories, scheduled and undo send</li>
+          <li>Folder import and export as .mbox or .eml, keeping dates and flags</li>
+        </ul>
+      </article>
+      <article class="card">
+        <span class="icon" aria-hidden="true"><svg><use href="#i-lock"/></svg></span>
+        <h3>Encryption without setup</h3>
+        <ul>
+          <li>OpenPGP keys created for you and unlocked by your sign-in password</li>
+          <li>PGP/MIME, and keys collected from received Autocrypt headers</li>
+          <li>Encrypted drafts and encrypted Send later</li>
+          <li>Key backup and restore, readable by GnuPG</li>
+          <li>Password-protected messages for people without PGP</li>
+        </ul>
+      </article>
+      <article class="card">
+        <span class="icon" aria-hidden="true"><svg><use href="#i-cal"/></svg></span>
+        <h3>Calendars and contacts</h3>
+        <ul>
+          <li>CalDAV calendars, added from the same address as your mail</li>
+          <li>Send invitations, and answer Yes, Maybe or No</li>
+          <li>Search events by title, place, description or attendee</li>
+          <li>Contacts served over CardDAV, with groups that expand in the composer</li>
+        </ul>
+      </article>
+      <article class="card">
+        <span class="icon" aria-hidden="true"><svg><use href="#i-filter"/></svg></span>
+        <h3>Rules that run on the server</h3>
+        <ul>
+          <li>Sieve filters edited in Plimail and run by your mail server, even when Plimail is closed</li>
+          <li>Out-of-office reply with optional start and end dates</li>
+          <li>Read receipts: ask for one, and answer only when you choose</li>
+          <li>Signature images uploaded once and sent inline</li>
+        </ul>
+      </article>
+      <article class="card">
+        <span class="icon" aria-hidden="true"><svg><use href="#i-monitor"/></svg></span>
+        <h3>An app on your desktop</h3>
+        <ul>
+          <li>Installs from Chrome or Edge and opens mailto: links</li>
+          <li>Recently opened mail stays readable offline</li>
+          <li>Fewer, bigger buttons, web push and keyboard shortcuts</li>
+          <li>11 interface languages, light and dark themes</li>
+          <li>Optional AI with your own key: translate, scam check, proofreading</li>
+        </ul>
+      </article>
+      <article class="card">
+        <span class="icon" aria-hidden="true"><svg><use href="#i-check"/></svg></span>
+        <h3>Sign-in and security</h3>
+        <ul>
+          <li>Passkeys, TOTP, single sign-on (OIDC) and invite-only registration</li>
+          <li>Change your password and your keys are re-encrypted in the same step</li>
+          <li>Sign-in limits per account and address, STARTTLS required off port 993</li>
+          <li>Message HTML sanitized before it is stored, remote images proxied</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="install" aria-labelledby="install-h">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 id="install-h">Install in three steps</h2>
+      <p>You need Docker with the compose plugin. The compose file starts Plimail, PostgreSQL and Redis.</p>
+    </div>
+    <ol class="steps">
+      <li class="step">
+        <h3>Download the compose file and the settings</h3>
+        <div class="code"><pre><code>curl -O https://raw.githubusercontent.com/laupernoe/plimail/main/docker-compose.yml
+curl -o .env https://raw.githubusercontent.com/laupernoe/plimail/main/.env.example</code></pre></div>
+      </li>
+      <li class="step">
+        <h3>Fill in .env</h3>
+        <p>Set <code>APP_URL</code> to the address people will open, and generate the secrets.</p>
+        <div class="code"><pre><code><span class="c"># SESSION_SECRET and ENCRYPTION_KEY</span>
+openssl rand -hex 32
+<span class="c"># DB_PASSWORD</span>
+openssl rand -hex 16</code></pre></div>
+      </li>
+      <li class="step">
+        <h3>Start it</h3>
+        <div class="code"><pre><code>docker compose up -d</code></pre></div>
+        <p>Open <code>http://your-host:3000</code> and create the first account; it becomes the administrator. To update, run <code>docker compose pull &amp;&amp; docker compose up -d</code>.</p>
+      </li>
+    </ol>
+    <details class="file">
+        <summary>docker-compose.yml <span>the whole file, as in the repository</span></summary>
+<div class="code"><pre><code>services:
+  plimail:
+    image: ghcr.io/laupernoe/plimail:latest
+    build: .
+    restart: unless-stopped
+    <span class="c"># Room for a send in flight to finish on a restart (the app waits up to 25 s).</span>
+    stop_grace_period: 30s
+    env_file: .env
+    ports:
+      - "${HTTP_PORT:-3000}:3000"
+      - "${HTTPS_PORT:-3443}:3443"
+    volumes:
+      - image_cache:/var/cache/mailflow/images
+      <span class="c"># The self-signed certificate, generated at the first start. To serve your own, bind-mount a</span>
+      <span class="c"># directory holding cert.pem and key.pem here instead.</span>
+      - certs:/certs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-mailflow}
+      POSTGRES_USER: ${DB_USER:-mailflow}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+<span class="c"># The volume names are the ones earlier versions used, so an existing install keeps its data.</span>
+volumes:
+  postgres_data:
+  redis_data:
+  image_cache:
+  certs:</code></pre></div>
+      </details>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="stack-h">
+  <div class="wrap stack">
+    <div>
+      <div class="section-head tight">
+        <h2 id="stack-h">One image, your proxy</h2>
+        <p>The app serves its own interface. A trusted certificate is the job of the proxy or tunnel you already run.</p>
+      </div>
+      <ul class="stack-notes">
+        <li><strong>HTTP on 3000</strong> for Caddy, Traefik, nginx or a Cloudflare Tunnel, with WebSocket upgrades on <code>/ws</code>.</li>
+        <li><strong>HTTPS on 3443</strong> with a self-signed certificate made at first start, or your own <code>cert.pem</code> and <code>key.pem</code>.</li>
+        <li><strong>amd64 and arm64</strong> images on the GitHub Container Registry. Migrations run at startup.</li>
+      </ul>
+    </div>
+    <div class="diagram" role="img" aria-label="Your reverse proxy or tunnel sends traffic to the Plimail container, which uses PostgreSQL 16 and Redis 7.">
+      <div class="box dashed"><b>Your reverse proxy or tunnel</b><span>Trusted certificate, your domain</span></div>
+      <div class="wire"></div>
+      <div class="box main"><b>ghcr.io/laupernoe/plimail</b><span>Interface, API, WebSocket, IMAP and SMTP connections</span></div>
+      <div class="wire"></div>
+      <div class="pair">
+        <div class="box"><b>PostgreSQL 16</b><span>Headers, bodies, settings</span></div>
+        <div class="box"><b>Redis 7</b><span>Sessions</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="fork-h">
+  <div class="wrap final">
+    <div>
+      <h2 id="fork-h">A lighter fork of MailFlow</h2>
+      <p>Plimail started from MailFlow and keeps its mail engine. It adds encryption, calendars and a desktop app, and drops plugins, integrations and the native apps.</p>
+    </div>
+    <div class="cta">
+      <a class="btn btn-primary btn-lg" href="vs-mailflow">See what changed</a>
+      <a class="btn btn-secondary btn-lg" href="https://github.com/laupernoe/plimail/releases/tag/v1.1.0">Release notes for v1.1.0</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="sh-foot"><div class="wrap"><div class="sh-f-main"><a class="sh-f-brand" href="./"><img src="favicon.svg" alt="" width="24" height="24">Plimail</a><nav aria-label="Footer"><a href="./#features">Features</a><a href="./#install">Install</a><a href="vs-mailflow">Compared with MailFlow</a><a href="https://github.com/laupernoe/plimail/releases/latest">Releases</a><a href="https://github.com/laupernoe/plimail">GitHub</a><a href="https://github.com/laupernoe/plimail/issues">Issues</a></nav></div><p class="sh-note">Plimail is free software under the GNU AGPL-3.0, based on MailFlow by Matt. The messages in the mock-up are made up.</p><div class="sh-f-bar"><a class="sh-home" href="https://selfhostr.io"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="6" fill="#ecedef"/><path d="M7 9.5 10 12l-3 2.5M12.5 15H17" fill="none" stroke="#0b0c0e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>A <b>selfhostr</b> project</span><span class="sh-all">Discover all our projects</span></a><span class="sh-swiss"><svg class="ch-cross" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="3" fill="#DA291C"/><path fill="#fff" d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z"/></svg><span>Made in Switzerland</span></span></div></div></footer>
+
+</body>
+</html>
