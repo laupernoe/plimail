@@ -25,9 +25,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:demo": "vite build --config vite.demo.config.js",
     "preview": "vite preview",
     "test": "node --test",
-    "lint": "eslint src --max-warnings 0"
+    "lint": "eslint src demo --max-warnings 0"
   },
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",
