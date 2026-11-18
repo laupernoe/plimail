@@ -1,12 +1,13 @@
 name: Website
 
-# Deploys site/ to the Cloudflare Pages project "plimail" (plimail.selfhostr.io).
+# Deploys site/ to the Cloudflare Pages project "plimail" (plimail.selfhostr.io), with the online
+# demo built from frontend/ into site/demo/ (npm run build:demo, frontend/vite.demo.config.js).
 # Needs the repository secrets CLOUDFLARE_API_TOKEN (Pages: Edit) and CLOUDFLARE_ACCOUNT_ID.
 
 on:
   push:
     branches: ["main"]
-    paths: ["site/**"]
+    paths: ["site/**", "frontend/**", ".github/workflows/site.yml"]
   workflow_dispatch:
 
 permissions:
@@ -26,6 +27,14 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build the demo
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build:demo
 
       - name: Deploy
         env:

@@ -3041,5 +3041,13 @@
       "neverUsed": "nunca usada",
       "pgpNote": "Una llave de acceso no desbloquea tus claves de cifrado: tras iniciar sesión con una, Plimail pide tu contraseña una vez por pestaña, la primera vez que hay que descifrar o firmar un mensaje."
     }
+  },
+  "demo": {
+    "notice": "Demo · todos los datos son ficticios",
+    "noticeShort": "Datos ficticios",
+    "get": "Conseguir Plimail",
+    "hide": "Ocultar el aviso de demo",
+    "sentTitle": "Demo: no se envió nada.",
+    "sentBody": "Tu mensaje solo fue a la carpeta Enviados de esta cuenta y desaparece al recargar."
   }
 }

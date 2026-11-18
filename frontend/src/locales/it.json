@@ -3041,5 +3041,13 @@
       "neverUsed": "mai usata",
       "pgpNote": "Una passkey non sblocca le tue chiavi di crittografia: dopo un accesso con passkey, Plimail chiede la tua password una volta per scheda, la prima volta che un messaggio deve essere decifrato o firmato."
     }
+  },
+  "demo": {
+    "notice": "Demo · tutti i dati sono fittizi",
+    "noticeShort": "Dati fittizi",
+    "get": "Ottieni Plimail",
+    "hide": "Nascondi l'avviso della demo",
+    "sentTitle": "Demo: non è stato inviato nulla.",
+    "sentBody": "Il tuo messaggio è finito solo nella cartella Inviati di questo account e sparisce ricaricando la pagina."
   }
 }

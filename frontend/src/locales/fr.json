@@ -3041,5 +3041,13 @@
       "neverUsed": "jamais utilisée",
       "pgpNote": "Une clé d’accès ne déverrouille pas vos clés de chiffrement : après une connexion par clé d’accès, Plimail demande votre mot de passe une fois par onglet, la première fois qu’un message doit être déchiffré ou signé."
     }
+  },
+  "demo": {
+    "notice": "Démo · toutes les données sont fictives",
+    "noticeShort": "Données fictives",
+    "get": "Obtenir Plimail",
+    "hide": "Masquer l'avis de démo",
+    "sentTitle": "Démo : rien n'a été envoyé.",
+    "sentBody": "Votre message est seulement allé dans le dossier Envoyés de ce compte, et disparaît au rechargement."
   }
 }

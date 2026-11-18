@@ -11,6 +11,8 @@ node_modules/
 # Build output
 frontend/dist/
 frontend/.vite/
+# The online demo, built by the Website workflow (npm run build:demo in frontend/)
+site/demo/
 
 # Logs
 *.log
