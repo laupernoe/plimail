@@ -11,8 +11,8 @@ A self-hosted, unified webmail client with calendars, contacts and end-to-end en
 shipped as one Docker image.
 
 <p align="center">
-  <a href="https://plimail.selfhostr.io">Website</a> ·
-  <a href="https://plimail.selfhostr.io/vs-mailflow.html">What changed from MailFlow</a> ·
+  <a href="https://plimail.kxn.ch">Website</a> ·
+  <a href="https://plimail.kxn.ch/vs-mailflow">What changed from MailFlow</a> ·
   <a href="https://github.com/laupernoe/plimail/releases/latest">Latest release</a> ·
   <a href="https://github.com/laupernoe/plimail/pkgs/container/plimail">Docker image</a>
 </p>

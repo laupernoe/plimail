@@ -4,12 +4,14 @@
 <meta charset="utf-8">
 <script>document.documentElement.classList.add('js')</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Plimail: self-hosted webmail with calendars and OpenPGP</title>
-<meta name="description" content="Plimail is an open-source, self-hosted webmail for all your IMAP accounts, with CalDAV calendars, CardDAV contacts, automatic OpenPGP and passkeys. One Docker image, AGPL-3.0.">
+<title>Plimail – self-hosted webmail with PGP, calendar and contacts</title>
+<meta name="description" content="Open-source self-hosted webmail: every IMAP account in one inbox, automatic OpenPGP, CalDAV calendar, CardDAV contacts, Sieve filters and passkeys. One Docker image. A Roundcube alternative.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="Noé Lauper">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#07080a" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<link rel="canonical" href="https://plimail.selfhostr.io/">
+<link rel="canonical" href="https://plimail.kxn.ch/">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -18,20 +20,23 @@
 <script src="site.js" defer></script>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Plimail">
-<meta property="og:title" content="Plimail: self-hosted webmail with calendars and OpenPGP">
+<meta property="og:title" content="Plimail – self-hosted webmail with PGP, calendar and contacts">
 <meta property="og:description" content="All your IMAP accounts in one webmail, with CalDAV calendars, contacts, automatic OpenPGP and passkeys. One Docker image, AGPL-3.0.">
-<meta property="og:url" content="https://plimail.selfhostr.io/">
+<meta property="og:url" content="https://plimail.kxn.ch/">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://plimail.selfhostr.io/og.png">
+<meta property="og:image" content="https://plimail.kxn.ch/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Plimail: every mail account in one self-hosted webmail, with calendars and OpenPGP.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Plimail: self-hosted webmail with calendars and OpenPGP">
+<meta name="twitter:title" content="Plimail – self-hosted webmail with PGP, calendar and contacts">
 <meta name="twitter:description" content="All your IMAP accounts in one webmail, with CalDAV calendars, contacts, automatic OpenPGP and passkeys. One Docker image, AGPL-3.0.">
-<meta name="twitter:image" content="https://plimail.selfhostr.io/og.png">
+<meta name="twitter:image" content="https://plimail.kxn.ch/og.png">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Plimail","description":"Open-source, self-hosted webmail for all your IMAP accounts, with CalDAV calendars, CardDAV contacts, automatic OpenPGP and passkeys. One Docker image.","applicationCategory":"CommunicationApplication","applicationSubCategory":"Webmail","operatingSystem":"Linux (Docker), amd64, arm64","softwareVersion":"1.1.0","license":"https://www.gnu.org/licenses/agpl-3.0.html","url":"https://plimail.selfhostr.io/","downloadUrl":"https://github.com/laupernoe/plimail/releases/tag/v1.1.0","installUrl":"https://plimail.selfhostr.io/#install","image":"https://plimail.selfhostr.io/og.png","inLanguage":"en","codeRepository":"https://github.com/laupernoe/plimail","isBasedOn":"https://github.com/maathimself/mailflow","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@type":"Organization","name":"selfhostr","url":"https://selfhostr.io"}}
+{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Plimail", "description": "Open-source, self-hosted webmail for all your IMAP accounts, with CalDAV calendars, CardDAV contacts, automatic OpenPGP and passkeys. One Docker image.", "applicationCategory": "CommunicationApplication", "applicationSubCategory": "Webmail", "operatingSystem": "Linux (Docker), amd64, arm64", "softwareVersion": "1.1.0", "license": "https://www.gnu.org/licenses/agpl-3.0.html", "url": "https://plimail.kxn.ch/", "downloadUrl": "https://github.com/laupernoe/plimail/releases/tag/v1.1.0", "installUrl": "https://plimail.kxn.ch/#install", "image": "https://plimail.kxn.ch/og.png", "inLanguage": "en", "codeRepository": "https://github.com/laupernoe/plimail", "isBasedOn": "https://github.com/maathimself/mailflow", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "publisher": {"@type": "Organization", "name": "selfhostr", "url": "https://selfhostr.io"}, "featureList": ["Unified inbox for any IMAP/SMTP account", "Automatic OpenPGP encryption (WKD, Autocrypt)", "CalDAV calendars and invitations", "CardDAV contacts and contact groups", "Sieve server filters and out-of-office", "Passkeys, TOTP and OIDC single sign-on", "Installable desktop app with offline reading", ".mbox and .eml import and export", "11 languages"], "screenshot": "https://plimail.kxn.ch/og.png", "author": {"@type": "Person", "name": "Noé Lauper", "url": "https://github.com/laupernoe"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is Plimail?", "acceptedAnswer": {"@type": "Answer", "text": "Plimail is a free, open-source webmail you host yourself. It shows all your IMAP/SMTP accounts in one inbox, with calendars, contacts and OpenPGP encryption built in."}}, {"@type": "Question", "name": "How do I install Plimail?", "acceptedAnswer": {"@type": "Answer", "text": "Download docker-compose.yml and .env.example from the GitHub repository, fill in three secrets and run docker compose up -d. It runs as one Docker image with PostgreSQL and Redis."}}, {"@type": "Question", "name": "Is Plimail a Roundcube alternative?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Unlike Roundcube or SnappyMail, Plimail unifies several mail accounts in one inbox and includes CalDAV calendars, CardDAV contacts and automatic PGP."}}, {"@type": "Question", "name": "Does Plimail work with Gmail and Outlook?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. It works with any IMAP/SMTP server, with OAuth sign-in for Google and Microsoft accounts."}}, {"@type": "Question", "name": "Is Plimail free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Plimail is free software under the GNU AGPL-3.0 license, based on MailFlow."}}]}
 </script>
 </head>
 <body>
@@ -311,6 +316,17 @@ volumes:
       <a class="btn btn-primary btn-lg" href="vs-mailflow">See what changed</a>
       <a class="btn btn-secondary btn-lg" href="https://github.com/laupernoe/plimail/releases/tag/v1.1.0">Release notes</a>
     </div>
+  </div>
+</section>
+
+<section class="section" id="faq" aria-labelledby="faq-h">
+  <div class="wrap faq">
+    <div class="section-head center"><h2 id="faq-h">Questions</h2></div>
+    <details class="file"><summary>What is Plimail?</summary><p>Plimail is a free, open-source webmail you host yourself. It shows all your IMAP/SMTP accounts in one inbox, with calendars, contacts and OpenPGP encryption built in.</p></details>
+    <details class="file"><summary>How do I install Plimail?</summary><p>Download docker-compose.yml and .env.example from the GitHub repository, fill in three secrets and run docker compose up -d. It runs as one Docker image with PostgreSQL and Redis.</p></details>
+    <details class="file"><summary>Is Plimail a Roundcube alternative?</summary><p>Yes. Unlike Roundcube or SnappyMail, Plimail unifies several mail accounts in one inbox and includes CalDAV calendars, CardDAV contacts and automatic PGP.</p></details>
+    <details class="file"><summary>Does Plimail work with Gmail and Outlook?</summary><p>Yes. It works with any IMAP/SMTP server, with OAuth sign-in for Google and Microsoft accounts.</p></details>
+    <details class="file"><summary>Is Plimail free?</summary><p>Yes. Plimail is free software under the GNU AGPL-3.0 license, based on MailFlow.</p></details>
   </div>
 </section>
 </main>
