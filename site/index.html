@@ -2,6 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
+<script>document.documentElement.classList.add('js')</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Plimail: self-hosted webmail with calendars and OpenPGP</title>
 <meta name="description" content="Plimail is an open-source, self-hosted webmail for all your IMAP accounts, with CalDAV calendars, CardDAV contacts, automatic OpenPGP and passkeys. One Docker image, AGPL-3.0.">
@@ -44,12 +45,13 @@
     <nav class="nav" id="site-nav" aria-label="Sections">
       <a href="./#features">Features</a>
       <a href="./#install">Install</a>
+      <a href="/demo/">Demo</a>
       <a href="vs-mailflow">Compared with MailFlow</a>
       <a href="https://github.com/laupernoe/plimail/releases/latest">Releases</a>
     </nav>
     <div class="actions">
       <a class="btn btn-secondary btn-sm gh" href="https://github.com/laupernoe/plimail"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.42c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.7 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg><span>GitHub</span></a>
-      <a class="btn btn-primary btn-sm" href="./#install">Install</a>
+      <a class="btn btn-primary btn-sm" href="/demo/">Live demo</a>
       <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu"><span aria-hidden="true"></span></button>
     </div>
   </div>
@@ -57,188 +59,151 @@
 
 
 <main id="main">
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
-    <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1Z"/></symbol>
-    <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></symbol>
-    <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></symbol>
-    <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></symbol>
-    <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
     <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
-    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></symbol>
-    <symbol id="i-receipt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
-    <symbol id="i-offline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.7"/><path d="M19 12.9a10 10 0 0 0-2.3-1.6"/><path d="M2 8.8a15 15 0 0 1 4.2-2.6"/><path d="M22 8.8A15 15 0 0 0 10.7 5"/><path d="M12 20h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
-    <symbol id="i-reply" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17 4 12l5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></symbol>
-    <symbol id="i-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></symbol>
-    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
-    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
-    <symbol id="i-more" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></symbol>
-    <symbol id="i-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
-    <symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8.5V19l-4 2v-7.5Z"/></symbol>
-    <symbol id="i-monitor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
-    <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1Z"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.6a10 10 0 0 1 14 0M8.5 16.1a5 5 0 0 1 7 0M2 8.8a15 15 0 0 1 20 0"/><path d="M12 20h.01"/></symbol>
+    <symbol id="i-wifi-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20M8.5 16.4a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 5.2-2.7M19 12.9a10 10 0 0 0-2.3-1.6M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8A15 15 0 0 0 10.7 5M12 20h.01"/></symbol>
+    <symbol id="i-finger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M2 12a10 10 0 0 1 18-6"/><path d="M2 16h.01"/><path d="M21.8 16c.2-2 .131-5.354 0-6"/><path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M9 6.8a6 6 0 0 1 9 5.2v2"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0"/><path d="M16 4.1a4 4 0 0 1 0 7.8M22 21a7 7 0 0 0-4-6.3"/></symbol>
     <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.6-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6M15.5 7.5l3 3L22 7l-3-3"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Z"/><path d="M10 20a2 2 0 0 0 4 0"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 3.9 5.7 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.7-3.9-9S9.4 5.7 12 3Z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/></symbol>
+    <symbol id="i-env" viewBox="0 0 30 30"><rect x="3" y="7" width="24" height="17" rx="3" stroke-width="2"/><path d="M4 9l11 8 11-8" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   </defs>
 </svg>
+
 <section class="hero">
   <div class="wrap hero-grid">
-    <div class="hero-text">
+    <div class="hero-head">
       <div class="status-row">
         <a class="plate plate-info" href="https://github.com/laupernoe/plimail/releases/tag/v1.1.0"><svg aria-hidden="true"><use href="#i-tag"/></svg>v1.1.0 is out</a>
-        <span class="plate">AGPL-3.0, no paid edition</span>
+        <span class="plate">Open source, AGPL-3.0</span>
       </div>
-      <h1>All your mail accounts in one webmail, on your own server.</h1>
-      <p class="lede">Plimail brings every IMAP account into one inbox, with calendars, contacts and OpenPGP encryption that works without setup. It runs as a single Docker image behind the proxy you already have.</p>
+      <h1><span class="ln"><span>Every mailbox.</span></span><span class="ln"><span>One inbox.</span></span><span class="ln"><span>Your server.</span></span></h1>
+      <p class="lede">Self-hosted webmail with calendars, contacts and encryption built in.</p>
       <div class="cta">
-        <a class="btn btn-primary btn-lg" href="#install"><svg aria-hidden="true"><use href="#i-download"/></svg>Install</a>
-        <a class="btn btn-secondary btn-lg" href="vs-mailflow">Compared with MailFlow</a>
+        <a class="btn btn-primary btn-lg" href="/demo/"><svg aria-hidden="true"><use href="#i-play"/></svg>Try the live demo</a>
+        <a class="btn btn-secondary btn-lg" href="#install"><svg aria-hidden="true"><use href="#i-download"/></svg>Install</a>
       </div>
     </div>
 
-    <figure class="tour">
-      <p class="tour-hint" id="tour-hint">A mock-up with made-up messages. Pick one to see what Plimail does with it.</p>
-      <div class="demo">
-        <div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i><span>mail.example.com</span></div>
-        <div class="app">
-          <aside class="app-side" aria-hidden="true">
-            <div class="app-compose"><svg><use href="#i-pen"/></svg>Compose</div>
-            <div class="app-folder on"><svg><use href="#i-inbox"/></svg>All inboxes<span class="n">2</span></div>
-            <div class="app-folder"><svg><use href="#i-file"/></svg>Drafts</div>
-            <div class="app-folder"><svg><use href="#i-send"/></svg>Sent</div>
-            <div class="app-folder"><svg><use href="#i-cal"/></svg>Calendar</div>
-            <div class="app-folder"><svg><use href="#i-user"/></svg>Contacts</div>
-            <div class="app-acct">Accounts</div>
-            <div class="app-folder"><span class="app-dot"></span>sam@example.com<span class="n">1</span></div>
-            <div class="app-folder"><span class="app-dot"></span>sam@example.org<span class="n">1</span></div>
-            <div class="app-folder"><span class="app-dot"></span>Work (Microsoft)</div>
-          </aside>
-
-          <div class="app-list">
-            <div class="app-listhead" aria-hidden="true">All inboxes <span class="n">2 unread</span><span class="app-search"><svg><use href="#i-search"/></svg>Search</span></div>
-            <div role="tablist" aria-labelledby="tour-hint" aria-orientation="vertical">
-              <button class="msg" role="tab" id="t-pgp" aria-controls="p-pgp" aria-selected="true">
-                <span class="from">Ana Ribeiro</span><span class="when">09:42</span>
-                <span class="subj"><svg aria-label="Encrypted"><use href="#i-lock"/></svg>Signed lease for the Lisbon office</span>
-                <span class="snip">Encrypted message</span>
-              </button>
-              <button class="msg unread" role="tab" id="t-mdn" aria-controls="p-mdn" aria-selected="false" tabindex="-1">
-                <span class="from">Léa Martin</span><span class="when">08:15</span>
-                <span class="subj">Minutes from Monday</span>
-                <span class="snip">Here are the notes we agreed on, with the two open questions.</span>
-              </button>
-              <button class="msg unread" role="tab" id="t-off" aria-controls="p-off" aria-selected="false" tabindex="-1">
-                <span class="from">Kenji Sato</span><span class="when">Yesterday</span>
-                <span class="subj">Train tickets for Friday</span>
-                <span class="snip">Both tickets are attached, seats 41 and 42.</span>
-              </button>
-            </div>
-            <div class="rest" aria-hidden="true">Three accounts, one list, sorted by date.</div>
-          </div>
-
-          <div class="app-read">
-            <div class="panel" role="tabpanel" id="p-pgp" aria-labelledby="t-pgp">
-              <div class="r-tools" aria-hidden="true"><span><svg><use href="#i-reply"/></svg>Reply</span><span><svg><use href="#i-archive"/></svg></span><span><svg><use href="#i-clock"/></svg></span><span><svg><use href="#i-trash"/></svg></span><span><svg><use href="#i-more"/></svg></span></div>
-              <div class="r-subj">Signed lease for the Lisbon office</div>
-              <div class="r-from"><span class="avatar" aria-hidden="true">AR</span><div>Ana Ribeiro<small>ana@example.org, to sam@example.com</small></div></div>
-              <div class="banner"><svg aria-hidden="true"><use href="#i-lock"/></svg><span>Decrypted in your browser. Nothing of it is stored on the server.</span></div>
-              <div class="banner ok"><svg aria-hidden="true"><use href="#i-check"/></svg><span>Signed by key 7A3F 19C2, which you verified. The signature is valid.</span></div>
-              <div class="r-body"><p>Hi Sam,</p><p>The landlord signed this morning. The lease is attached, with the inventory of the furniture. Keys on the 1st.</p><p>Ana</p></div>
-            </div>
-            <div class="panel" role="tabpanel" id="p-mdn" aria-labelledby="t-mdn" hidden>
-              <div class="r-tools" aria-hidden="true"><span><svg><use href="#i-reply"/></svg>Reply</span><span><svg><use href="#i-archive"/></svg></span><span><svg><use href="#i-clock"/></svg></span><span><svg><use href="#i-trash"/></svg></span><span><svg><use href="#i-more"/></svg></span></div>
-              <div class="r-subj">Minutes from Monday</div>
-              <div class="r-from"><span class="avatar" aria-hidden="true">LM</span><div>Léa Martin<small>lea@example.net, to sam@example.org</small></div></div>
-              <div class="banner"><svg aria-hidden="true"><use href="#i-receipt"/></svg><span>The sender is asking for a read receipt.</span><span class="btns" aria-hidden="true"><span class="chip-btn solid">Send</span><span class="chip-btn">Ignore</span></span></div>
-              <div class="r-body"><p>Hello all,</p><p>Here are the notes we agreed on, with the two open questions at the end. Shout if I missed anything before Thursday.</p><p>Léa</p></div>
-            </div>
-            <div class="panel" role="tabpanel" id="p-off" aria-labelledby="t-off" hidden>
-              <div class="banner"><svg aria-hidden="true"><use href="#i-offline"/></svg><span>You're offline. Mail you opened recently can still be read; sending and changes wait for the connection.</span></div>
-              <div class="r-tools" aria-hidden="true"><span><svg><use href="#i-reply"/></svg>Reply</span><span><svg><use href="#i-archive"/></svg></span><span><svg><use href="#i-clock"/></svg></span><span><svg><use href="#i-trash"/></svg></span><span><svg><use href="#i-more"/></svg></span></div>
-              <div class="r-subj">Train tickets for Friday</div>
-              <div class="r-from"><span class="avatar" aria-hidden="true">KS</span><div>Kenji Sato<small>kenji@example.com, to sam@example.com</small></div></div>
-              <div class="r-body"><p>Both tickets are attached, seats 41 and 42. The train leaves at 07:12, platform 6.</p><p>See you at the station,<br>Kenji</p></div>
-            </div>
-          </div>
-        </div>
-        
+    <div class="stage" role="img" aria-label="Animation: mail from Gmail, Outlook, Fastmail and a work IMAP server lands in one Plimail inbox, and the first message seals itself with an encryption lock.">
+      <svg class="wires" aria-hidden="true"></svg>
+      <ul class="sources" aria-hidden="true">
+        <li class="src a1"><span class="dot"></span>Gmail<small>0</small></li>
+        <li class="src a2"><span class="dot"></span>Outlook<small>0</small></li>
+        <li class="src a3"><span class="dot"></span>Fastmail<small>0</small></li>
+        <li class="src a4"><span class="dot"></span>Work IMAP<small>0</small></li>
+      </ul>
+      <div class="inbox" aria-hidden="true"><span class="slot"></span>
+        <div class="inbox-bar"><b>All inboxes</b><span class="count">4</span><span class="search"><svg><use href="#i-search"/></svg>Search</span></div>
+        <div class="rows"><div class="row a1" style="transform:translateY(0px)"><span class="av">AR</span><span class="from">Ana Ribeiro</span><span class="time">09:42</span><span class="subj"><span class="tag enc"><svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path class="shackle" d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Encrypted</span><span>Signed lease for the Lisbon office</span></span></div><div class="row a2" style="transform:translateY(66px)"><span class="av">TW</span><span class="from">Tomás Weber</span><span class="time">09:10</span><span class="subj"><span class="tag"><svg><use href="#i-cal"/></svg>Invitation</span><span>Design review, Thursday 14:00</span></span></div><div class="row a3" style="transform:translateY(132px)"><span class="av">LM</span><span class="from">Léa Martin</span><span class="time">08:15</span><span class="subj"><span>Minutes from Monday</span></span></div><div class="row a4" style="transform:translateY(198px)"><span class="av">KS</span><span class="from">Kenji Sato</span><span class="time">08:02</span><span class="subj"><span>Train tickets for Friday</span></span></div></div>
       </div>
-      <figcaption class="captions" aria-live="polite">
-          <p data-for="p-pgp"><strong>Encryption without setup.</strong> Plimail creates an OpenPGP key for each of your addresses and unlocks it with your sign-in password. When every recipient has a key, Send becomes Send encrypted. Messages are decrypted in the browser, never on the server.</p>
-          <p data-for="p-mdn" hidden><strong>Read receipts, on your terms.</strong> A request shows as a notice with Send and Ignore. Nothing goes out without a click unless you choose to, and spam, mailing lists and suspicious requests are never answered automatically.</p>
-          <p data-for="p-off" hidden><strong>A desktop app that works on the train.</strong> Install Plimail from Chrome or Edge, make it your mailto: handler, and keep reading mail you opened recently when the connection drops. Sending waits instead of being queued behind your back.</p>
-        </figcaption>
-    </figure>
+    </div>
   </div>
 </section>
 
 <section class="section" id="features" aria-labelledby="features-h">
   <div class="wrap">
-    <div class="section-head">
-      <h2 id="features-h">Everything a mail client needs, nothing to babysit</h2>
-      <p>Plimail keeps your mail on your mail server. It stores headers and the bodies you open in its own database, so lists and search stay fast.</p>
+    <div class="section-head center">
+      <h2 id="features-h">Mail, calendar, contacts, keys.</h2>
+      <p>All in one place, all on your server.</p>
     </div>
-    <div class="cards cards-3">
-      <article class="card">
-        <span class="icon" aria-hidden="true"><svg><use href="#i-inbox"/></svg></span>
-        <h3>One inbox for every account</h3>
-        <ul>
-          <li>Any IMAP and SMTP account, with OAuth for Google and Microsoft</li>
-          <li>Server settings found from the address: IMAP, SMTP and CalDAV</li>
-          <li>Threads, search, snooze, rules, categories, scheduled and undo send</li>
-          <li>Folder import and export as .mbox or .eml, keeping dates and flags</li>
-        </ul>
+
+    <div class="bento">
+      <article class="tile wide" tabindex="0">
+        <div class="vis v-enc" aria-hidden="true">
+          <div class="mini">
+            <div class="mini-row"><span class="k">To</span><span class="chip">ana@example.org</span><span class="chip ok key"><svg><use href="#i-key"/></svg>Key</span></div>
+            <div class="body">
+              <div class="plain"><div class="bar" style="width:92%"></div><div class="bar" style="width:76%"></div><div class="bar" style="width:58%"></div></div>
+              <div class="cipher">-----BEGIN PGP MESSAGE-----<br>wV4DR2b2udXyHrYSAQdAk3QvLfq8Ce7mZ2hTnUo9xR0aYp1Lw4Kd8vEj2sQbN6fG</div>
+            </div>
+            <div class="send"><span class="s1">Send</span><span class="s2"><svg><use href="#i-lock"/></svg>Send encrypted</span></div>
+          </div>
+        </div>
+        <div class="txt"><h3>Encrypted by default</h3><p>OpenPGP keys made for you, unlocked by your password.</p></div>
       </article>
-      <article class="card">
-        <span class="icon" aria-hidden="true"><svg><use href="#i-lock"/></svg></span>
-        <h3>Encryption without setup</h3>
-        <ul>
-          <li>OpenPGP keys created for you and unlocked by your sign-in password</li>
-          <li>PGP/MIME, and keys collected from received Autocrypt headers</li>
-          <li>Encrypted drafts and encrypted Send later</li>
-          <li>Key backup and restore, readable by GnuPG</li>
-          <li>Password-protected messages for people without PGP</li>
-        </ul>
+
+      <article class="tile wide" tabindex="0">
+        <div class="vis v-cal" aria-hidden="true">
+          <div class="week">
+            <div class="day" data-d="Mon"><span class="ev a1" style="--i:0;top:28px;height:30px"></span></div>
+            <div class="day" data-d="Tue"><span class="ev a2" style="--i:1;top:48px;height:44px"></span></div>
+            <div class="day" data-d="Wed"><span class="ev a3" style="--i:2;top:24px;height:22px"></span><span class="ev a1" style="--i:4;top:66px;height:34px"></span></div>
+            <div class="day" data-d="Thu"><span class="ev a4" style="--i:3;top:38px;height:52px"></span></div>
+            <div class="day" data-d="Fri"><span class="ev a2" style="--i:5;top:30px;height:26px"></span></div>
+          </div>
+          <div class="rsvp">Going?<span class="chip yes">Yes</span><span class="chip">Maybe</span><span class="chip">No</span></div>
+        </div>
+        <div class="txt"><h3>Calendars over CalDAV</h3><p>Invite, answer and search, next to your mail.</p></div>
       </article>
-      <article class="card">
-        <span class="icon" aria-hidden="true"><svg><use href="#i-cal"/></svg></span>
-        <h3>Calendars and contacts</h3>
-        <ul>
-          <li>CalDAV calendars, added from the same address as your mail</li>
-          <li>Send invitations, and answer Yes, Maybe or No</li>
-          <li>Search events by title, place, description or attendee</li>
-          <li>Contacts served over CardDAV, with groups that expand in the composer</li>
-        </ul>
+
+      <article class="tile" tabindex="0">
+        <div class="vis v-grp" aria-hidden="true">
+          <div class="mini">
+            <div class="to"><span class="k" style="color:var(--c-ink-3)">To</span><span class="typed">team<span class="m"></span></span><span class="members"><span class="chip" style="--i:0">Ana</span><span class="chip" style="--i:1">Léa</span><span class="chip" style="--i:2">Kenji</span><span class="chip" style="--i:3">Tomás</span></span></div>
+          </div>
+        </div>
+        <div class="txt"><h3>Contact groups</h3><p>Type a group, get everyone.</p></div>
       </article>
-      <article class="card">
-        <span class="icon" aria-hidden="true"><svg><use href="#i-filter"/></svg></span>
-        <h3>Rules that run on the server</h3>
-        <ul>
-          <li>Sieve filters edited in Plimail and run by your mail server, even when Plimail is closed</li>
-          <li>Out-of-office reply with optional start and end dates</li>
-          <li>Read receipts: ask for one, and answer only when you choose</li>
-          <li>Signature images uploaded once and sent inline</li>
-        </ul>
+
+      <article class="tile" tabindex="0">
+        <div class="vis v-sieve" aria-hidden="true">
+          <span class="rule">From contains "news@": file into Later</span>
+          <div class="lane">
+            <div class="msgs"><span class="m go1">news@shop.example</span><span class="m go2">Ana Ribeiro</span><span class="m go3">news@paper.example</span></div>
+            <div class="boxes"><span class="box b1"><svg><use href="#i-folder"/></svg>Later<b>2</b></span><span class="box b2"><svg><use href="#i-inbox"/></svg>Inbox<b>1</b></span></div>
+          </div>
+        </div>
+        <div class="txt"><h3>Rules on your server</h3><p>Sieve filters and out-of-office, even with Plimail closed.</p></div>
       </article>
-      <article class="card">
-        <span class="icon" aria-hidden="true"><svg><use href="#i-monitor"/></svg></span>
-        <h3>An app on your desktop</h3>
-        <ul>
-          <li>Installs from Chrome or Edge and opens mailto: links</li>
-          <li>Recently opened mail stays readable offline</li>
-          <li>Fewer, bigger buttons, web push and keyboard shortcuts</li>
-          <li>11 interface languages, light and dark themes</li>
-          <li>Optional AI with your own key: translate, scam check, proofreading</li>
-        </ul>
+
+      <article class="tile" tabindex="0">
+        <div class="vis v-app" aria-hidden="true">
+          <div class="mini win">
+            <div class="tb"><i></i><i></i><i></i><svg class="on"><use href="#i-wifi"/></svg><svg class="off"><use href="#i-wifi-off"/></svg></div>
+            <div class="banner"><svg class="ico" style="width:12px;height:12px"><use href="#i-wifi-off"/></svg>Offline: recent mail still readable</div>
+            <div class="content"><div class="bar" style="width:40%;background:var(--c-ink-3)"></div><div class="bar" style="width:94%"></div><div class="bar" style="width:86%"></div><div class="bar" style="width:62%"></div></div>
+          </div>
+        </div>
+        <div class="txt"><h3>A desktop app</h3><p>Install it, open mailto: links, read offline.</p></div>
       </article>
-      <article class="card">
-        <span class="icon" aria-hidden="true"><svg><use href="#i-check"/></svg></span>
-        <h3>Sign-in and security</h3>
-        <ul>
-          <li>Passkeys, TOTP, single sign-on (OIDC) and invite-only registration</li>
-          <li>Change your password and your keys are re-encrypted in the same step</li>
-          <li>Sign-in limits per account and address, STARTTLS required off port 993</li>
-          <li>Message HTML sanitized before it is stored, remote images proxied</li>
+
+      <article class="tile wide" tabindex="0">
+        <div class="vis v-key" aria-hidden="true">
+          <span class="pulse"></span>
+          <div class="pk"><svg><use href="#i-finger"/></svg><span class="chk"><svg><use href="#i-check"/></svg></span></div>
+          <span class="label"><span class="l1">Sign in with a passkey</span><span class="l2">Signed in</span></span>
+        </div>
+        <div class="txt"><h3>Passkeys</h3><p>Plus TOTP, single sign-on and strict sign-in limits.</p></div>
+      </article>
+
+      <article class="tile wide tile-list">
+        <ul class="more">
+          <li><svg aria-hidden="true"><use href="#i-swap"/></svg>.mbox and .eml import, export</li>
+          <li><svg aria-hidden="true"><use href="#i-eye"/></svg>Read receipts</li>
+          <li><svg aria-hidden="true"><use href="#i-sun"/></svg>Out of office</li>
+          <li><svg aria-hidden="true"><use href="#i-lock"/></svg>Password-protected messages</li>
+          <li><svg aria-hidden="true"><use href="#i-clock"/></svg>Snooze, Send later, undo send</li>
+          <li><svg aria-hidden="true"><use href="#i-bell"/></svg>Web push</li>
+          <li><svg aria-hidden="true"><use href="#i-globe"/></svg>11 languages</li>
+          <li><svg aria-hidden="true"><use href="#i-shield"/></svg>Google and Microsoft accounts</li>
+          <li><svg aria-hidden="true"><use href="#i-users"/></svg>Contacts over CardDAV</li>
         </ul>
       </article>
     </div>
@@ -246,34 +211,21 @@
 </section>
 
 <section class="section" id="install" aria-labelledby="install-h">
-  <div class="wrap">
+  <div class="wrap install">
     <div class="section-head">
-      <h2 id="install-h">Install in three steps</h2>
-      <p>You need Docker with the compose plugin. The compose file starts Plimail, PostgreSQL and Redis.</p>
+      <h2 id="install-h">Up in three steps.</h2>
+      <p>All you need is Docker with the compose plugin.</p>
+      <div class="cta" style="margin-top:8px"><a class="btn btn-secondary" href="/demo/"><svg aria-hidden="true"><use href="#i-play"/></svg>Try it first</a></div>
     </div>
-    <ol class="steps">
-      <li class="step">
-        <h3>Download the compose file and the settings</h3>
-        <div class="code"><pre><code>curl -O https://raw.githubusercontent.com/laupernoe/plimail/main/docker-compose.yml
-curl -o .env https://raw.githubusercontent.com/laupernoe/plimail/main/.env.example</code></pre></div>
-      </li>
-      <li class="step">
-        <h3>Fill in .env</h3>
-        <p>Set <code>APP_URL</code> to the address people will open, and generate the secrets.</p>
-        <div class="code"><pre><code><span class="c"># SESSION_SECRET and ENCRYPTION_KEY</span>
-openssl rand -hex 32
-<span class="c"># DB_PASSWORD</span>
-openssl rand -hex 16</code></pre></div>
-      </li>
-      <li class="step">
-        <h3>Start it</h3>
-        <div class="code"><pre><code>docker compose up -d</code></pre></div>
-        <p>Open <code>http://your-host:3000</code> and create the first account; it becomes the administrator. To update, run <code>docker compose pull &amp;&amp; docker compose up -d</code>.</p>
-      </li>
-    </ol>
-    <details class="file">
+    <div>
+      <div class="term">
+        <div class="term-bar"><i></i><i></i><i></i><button class="copy" type="button" hidden>Copy</button></div>
+<pre><code><span class="ln c"># 1. Get the compose file and the settings</span><span class="ln"><span class="p">$ </span>curl -O https://raw.githubusercontent.com/laupernoe/plimail/main/docker-compose.yml</span><span class="ln"><span class="p">$ </span>curl -o .env https://raw.githubusercontent.com/laupernoe/plimail/main/.env.example</span><span class="ln c"># 2. In .env, set APP_URL and these secrets</span><span class="ln"><span class="p">$ </span>openssl rand -hex 32   <span class="c"># SESSION_SECRET, ENCRYPTION_KEY</span></span><span class="ln"><span class="p">$ </span>openssl rand -hex 16   <span class="c"># DB_PASSWORD</span></span><span class="ln c"># 3. Start</span><span class="ln"><span class="p">$ </span>docker compose up -d</span></code></pre>
+      </div>
+      <p class="after">Open <code>http://your-host:3000</code> and create the first account. It becomes the admin.</p>
+      <details class="file">
         <summary>docker-compose.yml <span>the whole file, as in the repository</span></summary>
-<div class="code"><pre><code>services:
+<pre><code>services:
   plimail:
     image: ghcr.io/laupernoe/plimail:latest
     build: .
@@ -329,52 +281,41 @@ volumes:
   postgres_data:
   redis_data:
   image_cache:
-  certs:</code></pre></div>
+  certs:</code></pre>
       </details>
+    </div>
   </div>
 </section>
 
 <section class="section" aria-labelledby="stack-h">
-  <div class="wrap stack">
-    <div>
-      <div class="section-head tight">
-        <h2 id="stack-h">One image, your proxy</h2>
-        <p>The app serves its own interface. A trusted certificate is the job of the proxy or tunnel you already run.</p>
-      </div>
-      <ul class="stack-notes">
-        <li><strong>HTTP on 3000</strong> for Caddy, Traefik, nginx or a Cloudflare Tunnel, with WebSocket upgrades on <code>/ws</code>.</li>
-        <li><strong>HTTPS on 3443</strong> with a self-signed certificate made at first start, or your own <code>cert.pem</code> and <code>key.pem</code>.</li>
-        <li><strong>amd64 and arm64</strong> images on the GitHub Container Registry. Migrations run at startup.</li>
-      </ul>
+  <div class="wrap">
+    <div class="section-head center">
+      <h2 id="stack-h">One image. Your proxy.</h2>
+      <p>Caddy, Traefik, nginx or a tunnel handles HTTPS. Plimail does the rest.</p>
     </div>
-    <div class="diagram" role="img" aria-label="Your reverse proxy or tunnel sends traffic to the Plimail container, which uses PostgreSQL 16 and Redis 7.">
-      <div class="box dashed"><b>Your reverse proxy or tunnel</b><span>Trusted certificate, your domain</span></div>
-      <div class="wire"></div>
-      <div class="box main"><b>ghcr.io/laupernoe/plimail</b><span>Interface, API, WebSocket, IMAP and SMTP connections</span></div>
-      <div class="wire"></div>
-      <div class="pair">
-        <div class="box"><b>PostgreSQL 16</b><span>Headers, bodies, settings</span></div>
-        <div class="box"><b>Redis 7</b><span>Sessions</span></div>
-      </div>
+    <div class="flow play-on-view" role="img" aria-label="Your reverse proxy or tunnel sends traffic to the Plimail container, which uses PostgreSQL 16 and Redis 7.">
+      <div class="node dashed"><b>Your proxy</b><span>HTTPS, your domain</span></div>
+      <div class="link"><i></i><i style="--d:1.2s"></i></div>
+      <div class="node main"><b>ghcr.io/laupernoe/plimail</b><span>amd64 and arm64</span></div>
+      <div class="link"><i style="--d:.6s"></i><i style="--d:1.8s"></i></div>
+      <div class="dbs"><div class="node"><b>PostgreSQL 16</b></div><div class="node"><b>Redis 7</b></div></div>
     </div>
   </div>
 </section>
 
 <section class="section" aria-labelledby="fork-h">
   <div class="wrap final">
-    <div>
-      <h2 id="fork-h">A lighter fork of MailFlow</h2>
-      <p>Plimail started from MailFlow and keeps its mail engine. It adds encryption, calendars and a desktop app, and drops plugins, integrations and the native apps.</p>
-    </div>
+    <h2 id="fork-h">MailFlow, made lighter.</h2>
+    <p>Encryption and calendars in. Plugins and native apps out.</p>
     <div class="cta">
       <a class="btn btn-primary btn-lg" href="vs-mailflow">See what changed</a>
-      <a class="btn btn-secondary btn-lg" href="https://github.com/laupernoe/plimail/releases/tag/v1.1.0">Release notes for v1.1.0</a>
+      <a class="btn btn-secondary btn-lg" href="https://github.com/laupernoe/plimail/releases/tag/v1.1.0">Release notes</a>
     </div>
   </div>
 </section>
 </main>
 
-<footer class="sh-foot"><div class="wrap"><div class="sh-f-main"><a class="sh-f-brand" href="./"><img src="favicon.svg" alt="" width="24" height="24">Plimail</a><nav aria-label="Footer"><a href="./#features">Features</a><a href="./#install">Install</a><a href="vs-mailflow">Compared with MailFlow</a><a href="https://github.com/laupernoe/plimail/releases/latest">Releases</a><a href="https://github.com/laupernoe/plimail">GitHub</a><a href="https://github.com/laupernoe/plimail/issues">Issues</a></nav></div><p class="sh-note">Plimail is free software under the GNU AGPL-3.0, based on MailFlow by Matt. The messages in the mock-up are made up.</p><div class="sh-f-bar"><a class="sh-home" href="https://selfhostr.io"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="6" fill="#ecedef"/><path d="M7 9.5 10 12l-3 2.5M12.5 15H17" fill="none" stroke="#0b0c0e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>A <b>selfhostr</b> project</span><span class="sh-all">Discover all our projects</span></a><span class="sh-swiss"><svg class="ch-cross" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="3" fill="#DA291C"/><path fill="#fff" d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z"/></svg><span>Made in Switzerland</span></span></div></div></footer>
+<footer class="sh-foot"><div class="wrap"><div class="sh-f-main"><a class="sh-f-brand" href="./"><img src="favicon.svg" alt="" width="24" height="24">Plimail</a><nav aria-label="Footer"><a href="./#features">Features</a><a href="./#install">Install</a><a href="/demo/">Live demo</a><a href="vs-mailflow">Compared with MailFlow</a><a href="https://github.com/laupernoe/plimail/releases/latest">Releases</a><a href="https://github.com/laupernoe/plimail">GitHub</a><a href="https://github.com/laupernoe/plimail/issues">Issues</a></nav></div><p class="sh-note">Plimail is free software under the GNU AGPL-3.0, based on MailFlow by Matt. The messages shown on this site are made up.</p><div class="sh-f-bar"><a class="sh-home" href="https://selfhostr.io"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="6" fill="#ecedef"/><path d="M7 9.5 10 12l-3 2.5M12.5 15H17" fill="none" stroke="#0b0c0e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>A <b>selfhostr</b> project</span><span class="sh-all">Discover all our projects</span></a><span class="sh-swiss"><svg class="ch-cross" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="3" fill="#DA291C"/><path fill="#fff" d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z"/></svg><span>Made in Switzerland</span></span></div></div></footer>
 
 </body>
 </html>
