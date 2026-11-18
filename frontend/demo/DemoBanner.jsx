@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // The demo's own corner: a note that the data is made up, a way back to the site, and a word when a
 // message is "sent".
@@ -25,6 +26,7 @@ const toast = {
 const narrowQuery = '(max-width: 760px)';
 
 export default function DemoBanner() {
+  const { t } = useTranslation();
   const [sent, setSent] = useState(null);
   const [narrow, setNarrow] = useState(() => window.matchMedia(narrowQuery).matches);
 
@@ -50,16 +52,16 @@ export default function DemoBanner() {
   return (
     <>
       {!hidden && (
-        <div style={{ ...pill, ...(narrow ? { left: 12 } : { left: '50%', transform: 'translateX(-50%)' }) }} role="note" aria-label="Demo notice">
-          <span>{narrow ? 'Demo' : 'Demo · all data is fictional'}</span>
-          <a href="/" style={link}>Get Plimail</a>
-          <button type="button" onClick={() => setHidden(true)} aria-label="Hide the demo notice"
+        <div style={{ ...pill, ...(narrow ? { left: 12 } : { left: '50%', transform: 'translateX(-50%)' }) }} role="note">
+          <span>{narrow ? t('demo.noticeShort') : t('demo.notice')}</span>
+          <a href="/" style={link}>{t('demo.get')}</a>
+          <button type="button" onClick={() => setHidden(true)} aria-label={t('demo.hide')}
             style={{ background: 'none', border: 0, color: 'inherit', cursor: 'pointer', padding: '0 4px', fontSize: 15, lineHeight: 1 }}>×</button>
         </div>
       )}
       {sent !== null && (
         <div style={toast} role="status">
-          <b>Demo: nothing was sent.</b> Your message{sent ? ` “${sent}”` : ''} only went to this account's Sent folder, and is gone on reload.
+          <b>{t('demo.sentTitle')}</b> {t('demo.sentBody')}
         </div>
       )}
     </>

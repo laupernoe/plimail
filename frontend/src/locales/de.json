@@ -3040,5 +3040,13 @@
       "neverUsed": "nie verwendet",
       "pgpNote": "Ein Passkey entsperrt Ihre Verschlüsselungsschlüssel nicht: Nach einer Anmeldung mit Passkey fragt Plimail einmal pro Tab nach Ihrem Passwort, sobald eine Nachricht entschlüsselt oder signiert werden muss."
     }
+  },
+  "demo": {
+    "notice": "Demo · alle Daten sind erfunden",
+    "noticeShort": "Demodaten",
+    "get": "Plimail holen",
+    "hide": "Demo-Hinweis ausblenden",
+    "sentTitle": "Demo: Es wurde nichts gesendet.",
+    "sentBody": "Deine Nachricht liegt nur im Ordner „Gesendet“ dieses Kontos und verschwindet beim Neuladen."
   }
 }

@@ -3040,5 +3040,13 @@
       "neverUsed": "never used",
       "pgpNote": "A passkey does not unlock your encryption keys: after signing in with one, Plimail asks for your password once per tab, the first time a message has to be decrypted or signed."
     }
+  },
+  "demo": {
+    "notice": "Demo · all data is fictional",
+    "noticeShort": "Demo data",
+    "get": "Get Plimail",
+    "hide": "Hide the demo notice",
+    "sentTitle": "Demo: nothing was sent.",
+    "sentBody": "Your message only went to this account's Sent folder, and is gone on reload."
   }
 }

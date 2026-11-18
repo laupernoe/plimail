@@ -3040,5 +3040,13 @@
       "neverUsed": "nunca utilizada",
       "pgpNote": "Uma chave de acesso não desbloqueia suas chaves de criptografia: depois de entrar com uma, o Plimail pede sua senha uma vez por aba, na primeira vez em que uma mensagem precisa ser descriptografada ou assinada."
     }
+  },
+  "demo": {
+    "notice": "Demo · todos os dados são fictícios",
+    "noticeShort": "Dados fictícios",
+    "get": "Obter o Plimail",
+    "hide": "Ocultar o aviso da demo",
+    "sentTitle": "Demo: nada foi enviado.",
+    "sentBody": "Sua mensagem foi apenas para a pasta Enviados desta conta e some ao recarregar."
   }
 }

@@ -3059,5 +3059,13 @@
       "neverUsed": "nigdy nieużyty",
       "pgpNote": "Klucz dostępu nie odblokowuje kluczy szyfrowania: po zalogowaniu kluczem dostępu Plimail raz na kartę prosi o hasło, gdy pierwszy raz trzeba odszyfrować lub podpisać wiadomość."
     }
+  },
+  "demo": {
+    "notice": "Demo · wszystkie dane są fikcyjne",
+    "noticeShort": "Dane demo",
+    "get": "Pobierz Plimail",
+    "hide": "Ukryj informację o demo",
+    "sentTitle": "Demo: nic nie zostało wysłane.",
+    "sentBody": "Twoja wiadomość trafiła tylko do folderu Wysłane tego konta i zniknie po odświeżeniu."
   }
 }

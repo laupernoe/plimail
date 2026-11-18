@@ -3059,5 +3059,13 @@
       "neverUsed": "nikdy nepoužito",
       "pgpNote": "Přístupový klíč neodemyká vaše šifrovací klíče: po přihlášení přístupovým klíčem se Plimail jednou v každé kartě zeptá na heslo, když je poprvé potřeba zprávu dešifrovat nebo podepsat."
     }
+  },
+  "demo": {
+    "notice": "Ukázka · všechna data jsou smyšlená",
+    "noticeShort": "Ukázková data",
+    "get": "Získat Plimail",
+    "hide": "Skrýt upozornění na ukázku",
+    "sentTitle": "Ukázka: nic nebylo odesláno.",
+    "sentBody": "Vaše zpráva šla jen do složky Odeslané tohoto účtu a po obnovení stránky zmizí."
   }
 }
