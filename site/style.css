@@ -505,3 +505,8 @@ table.compare tbody tr:not(.cat):hover { background: var(--c-surface-2); }
 .env svg { fill: var(--c-surface); stroke: var(--acc); }
 .slot { position: absolute; left: 50%; top: 0; width: 120px; height: 2px; margin-left: -60px; border-radius: 2px; background: var(--acc, var(--c-info)); opacity: 0; z-index: 3; }
 .wash { position: absolute; inset: 0; background: linear-gradient(90deg, var(--c-signal-soft), transparent 70%); opacity: 0; pointer-events: none; }
+
+/* FAQ */
+.faq { max-width: 46rem; }
+.faq details.file summary { font-size: 0.9375rem; }
+.faq details.file p { margin: 0 18px 16px; color: var(--c-ink-2); }
