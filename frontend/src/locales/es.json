@@ -217,6 +217,7 @@
       "aiNotAllowed": "tu administrador ha desactivado la IA en tu cuenta.",
       "aiFeatureOff": "tu administrador ha desactivado el asistente de redacción con IA."
     },
+    "messageOptions": "Opciones del mensaje",
     "priority": "Prioridad",
     "priorityHigh": "Alta prioridad",
     "priorityNormal": "Normal",
