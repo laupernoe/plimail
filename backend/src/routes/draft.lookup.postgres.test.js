@@ -25,6 +25,7 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('cached reply indicator
       CREATE TEMP TABLE folders (account_id uuid, path text, special_use text, no_select boolean,
         name text, delimiter text);
       CREATE TEMP TABLE messages (id uuid PRIMARY KEY, account_id uuid, folder text,
+        is_bulk boolean, reaction_parts jsonb, reaction_emoji text,
         uid bigint, message_id text, in_reply_to text, thread_references text,
         thread_id text, thread_key text, date timestamptz, is_deleted boolean DEFAULT false,
         flags jsonb)`);

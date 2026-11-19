@@ -3049,5 +3049,16 @@
     "hide": "Nascondi l'avviso della demo",
     "sentTitle": "Demo: non è stato inviato nulla.",
     "sentBody": "Il tuo messaggio è finito solo nella cartella Inviati di questo account e sparisce ricaricando la pagina."
+  },
+  "reactions": {
+    "react": "Reagisci",
+    "picker": "Scegli una reazione",
+    "reactWith": "Reagisci con {{emoji}}",
+    "alreadySent": "Hai reagito con {{emoji}}",
+    "more": "Altre emoji",
+    "label": "Reazioni",
+    "chip": "{{emoji}} da {{people}}",
+    "you": "Tu",
+    "failed": "Impossibile inviare la reazione: {{message}}"
   }
 }

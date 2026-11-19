@@ -3049,5 +3049,16 @@
     "hide": "Demo-Hinweis ausblenden",
     "sentTitle": "Demo: Es wurde nichts gesendet.",
     "sentBody": "Deine Nachricht liegt nur im Ordner „Gesendet“ dieses Kontos und verschwindet beim Neuladen."
+  },
+  "reactions": {
+    "react": "Reagieren",
+    "picker": "Reaktion auswählen",
+    "reactWith": "Mit {{emoji}} reagieren",
+    "alreadySent": "Sie haben mit {{emoji}} reagiert",
+    "more": "Weitere Emojis",
+    "label": "Reaktionen",
+    "chip": "{{emoji}} von {{people}}",
+    "you": "Sie",
+    "failed": "Reaktion konnte nicht gesendet werden: {{message}}"
   }
 }

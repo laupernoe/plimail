@@ -344,6 +344,26 @@ function send(body) {
   return { ok: true, messageId: m.id, sentFolder: 'Sent', sentCopySaved: true, accepted: m.to_addresses.map(a => a.email), rejected: [] };
 }
 
+// A reaction (backend/src/routes/send.js) lands in Sent as a reply carrying its emoji.
+function sendReaction({ messageId, emoji }) {
+  const target = messageById(messageId);
+  const account = accountById(target.account_id) || db.accounts[0];
+  const others = [target.from_email ? { name: target.from_name, email: target.from_email } : null, ...(target.to_addresses || []), ...(target.cc_addresses || [])]
+    .filter(a => a?.email && a.email !== account.email_address);
+  const m = {
+    id: newId(), uid: 0, account_id: account.id, folder: 'INBOX', message_id: `<demo-sent-${seq}@plimail.example.com>`,
+    thread_id: target.thread_id, subject: /^re:/i.test(target.subject || '') ? target.subject : `Re: ${target.subject || ''}`,
+    from_name: account.sender_name, from_email: account.email_address, to_addresses: others.slice(0, 1), cc_addresses: others.slice(1),
+    reply_to: [], in_reply_to: target.message_id, thread_references: [], date: iso(Date.now()), snippet: emoji,
+    reaction_emoji: emoji, is_read: true, is_starred: false, is_draft: false, has_attachments: false, category: null,
+    list_unsubscribe: null, list_unsubscribe_post: null, unsubscribed_at: null, delivery_addresses: [], has_contact_photo: false,
+    body: { html: `<div style="font-size:32px">${emoji}</div>`, text: emoji, attachments: [], pgp: null },
+  };
+  db.messages.push(m);
+  moveTo(m, 'Sent');
+  return { ok: true, emoji, sentFolder: 'Sent' };
+}
+
 function saveDraft(body) {
   const account = accountById(body.accountId) || db.accounts[0];
   let m = body.uid ? live().find(x => x.account_id === account.id && x.folder === 'Drafts' && x.uid === body.uid) : null;
@@ -431,6 +451,10 @@ on('GET', '/mail/category-counts', () => ({ counts: {}, totals: {} }));
 on('GET', '/mail/thread', ({ query }) => threadOf(query.id));
 on('GET', '/mail/resolve-message', ({ query }) => rowOf(live().find(m => m.message_id === query.ref || m.id === query.ref) || notFound()));
 on('GET', '/mail/messages/:id', ({ params }) => rowOf(messageById(params.id)));
+on('GET', '/mail/messages/:id/reactions', ({ params }) => {
+  const target = messageById(params.id);
+  return { reactions: live().filter(m => m.reaction_emoji && m.account_id === target.account_id && m.in_reply_to === target.message_id).map(rowOf) };
+});
 on('GET', '/mail/messages/:id/body', ({ params }) => bodyOf(messageById(params.id)));
 on('GET', '/mail/messages/:id/headers', ({ params }) => headersOf(messageById(params.id)));
 on('GET', '/mail/messages/:id/bcc', () => ({ bcc: [] }));
@@ -465,6 +489,7 @@ on('POST', '/mail/sync', () => ok());
 on('POST', '/mail/sync-folder', () => ok());
 on('POST', '/mail/sync-folders', () => ok());
 on('POST', '/mail/send', ({ body }) => send(body));
+on('POST', '/mail/send/reaction', ({ body }) => sendReaction(body));
 on('GET', '/mail/send/:id', () => ({ status: 'sent' }));
 on('POST', '/mail/draft', ({ body }) => saveDraft(body));
 on('DELETE', '/mail/draft/:uid', ({ params, query }) => {

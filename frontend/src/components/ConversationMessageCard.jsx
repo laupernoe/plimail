@@ -27,6 +27,8 @@ import { useMobile } from '../hooks/useMobile.js';
 import { useWidthAtLeast } from '../hooks/useWidthAtLeast.js';
 import { TOOLBAR_GAP, TOOLBAR_TEXT_MIN } from '../utils/uiSizes.js';
 import MessageHeaderModal from './MessageHeaderModal.jsx';
+import { ReactButton, ReactionChips } from './MessageReactions.jsx';
+import { groupReactions, myReactionEmoji } from '../utils/reactions.js';
 import {
   ActionBtn, MessageTools, ReplySplitButton, RemoteImagesNotice, UnsubscribeNotice,
   AiReplyIcon, ForwardIcon, ReadStateIcon, HeadersIcon, DownloadIcon, PrintIcon, DarkToggleIcon, StarIcon,
@@ -43,7 +45,11 @@ import {
 // Design from #317 by YunQue0912.
 // `onUpdate(id, patch)` applies a flag change to the conversation's own copy of the message and to
 // the list's, since the pane holds the thread apart from the list.
-export default function ConversationMessageCard({ message, expanded, onToggle, onUpdate, aiEnabled = false, aiReplyEnabled = false, selected = false }) {
+//
+// `reactions` are the reaction messages to this one (utils/reactions.js), shown as chips under it;
+// `onReact(emoji)` sends one, and is left out where the reader cannot react to this message.
+// `own` is the set of the reader's addresses.
+export default function ConversationMessageCard({ message, expanded, onToggle, onUpdate, aiEnabled = false, aiReplyEnabled = false, selected = false, reactions = [], onReact = null, own = new Set() }) {
   const { t } = useTranslation();
   const accounts = useStore(s => s.accounts);
   const openCompose = useStore(s => s.openCompose);
@@ -111,6 +117,20 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
       markScheduledRef.current = null;
     };
   }, [expanded, message.id]);
+
+  // The reactions shown on an opened message are read with it: they have no card of their own to
+  // open, and would otherwise keep the conversation unread for good.
+  const reactionsRef = useRef(reactions);
+  reactionsRef.current = reactions;
+  const unreadReactionIds = reactions.filter(r => !r.is_read && !r.pending).map(r => r.id).join(',');
+  useEffect(() => {
+    if (!expanded || !unreadReactionIds) return;
+    const timers = reactionsRef.current
+      .filter(r => !r.is_read && !r.pending)
+      .map(r => scheduleMarkRead(r, { onChange: read => onUpdateRef.current?.(r.id, { is_read: read }) }))
+      .filter(Boolean);
+    return () => timers.forEach(cancelScheduledMarkRead);
+  }, [expanded, unreadReactionIds]);
 
   const mountedRef = useRef(true);
   useEffect(() => () => { mountedRef.current = false; }, []);
@@ -314,6 +334,10 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
     onManage: () => { const st = useStore.getState(); st.setAdminTab('ai-actions'); st.setShowAdmin(true); },
   } : null, mailAi, t);
 
+  const reactionGroups = groupReactions(reactions, own);
+  const usedReactions = myReactionEmoji(reactions, own);
+  const chips = <ReactionChips groups={reactionGroups} onReact={onReact} canReact={Boolean(onReact)} />;
+
   const when = formatDateTime(message.date);
   const who = message.from_name || message.from_email || '';
 
@@ -343,6 +367,10 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
         )}
         <span style={{ color: 'var(--text-secondary)', fontSize: 12, marginLeft: 'auto', flex: '0 0 auto' }}>{when}</span>
       </button>
+      {/* Under the message: below its header while it is closed, below its body once opened. */}
+      {!expanded && reactionGroups.length > 0 && (
+        <div style={{ padding: '0 12px 10px', marginTop: -2 }}>{chips}</div>
+      )}
 
       {expanded && (
         <div style={{ padding: '0 12px 12px' }}>
@@ -372,6 +400,7 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
               text={toolbarRoomy ? t('message.forward') : undefined}>
               <ForwardIcon />
             </ActionBtn>
+            {onReact && <ReactButton key={`react-${message.id}`} onReact={onReact} used={usedReactions} touch={isMobile} />}
             <div style={{ flex: 1 }} />
             <ActionBtn onClick={handleStar} label={t('message.star')} pressed={Boolean(message.is_starred)} touch={isMobile}>
               <StarIcon filled={message.is_starred} />
@@ -465,7 +494,7 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
               } : {}),
             }}>{body.text}</div>
           )}
-
+          {reactionGroups.length > 0 && <div style={{ marginTop: 10 }}>{chips}</div>}
         </div>
       )}
 

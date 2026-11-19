@@ -24,6 +24,8 @@ import { isDarkTheme, canShowDark, showDark } from '../utils/darkScheme.js';
 import { markMessageUnread } from '../utils/messageHotkeys.js';
 import { BUILTIN_SUMMARIZE } from '../aiActions.js';
 import { openReplyFromMessage, openForwardFromMessage, openForwardAsAttachmentFromMessage, rowOwnMessage } from '../utils/composeFromMessage.js';
+import { ReactButton, ReactionChips } from './MessageReactions.jsx';
+import { canReact, ownAddresses, groupReactions, myReactionEmoji, pendingReaction } from '../utils/reactions.js';
 import { aiReplyAvailable } from '../utils/aiReply.js';
 import MessageBodyView from './MessageBodyView.jsx';
 import { copyToClipboard } from '../utils/clipboard.js';
@@ -143,6 +145,20 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
   // A conversation row carries its thread's first sender and subject; the pane shows the message
   // itself, and blocking, allowing images or making a rule from it uses its own sender.
   const message = useMemo(() => rowOwnMessage(listedMessage), [listedMessage]);
+
+  // The emoji reactions to this message, as chips under its header (utils/reactions.js). The
+  // conversation view reads them from the thread; this view asks for this message's alone.
+  const [reactions, setReactions] = useState([]);
+  const messageIdForReactions = message?.id;
+  useEffect(() => {
+    setReactions([]);
+    if (!messageIdForReactions) return;
+    let cancelled = false;
+    api.getMessageReactions(messageIdForReactions)
+      .then(data => { if (!cancelled) setReactions(data?.reactions || []); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [messageIdForReactions]);
 
   useEffect(() => {
     setResolvedSubject(null);
@@ -914,6 +930,19 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
     : [];
   const moveFoldersEmpty = movePickerFoldersEmpty(moveSections, movePickerFolders);
 
+  // A reaction shows at once and is taken back if the send fails.
+  const own = ownAddresses(accounts);
+  const reactable = canReact(message, own, reactions);
+  const sendReaction = (emoji) => {
+    const target = message;
+    const local = pendingReaction(target, emoji, accounts.find(a => a.id === target.account_id));
+    setReactions(prev => [...prev, local]);
+    api.sendReaction(target.id, emoji).catch(err => {
+      setReactions(prev => prev.filter(r => r !== local));
+      addNotification({ type: 'error', title: t('reactions.failed', { message: err.message }) });
+    });
+  };
+
   if (!message) {
     // A detached window with no message is mid-close (see auto-close effect above) —
     // render nothing rather than the list's "select a message" placeholder.
@@ -1443,6 +1472,10 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
           <ForwardIcon />
         </ActionBtn>
 
+        {/* A reaction from the single-message view. Its chips are drawn in the conversation, which
+            is where the reaction lands once its thread has two messages. */}
+        {reactable && <ReactButton key={`react-${message.id}`} touch={isMobile} onReact={sendReaction} used={myReactionEmoji(reactions, own)} />}
+
         <ActionBtn onClick={handleArchive} label={t('message.archive')} title={withShortcut(t('message.archive'), 'archive')} touch={isMobile}>
           <ArchiveIcon />
         </ActionBtn>
@@ -1760,6 +1793,8 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
           </div>
 
         </div>
+
+        <ReactionChips groups={groupReactions(reactions, own)} onReact={sendReaction} canReact={reactable} style={{ marginBottom: 16, ...(isMobile ? { padding: '0 16px' } : {}) }} />
 
         {/* Attachments */}
         {attachments.length > 0 && (

@@ -18,6 +18,7 @@ import { SMTP_AUTH_DISABLED, isSmtpAuthDisabled } from './smtpRefusals.js';
 import { PGP_ENCRYPTED_SNIPPET } from './pgpDetect.js';
 import { autocryptFor } from './autocrypt.js';
 import { readReceiptHeaders } from './readReceipts.js';
+import { recordOwnReaction } from './reactions.js';
 
 // The user's "encrypt automatically when every recipient has a key" setting, on unless turned off.
 export const pgpPreferEncrypt = preferences => preferences?.pgpAutoEncrypt !== false;
@@ -577,19 +578,24 @@ export async function renderRawMessage(mailOptions) {
   return Buffer.concat(chunks);
 }
 
+// The message's header fields as nodemailer writes them, each with its folded continuation lines,
+// less the Content-Type and Content-Transfer-Encoding of a body the caller replaces.
+async function renderOuterHeaders(mailOptions) {
+  const headerOnly = await renderRawMessage({ ...mailOptions, text: '', html: undefined, attachments: undefined, raw: undefined });
+  const text = headerOnly.toString('latin1');
+  const end = text.indexOf('\r\n\r\n');
+  if (end < 0) throw new Error('Could not render the message headers');
+  const fields = text.slice(0, end).split(/\r\n(?![ \t])/);
+  return fields.filter(f => !/^(content-type|content-transfer-encoding):/i.test(f));
+}
+
 // RFC 3156 section 4: the message's own headers (as nodemailer writes them, encoded the same way
 // as any message's) over a multipart/encrypted body of two parts, the version and the ciphertext.
 // Returns { smtpRaw, sentRaw }: the copy recipients get, without Bcc, and the Sent copy, with it.
 // The subject stays in the clear in the outer headers; the browser puts it, with From, To and Cc,
 // in the encrypted entity as protected headers too.
 export async function renderPgpMime(mailOptions, armored) {
-  const headerOnly = await renderRawMessage({ ...mailOptions, text: '', html: undefined, attachments: undefined, raw: undefined });
-  const text = headerOnly.toString('latin1');
-  const end = text.indexOf('\r\n\r\n');
-  if (end < 0) throw new Error('Could not render the message headers');
-  // Header fields, each with its folded continuation lines.
-  const fields = text.slice(0, end).split(/\r\n(?![ \t])/);
-  const kept = fields.filter(f => !/^(content-type|content-transfer-encoding):/i.test(f));
+  const kept = await renderOuterHeaders(mailOptions);
   const boundary = `----=_pgp_${randomBytes(12).toString('hex')}`;
   const body = [
     'This is an OpenPGP/MIME encrypted message (RFC 4880 and 3156)',
@@ -609,6 +615,47 @@ export async function renderPgpMime(mailOptions, armored) {
     '',
   ].join('\r\n');
   const contentType = `Content-Type: multipart/encrypted; protocol="application/pgp-encrypted";\r\n boundary="${boundary}"`;
+  const build = headers => Buffer.from(`${[...headers, contentType].join('\r\n')}\r\n\r\n${body}`, 'latin1');
+  return {
+    smtpRaw: build(kept.filter(f => !/^bcc:/i.test(f))),
+    sentRaw: build(kept),
+  };
+}
+
+// An emoji reaction, in both formats at once, as multipart/alternative:
+//   1. text/plain with Content-Disposition: reaction holding only the emoji: RFC 9078 wants it
+//      as the first part, and a text-only client shows the bare emoji;
+//   2. text/vnd.google.email-reaction+json, {"version":1,"emoji":…}, which Gmail shows as a
+//      reaction, between the text and the HTML as Google recommends;
+//   3. text/html saying who reacted with what, which every other client shows.
+// Nothing of the message reacted to is quoted, so a reaction to an encrypted message carries
+// none of its plaintext. Returns { smtpRaw, sentRaw } as renderPgpMime does.
+export const REACTION_PARTS = [
+  { type: 'rfc9078', part: '1', encoding: 'base64', charset: 'utf-8' },
+  { type: 'json', part: '2', encoding: 'base64', charset: 'utf-8' },
+];
+
+export const reactionFallbackText = (fromName, emoji) => `${fromName || 'Someone'} reacted ${emoji} to your message`;
+
+const base64Lines = text => Buffer.from(text, 'utf8').toString('base64').replace(/.{1,76}/g, '$&\r\n').replace(/\r\n$/, '');
+
+export async function renderReactionMime(mailOptions, { emoji, fromName }) {
+  const kept = await renderOuterHeaders(mailOptions);
+  const boundary = `----=_reaction_${randomBytes(12).toString('hex')}`;
+  const sentence = reactionFallbackText(fromName, emoji);
+  const html = '<html><body>'
+    + `<div style="font-size:32px;line-height:1.25">${escapeHtml(emoji)}</div>`
+    + `<div style="font-family:sans-serif;font-size:14px;color:#555">${escapeHtml(sentence)}</div>`
+    + '</body></html>';
+  const part = (headers, content) => [`--${boundary}`, ...headers, 'Content-Transfer-Encoding: base64', '', base64Lines(content)];
+  const body = [
+    ...part(['Content-Type: text/plain; charset=utf-8', 'Content-Disposition: reaction'], `${emoji}\r\n`),
+    ...part(['Content-Type: text/vnd.google.email-reaction+json; charset=utf-8'], JSON.stringify({ version: 1, emoji })),
+    ...part(['Content-Type: text/html; charset=utf-8'], html),
+    `--${boundary}--`,
+    '',
+  ].join('\r\n');
+  const contentType = `Content-Type: multipart/alternative;\r\n boundary="${boundary}"`;
   const build = headers => Buffer.from(`${[...headers, contentType].join('\r\n')}\r\n\r\n${body}`, 'latin1');
   return {
     smtpRaw: build(kept.filter(f => !/^bcc:/i.test(f))),
@@ -643,6 +690,14 @@ export async function prepareDelivery(input, identity, forwarded, options = {}) 
     return {
       account, transport: smtp.transport, serverAutoSaves,
       // The fields stay for the Sent row (Message-ID, date, threading); `raw` is what goes out.
+      mailOptions: { ...mailOptions, raw: smtpRaw, envelope: envelopeOf(input, identity) },
+      rawMessage: serverAutoSaves ? null : sentRaw,
+    };
+  }
+  if (input.reaction) {
+    const { smtpRaw, sentRaw } = await renderReactionMime(mailOptions, { emoji: input.reaction.emoji, fromName: identity.fromName });
+    return {
+      account, transport: smtp.transport, serverAutoSaves,
       mailOptions: { ...mailOptions, raw: smtpRaw, envelope: envelopeOf(input, identity) },
       rawMessage: serverAutoSaves ? null : sentRaw,
     };
@@ -831,6 +886,10 @@ export async function deliverAndRecord(
           if (uid && sentMeta) {
             await imapManager.upsertSentMessageRecord(account, sentFolder, uid, sentMeta)
               .catch(err => console.warn('Sent metadata upsert failed:', err.message));
+            if (input.reaction) {
+              await recordOwnReaction(account.id, sentFolder, uid, REACTION_PARTS, input.reaction.emoji)
+                .catch(err => console.warn('Sent reaction record failed:', err.message));
+            }
           }
           setTimeout(() => {
             imapManager.syncFolderOnDemand(account, sentFolder)

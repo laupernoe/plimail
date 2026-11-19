@@ -3068,5 +3068,16 @@
     "hide": "Ukryj informację o demo",
     "sentTitle": "Demo: nic nie zostało wysłane.",
     "sentBody": "Twoja wiadomość trafiła tylko do folderu Wysłane tego konta i zniknie po odświeżeniu."
+  },
+  "reactions": {
+    "react": "Zareaguj",
+    "picker": "Wybierz reakcję",
+    "reactWith": "Zareaguj: {{emoji}}",
+    "alreadySent": "Twoja reakcja: {{emoji}}",
+    "more": "Więcej emoji",
+    "label": "Reakcje",
+    "chip": "{{emoji}} od: {{people}}",
+    "you": "Ty",
+    "failed": "Nie udało się wysłać reakcji: {{message}}"
   }
 }

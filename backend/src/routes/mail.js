@@ -25,6 +25,7 @@ import { safeFetch } from '../services/safeFetch.js';
 import { safeFilename, attachmentDisposition, truncateFilename } from '../utils/contentDisposition.js';
 import { findOwnedAccount, findOwnedMessage, findOwnedMessages } from '../services/ownership.js';
 import { collectAutocrypt } from '../services/autocryptCollect.js';
+import { resolveReactionEmoji } from '../services/reactions.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -82,7 +83,7 @@ const RELOCATE_COPY_COLS = [
   'read_changed_at', 'star_changed_at', 'category', 'list_unsubscribe',
   'list_unsubscribe_post', 'unsubscribed_at', 'delivery_addresses',
   'sender_name', 'sender_email', 'forwarded_from_name', 'forwarded_from_email', 'forwarded_via',
-  'bcc_addresses',
+  'bcc_addresses', 'reaction_parts', 'reaction_emoji',
 ];
 // INSERT target list and the matching SELECT projection. account_id + the carried columns come
 // from the deleted row; uid is the UIDPLUS-mapped new uid; folder is the destination ($4).
@@ -322,6 +323,7 @@ async function getThread(req, res, threadId) {
                m.date, m.snippet, m.is_read, m.is_starred,
                m.has_attachments, m.account_id, m.category,
                m.list_unsubscribe, m.list_unsubscribe_post, m.unsubscribed_at, m.delivery_addresses,
+               m.is_bulk, m.reaction_parts, m.reaction_emoji,
                a.name AS account_name, a.email_address AS account_email, a.color AS account_color,
                -- Deleting or moving the conversation leaves its drafts alone, and its copies already
                -- in Trash, where a delete expunges (utils/conversationActions.js).
@@ -342,12 +344,47 @@ async function getThread(req, res, threadId) {
       SELECT * FROM deduped ORDER BY date ASC, account_id, id
     `, [accountIds, threadId]);
 
-    res.json({ messages: result.rows });
+    // A reaction whose emoji sync could not read yet is read now, briefly; until then it is shown
+    // as the ordinary message it also is (services/reactions.js).
+    await resolveReactionEmoji(result.rows, { engine: imapManager }).catch(err => {
+      console.warn('Reaction emoji lookup failed:', err.message);
+    });
+    // eslint-disable-next-line no-unused-vars
+    res.json({ messages: result.rows.map(({ reaction_parts, ...row }) => row) });
   } catch (err) {
     console.error('Thread fetch error:', err);
     res.status(500).json({ error: 'Failed to load thread' });
   }
 }
+// The reactions to one message (services/reactions.js), for the single-message view: the
+// conversation view has them from the thread. In the message's own account, one row per
+// reaction however many folders hold a copy, the INBOX one preferred, as the thread does.
+router.get('/messages/:id/reactions', async (req, res) => {
+  if (!UUID_RE.test(req.params.id)) return res.status(400).json({ error: 'Invalid message ID' });
+  try {
+    const [target] = await findOwnedMessages(req.session.userId, [req.params.id], { columns: 'm.id, m.account_id, m.message_id' });
+    if (!target) return res.status(404).json({ error: 'Message not found' });
+    if (!target.message_id) return res.json({ reactions: [] });
+    const { rows } = await query(`
+      SELECT DISTINCT ON (m.message_id)
+             m.id, m.uid, m.folder, m.account_id, m.message_id, m.in_reply_to, m.from_name, m.from_email,
+             m.date, m.is_read, m.reaction_parts, m.reaction_emoji
+        FROM messages m
+       WHERE m.account_id = $1 AND m.in_reply_to = $2 AND m.reaction_parts IS NOT NULL AND m.is_deleted = false
+       ORDER BY m.message_id, CASE WHEN m.folder = 'INBOX' THEN 0 ELSE 1 END, m.date
+       LIMIT 200
+    `, [target.account_id, target.message_id]);
+    await resolveReactionEmoji(rows, { engine: imapManager }).catch(err => {
+      console.warn('Reaction emoji lookup failed:', err.message);
+    });
+    // eslint-disable-next-line no-unused-vars
+    res.json({ reactions: rows.filter(r => r.reaction_emoji).map(({ reaction_parts, ...row }) => row) });
+  } catch (err) {
+    console.error('Reactions fetch error:', err.message);
+    res.status(500).json({ error: 'Failed to load reactions' });
+  }
+});
+
 router.get('/thread', (req, res) => getThread(req, res, req.query.id));
 router.get('/thread/:threadId', (req, res) => getThread(req, res, req.params.threadId));
 

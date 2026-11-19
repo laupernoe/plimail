@@ -205,6 +205,12 @@ const SPECS = [
   { n: 35, acct: SHOP, folder: 'Sent', from: P.mayaShop, to: [P.customer2], ago: 5.5 * day, thread: 'vase', subject: 'Re: Large vase, glaze question', text: 'Hi Marco,\n\nIt comes in tenmoku or celadon. The tenmoku is darker, almost black where the glaze pools. Both are food safe.\n\nMaya', read: true },
   { n: 36, acct: SHOP, from: P.customer2, to: [P.mayaShop], ago: 6 * day, thread: 'vase', folder: 'Archive', subject: 'Large vase, glaze question', text: 'Hello, I saw the large vase on your site. Which glazes does it come in?\n\nMarco', read: true },
 
+  // ── Emoji reactions (RFC 9078 / Gmail): chips under the message they react to ──
+  { n: 60, acct: WORK, from: P.jonas, to: [P.maya], cc: [P.priya, P.tomas], ago: 24.5 * hour, thread: 'roadmap', subject: 'Re: Q4 roadmap review', reactTo: 31, emoji: '👍', read: true },
+  { n: 61, acct: WORK, from: P.tomas, to: [P.maya], cc: [P.jonas, P.priya], ago: 24 * hour, thread: 'roadmap', subject: 'Re: Q4 roadmap review', reactTo: 31, emoji: '👍', read: true },
+  { n: 62, acct: WORK, folder: 'Sent', from: P.maya, to: [P.priya], cc: [P.jonas, P.tomas], ago: 2.5 * hour, thread: 'roadmap', subject: 'Re: Q4 roadmap review', reactTo: 32, emoji: '🙏', read: true },
+  { n: 63, acct: HOME, from: P.mum, to: [P.sam], cc: [P.mayaHome], ago: 4.2 * hour, thread: 'sunday', subject: 'Re: Sunday lunch?', reactTo: 34, emoji: '😂', read: false },
+
   // ── Other folders ────────────────────────────────────────────────────────────
   { n: 40, acct: WORK, folder: 'Sent', from: P.maya, to: [P.harbor], ago: 2 * day, subject: 'Moodboard v3', attach: [['moodboard-v3.png', 'moodboard', 'image/png', 48210]], text: 'Hi Owen,\n\nHere is the third version of the moodboard. I leaned into the warm coast idea we talked about.\n\nMaya', read: true },
   { n: 41, acct: WORK, folder: 'Drafts', from: P.maya, to: [P.oakline], ago: 40 * min, subject: 'Logo round two: first look', text: 'Hi Sanne,\n\nA first look at the leaf and wheel direction, at three sizes...', read: true, draft: true },
@@ -241,6 +247,11 @@ export function buildMessages(now = Date.now()) {
     let text = spec.text || null;
     if (spec.pgp === 'signed') { html = null; text = PGP.signedText; }
     if (spec.pgp === 'encrypted') { html = null; text = PGP.encryptedText; }
+    // A reaction's body is the fallback other clients show (backend outgoingMail renderReactionMime).
+    if (spec.emoji) {
+      text = spec.emoji;
+      html = `<div style="font-size:32px;line-height:1.25">${spec.emoji}</div><div style="font-family:sans-serif;font-size:14px;color:#555">${spec.from[0]} reacted ${spec.emoji} to your message</div>`;
+    }
     if (!html && text && !spec.pgp) html = personal(text) + (spec.quoted ? quote(spec.quoted[0][0], spec.quoted[1]) : '');
     const attachments = (spec.attach || []).map(([filename, file, type, size], i) => ({
       part: String(i + 2), filename, type, size, disposition: 'attachment', file,
@@ -259,7 +270,8 @@ export function buildMessages(now = Date.now()) {
       to_addresses: spec.to.map(addr),
       cc_addresses: (spec.cc || []).map(addr),
       reply_to: [],
-      in_reply_to: spec.thread && thread !== messageId ? thread : null,
+      in_reply_to: spec.reactTo ? `<demo-${spec.reactTo}@plimail.example.com>` : spec.thread && thread !== messageId ? thread : null,
+      reaction_emoji: spec.emoji || null,
       thread_references: spec.thread && thread !== messageId ? [thread] : [],
       date: new Date(now - spec.ago).toISOString(),
       snippet: snippetOf(spec),
