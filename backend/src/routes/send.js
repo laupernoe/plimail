@@ -6,6 +6,13 @@ import {
   UUID_RE, SendError, sanitizeSmtpError, publicSendCode, missingSendFields, validateSendInput,
   resolveIdentity, resolveForwarded, prepareDelivery, deliverAndRecord,
 } from '../services/outgoingMail.js';
+import { query } from '../services/db.js';
+import { findOwnedMessages } from '../services/ownership.js';
+import { draftMessageSql } from '../utils/mailUtils.js';
+import { isEmojiSequence } from '../services/messageParser.js';
+import {
+  MAX_REACTIONS_PER_USER, reactionBlocker, reactionRecipients, reactionSubject, reactionReferences,
+} from '../services/reactions.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -129,6 +136,85 @@ router.post('/send', async (req, res) => {
     // A failure before reservation must not delete a concurrent request's lock.
     if (idemKeyRedis && reservationAcquired) redisClient.del(idemKeyRedis).catch(() => {});
     res.status(500).json({ error: sanitizeSmtpError(err), ...(publicSendCode(err) ? { code: publicSendCode(err) } : {}) });
+  }
+});
+
+// An emoji reaction to one message (services/reactions.js, outgoingMail.js renderReactionMime).
+// Everything about it but the emoji comes from the message reacted to, never from the client: the
+// account it arrived in sends it, to the people it went to, as a reply in its thread. It is sent at
+// once, without an undo window, and saved to Sent like any other message.
+router.post('/send/reaction', async (req, res) => {
+  const userId = req.session.userId;
+  const { messageId, emoji } = req.body || {};
+  if (typeof messageId !== 'string' || !UUID_RE.test(messageId)) return res.status(400).json({ error: 'messageId required' });
+  if (!isEmojiSequence(emoji)) return res.status(400).json({ error: 'emoji must be a single emoji', code: 'invalid_emoji' });
+
+  const [target] = await findOwnedMessages(userId, [messageId], {
+    columns: 'm.id, m.account_id, m.message_id, m.subject, m.from_name, m.from_email, m.to_addresses, m.cc_addresses, m.reply_to, m.thread_references, m.is_bulk, m.list_unsubscribe, m.reaction_emoji',
+    live: true,
+  });
+  if (!target) return res.status(404).json({ error: 'Message not found' });
+  const { rows: [draft] } = await query(`SELECT ${draftMessageSql('m')} AS is_draft FROM messages m WHERE m.id = $1`, [target.id]);
+  target.is_draft = Boolean(draft?.is_draft);
+
+  const { rows: own } = await query(
+    `SELECT lower(email_address) AS email, NULL::uuid AS alias_id FROM email_accounts WHERE id = $1
+     UNION ALL SELECT lower(email), id FROM account_aliases WHERE account_id = $1`,
+    [target.account_id]
+  );
+  const ownEmails = new Set(own.map(r => r.email).filter(Boolean));
+  const blocker = reactionBlocker(target, ownEmails);
+  if (blocker) return res.status(422).json({ error: 'This message cannot be reacted to', code: blocker });
+
+  // Gmail's limit per reader, and no second identical reaction: one already sent from any of the
+  // account's addresses counts.
+  const { rows: [mine] } = await query(
+    `SELECT COUNT(DISTINCT reaction_emoji)::int AS n, bool_or(reaction_emoji = $3) AS same
+       FROM messages
+      WHERE account_id = $1 AND in_reply_to = $2 AND is_deleted = false
+        AND reaction_emoji IS NOT NULL AND reaction_emoji <> '' AND lower(from_email) = ANY($4::text[])`,
+    [target.account_id, target.message_id, emoji, [...ownEmails]]
+  );
+  if (mine?.same) return res.status(409).json({ error: 'Already reacted with this emoji', code: 'already_reacted' });
+  if ((mine?.n ?? 0) >= MAX_REACTIONS_PER_USER) return res.status(422).json({ error: 'Too many reactions', code: 'too_many_reactions' });
+
+  const { to, cc } = reactionRecipients(target, ownEmails);
+  if (!to.length) return res.status(422).json({ error: 'Nobody to send the reaction to', code: 'no_recipients' });
+  // The alias the message was sent to, if it was one, sends the reaction.
+  const recipients = new Set([...(target.to_addresses || []), ...(target.cc_addresses || [])].map(a => String(a?.email || '').toLowerCase()));
+  const alias = own.find(r => r.alias_id && recipients.has(r.email));
+
+  // A double click, or a retry of a lost response, sends one reaction.
+  const lockKey = `send_reaction:${userId}:${messageId}:${emoji}`;
+  let locked;
+  try { locked = await redisClient.set(lockKey, '1', { NX: true, EX: 60 }); }
+  catch { return res.status(503).json({ error: 'Sending is temporarily unavailable. Please try again shortly.' }); }
+  if (locked !== 'OK') return res.status(409).json({ error: 'This reaction is already being sent.', code: 'already_reacted' });
+  const unlock = () => redisClient.del(lockKey).catch(() => {});
+
+  try {
+    const input = validateSendInput({
+      accountId: target.account_id,
+      ...(alias ? { aliasId: alias.alias_id } : {}),
+      to, cc,
+      subject: reactionSubject(target.subject),
+      body: emoji,
+      inReplyTo: target.message_id,
+      references: reactionReferences(target),
+      // No signature on a reaction.
+      editedSignature: null,
+    });
+    input.reaction = { emoji };
+    const identity = await resolveIdentity(userId, input);
+    const delivery = await prepareDelivery(input, identity, { attachments: [], messages: [] });
+    const result = await deliverAndRecord({ userId, input, identity, delivery }, { onFailure: unlock });
+    res.json({ ...result, emoji });
+  } catch (err) {
+    if (err.publicMessage) return res.status(500).json({ error: err.publicMessage, ...(err.publicCode ? { code: err.publicCode } : {}) });
+    unlock();
+    if (err instanceof SendError) return res.status(err.status).json({ error: err.message });
+    console.error('Reaction send failed:', err.message);
+    res.status(500).json({ error: sanitizeSmtpError(err) });
   }
 });
 

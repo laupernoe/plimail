@@ -23,6 +23,7 @@ import { applyReadGuard } from '../utils/pendingReads.js';
 import { applyDeleteGuard } from '../utils/pendingDeletes.js';
 import { ActionBtn, ArchiveIcon, MoreMenu, MoveIcon, SnoozeIcon, SpamIcon, PrintIcon, TrashIcon, useShortcutTitle } from './MessageActions.jsx';
 import { TOOLBAR_GAP } from '../utils/uiSizes.js';
+import { splitReactions, ownAddresses, canReact, pendingReaction } from '../utils/reactions.js';
 
 // What the reader is told when an action finds nothing to take (runAction below). In the unified
 // inbox, which has no "this account" to speak of, only Spam and Snooze can: keepDraftsApart and
@@ -75,6 +76,8 @@ export default function ConversationPane({ threadId, folder, unified = false, ac
   // The conversation the cards on screen belong to, set when its fetch lands (the stack's key).
   const [loadedConversation, setLoadedConversation] = useState(null);
   const [aiStatus, setAiStatus] = useState(null);
+  // Reactions sent from this pane, shown at once and until the thread brings their Sent copy.
+  const [localReactions, setLocalReactions] = useState([]);
 
   useEffect(() => {
     api.ai.status().then(setAiStatus).catch(() => {});
@@ -95,9 +98,12 @@ export default function ConversationPane({ threadId, folder, unified = false, ac
       .then(data => {
         if (cancelled) return;
         const ordered = normalizeConversation(data?.messages || []);
+        // A reaction has no card of its own (utils/reactions.js), so it is never the one opened.
+        const cards = splitReactions(ordered).cards;
         setMessages(ordered);
+        setLocalReactions([]);
         setLoadedConversation(`${accountId || ''}\n${threadId}`);
-        setOpenedOnNewest(newestConversationMessage(inAccount(ordered, accountId))?.id ?? null);
+        setOpenedOnNewest(newestConversationMessage(inAccount(cards, accountId))?.id ?? null);
         // A picker opened on the previous conversation's cards while this one loaded (below).
         setPicker(null);
         // Opens on the newest message, the way every threaded client does: the reader
@@ -109,7 +115,7 @@ export default function ConversationPane({ threadId, folder, unified = false, ac
         const picked = ordered.find(message => message.id === pickedRef.current);
         setExpanded(accountId && picked && picked.account_id !== accountId
           ? new Set()
-          : initialExpandedMessageIds(inAccount(ordered, accountId)));
+          : initialExpandedMessageIds(inAccount(cards, accountId)));
       })
       .catch(err => { if (!cancelled) setError(err.message); })
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -158,13 +164,22 @@ export default function ConversationPane({ threadId, folder, unified = false, ac
   // own message is only the newest in the listed folder, so opening it too put the other
   // person's last message beside a newer reply of the reader's in Sent, and scrolled to it (#707).
   // The newest card is then the selected one too, so the outline and the shortcuts follow it.
-  const selectedHere = Boolean(selectedMessageId) && messages.some(message => message.id === selectedMessageId);
+  // The stack: every message but the reactions, which are chips on the message they react to. One
+  // sent from here stays until the thread brings its Sent copy (same target, same emoji, the reader's).
+  const own = ownAddresses(accounts);
+  const unsent = localReactions.filter(local => !messages.some(m => m.reaction_emoji === local.reaction_emoji
+    && m.in_reply_to === local.in_reply_to && own.has(String(m.from_email || '').toLowerCase())));
+  const { cards, reactionsByTarget } = splitReactions([...messages, ...unsent]);
+  // A reaction picked in the list stands for the message it reacts to.
+  const targetOfReaction = new Map([...reactionsByTarget].flatMap(([target, list]) => list.map(r => [r.id, target])));
+  const selectedCardId = targetOfReaction.get(selectedMessageId) ?? selectedMessageId;
+  const selectedHere = Boolean(selectedCardId) && cards.some(message => message.id === selectedCardId);
   // The newest card when the conversation loaded, so a reply read in afterwards (above) does not
   // become the focused card, which would open it and mark it read without the reader opening it.
   const focusedId = selectedHere && openedFromRow
-    ? (openedOnNewest && messages.some(message => message.id === openedOnNewest) ? openedOnNewest : null)
-      ?? newestConversationMessage(inAccount(messages, accountId))?.id ?? selectedMessageId
-    : selectedMessageId;
+    ? (openedOnNewest && cards.some(message => message.id === openedOnNewest) ? openedOnNewest : null)
+      ?? newestConversationMessage(inAccount(cards, accountId))?.id ?? selectedCardId
+    : selectedCardId;
   useEffect(() => {
     if (!selectedHere || !focusedId) return;
     setExpanded(prev => (prev.has(focusedId) ? prev : new Set(prev).add(focusedId)));
@@ -232,6 +247,19 @@ export default function ConversationPane({ threadId, folder, unified = false, ac
       },
     });
     if (!taken) sayNothingTaken(name);
+  };
+
+  // An emoji reaction to one message (POST /mail/send/reaction): on screen at once, taken back
+  // with a notice if the server refuses or the send fails.
+  const react = async (target, emoji) => {
+    const local = pendingReaction(target, emoji, accounts.find(a => a.id === target.account_id));
+    setLocalReactions(prev => [...prev, local]);
+    try {
+      await api.sendReaction(target.id, emoji);
+    } catch (err) {
+      setLocalReactions(prev => prev.filter(r => r !== local));
+      addNotification({ type: 'error', title: t('reactions.failed', { message: err.message }) });
+    }
   };
 
   // A flag change on one card: the pane's copy of the thread and the list's copy both change.
@@ -406,18 +434,24 @@ export default function ConversationPane({ threadId, folder, unified = false, ac
           background: 'var(--bg-primary)',
         }}
       >
-        {messages.map(message => (
-          <ConversationMessageCard
-            key={message.id}
-            message={message}
-            expanded={expanded.has(message.id)}
-            selected={message.id === focusedId}
-            onToggle={toggle}
-            onUpdate={updateConversationMessage}
-            aiEnabled={aiEnabled}
-            aiReplyEnabled={aiReplyEnabled}
-          />
-        ))}
+        {cards.map(message => {
+          const reactions = reactionsByTarget.get(message.id) || [];
+          return (
+            <ConversationMessageCard
+              key={message.id}
+              message={message}
+              expanded={expanded.has(message.id)}
+              selected={message.id === focusedId}
+              onToggle={toggle}
+              onUpdate={updateConversationMessage}
+              aiEnabled={aiEnabled}
+              aiReplyEnabled={aiReplyEnabled}
+              reactions={reactions}
+              own={own}
+              onReact={canReact(message, own, reactions) ? emoji => react(message, emoji) : null}
+            />
+          );
+        })}
       </div>
       </SwipePager>
     </div>

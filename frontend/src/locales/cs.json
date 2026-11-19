@@ -3068,5 +3068,16 @@
     "hide": "Skrýt upozornění na ukázku",
     "sentTitle": "Ukázka: nic nebylo odesláno.",
     "sentBody": "Vaše zpráva šla jen do složky Odeslané tohoto účtu a po obnovení stránky zmizí."
+  },
+  "reactions": {
+    "react": "Reagovat",
+    "picker": "Vyberte reakci",
+    "reactWith": "Reagovat pomocí {{emoji}}",
+    "alreadySent": "Reagovali jste pomocí {{emoji}}",
+    "more": "Další emoji",
+    "label": "Reakce",
+    "chip": "{{emoji}} od {{people}}",
+    "you": "Vy",
+    "failed": "Reakci se nepodařilo odeslat: {{message}}"
   }
 }

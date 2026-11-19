@@ -918,6 +918,8 @@ export async function parseMessage(msg) {
     hasAttachments,
     flags,
     isBulk: detectBulkFromParsedHeaders(parsedHeaders),
+    // Only a reply can react to something (RFC 9078 section 4).
+    reaction: envelope.inReplyTo ? detectReactionParts(msg.bodyStructure) : null,
   };
 }
 
@@ -1148,4 +1150,101 @@ export function renderCalendarInvite(ics) {
   ].filter(Boolean).join('\n');
 
   return { html: card + bodyHtml, text };
+}
+
+// ── Emoji reactions ──────────────────────────────────────────────────────────
+// Two formats say a reply is a reaction to the message its In-Reply-To names:
+//   - RFC 9078: a text/plain part with Content-Disposition: reaction holding only emoji, as the
+//     whole body or the first part of the outermost multipart;
+//   - Gmail: a text/vnd.google.email-reaction+json part, {"version":1,"emoji":"👍"}, anywhere
+//     outside an attachment (developers.google.com/workspace/gmail/reactions/format).
+// Sync has the structure but not always the content, so this only finds the candidate parts;
+// the emoji is read and checked later (reactionEmojiFromParts, services/reactions.js).
+
+export const GMAIL_REACTION_TYPE = 'text/vnd.google.email-reaction+json';
+// A reaction part is a line of emoji or a few bytes of JSON. Anything bigger is not one, and is
+// never fetched to find out.
+export const MAX_REACTION_PART_BYTES = 2048;
+
+const regionalPair = '[\\u{1F1E6}-\\u{1F1FF}]{2}';
+const keycap = '[0-9#*]\\uFE0F?\\u20E3';
+const pictograph = '(?:\\p{Extended_Pictographic}|\\p{Emoji_Presentation})(?:\\uFE0F|[\\u{1F3FB}-\\u{1F3FF}])?';
+const tagged = `${pictograph}(?:[\\u{E0020}-\\u{E007E}]+\\u{E007F})?`;
+const zwjSequence = `${tagged}(?:\\u200D${pictograph})*`;
+const EMOJI_SEQUENCE_RE = new RegExp(`^(?:${regionalPair}|${keycap}|${zwjSequence})$`, 'u');
+
+// One emoji: a single pictograph, with its variation selector, skin tone, tag or ZWJ joins
+// (UTS #51 emoji-sequence). Not a digit, a letter or punctuation on their own.
+export function isEmojiSequence(value) {
+  return typeof value === 'string' && value.length > 0 && value.length <= 64 && EMOJI_SEQUENCE_RE.test(value);
+}
+
+function reactionCandidate(node, type, fallbackPart) {
+  const size = Number(node.size);
+  if (Number.isFinite(size) && size > MAX_REACTION_PART_BYTES) return null;
+  return {
+    type,
+    part: node.part || fallbackPart,
+    encoding: (node.encoding || '7bit').toLowerCase(),
+    charset: (node.parameters?.charset || 'utf-8').toLowerCase(),
+  };
+}
+
+const isRfc9078Part = node => (node?.disposition || '').toLowerCase() === 'reaction'
+  && (node.type || '').toLowerCase() === 'text/plain';
+
+// The reaction parts of a message structure, the Gmail one first, or null when it has none.
+export function detectReactionParts(structure) {
+  if (!structure) return null;
+  const found = [];
+  if (!structure.childNodes?.length) {
+    // A single-part body is IMAP part 1.
+    if (isRfc9078Part(structure)) found.push(reactionCandidate(structure, 'rfc9078', '1'));
+    else if ((structure.type || '').toLowerCase() === GMAIL_REACTION_TYPE
+      && (structure.disposition || '').toLowerCase() !== 'attachment') {
+      found.push(reactionCandidate(structure, 'json', '1'));
+    }
+  } else {
+    let json = null;
+    const visit = (node) => {
+      if (json || !node || (node.disposition || '').toLowerCase() === 'attachment') return;
+      if (node.childNodes?.length) { node.childNodes.forEach(visit); return; }
+      if ((node.type || '').toLowerCase() === GMAIL_REACTION_TYPE) json = reactionCandidate(node, 'json', null);
+    };
+    visit(structure);
+    if (json?.part) found.push(json);
+    const first = structure.childNodes[0];
+    if (isRfc9078Part(first) && first.part) found.push(reactionCandidate(first, 'rfc9078', null));
+  }
+  const parts = found.filter(Boolean);
+  return parts.length ? parts : null;
+}
+
+// Gmail's JSON: version 1 and exactly one emoji, or it is not a reaction.
+export function parseGmailReaction(text) {
+  let data;
+  try { data = JSON.parse(String(text ?? '').replace(/^\uFEFF/, '')); } catch { return null; }
+  if (!data || typeof data !== 'object' || data.version !== 1) return null;
+  return isEmojiSequence(data.emoji) ? data.emoji : null;
+}
+
+// RFC 9078 part content: one line of emoji separated by whitespace (section 3). Returned with
+// single spaces between them; anything else in the line makes the whole part not a reaction.
+export function parseRfc9078Reaction(text) {
+  const line = String(text ?? '').replace(/^\uFEFF/, '').replace(/(?:\r?\n)+$/, '');
+  if (!line || /[\r\n]/.test(line)) return null;
+  const emoji = line.trim().split(/[ \t]+/);
+  if (!emoji.length || emoji.length > 10 || !emoji.every(isEmojiSequence)) return null;
+  return emoji.join(' ');
+}
+
+// The emoji of a reaction from its candidate parts' decoded text (Map part -> string), the Gmail
+// part first. '' when no part holds a valid reaction: the message is then ordinary mail.
+export function reactionEmojiFromParts(parts, texts) {
+  for (const p of parts || []) {
+    if (!texts.has(p.part)) continue;
+    const emoji = p.type === 'json' ? parseGmailReaction(texts.get(p.part)) : parseRfc9078Reaction(texts.get(p.part));
+    if (emoji) return emoji;
+  }
+  return '';
 }

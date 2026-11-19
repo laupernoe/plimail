@@ -3049,5 +3049,16 @@
     "hide": "Masquer l'avis de démo",
     "sentTitle": "Démo : rien n'a été envoyé.",
     "sentBody": "Votre message est seulement allé dans le dossier Envoyés de ce compte, et disparaît au rechargement."
+  },
+  "reactions": {
+    "react": "Réagir",
+    "picker": "Choisir une réaction",
+    "reactWith": "Réagir avec {{emoji}}",
+    "alreadySent": "Vous avez réagi avec {{emoji}}",
+    "more": "Plus d’emoji",
+    "label": "Réactions",
+    "chip": "{{emoji}} par {{people}}",
+    "you": "Vous",
+    "failed": "Impossible d’envoyer la réaction : {{message}}"
   }
 }

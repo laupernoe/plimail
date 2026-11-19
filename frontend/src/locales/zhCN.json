@@ -3049,5 +3049,16 @@
     "hide": "隐藏演示提示",
     "sentTitle": "演示：没有发送任何内容。",
     "sentBody": "你的邮件只保存到了此账户的“已发送”文件夹，重新加载后即会消失。"
+  },
+  "reactions": {
+    "react": "回应",
+    "picker": "选择回应",
+    "reactWith": "用 {{emoji}} 回应",
+    "alreadySent": "你已用 {{emoji}} 回应",
+    "more": "更多表情",
+    "label": "回应列表",
+    "chip": "{{people}} 的 {{emoji}}",
+    "you": "你",
+    "failed": "无法发送回应：{{message}}"
   }
 }

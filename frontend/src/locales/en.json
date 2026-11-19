@@ -3049,5 +3049,16 @@
     "hide": "Hide the demo notice",
     "sentTitle": "Demo: nothing was sent.",
     "sentBody": "Your message only went to this account's Sent folder, and is gone on reload."
+  },
+  "reactions": {
+    "react": "React",
+    "picker": "Pick a reaction",
+    "reactWith": "React with {{emoji}}",
+    "alreadySent": "You reacted with {{emoji}}",
+    "more": "More emoji",
+    "label": "Reactions",
+    "chip": "{{emoji}} from {{people}}",
+    "you": "You",
+    "failed": "Could not send the reaction: {{message}}"
   }
 }

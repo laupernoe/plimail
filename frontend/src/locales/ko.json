@@ -3049,5 +3049,16 @@
     "hide": "데모 안내 숨기기",
     "sentTitle": "데모: 아무것도 보내지 않았습니다.",
     "sentBody": "메시지는 이 계정의 보낸편지함에만 저장되며 새로 고치면 사라집니다."
+  },
+  "reactions": {
+    "react": "반응하기",
+    "picker": "반응 선택",
+    "reactWith": "{{emoji}}(으)로 반응",
+    "alreadySent": "{{emoji}}(으)로 반응했습니다",
+    "more": "이모지 더 보기",
+    "label": "반응",
+    "chip": "{{people}}의 {{emoji}}",
+    "you": "나",
+    "failed": "반응을 보내지 못했습니다: {{message}}"
   }
 }

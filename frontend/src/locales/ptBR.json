@@ -3049,5 +3049,16 @@
     "hide": "Ocultar o aviso da demo",
     "sentTitle": "Demo: nada foi enviado.",
     "sentBody": "Sua mensagem foi apenas para a pasta Enviados desta conta e some ao recarregar."
+  },
+  "reactions": {
+    "react": "Reagir",
+    "picker": "Escolher uma reação",
+    "reactWith": "Reagir com {{emoji}}",
+    "alreadySent": "Você reagiu com {{emoji}}",
+    "more": "Mais emojis",
+    "label": "Reações",
+    "chip": "{{emoji}} por {{people}}",
+    "you": "Você",
+    "failed": "Não foi possível enviar a reação: {{message}}"
   }
 }

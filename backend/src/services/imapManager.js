@@ -25,6 +25,7 @@ import { carryUpdate, hasCarries, rememberDroppedRows, takeCarry } from './moved
 import { generateVCard } from '../utils/vcard.js';
 import { mimeToExtension, standardImageType, rasterImageTypeOfName, sniffImageType } from '../utils/inlineImages.js';
 import { truncateFilename } from '../utils/contentDisposition.js';
+import { recordReactionParts } from './reactions.js';
 import { randomBytes, randomUUID } from 'crypto';
 
 
@@ -1555,7 +1556,8 @@ export async function insertCopiedSibling(accountId, uid, fromFolder, toFolder, 
       thread_references, thread_id, is_bulk,
       read_changed_at, star_changed_at,
       category, list_unsubscribe, list_unsubscribe_post, unsubscribed_at, delivery_addresses, sender_name, sender_email,
-      forwarded_from_name, forwarded_from_email, forwarded_via, bcc_addresses, provider_msgid
+      forwarded_from_name, forwarded_from_email, forwarded_via, bcc_addresses, provider_msgid,
+      reaction_parts, reaction_emoji
     )
     SELECT
       account_id, $4, $5, message_id, subject,
@@ -1565,7 +1567,8 @@ export async function insertCopiedSibling(accountId, uid, fromFolder, toFolder, 
       thread_references, thread_id, is_bulk,
       read_changed_at, star_changed_at,
       category, list_unsubscribe, list_unsubscribe_post, unsubscribed_at, delivery_addresses, sender_name, sender_email,
-      forwarded_from_name, forwarded_from_email, forwarded_via, bcc_addresses, provider_msgid
+      forwarded_from_name, forwarded_from_email, forwarded_via, bcc_addresses, provider_msgid,
+      reaction_parts, reaction_emoji
     FROM messages
     WHERE account_id = $1 AND folder = $2 AND uid = $3
     ON CONFLICT (account_id, uid, folder) DO NOTHING
@@ -1698,6 +1701,16 @@ export const POOL_STALL_TIMEOUT_MS = 45000;
 function sanitizeStr(str) {
   if (typeof str !== 'string') return str;
   return str.replace(/\0/g, '');
+}
+
+// A reaction's candidate parts (messageParser detectReactionParts), stored beside the row sync
+// just wrote. Secondary to the message itself: a failure is logged and the message syncs as mail.
+async function noteReactionParts(account, folder, parsed) {
+  try {
+    await recordReactionParts(account.id, folder, parsed.uid, parsed.reaction);
+  } catch (err) {
+    console.warn(`Reaction parts not recorded for ${logAccount(account)}/${folder} uid ${parsed.uid}: ${err.message}`);
+  }
 }
 
 // Parse RFC 5322 References header into an ordered array of angle-bracketed Message-IDs.
@@ -4895,6 +4908,7 @@ export class ImapManager {
                 newMessages.push({ ...parsed, id: result.rows[0].id, accountId: account.id, folder });
               }
             }
+            if (parsed.reaction) await noteReactionParts(account, folder, parsed);
             // Propagate resolved thread_id to any earlier messages that used this
             // message as a provisional thread root (out-of-order delivery / sync).
             //
@@ -5575,6 +5589,7 @@ export class ImapManager {
                   sanitizeStr(parsed.forwardedFromName), sanitizeStr(parsed.forwardedFromEmail), sanitizeStr(parsed.forwardedVia),
                   providerProfile(account).labelStore ? parsed.providerMsgid || null : null,
                 ]);
+                if (parsed.reaction) await noteReactionParts(account, folder, parsed);
                 backfilledRows++;
                 // Same statement as the sync path's propagation, same constraints: no
                 // is_deleted filter (deleted rows still feed computeThreadId), served by

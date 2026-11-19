@@ -3049,5 +3049,16 @@
     "hide": "Ocultar el aviso de demo",
     "sentTitle": "Demo: no se envió nada.",
     "sentBody": "Tu mensaje solo fue a la carpeta Enviados de esta cuenta y desaparece al recargar."
+  },
+  "reactions": {
+    "react": "Reaccionar",
+    "picker": "Elegir una reacción",
+    "reactWith": "Reaccionar con {{emoji}}",
+    "alreadySent": "Reaccionaste con {{emoji}}",
+    "more": "Más emojis",
+    "label": "Reacciones",
+    "chip": "{{emoji}} de {{people}}",
+    "you": "Tú",
+    "failed": "No se pudo enviar la reacción: {{message}}"
   }
 }
