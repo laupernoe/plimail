@@ -171,7 +171,7 @@ router.post('/send/reaction', async (req, res) => {
   const { rows: [mine] } = await query(
     `SELECT COUNT(DISTINCT reaction_emoji)::int AS n, bool_or(reaction_emoji = $3) AS same
        FROM messages
-      WHERE account_id = $1 AND in_reply_to = $2 AND is_deleted = false
+      WHERE account_id = $1 AND in_reply_to = $2 AND is_deleted = false AND reaction_parts IS NOT NULL
         AND reaction_emoji IS NOT NULL AND reaction_emoji <> '' AND lower(from_email) = ANY($4::text[])`,
     [target.account_id, target.message_id, emoji, [...ownEmails]]
   );

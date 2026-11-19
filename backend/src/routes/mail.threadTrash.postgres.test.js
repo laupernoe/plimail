@@ -29,6 +29,7 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('thread route in_trash 
         delimiter text, special_use text, no_select boolean NOT NULL DEFAULT false,
         UNIQUE (account_id, path));
       CREATE TEMP TABLE messages (id uuid PRIMARY KEY, account_id uuid, folder text,
+        is_bulk boolean, reaction_parts jsonb, reaction_emoji text,
         uid bigint, message_id text, in_reply_to text, thread_references text,
         thread_id text, thread_key text, date timestamptz, is_deleted boolean DEFAULT false,
         subject text, from_name text, from_email text, to_addresses jsonb, cc_addresses jsonb,
