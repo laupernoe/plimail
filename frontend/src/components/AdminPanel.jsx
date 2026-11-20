@@ -32,7 +32,7 @@ import { THEMES, applyCustomCss } from '../themes.js';
 import { LAYOUTS, applyLayout } from '../layouts.js';
 import { NOTIFICATION_SOUNDS, playNotificationSound, playCustomSound, warmUpAudioContext } from '../utils/notificationSounds.js';
 import { usePushNotifications } from '../hooks/usePushNotifications.js';
-import SignatureEditor from './SignatureEditor.jsx';
+import SignaturesSection from './SignaturesSection.jsx';
 import DiagnosticsReportModal from './DiagnosticsReportModal.jsx';
 import { getEffectiveShortcuts, getGroupedActions, getShortcutConflicts, shortcutActionText, shortcutBindingFromEvent, SPECIAL_KEY_LABELS, parseModKey, modLabel } from '../utils/defaultShortcuts.js';
 import { isValidForwardAddress } from '../utils/ruleActions.js';
@@ -71,6 +71,21 @@ function Field({ label, required, children }) {
         {label} {required && <span style={{ color: 'var(--red)' }}>*</span>}
       </label>
       {children}
+    </div>
+  );
+}
+
+// Signatures are written and assigned in their own tab (SignaturesSection.jsx).
+function SignatureLibraryNote() {
+  const { t } = useTranslation();
+  const setAdminTab = useStore(s => s.setAdminTab);
+  return (
+    <div style={{ fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
+      {t('admin.signatures.managedThere')}{' '}
+      <button type="button" onClick={() => setAdminTab('signatures')}
+        style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent)', cursor: 'pointer', fontSize: 12 }}>
+        {t('admin.signatures.open')}
+      </button>
     </div>
   );
 }
@@ -620,10 +635,7 @@ function AccountForm({ initial, onSave, onCancel, prefill, onMicrosoftSignIn, on
       <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
         {t('admin.accounts.signatureSection')}
       </div>
-      <SignatureEditor
-        value={form.signature || ''}
-        onChange={val => set('signature', val)}
-      />
+      <SignatureLibraryNote />
       <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, fontSize: 13, color: 'var(--text-secondary)', cursor: 'pointer' }}>
         <input type="checkbox" checked={form.signature_enabled !== false}
           onChange={e => set('signature_enabled', e.target.checked)}
@@ -845,7 +857,7 @@ function AccountsTab() {
 
   // Alias form state
   const [aliasFormMode, setAliasFormMode] = useState(null); // null | 'add' | 'edit'
-  const [aliasFormData, setAliasFormData] = useState({ name: '', email: '', reply_to: '', signature: '' });
+  const [aliasFormData, setAliasFormData] = useState({ name: '', email: '', reply_to: '' });
   const [aliasFormId, setAliasFormId] = useState(null);
   const [aliasFormError, setAliasFormError] = useState('');
   const [aliasFormSaving, setAliasFormSaving] = useState(false);
@@ -860,7 +872,7 @@ function AccountsTab() {
   };
 
   const handleEdit = async (form) => {
-    const updates = { name: form.name, sender_name: form.sender_name || null, color: form.color, icon: form.icon || null, imap_host: form.imap_host, imap_port: form.imap_port, imap_skip_tls_verify: !!form.imap_skip_tls_verify, smtp_host: form.smtp_host, smtp_port: form.smtp_port, smtp_tls: form.smtp_tls, signature: form.signature || null, categorization_enabled: !!form.categorization_enabled, include_in_unified_inbox: form.include_in_unified_inbox !== false, notifications_muted: form.notifications_muted === true };
+    const updates = { name: form.name, sender_name: form.sender_name || null, color: form.color, icon: form.icon || null, imap_host: form.imap_host, imap_port: form.imap_port, imap_skip_tls_verify: !!form.imap_skip_tls_verify, smtp_host: form.smtp_host, smtp_port: form.smtp_port, smtp_tls: form.smtp_tls, categorization_enabled: !!form.categorization_enabled, include_in_unified_inbox: form.include_in_unified_inbox !== false, notifications_muted: form.notifications_muted === true };
     Object.assign(updates, autoRecipientFields(form), { signature_enabled: form.signature_enabled !== false });
     if (form.auth_pass) updates.auth_pass = form.auth_pass;
     if (OAUTH_PROVIDERS.has(editTarget.oauth_provider)) {
@@ -965,7 +977,7 @@ function AccountsTab() {
   const handleAliasOpen = (account) => {
     setEditTarget(account);
     setAliasFormMode(null);
-    setAliasFormData({ name: '', email: '', reply_to: '', signature: '' });
+    setAliasFormData({ name: '', email: '', reply_to: '' });
     setAliasFormError('');
     setSubview('aliases');
   };
@@ -982,7 +994,6 @@ function AccountsTab() {
         name: aliasFormData.name,
         email: aliasFormData.email,
         reply_to: aliasFormData.reply_to || null,
-        signature: aliasFormData.signature || null,
       };
       let saved;
       if (aliasFormMode === 'add') {
@@ -997,7 +1008,7 @@ function AccountsTab() {
         setEditTarget(prev => ({ ...prev, aliases: newAliases }));
       }
       setAliasFormMode(null);
-      setAliasFormData({ name: '', email: '', reply_to: '', signature: '' });
+      setAliasFormData({ name: '', email: '', reply_to: '' });
       setAliasFormId(null);
     } catch (err) {
       setAliasFormError(err.message);
@@ -1012,7 +1023,6 @@ function AccountsTab() {
       name: alias.name,
       email: alias.email,
       reply_to: alias.reply_to || '',
-      signature: alias.signature || '',
     });
     setAliasFormError('');
     setAliasFormMode('edit');
@@ -1151,13 +1161,7 @@ function AccountsTab() {
           <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 6, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
             {t('admin.aliases.signatureSection')}
           </div>
-          <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 10 }}>
-            {t('admin.aliases.signatureNote')}
-          </div>
-          <SignatureEditor
-            value={aliasFormData.signature}
-            onChange={val => setAliasFormData(f => ({ ...f, signature: val }))}
-          />
+          <SignatureLibraryNote />
 
           {aliasFormError && (
             <div style={{
@@ -1206,7 +1210,7 @@ function AccountsTab() {
         </div>
 
         <button
-          onClick={() => { setAliasFormData({ name: '', email: '', reply_to: '', signature: '' }); setAliasFormMode('add'); }}
+          onClick={() => { setAliasFormData({ name: '', email: '', reply_to: '' }); setAliasFormMode('add'); }}
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '7px 12px', background: 'var(--accent)',
@@ -6429,7 +6433,7 @@ function RulesAndBlockListTab({ initialSubTab }) {
 }
 
 const TAB_GROUPS = [
-  { id: 'mail', labelKey: 'admin.tabs.groupMail', tabIds: ['accounts', 'rules', 'server-filters', 'vacation', 'categories', 'secure-messages', 'pgp'] },
+  { id: 'mail', labelKey: 'admin.tabs.groupMail', tabIds: ['accounts', 'signatures', 'rules', 'server-filters', 'vacation', 'categories', 'secure-messages', 'pgp'] },
   { id: 'calendar', labelKey: 'admin.tabs.groupCalendar', tabIds: ['calendar-accounts', 'calendar-list'] },
   { id: 'preferences', labelKey: 'admin.tabs.groupPreferences', tabIds: ['appearance', 'behavior', 'notifications', 'shortcuts', 'security'] },
   { id: 'ai', labelKey: 'admin.tabs.groupAi', tabIds: ['ai-actions', 'ai'] },
@@ -6441,6 +6445,10 @@ const TABS = [
   {
     id: 'accounts', labelKey: 'admin.tabs.accounts',
     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
+  },
+  {
+    id: 'signatures', labelKey: 'admin.tabs.signatures',
+    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M3 17c3-7 5-10 6-10s-2 10 0 10c1.5 0 2.5-5 4-5s0 4 2.5 4c1.2 0 2.5-1 3.5-2"/><line x1="3" y1="21" x2="21" y2="21"/></svg>,
   },
   {
     id: 'rules', labelKey: 'admin.tabs.rules',
@@ -8126,7 +8134,7 @@ function makeSearchIndex(t) {
     { label: tabLabel('calendarAccounts'), keywords: ['calendar', 'caldav', 'agenda', 'accounts', 'sync', 'interval', 'password', 'connect'], tab: 'calendar-accounts', breadcrumb: `${t('admin.tabs.groupCalendar')} › ${tabLabel('calendarAccounts')}` },
     { label: tabLabel('calendarList'), keywords: ['calendar', 'calendars', 'agenda', 'rename', 'color', 'colour', 'hide', 'show', 'visible'], tab: 'calendar-list', breadcrumb: `${t('admin.tabs.groupCalendar')} › ${tabLabel('calendarList')}` },
     { label: t('admin.accounts.title'), keywords: ['account', 'email', 'imap', 'smtp', 'gmail', 'yahoo', 'icloud', 'password', 'add account', 'connect'], tab: 'accounts', breadcrumb: tabLabel('accounts') },
-    { label: t('admin.accounts.signatureSection'), keywords: ['signature', 'sign off', 'footer', 'alias', 'send as'], tab: 'accounts', breadcrumb: tabLabel('accounts') },
+    { label: tabLabel('signatures'), keywords: ['signature', 'signatures', 'sign off', 'footer', 'alias', 'send as'], tab: 'signatures', breadcrumb: tabLabel('signatures') },
     { label: t('admin.accounts.autoRecipientsSection'), keywords: ['cc', 'bcc', 'copy', 'carbon copy', 'blind copy', 'always bcc', 'automatic', 'copy to myself'], tab: 'accounts', breadcrumb: tabLabel('accounts') },
     { label: t('admin.secureMessages.title'), keywords: ['password', 'protected', 'secure', 'encrypted', 'link', 'revoke', 'reply'], tab: 'secure-messages', breadcrumb: tabLabel('secureMessages') },
     { label: t('admin.vacation.title'), keywords: ['vacation', 'out of office', 'away', 'holiday', 'auto reply', 'autoreply', 'automatic reply', 'absence', 'sieve'], tab: 'vacation', breadcrumb: tabLabel('vacation') },
@@ -8312,6 +8320,7 @@ export default function AdminPanel() {
       {adminTab === 'calendar-list' && <CalendarListTab />}
       {adminTab === 'rules' && <RulesAndBlockListTab initialSubTab={pendingSubTab} />}
       {adminTab === 'categories' && <CategoriesSection />}
+      {adminTab === 'signatures' && <SignaturesSection />}
       {adminTab === 'secure-messages' && <SecureMessagesSection />}
       {adminTab === 'pgp' && <PgpSettingsSection />}
       {adminTab === 'server-filters' && <ServerFiltersSection />}

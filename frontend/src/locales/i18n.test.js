@@ -275,6 +275,17 @@ const SAME_VALUE_ALLOWED = {
   'admin.security.qrCodeAlt': [['en', 'es', 'ptBR']],
 
 
+  // Signatures (Settings › Signatures and the composer's picker): "Signatures" is French as well,
+  // "Name" German, "Podpisy" / "Bez podpisu" Czech and Polish, and the Romance languages share
+  // "Duplicar", "Nome" and "(copia)".
+  'admin.tabs.signatures':        [['en', 'fr'], ['cs', 'pl']],
+  'admin.signatures.title':       [['en', 'fr'], ['cs', 'pl']],
+  'admin.signatures.name':        [['de', 'en'], ['it', 'ptBR']],
+  'admin.signatures.duplicate':   [['es', 'ptBR']],
+  'admin.signatures.copyName':    [['es', 'it']],
+  'admin.signatures.none':        [['cs', 'pl']],
+  'compose.noSignature':          [['cs', 'pl']],
+
   // "Notifications" — same spelling in en and fr
   'admin.notifications.title':  [['en', 'fr']],
   'admin.tabs.notifications':   [['en', 'fr']],

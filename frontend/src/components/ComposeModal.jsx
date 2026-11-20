@@ -71,6 +71,7 @@ import { ensureKeySecret, requestKeyUnlock, unlockOwnKey } from '../utils/pgpUnl
 import { SecureSendError, secureSettingsProblem, sendProtected } from '../utils/secureSend.js';
 import { htmlLang } from '../utils/browserLanguage.js';
 import { addSuggestionChips, mergeGroupSuggestions, suggestionKey } from '../utils/groupRecipients.js';
+import SignaturePicker from './SignaturePicker.jsx';
 
 // Resize an image blob/file to max maxW pixels wide, preserving aspect ratio.
 // Returns a Promise<string> of a base64 data URL.
@@ -519,6 +520,17 @@ export default function ComposeModal() {
   }, []);
   // Prevents the signature from being reset by a store refresh (same fromValue, accounts updated).
   const signatureInitializedRef = useRef(false);
+  // The signature library, for the picker; and whether the user picked from it, after which a
+  // From change keeps their choice instead of swapping in the new sender's signature.
+  const [signatureLibrary, setSignatureLibrary] = useState(null);
+  const signaturePickedRef = useRef(false);
+  useEffect(() => {
+    let live = true;
+    api.getSignatures()
+      .then(list => { if (live && Array.isArray(list)) setSignatureLibrary(list); })
+      .catch(() => {});
+    return () => { live = false; };
+  }, []);
   const prevFromValueRef = useRef(fromValue);
   // The accounts can arrive after the composer: one reopened on unlock mounts before the accounts
   // are loaded again (locking clears them), and with none to check against no From is chosen.
@@ -834,6 +846,7 @@ export default function ComposeModal() {
     const fromValueChanged = fromValue !== prevFromValueRef.current;
     if (fromValueChanged) {
       prevFromValueRef.current = fromValue;
+      if (signaturePickedRef.current) return;
       signatureInitializedRef.current = false;
     }
     // A reopened draft supplies the signature it was saved with ('' meaning "already in the
@@ -868,6 +881,7 @@ export default function ComposeModal() {
     if (!fromAccount || signatureDefaultForRef.current === fromValue) return;
     const accountsJustLoaded = signatureDefaultForRef.current === null;
     signatureDefaultForRef.current = fromValue;
+    if (signaturePickedRef.current) return;
     if (accountsJustLoaded && (composeData?.signature !== undefined || signatureToggledRef.current)) return;
     const next = resolveSignatureEnabled(fromAccount);
     if (next !== signatureEnabled) {
@@ -2491,8 +2505,30 @@ export default function ComposeModal() {
     />
   );
 
+  // A signature chosen from the library replaces only the signature block, never the body.
+  // None turns the signature off, as the toggle does.
+  const pickSignature = (entry) => {
+    signaturePickedRef.current = true;
+    signatureToggledRef.current = true;
+    if (!entry) { setSignatureEnabled(false); return; }
+    const sanitized = DOMPurify.sanitize(entry.html || '');
+    if (signatureRef.current) signatureRef.current.innerHTML = sanitized;
+    signatureContentRef.current = sanitized;
+    signatureInitializedRef.current = true;
+    setHasRichSignature(Boolean(sanitized));
+    setPlainSig(stripHtml(sanitized));
+    setSignatureEnabled(Boolean(sanitized));
+  };
+
+  const renderSignatureToggle = () => (
+    <>
+      {renderSignatureOnOff()}
+      <SignaturePicker signatures={signatureLibrary} onPick={pickSignature} disabled={sending} isMobile={isMobile} />
+    </>
+  );
+
   // Signature on/off for this message (#555), shown only when there is a signature to turn on.
-  const renderSignatureToggle = () => ((plaintextEmail ? plainSig : hasRichSignature) ? (
+  const renderSignatureOnOff = () => ((plaintextEmail ? plainSig : hasRichSignature) ? (
     <button type="button"
       title={t('compose.insertSignature')}
       aria-label={t('compose.insertSignature')}
