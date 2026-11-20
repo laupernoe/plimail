@@ -1,4 +1,5 @@
 import { fromBase64, passwordStrength, sealMessage } from './secureMessageCrypto.js';
+import { wrapComposeFont } from './composeFont.js';
 
 // Sending a password-protected message from the composer: the message is encrypted here and
 // stored on the server as ciphertext, and the recipients get an ordinary email that says who
@@ -43,8 +44,9 @@ export function securePayloadFrom(payload, attachments = []) {
   let html = '';
   let text;
   if (payload.bodyIsHtml) {
-    html = (payload.body || '')
-      + (sig ? `<div style="margin-top:16px;color:#555;font-size:13px">${sig}</div>` : '')
+    // Wrapped in the writing font as the server wraps a message it builds (outgoingMail.js).
+    html = wrapComposeFont((payload.body || '')
+      + (sig ? `<div style="margin-top:16px;color:#555;font-size:13px">${sig}</div>` : ''), payload.composeFont)
       + (payload.quotedBodyHtml || '');
     text = htmlToText(html);
   } else {

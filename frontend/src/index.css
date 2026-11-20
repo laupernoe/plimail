@@ -287,8 +287,9 @@ body, #root {
 .tiptap-compose .ProseMirror {
   outline: none;
   color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 13px;
+  /* Set on .tiptap-compose from the default writing font (Settings > Behavior > Writing). */
+  font-family: var(--compose-font-family, var(--font-sans));
+  font-size: var(--compose-font-size, 13px);
   line-height: 1.7;
   min-height: 120px;
   padding: 12px 14px;

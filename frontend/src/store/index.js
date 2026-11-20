@@ -15,6 +15,7 @@ import { applyLayout, normalizeLayout } from '../layouts.js';
 import { DEFAULT_AI_ACTIONS } from '../aiActions.js';
 import { appendMessagesByIdentity, dedupeByIdentity, missingByIdentity } from '../utils/messageIdentity.js';
 import { DEFAULT_HOVER_ACTIONS, sanitizeHoverActionSet } from '../utils/hoverActions.js';
+import { knownFontFamily, knownFontSize } from '../utils/composeFont.js';
 import {
   cacheFolderOrderFromPreferences,
   mergeFolderOrder,
@@ -163,6 +164,7 @@ export const useStore = create((set, get) => ({
         hiddenFolders: {}, categorizationEnabled: false,
         autoOpenReplyDrafts: false, afterRemove: 'next', darkEmailBodies: true, undoSend: true, pgpAutoEncrypt: true, pgpAutoKeys: true,
         readReceiptRequestAlways: false, readReceiptReply: 'ask',
+        composeFontFamily: '', composeFontSize: '',
         // Folder shortcuts name the previous user's accounts and folders. Left in place, the
         // next user's first favorite saved them into that user's own preferences.
         favoriteFolders: [], recentFolders: [], defaultSender: '', listSort: {},
@@ -582,6 +584,19 @@ export const useStore = create((set, get) => ({
     localStorage.setItem('mailflow_read_receipt_request', String(Boolean(value)));
     set({ readReceiptRequestAlways: Boolean(value) });
     schedulePrefSave({ readReceiptRequestAlways: Boolean(value) });
+  },
+  // The default writing font (family stack and size, '' for Default) new messages, replies and
+  // forwards start in, and that the HTML part carries (utils/composeFont.js).
+  composeFontFamily: knownFontFamily(localStorage.getItem('mailflow_default_compose_font_family')),
+  composeFontSize: knownFontSize(localStorage.getItem('mailflow_default_compose_font_size')),
+  setComposeFont: ({ family, size }) => {
+    const prefs = {};
+    if (family !== undefined) prefs.composeFontFamily = knownFontFamily(family);
+    if (size !== undefined) prefs.composeFontSize = knownFontSize(size);
+    if ('composeFontFamily' in prefs) localStorage.setItem('mailflow_default_compose_font_family', prefs.composeFontFamily);
+    if ('composeFontSize' in prefs) localStorage.setItem('mailflow_default_compose_font_size', prefs.composeFontSize);
+    set(prefs);
+    schedulePrefSave(prefs);
   },
   readReceiptReply: ['always', 'never'].includes(localStorage.getItem('mailflow_read_receipt_reply')) ? localStorage.getItem('mailflow_read_receipt_reply') : 'ask',
   setReadReceiptReply: value => {
@@ -1239,6 +1254,16 @@ export const useStore = create((set, get) => ({
       if (typeof prefs.readReceiptRequestAlways === 'boolean') {
         localStorage.setItem('mailflow_read_receipt_request', String(prefs.readReceiptRequestAlways));
         set({ readReceiptRequestAlways: prefs.readReceiptRequestAlways });
+      }
+      if (typeof prefs.composeFontFamily === 'string') {
+        const family = knownFontFamily(prefs.composeFontFamily);
+        localStorage.setItem('mailflow_default_compose_font_family', family);
+        set({ composeFontFamily: family });
+      }
+      if (typeof prefs.composeFontSize === 'string') {
+        const size = knownFontSize(prefs.composeFontSize);
+        localStorage.setItem('mailflow_default_compose_font_size', size);
+        set({ composeFontSize: size });
       }
       if (['ask', 'always', 'never'].includes(prefs.readReceiptReply)) {
         localStorage.setItem('mailflow_read_receipt_reply', prefs.readReceiptReply);

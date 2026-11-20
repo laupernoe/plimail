@@ -70,6 +70,7 @@ import { OWN_KEYS_CHANGED, loadOwnKeys, ownKeysChanged } from '../utils/pgpOwnKe
 import { ensureKeySecret, requestKeyUnlock, unlockOwnKey } from '../utils/pgpUnlock.js';
 import { SecureSendError, secureSettingsProblem, sendProtected } from '../utils/secureSend.js';
 import { htmlLang } from '../utils/browserLanguage.js';
+import { FONT_GROUPS, FONT_SIZES, composeFontPayload, composeFontVars, knownFontFamily } from '../utils/composeFont.js';
 import { addSuggestionChips, mergeGroupSuggestions, suggestionKey } from '../utils/groupRecipients.js';
 
 // Resize an image blob/file to max maxW pixels wide, preserving aspect ratio.
@@ -240,7 +241,8 @@ function resolveFrom(val) {
 
 export default function ComposeModal() {
   const { t, i18n } = useTranslation();
-  const { closeCompose, composeData, accounts, addNotification, plaintextEmail, setThreadMessages, setPrepareComposeSwitch, updateComposePersistedKey } = useStore();
+  const { closeCompose, composeData, accounts, addNotification, plaintextEmail, setThreadMessages, setPrepareComposeSwitch, updateComposePersistedKey, composeFontFamily, composeFontSize } = useStore();
+  const writingFontVars = composeFontVars(composeFontFamily, composeFontSize);
   const composeSession = useRef(useStore.getState().composeSession).current;
   const composeOwner = useRef(useStore.getState().user?.id).current;
   const isMobile = useMobile();
@@ -609,12 +611,16 @@ export default function ComposeModal() {
     },
   });
 
+  // A new message starts in the font last picked in the toolbar. A default writing font chosen in
+  // Settings takes its place: the editor shows it through CSS and the send wraps the body in it,
+  // so replies and forwards get it too, with no mark on the text.
   useEffect(() => {
     if (!editor || isReply || isForward) return;
+    const { composeFontFamily: defaultFamily, composeFontSize: defaultSize } = useStore.getState();
     const size = localStorage.getItem('mailflow_compose_font_size') || DEFAULT_FONT_SIZE;
     const family = localStorage.getItem('mailflow_compose_font_family');
-    editor.commands.setFontSize(size);
-    if (family) editor.commands.setFontFamily(family);
+    if (!defaultSize) editor.commands.setFontSize(size);
+    if (family && !defaultFamily) editor.commands.setFontFamily(family);
   }, [editor, isReply, isForward]);
 
   const insertImageIntoEditor = useCallback(async (file) => {
@@ -1235,6 +1241,9 @@ export default function ComposeModal() {
       bodyIsHtml: !plaintextEmail,
       ...(quotedBody ? { quotedBody } : {}),
       ...(sentQuotedHtml != null ? { quotedBodyHtml: unproxyImages(sentQuotedHtml) } : {}),
+      // Raw HTML typed in the source view goes out as written.
+      ...(!plaintextEmail && !htmlMode && composeFontPayload(composeFontFamily, composeFontSize)
+        ? { composeFont: composeFontPayload(composeFontFamily, composeFontSize) } : {}),
       // Off sends an empty override, or the server would add the account's signature.
       ...(!signatureEnabled || signatureContentRef.current || fromSignature != null || composeData?.signature !== undefined
         ? { editedSignature: !signatureEnabled ? '' : plaintextEmail ? plainSig : unproxyImages(signatureContentRef.current) }
@@ -2487,7 +2496,8 @@ export default function ComposeModal() {
         setHasRichSignature(Boolean(signatureContentRef.current));
       }}
       onPaste={pasteWithoutPageColors}
-      style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, outline: 'none' }}
+      // The signature goes out in the writing font's family, so it is shown in it here.
+      style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, outline: 'none', ...(knownFontFamily(composeFontFamily) ? { fontFamily: knownFontFamily(composeFontFamily) } : {}) }}
     />
   );
 
@@ -3040,7 +3050,7 @@ export default function ComposeModal() {
               }}
             />
           ) : (
-            <div className="tiptap-compose" style={{ flex: '1 0 auto', minHeight: 200, display: 'flex', flexDirection: 'column' }}>
+            <div className="tiptap-compose" style={{ flex: '1 0 auto', minHeight: 200, display: 'flex', flexDirection: 'column', ...writingFontVars }}>
               <RichToolbar editor={editor} onAttach={() => fileInputRef.current?.click()}
                 signatureControl={renderSignatureToggle()}
                 htmlMode={htmlMode}
@@ -3720,7 +3730,7 @@ export default function ComposeModal() {
             }}
           />
         ) : (
-          <div className="tiptap-compose" style={{ minHeight: isReply || isForward ? 120 : 200 }}>
+          <div className="tiptap-compose" style={{ minHeight: isReply || isForward ? 120 : 200, ...writingFontVars }}>
             <EditorContent editor={editor} />
           </div>
         )}
@@ -4093,47 +4103,6 @@ const AUTOSAVE_IDLE_MS = 5000;   // save this long after the last edit
 const AUTOSAVE_MIN_GAP_MS = 15000; // floor: never save more often than this
 const AUTOSAVE_MAX_MS = 30000;   // never leave a dirty compose unsaved longer than this
 
-const FONT_SIZES = [
-  { label: '10', value: '10px' },
-  { label: '11', value: '11px' },
-  { label: '12', value: '12px' },
-  { label: '13', value: '13px' },
-  { label: '14', value: '14px' },
-  { label: '16', value: '16px' },
-  { label: '18', value: '18px' },
-  { label: '20', value: '20px' },
-  { label: '24', value: '24px' },
-  { label: '28', value: '28px' },
-  { label: '36', value: '36px' },
-];
-
-const FONT_GROUPS = [
-  { label: 'Sans-serif', fonts: [
-    { label: 'Arial', value: 'Arial, Helvetica, sans-serif' },
-    { label: 'Calibri', value: 'Calibri, Candara, "Segoe UI", sans-serif' },
-    { label: 'Helvetica Neue', value: '"Helvetica Neue", Helvetica, Arial, sans-serif' },
-    { label: 'Optima', value: 'Optima, Candara, "Noto Sans", sans-serif' },
-    { label: 'Segoe UI', value: '"Segoe UI", system-ui, sans-serif' },
-    { label: 'Tahoma', value: 'Tahoma, Geneva, sans-serif' },
-    { label: 'Trebuchet MS', value: '"Trebuchet MS", Helvetica, sans-serif' },
-    { label: 'Verdana', value: 'Verdana, Geneva, sans-serif' },
-  ]},
-  { label: 'Serif', fonts: [
-    { label: 'Garamond', value: 'Garamond, "Times New Roman", serif' },
-    { label: 'Georgia', value: 'Georgia, serif' },
-    { label: 'Palatino', value: '"Palatino Linotype", "Book Antiqua", Palatino, serif' },
-    { label: 'Times New Roman', value: '"Times New Roman", Times, serif' },
-  ]},
-  { label: 'Monospace', fonts: [
-    { label: 'Consolas', value: 'Consolas, "Courier New", monospace' },
-    { label: 'Courier New', value: '"Courier New", Courier, monospace' },
-  ]},
-  { label: 'Display', fonts: [
-    { label: 'Comic Sans MS', value: '"Comic Sans MS", "Comic Sans", cursive' },
-    { label: 'Impact', value: 'Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif' },
-  ]},
-];
-
 // Defined at module level so React never remounts it due to reference change
 const TBtn = forwardRef(function TBtn({ active, title, onMouseDown, children }, ref) {
   return (
@@ -4307,6 +4276,8 @@ function ComposeAiPanel({ panel, mobile = false, onInstructionChange, onGenerate
 }
 
 function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMode, onToggleHtml, isMobile, aiEnabled, aiReplyEnabled, onAiAction, aiPanelOpen, aiBlockedReason }) {
+  const composeFontFamily = useStore(s => s.composeFontFamily);
+  const composeFontSize = useStore(s => s.composeFontSize);
   const { t } = useTranslation();
   const uiScale = useUiScale();
   const savedSelectionRef = useRef(null);
@@ -4718,7 +4689,7 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
         }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 68px', gap: 8 }}>
             <select
-              value={es.fontFamily || localStorage.getItem('mailflow_compose_font_family') || ''}
+              value={es.fontFamily || knownFontFamily(composeFontFamily) || localStorage.getItem('mailflow_compose_font_family') || ''}
               onMouseDown={saveSelection}
               onChange={e => applyFontFamily(e.target.value)}
               style={{
@@ -4735,7 +4706,7 @@ function RichToolbar({ editor, onAttach, onInsertImage, signatureControl, htmlMo
               ))}
             </select>
             <select
-              value={es.fontSize || localStorage.getItem('mailflow_compose_font_size') || DEFAULT_FONT_SIZE}
+              value={es.fontSize || composeFontSize || localStorage.getItem('mailflow_compose_font_size') || DEFAULT_FONT_SIZE}
               onMouseDown={saveSelection}
               onChange={e => applyFontSize(e.target.value)}
               style={{
