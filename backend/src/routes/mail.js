@@ -1544,7 +1544,7 @@ router.post('/messages/bulk-delete', async (req, res) => {
   const moveGuards = [];
   try {
     const owned = await findOwnedMessages(req.session.userId, ids, { columns: 'm.*, a.user_id, a.folder_mappings' });
-    if (!owned.length) return res.json({ ok: true, deleted: [] });
+    if (!owned.length) return res.json({ ok: true, deleted: [], failed: ids.map(id => ({ id, reason: 'not_found' })) });
 
     // Guard source UIDs for the whole operation so reconcileDeletes can't delete a
     // trash-move source row between the IMAP move and the re-INSERT CTE (message vanishing
@@ -1567,58 +1567,72 @@ router.post('/messages/bulk-delete', async (req, res) => {
     const trashMoveSucceeded = []; // { msg, trashPath, newUid }
     const accountsById = {};
 
+    // Why each message that is not deleted was left, so the client can say so instead of
+    // quietly putting the row back. One account failing does not cost the others their result.
+    const failReasons = new Map(); // id -> 'not_found' | 'no_trash' | 'changed' | 'imap'
+    const ownedIds = new Set(owned.map(m => m.id));
+    for (const id of ids) if (!ownedIds.has(id)) failReasons.set(id, 'not_found');
+
     for (const [accountId, msgs] of Object.entries(byAccount)) {
-      const accountResult = await query('SELECT * FROM email_accounts WHERE id = $1', [accountId]);
-      const account = accountResult.rows[0];
-      accountsById[accountId] = account;
-      const trashPath = await resolveTrashFolder(accountId, msgs[0].folder_mappings);
-      const allTrashPaths = await resolveAllTrashPaths(accountId, msgs[0].folder_mappings);
-      const allDraftsPaths = await resolveAllDraftsPaths(accountId, msgs[0].folder_mappings);
+      try {
+        const accountResult = await query('SELECT * FROM email_accounts WHERE id = $1', [accountId]);
+        const account = accountResult.rows[0];
+        accountsById[accountId] = account;
+        const trashPath = await resolveTrashFolder(accountId, msgs[0].folder_mappings);
+        const allTrashPaths = await resolveAllTrashPaths(accountId, msgs[0].folder_mappings);
+        const allDraftsPaths = await resolveAllDraftsPaths(accountId, msgs[0].folder_mappings);
 
-      if (!trashPath) {
-        console.error(`bulk-delete: no Trash folder found for account ${accountId} — skipping ${msgs.length} messages`);
-        continue;
-      }
-
-      // Drafts and messages already in Trash are permanently deleted; others move to Trash.
-      const toExpunge = msgs.filter(m => allTrashPaths.has(m.folder) || allDraftsPaths.has(m.folder));
-      const toMove    = msgs.filter(m => !allTrashPaths.has(m.folder) && !allDraftsPaths.has(m.folder));
-
-      // Permanently delete messages already in a trash-like folder (grouped by actual folder).
-      if (toExpunge.length) {
-        const byExpungeFolder = {};
-        for (const msg of toExpunge) {
-          (byExpungeFolder[msg.folder] = byExpungeFolder[msg.folder] || []).push(msg);
+        if (!trashPath) {
+          console.error(`bulk-delete: no Trash folder found for account ${accountId} — skipping ${msgs.length} messages`);
+          for (const m of msgs) failReasons.set(m.id, 'no_trash');
+          continue;
         }
-        for (const [expungeFolder, folderMsgs] of Object.entries(byExpungeFolder)) {
-          const uidToMsg = new Map(folderMsgs.map(m => [String(m.uid), m]));
-          // As the single delete: a uid is expunged only while its server copy is still the
-          // row's message.
-          const expectRows = new Map(folderMsgs.map(m => [Number(m.uid), m]));
-          const { succeeded, failed, mismatched } = await imapManager.bulkPermanentDelete(account, folderMsgs.map(m => m.uid), expungeFolder, { expectRows });
-          for (const uid of succeeded) expungeSucceeded.push(uidToMsg.get(String(uid)));
-          for (const uid of failed) console.error(`bulk-delete IMAP expunge uid ${uid} from ${expungeFolder}: IMAP delete failed`);
-          for (const uid of mismatched) {
-            console.warn(`bulk-delete: not expunging uid ${uid} from ${expungeFolder}: the server copy there is not its row's message`);
-            expungeRefused.push(uidToMsg.get(String(uid)));
+
+        // Drafts and messages already in Trash are permanently deleted; others move to Trash.
+        const toExpunge = msgs.filter(m => allTrashPaths.has(m.folder) || allDraftsPaths.has(m.folder));
+        const toMove    = msgs.filter(m => !allTrashPaths.has(m.folder) && !allDraftsPaths.has(m.folder));
+
+        // Permanently delete messages already in a trash-like folder (grouped by actual folder).
+        if (toExpunge.length) {
+          const byExpungeFolder = {};
+          for (const msg of toExpunge) {
+            (byExpungeFolder[msg.folder] = byExpungeFolder[msg.folder] || []).push(msg);
+          }
+          for (const [expungeFolder, folderMsgs] of Object.entries(byExpungeFolder)) {
+            const uidToMsg = new Map(folderMsgs.map(m => [String(m.uid), m]));
+            // As the single delete: a uid is expunged only while its server copy is still the
+            // row's message.
+            const expectRows = new Map(folderMsgs.map(m => [Number(m.uid), m]));
+            const { succeeded, failed, mismatched } = await imapManager.bulkPermanentDelete(account, folderMsgs.map(m => m.uid), expungeFolder, { expectRows });
+            for (const uid of succeeded) expungeSucceeded.push(uidToMsg.get(String(uid)));
+            for (const uid of failed) console.error(`bulk-delete IMAP expunge uid ${uid} from ${expungeFolder}: IMAP delete failed`);
+            for (const uid of mismatched) {
+              console.warn(`bulk-delete: not expunging uid ${uid} from ${expungeFolder}: the server copy there is not its row's message`);
+              expungeRefused.push(uidToMsg.get(String(uid)));
+              failReasons.set(uidToMsg.get(String(uid)).id, 'changed');
+            }
           }
         }
-      }
 
-      // Move messages from non-Trash folders into Trash.
-      if (toMove.length) {
-        const byFolder = {};
-        for (const msg of toMove) {
-          (byFolder[msg.folder] = byFolder[msg.folder] || []).push(msg);
-        }
-        for (const [srcFolder, folderMsgs] of Object.entries(byFolder)) {
-          const uidToMsg = new Map(folderMsgs.map(m => [String(m.uid), m]));
-          const { uidMap, succeeded, failed } = await imapManager.bulkMoveMessages(account, folderMsgs.map(m => m.uid), srcFolder, trashPath);
-          for (const uid of succeeded) {
-            trashMoveSucceeded.push({ msg: uidToMsg.get(String(uid)), trashPath, newUid: uidMap.get(Number(uid)) || null });
+        // Move messages from non-Trash folders into Trash.
+        if (toMove.length) {
+          const byFolder = {};
+          for (const msg of toMove) {
+            (byFolder[msg.folder] = byFolder[msg.folder] || []).push(msg);
           }
-          for (const uid of failed) console.error(`bulk-delete IMAP move uid ${uid}: IMAP move failed`);
+          for (const [srcFolder, folderMsgs] of Object.entries(byFolder)) {
+            const uidToMsg = new Map(folderMsgs.map(m => [String(m.uid), m]));
+            const { uidMap, succeeded, failed } = await imapManager.bulkMoveMessages(account, folderMsgs.map(m => m.uid), srcFolder, trashPath);
+            for (const uid of succeeded) {
+              trashMoveSucceeded.push({ msg: uidToMsg.get(String(uid)), trashPath, newUid: uidMap.get(Number(uid)) || null });
+            }
+            for (const uid of failed) console.error(`bulk-delete IMAP move uid ${uid}: IMAP move failed`);
+          }
         }
+      } catch (err) {
+        // What already went through for this account is recorded above and still applied
+        // below; the rest of its messages are reported failed.
+        console.error(`bulk-delete: account ${accountId} failed:`, err.message);
       }
     }
 
@@ -1719,7 +1733,11 @@ router.post('/messages/bulk-delete', async (req, res) => {
 
     notifyMailMutation(owned);
 
-    res.json({ ok: true, deleted: allSucceeded });
+    const succeededSet = new Set(allSucceeded);
+    const failed = [...new Set(ids)]
+      .filter(id => !succeededSet.has(id))
+      .map(id => ({ id, reason: failReasons.get(id) || 'imap' }));
+    res.json({ ok: true, deleted: allSucceeded, failed });
   } catch (err) {
     console.error('bulk-delete error:', err);
     res.status(500).json({ error: 'Failed to delete messages' });

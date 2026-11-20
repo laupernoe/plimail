@@ -7,7 +7,7 @@ vi.mock('../middleware/auth.js', () => ({
 }));
 vi.mock('../index.js', () => ({
   imapManager: {
-    _guardMoveUid: vi.fn(), _unguardMoveUid: vi.fn(), moveMessage: vi.fn(),
+    _guardMoveUid: vi.fn(), _unguardMoveUid: vi.fn(), moveMessage: vi.fn(), bulkMoveMessages: vi.fn(),
     permanentDeleteMessage: vi.fn(), bulkPermanentDelete: vi.fn(), syncFolderOnDemand: vi.fn(),
     broadcast: vi.fn(), scheduleCountRefresh: vi.fn(),
   },
@@ -22,6 +22,8 @@ import { isRowsMessage } from '../services/imapManager.js';
 const ACCOUNT_ID = 'a1a1a1a1-1111-4111-8111-a1a1a1a1a1a1';
 const MSG_ID = 'b2b2b2b2-2222-4222-8222-b2b2b2b2b2b2';
 const OTHER_ID = 'c3c3c3c3-3333-4333-8333-c3c3c3c3c3c3';
+// An account whose lookup fails mid-request, as a dropped database connection would.
+const BROKEN_ACCOUNT_ID = 'd4d4d4d4-4444-4444-8444-d4d4d4d4d4d4';
 
 // What each server copy carries: its Message-ID, INTERNALDATE, subject and sender.
 const mail = (messageId, minute, subject, from = 'sender@example.com') => ({ messageId, internalDate: new Date(Date.UTC(2026, 9, 20, 9, minute)), subject, from });
@@ -115,7 +117,10 @@ function fakeQuery(rawSql, params = []) {
   if (sql === 'DELETE FROM messages WHERE id = ANY($1::uuid[])') {
     return result([], params[0].filter(id => rows.delete(id)).length);
   }
-  if (sql.startsWith('SELECT * FROM email_accounts')) return result([{ id: ACCOUNT_ID, user_id: 'user-1', folder_mappings: null }]);
+  if (sql.startsWith('SELECT * FROM email_accounts')) {
+    if (params[0] === BROKEN_ACCOUNT_ID) return Promise.reject(new Error('connection terminated'));
+    return result([{ id: params[0], user_id: 'user-1', folder_mappings: null }]);
+  }
   if (sql.startsWith('SELECT path FROM folders')) return result(selectFolders(sql, FOLDERS));
   if (sql.startsWith('DELETE FROM messages WHERE account_id = $1 AND uid = $2 AND folder = $3 AND id != $4')) {
     for (const [id, r] of [...rows]) if (r.uid === params[1] && r.folder === params[2] && id !== params[3]) rows.delete(id);
@@ -177,6 +182,17 @@ function wireImap() {
     const succeeded = uids.filter(uid => !mismatched.includes(uid));
     for (const uid of succeeded) server[folder].delete(Number(uid));
     return { succeeded, failed: [], mismatched };
+  });
+  imapManager.bulkMoveMessages.mockImplementation(async (_account, uids, from, to) => {
+    const uidMap = new Map();
+    for (const uid of uids) {
+      if (!server[from].has(uid)) continue;
+      const newUid = nextTrashUid++;
+      server[to].set(newUid, server[from].get(uid));
+      server[from].delete(uid);
+      uidMap.set(Number(uid), newUid);
+    }
+    return { uidMap, succeeded: uids.filter(u => uidMap.has(Number(u))), failed: uids.filter(u => !uidMap.has(Number(u))) };
   });
   imapManager.syncFolderOnDemand.mockResolvedValue(undefined);
 }
@@ -317,6 +333,39 @@ describe('DELETE /api/mail/messages/:id', () => {
     expect(server.Trash.get(42)).toBe('MAIL-OLD');
     expect(server.Trash.get(900)).toBe('MAIL-NOID');
     expect(rows.size).toBe(0);
+  });
+
+  it('bulk delete says which messages it left and why', async () => {
+    reset({ trash: { 42: 'MAIL-OLD', 7: 'MAIL-Y' } });
+    const trashed = staleTrashRow('MAIL-A', 42);
+    rows = new Map([[trashed.id, trashed]]);
+    rows.set(OTHER_ID, { id: OTHER_ID, account_id: ACCOUNT_ID, uid: 7, folder: 'Trash', is_read: true, ...synced('MAIL-Y') });
+    const UNKNOWN_ID = randomUUID();
+
+    const body = await (await bulkDelete([trashed.id, OTHER_ID, UNKNOWN_ID])).json();
+    expect(body.deleted).toEqual([OTHER_ID]);
+    expect(body.failed).toEqual([
+      { id: trashed.id, reason: 'changed' },
+      { id: UNKNOWN_ID, reason: 'not_found' },
+    ]);
+  });
+
+  it('bulk delete across accounts keeps what one account moved when another account fails', async () => {
+    reset();
+    const BROKEN_MSG = randomUUID();
+    rows.set(BROKEN_MSG, { id: BROKEN_MSG, account_id: BROKEN_ACCOUNT_ID, uid: 5, folder: 'INBOX', is_read: true, ...synced('MAIL-Y') });
+
+    const res = await bulkDelete([MSG_ID, BROKEN_MSG]);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.deleted).toEqual([MSG_ID]);
+    expect(body.failed).toEqual([{ id: BROKEN_MSG, reason: 'imap' }]);
+    // The move that went through is recorded, so the row is not put back over a message the
+    // server now holds in Trash.
+    expect(server.INBOX.has(42)).toBe(false);
+    expect(server.Trash.get(900)).toBe('MAIL-A');
+    expect(rows.get(BROKEN_MSG)).toMatchObject({ folder: 'INBOX', uid: 5 });
+    expect(imapManager._unguardMoveUid).toHaveBeenCalledTimes(2);
   });
 
   it('permanently deletes a Drafts row, checking that its server copy is its message', async () => {

@@ -149,7 +149,7 @@ const cases = [
   ['PATCH /messages/:id/star', { method: 'PATCH', path: `/messages/${MESSAGE_ID}/star`, body: { starred: true } }, messageNotFound, { status: 200, json: { ok: true, is_starred: true } }],
   ['POST /messages/bulk-read', { method: 'POST', path: '/messages/bulk-read', body: { ids: [MESSAGE_ID], read: true } }, { status: 200, json: { ok: true, updated: [] } }, { status: 200 }],
   ['POST /messages/bulk-star', { method: 'POST', path: '/messages/bulk-star', body: { ids: [MESSAGE_ID], starred: true } }, { status: 200, json: { ok: true, updated: [] } }, { status: 200 }],
-  ['POST /messages/bulk-delete', { method: 'POST', path: '/messages/bulk-delete', body: { ids: [MESSAGE_ID] } }, { status: 200, json: { ok: true, deleted: [] } }, { status: 200, calls: ['_guardMoveUid'] }],
+  ['POST /messages/bulk-delete', { method: 'POST', path: '/messages/bulk-delete', body: { ids: [MESSAGE_ID] } }, { status: 200, json: { ok: true, deleted: [], failed: [{ id: MESSAGE_ID, reason: 'not_found' }] } }, { status: 200, calls: ['_guardMoveUid'] }],
   ['POST /messages/bulk-move', { method: 'POST', path: '/messages/bulk-move', body: { ids: [MESSAGE_ID], folder: 'Archive' } }, { status: 200, json: { ok: true, moved: [] } }, { status: 200, calls: ['_guardMoveUid'] }],
   ['POST /messages/bulk-archive', { method: 'POST', path: '/messages/bulk-archive', body: { ids: [MESSAGE_ID] } }, { status: 200, json: { ok: true, archived: [], noArchiveFolder: [] } }, { status: 200 }],
   ['POST /messages/:id/copy', { method: 'POST', path: `/messages/${MESSAGE_ID}/copy`, body: { folder: 'Label' } }, messageNotFound, { status: 400, json: { error: 'Folder is not a copy target' } }],
