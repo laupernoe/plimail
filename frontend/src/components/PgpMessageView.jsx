@@ -10,6 +10,7 @@ import { unlockOwnKey } from '../utils/pgpUnlock.js';
 import {
   analyzeRaw, decryptMessage, deliveryAddresses, findDecryptionKeys, senderKeysFor, verifySigned,
 } from '../utils/pgpReader.js';
+import { setAttachmentDragData, supportsDownloadUrlDrag } from '../utils/attachmentDrag.js';
 import { button } from './pgpStyles.js';
 
 // An OpenPGP message in the reading pane. The raw source comes from the server as it is on the
@@ -162,7 +163,15 @@ function DecryptedAttachments({ attachments }) {
     <ul aria-label={t('pgp.read.attachments')} style={{ listStyle: 'none', margin: '0 0 12px', padding: 0, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
       {attachments.map((a, i) => (
         <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--bg-secondary)', fontSize: 12.5 }}>
-          <a href={urls[i]} download={a.filename || 'attachment'} style={{ color: 'var(--text-primary)', textDecoration: 'none', overflowWrap: 'anywhere' }}>{a.filename}</a>
+          <a
+            href={urls[i]}
+            download={a.filename || 'attachment'}
+            // The blob: URL is read by this browser alone, so a drop on the desktop saves the
+            // decrypted file without it going anywhere near the server.
+            onDragStart={supportsDownloadUrlDrag() ? e => setAttachmentDragData(e.dataTransfer, {
+              type: ATTACHMENT_BLOB_TYPE, filename: a.filename, url: urls[i], link: false,
+            }) : undefined}
+            style={{ color: 'var(--text-primary)', textDecoration: 'none', overflowWrap: 'anywhere' }}>{a.filename}</a>
           <span style={{ color: 'var(--text-tertiary)' }}>{formatSize(a.data.length)}</span>
           {a.mimeType === 'application/pgp-keys' && (
             imported[i] === 'done'

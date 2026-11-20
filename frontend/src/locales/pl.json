@@ -374,6 +374,7 @@
     "downloadAll": "Pobierz wszystko",
     "attachmentsShowAll": "Pokaż wszystkie ({{count}})",
     "attachmentsShowFewer": "Pokaż mniej",
+    "dragToSave": "Przeciągnij na pulpit lub do folderu, aby zapisać",
     "reply": "Odpowiedz",
     "replyAll": "Odpowiedz wszystkim",
     "replyOptions": "Opcje odpowiedzi",
