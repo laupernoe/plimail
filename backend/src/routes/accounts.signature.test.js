@@ -66,6 +66,33 @@ describe('mailbox signature default', () => {
     expect(query).toHaveBeenCalledTimes(1);
   });
 
+  // Signatures are assigned from the library now; a browser still running the old form sends
+  // the signature back with every save.
+  it('ignores an unchanged signature in an account update and never writes the column', async () => {
+    query.mockResolvedValueOnce({ rows: [{ id: ID }] });
+    query.mockResolvedValueOnce({ rows: [{ signature: '<p>Jane</p>' }] });
+    query.mockResolvedValueOnce({ rows: [{ id: ID, name: 'Work', signature: '<p>Jane</p>' }] });
+    const response = await fetch(`${base}/${ID}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Work', signature: '<p>Jane</p>' }),
+    });
+    expect(response.status).toBe(200);
+    expect(query.mock.calls[2][0]).toContain('SET name = $1 WHERE');
+    expect(query.mock.calls[2][0]).not.toMatch(/\bsignature\b/);
+  });
+
+  it('refuses a changed signature in an account update instead of dropping it', async () => {
+    query.mockResolvedValueOnce({ rows: [{ id: ID }] });
+    query.mockResolvedValueOnce({ rows: [{ signature: '<p>Jane</p>' }] });
+    const response = await fetch(`${base}/${ID}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Work', signature: '<p>Jane Doe</p>' }),
+    });
+    expect(response.status).toBe(409);
+    expect((await response.json()).code).toBe('signature_moved');
+    expect(query).toHaveBeenCalledTimes(2);
+  });
+
   it('rejects a non-boolean default before creating the account', async () => {
     const response = await fetch(base, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
