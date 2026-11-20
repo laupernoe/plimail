@@ -197,3 +197,40 @@ describe('MessageList — deleting a selection', () => {
     ROUTES = {};
   });
 });
+
+describe('MessageList — dragging a selection to a folder', () => {
+  const dragEvent = (type, dropEffect) => {
+    const ev = new dom.window.Event(type, { bubbles: true, cancelable: true });
+    const data = {};
+    ev.dataTransfer = { dropEffect, effectAllowed: 'all', setData: (k, v) => { data[k] = v; }, getData: k => data[k] };
+    return ev;
+  };
+  const draggedRow = () => container.querySelector('[data-msgid] [draggable="true"], [data-msgid][draggable="true"]');
+
+  test('a drop ends selection mode at once', async () => {
+    ROUTES = {};
+    await mount([row(1), row(2)]);
+    await selectAll();
+    assert.ok(button('messageList.deleteSelected'), 'selection mode is on');
+    const src = draggedRow();
+    assert.ok(src, 'expected a draggable row');
+    await React.act(async () => { src.dispatchEvent(dragEvent('dragstart', 'none')); });
+    await React.act(async () => { src.dispatchEvent(dragEvent('dragend', 'move')); });
+    await settle();
+    assert.equal(button('messageList.deleteSelected'), null, 'selection mode is off');
+    assert.equal(container.querySelectorAll('input[type="checkbox"]:checked').length, 0, 'nothing stays checked');
+    await flush();
+  });
+
+  test('a cancelled drag keeps the selection', async () => {
+    ROUTES = {};
+    await mount([row(1), row(2)]);
+    await selectAll();
+    const src = draggedRow();
+    await React.act(async () => { src.dispatchEvent(dragEvent('dragstart', 'none')); });
+    await React.act(async () => { src.dispatchEvent(dragEvent('dragend', 'none')); });
+    await settle();
+    assert.ok(button('messageList.deleteSelected'), 'selection mode stays on');
+    await flush();
+  });
+});

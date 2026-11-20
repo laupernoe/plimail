@@ -358,7 +358,10 @@ function MailboxList() {
   // Ref that always holds the latest values needed by shortcut handlers.
   // Updated synchronously on every render so handlers are never stale.
   const scRef = useRef({});
-  scRef.current = { messages, selectedIds, setSelectedIds, updateMessage, decrementUnread, addNotification };
+  scRef.current = {
+    messages, selectedIds, setSelectedIds, updateMessage, decrementUnread, addNotification,
+    endSelection: () => { setSelectedIds(new Set()); setSelectionModeActive(false); },
+  };
   const tRef = useRef(t);
   useEffect(() => { tRef.current = t; }, [t]);
 
@@ -1693,6 +1696,13 @@ function MailboxList() {
     }
     e.dataTransfer.setData('application/x-mailflow-message', JSON.stringify(payload));
     e.dataTransfer.effectAllowed = 'move';
+    // Dropping a checked row on a folder ends selection mode at once, as the bulk buttons do;
+    // the undo toast still brings the messages back.
+    if (selectedIds.has(message.id)) {
+      document.addEventListener('dragend', (end) => {
+        if (end.dataTransfer?.dropEffect && end.dataTransfer.dropEffect !== 'none') scRef.current.endSelection?.();
+      }, { once: true });
+    }
   }, []);
 
   const handleBulkArchive = useCallback((ids, msgs) => {
