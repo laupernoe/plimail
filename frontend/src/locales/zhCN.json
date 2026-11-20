@@ -1514,7 +1514,10 @@
       "faviconBadge": "浏览器标签徽标",
       "faviconBadgeDesc": "在浏览器标签图标上显示未读数。",
       "badgeOn": "已启用",
-      "badgeOff": "已禁用"
+      "badgeOff": "已禁用",
+      "mailboxesTitle": "邮箱",
+      "mailboxesDescription": "选择哪些邮箱在收到新邮件时通过声音、桌面或推送通知提醒。未读数和角标不受影响。",
+      "mailboxesError": "无法保存更改"
     },
     "push": {
       "title": "推送通知",

@@ -1514,7 +1514,10 @@
       "faviconBadge": "Badge de l'onglet du navigateur",
       "faviconBadgeDesc": "Non lus sur l'icône de l'onglet du navigateur.",
       "badgeOn": "Activé",
-      "badgeOff": "Désactivé"
+      "badgeOff": "Désactivé",
+      "mailboxesTitle": "Boîtes mail",
+      "mailboxesDescription": "Choisissez les boîtes qui vous alertent des nouveaux messages par un son, une notification de bureau ou push. Les compteurs et badges ne changent pas.",
+      "mailboxesError": "Impossible d’enregistrer la modification"
     },
     "push": {
       "title": "Notifications push",

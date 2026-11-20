@@ -1533,7 +1533,10 @@
       "faviconBadge": "Odznaka karty przeglądarki",
       "faviconBadgeDesc": "Licznik nieprzeczytanych wiadomości na ikonie karty przeglądarki.",
       "badgeOn": "Włączone",
-      "badgeOff": "Wyłączone"
+      "badgeOff": "Wyłączone",
+      "mailboxesTitle": "Skrzynki",
+      "mailboxesDescription": "Wybierz, które skrzynki powiadamiają o nowej poczcie dźwiękiem, powiadomieniem na pulpicie lub push. Liczniki i plakietki się nie zmieniają.",
+      "mailboxesError": "Nie udało się zapisać zmiany"
     },
     "push": {
       "title": "Powiadomienia push",

@@ -1514,7 +1514,10 @@
       "badgeDescription": "읽지 않은 개수가 표시되는 위치를 제어합니다.",
       "badgeOff": "비활성",
       "appBadgeDesc": "PWA로 설치된 경우 작업 표시줄 또는 Dock 아이콘에 읽지 않은 메일 수를 표시합니다.",
-      "faviconBadgeDesc": "브라우저 탭 아이콘의 읽지 않은 개수입니다."
+      "faviconBadgeDesc": "브라우저 탭 아이콘의 읽지 않은 개수입니다.",
+      "mailboxesTitle": "메일함",
+      "mailboxesDescription": "새 메일을 소리, 데스크톱 또는 푸시 알림으로 알릴 메일함을 선택하세요. 읽지 않은 개수와 배지는 변하지 않습니다.",
+      "mailboxesError": "변경 사항을 저장할 수 없습니다"
     },
     "push": {
       "disable": "비활성화",

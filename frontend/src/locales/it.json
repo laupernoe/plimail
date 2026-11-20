@@ -1514,7 +1514,10 @@
       "faviconBadge": "Badge scheda browser",
       "faviconBadgeDesc": "Non letti sull'icona della scheda del browser.",
       "badgeOn": "Attivato",
-      "badgeOff": "Disattivato"
+      "badgeOff": "Disattivato",
+      "mailboxesTitle": "Caselle",
+      "mailboxesDescription": "Scegli quali caselle ti avvisano dei nuovi messaggi con suono, notifica desktop o push. Contatori e badge non cambiano.",
+      "mailboxesError": "Impossibile salvare la modifica"
     },
     "push": {
       "title": "Notifiche push",

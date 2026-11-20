@@ -1514,7 +1514,10 @@
       "faviconBadge": "Browser tab badge",
       "faviconBadgeDesc": "Unread count on the browser tab icon.",
       "badgeOn": "Enabled",
-      "badgeOff": "Disabled"
+      "badgeOff": "Disabled",
+      "mailboxesTitle": "Mailboxes",
+      "mailboxesDescription": "Choose which mailboxes alert you to new mail with a sound, a desktop or push notification. Unread counts and badges are not affected.",
+      "mailboxesError": "Could not save the change"
     },
     "push": {
       "title": "Push Notifications",

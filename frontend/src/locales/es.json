@@ -1514,7 +1514,10 @@
       "faviconBadge": "Insignia de la pestaña del navegador",
       "faviconBadgeDesc": "No leídos en el icono de la pestaña del navegador.",
       "badgeOn": "Activado",
-      "badgeOff": "Desactivado"
+      "badgeOff": "Desactivado",
+      "mailboxesTitle": "Buzones",
+      "mailboxesDescription": "Elige qué buzones te avisan de correo nuevo con sonido, notificación de escritorio o push. Los contadores y las insignias no cambian.",
+      "mailboxesError": "No se pudo guardar el cambio"
     },
     "push": {
       "title": "Notificaciones push",

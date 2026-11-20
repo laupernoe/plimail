@@ -1539,7 +1539,10 @@
       "faviconBadge": "Odznak na kartě prohlížeče",
       "faviconBadgeDesc": "Počet nepřečtených na ikoně karty prohlížeče.",
       "badgeOn": "Zapnuto",
-      "badgeOff": "Vypnuto"
+      "badgeOff": "Vypnuto",
+      "mailboxesTitle": "Schránky",
+      "mailboxesDescription": "Vyberte, které schránky vás upozorní na novou poštu zvukem, oznámením na ploše nebo push. Počty nepřečtených a odznaky se nemění.",
+      "mailboxesError": "Změnu se nepodařilo uložit"
     },
     "push": {
       "title": "Push oznámení",

@@ -30,6 +30,7 @@ import {
 } from '../utils/aiConfig.js';
 import { THEMES, applyCustomCss } from '../themes.js';
 import { LAYOUTS, applyLayout } from '../layouts.js';
+import NotificationAccounts from './NotificationAccounts.jsx';
 import { NOTIFICATION_SOUNDS, playNotificationSound, playCustomSound, warmUpAudioContext } from '../utils/notificationSounds.js';
 import { usePushNotifications } from '../hooks/usePushNotifications.js';
 import SignatureEditor from './SignatureEditor.jsx';
@@ -5297,6 +5298,8 @@ function NotificationsTab() {
           ))}
         </div>
       </div>
+
+      <NotificationAccounts />
 
       {/* Push Notifications */}
       <PushNotificationsSection />

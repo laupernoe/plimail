@@ -1514,7 +1514,10 @@
       "faviconBadge": "Selo na aba do navegador",
       "faviconBadgeDesc": "Contagem de não lidas no ícone da aba do navegador.",
       "badgeOn": "Ativado",
-      "badgeOff": "Desativado"
+      "badgeOff": "Desativado",
+      "mailboxesTitle": "Caixas de correio",
+      "mailboxesDescription": "Escolha quais caixas avisam sobre novos e-mails com som, notificação de desktop ou push. Contadores e selos não mudam.",
+      "mailboxesError": "Não foi possível salvar a alteração"
     },
     "push": {
       "title": "Notificações push",

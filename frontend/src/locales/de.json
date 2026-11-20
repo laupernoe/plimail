@@ -1439,7 +1439,10 @@
       "faviconBadge": "Browser-Tab-Badge",
       "faviconBadgeDesc": "Ungelesene auf dem Browser-Tab-Symbol.",
       "badgeOn": "Aktiviert",
-      "badgeOff": "Deaktiviert"
+      "badgeOff": "Deaktiviert",
+      "mailboxesTitle": "Postfächer",
+      "mailboxesDescription": "Legen Sie fest, welche Postfächer bei neuen E-Mails mit Ton, Desktop- oder Push-Benachrichtigung melden. Ungelesen-Zähler und Badges bleiben unverändert.",
+      "mailboxesError": "Änderung konnte nicht gespeichert werden"
     },
     "push": {
       "title": "Push-Benachrichtigungen",
