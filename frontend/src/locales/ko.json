@@ -224,7 +224,9 @@
       "unknownBody": "다시 보내기 전에 보낸편지함을 확인하세요.",
       "reopen": "다시 열기",
       "tooLate": "실행 취소하기에 너무 늦었습니다: 메시지를 이미 보내는 중입니다",
-      "undoFailed": "실행 취소할 수 없습니다: 서버가 응답하지 않습니다"
+      "undoFailed": "실행 취소할 수 없습니다: 서버가 응답하지 않습니다",
+      "sendNow": "지금 보내기",
+      "sendNowFailed": "지금 보낼 수 없습니다. 지연 시간이 끝나면 전송됩니다."
     },
     "scheduleSend": {
       "title": "나중에 보내기",
@@ -1495,7 +1497,9 @@
       "readReceiptAlways": "항상 보내기",
       "readReceiptAlwaysDesc": "요청이 의심스럽지 않다면 메시지를 여는 즉시 응답합니다.",
       "readReceiptNever": "보내지 않기",
-      "readReceiptNeverDesc": "응답하지 않으며 알림도 표시하지 않습니다."
+      "readReceiptNeverDesc": "응답하지 않으며 알림도 표시하지 않습니다.",
+      "showSentToast": "“메일을 보냈습니다” 확인 표시",
+      "showSentToastDesc": "메일이 전달되면 알림을 표시합니다. 오류는 항상 표시됩니다."
     },
     "notifications": {
       "title": "알림",

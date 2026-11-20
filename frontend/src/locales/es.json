@@ -161,7 +161,9 @@
       "unknownBody": "Revisa la carpeta Enviados antes de volver a enviarlo.",
       "reopen": "Volver a abrir",
       "tooLate": "Demasiado tarde para deshacer: el mensaje ya se está enviando",
-      "undoFailed": "No se pudo deshacer: el servidor no respondió"
+      "undoFailed": "No se pudo deshacer: el servidor no respondió",
+      "sendNow": "Enviar ahora",
+      "sendNowFailed": "No se pudo enviar ahora. Se enviará cuando termine la espera."
     },
     "toolbar": {
       "removeTable": "Eliminar tabla",
@@ -1495,7 +1497,9 @@
       "readReceiptAlways": "Enviar siempre",
       "readReceiptAlwaysDesc": "Responder al abrir el mensaje, salvo que la solicitud parezca sospechosa.",
       "readReceiptNever": "No enviar nunca",
-      "readReceiptNeverDesc": "No responder nunca ni mostrar el aviso."
+      "readReceiptNeverDesc": "No responder nunca ni mostrar el aviso.",
+      "showSentToast": "Mostrar confirmación de «Mensaje enviado»",
+      "showSentToastDesc": "Muestra una notificación cuando el mensaje se ha entregado. Los errores se muestran siempre."
     },
     "notifications": {
       "title": "Notificaciones",

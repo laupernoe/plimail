@@ -161,7 +161,9 @@
       "unknownBody": "再次发送前，请先检查“已发送”文件夹。",
       "reopen": "重新打开",
       "tooLate": "来不及撤销：邮件已在发送中",
-      "undoFailed": "无法撤销：服务器没有响应"
+      "undoFailed": "无法撤销：服务器没有响应",
+      "sendNow": "立即发送",
+      "sendNowFailed": "无法立即发送。延迟结束后将自动发送。"
     },
     "toolbar": {
       "removeTable": "删除表格",
@@ -1495,7 +1497,9 @@
       "readReceiptAlways": "始终发送",
       "readReceiptAlwaysDesc": "打开邮件时立即回复，除非请求看起来可疑。",
       "readReceiptNever": "从不发送",
-      "readReceiptNeverDesc": "从不回复，也不显示提示。"
+      "readReceiptNeverDesc": "从不回复，也不显示提示。",
+      "showSentToast": "显示“邮件已发送”确认",
+      "showSentToastDesc": "邮件送达后显示通知。错误始终会显示。"
     },
     "notifications": {
       "title": "通知",

@@ -4,7 +4,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   UNDO_SEND_SECONDS, POLL_INTERVAL_MS, GIVE_UP_AFTER_MS,
-  undoWindowMs, undoSendSeconds, reopenCompose, trackHeldSend, sendErrorText,
+  undoWindowMs, undoSendSeconds, showSentConfirmation, reopenCompose, trackHeldSend, sendErrorText,
 } from './heldSend.js';
 
 describe('undoWindowMs', () => {
@@ -59,10 +59,10 @@ describe('reopenCompose', () => {
 });
 
 // A clock and a timer queue under the test's control.
-function harness({ statuses = [], cancelResult, restoreOpens = true, ownerChange } = {}) {
+function harness({ statuses = [], cancelResult, sendNowResult, restoreOpens = true, ownerChange } = {}) {
   let clock = 0;
   const timers = [];
-  const calls = { getStatus: 0, cancel: 0, restored: [], sent: [], notes: [], dismissed: 0 };
+  const calls = { getStatus: 0, cancel: 0, sendNow: 0, restored: [], sent: [], notes: [], dismissed: 0 };
   const deps = {
     now: () => clock,
     schedule: (fn, ms) => { const timer = { at: clock + ms, fn }; timers.push(timer); return timer; },
@@ -78,6 +78,11 @@ function harness({ statuses = [], cancelResult, restoreOpens = true, ownerChange
       if (typeof cancelResult === 'function') return cancelResult();
       if (cancelResult instanceof Error) throw cancelResult;
       return cancelResult;
+    },
+    sendNow: async () => {
+      calls.sendNow++;
+      if (sendNowResult instanceof Error) throw sendNowResult;
+      return sendNowResult;
     },
     notify: (n) => { calls.notes.push(n); },
     dismissUndo: () => { calls.dismissed++; },
@@ -108,7 +113,44 @@ function harness({ statuses = [], cancelResult, restoreOpens = true, ownerChange
   return { undo, calls, advance, pendingTimers: () => timers.length };
 }
 
+describe('showSentConfirmation', () => {
+  test('is on unless the user turned it off', () => {
+    assert.equal(showSentConfirmation(undefined), true);
+    assert.equal(showSentConfirmation(true), true);
+    assert.equal(showSentConfirmation(false), false);
+  });
+  test('a Sent copy that could not be saved is shown whatever the setting says', () => {
+    assert.equal(showSentConfirmation(false, true), true);
+  });
+});
+
 describe('trackHeldSend', () => {
+  test('send now asks the server once, does not wait for the window, and reports the delivery', async () => {
+    const h = harness({ sendNowResult: { started: true, status: 'sending' }, statuses: [{ status: 'sent', result: { ok: true } }] });
+    await Promise.all([h.undo.sendNow(), h.undo.sendNow()]);
+    assert.equal(h.calls.sendNow, 1, 'a second press is not a second request');
+    assert.deepEqual(h.calls.sent, [{ ok: true }]);
+    assert.equal(h.calls.getStatus, 1, 'asked at once, not after the 10 s window');
+    assert.equal(h.pendingTimers(), 0);
+    assert.equal(h.calls.cancel, 0);
+  });
+
+  test('send now that lost the race to Undo reopens the message instead of reporting a send', async () => {
+    const h = harness({ sendNowResult: { started: false, status: 'cancelled' } });
+    await h.undo.sendNow();
+    assert.deepEqual(h.calls.restored, [undefined]);
+    assert.deepEqual(h.calls.sent, []);
+  });
+
+  test('send now that cannot reach the server says so and leaves the hold to run out', async () => {
+    const h = harness({ sendNowResult: new Error('offline'), statuses: [{ status: 'sent', result: { ok: true } }] });
+    await h.undo.sendNow();
+    assert.equal(h.calls.notes[0].type, 'error');
+    assert.equal(h.pendingTimers(), 1, 'the poll after the window is still due');
+    await h.advance(10_000);
+    assert.deepEqual(h.calls.sent, [{ ok: true }]);
+  });
+
   test('asks the server once the window is over, and reports a delivered send', async () => {
     const h = harness({ statuses: [{ status: 'sent', result: { ok: true, sentFolder: 'Sent' } }] });
     await h.advance(9000);

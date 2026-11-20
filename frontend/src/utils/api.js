@@ -686,6 +686,7 @@ export const api = {
   // Undo send: a send held on the server for the undo window (backend/src/services/sendHold.js)
   getSendStatus: (id) => request('GET',  `/mail/send/${encodeURIComponent(id)}`),
   cancelSend:    (id) => request('POST', `/mail/send/${encodeURIComponent(id)}/cancel`),
+  sendHeldNow:   (id) => request('POST', `/mail/send/${encodeURIComponent(id)}/now`),
   // An emoji reaction to a message (backend/src/routes/send.js): the server works out the rest.
   sendReaction:  (messageId, emoji) => request('POST', '/mail/send/reaction', { messageId, emoji }),
   getMessageReactions: (messageId) => request('GET', `/mail/messages/${encodeURIComponent(messageId)}/reactions`),

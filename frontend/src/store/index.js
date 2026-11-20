@@ -162,7 +162,7 @@ export const useStore = create((set, get) => ({
         autoLockMinutes: 0, blockRemoteImages: true,
         imageWhitelist: { addresses: [], domains: [] }, shortcuts: {}, aiActions: null,
         hiddenFolders: {}, categorizationEnabled: false,
-        autoOpenReplyDrafts: false, afterRemove: 'next', darkEmailBodies: true, undoSend: true, pgpAutoEncrypt: true, pgpAutoKeys: true,
+        autoOpenReplyDrafts: false, afterRemove: 'next', darkEmailBodies: true, undoSend: true, showSentToast: true, pgpAutoEncrypt: true, pgpAutoKeys: true,
         readReceiptRequestAlways: false, readReceiptReply: 'ask',
         composeFontFamily: '', composeFontSize: '',
         // Folder shortcuts name the previous user's accounts and folders. Left in place, the
@@ -576,6 +576,13 @@ export const useStore = create((set, get) => ({
     localStorage.setItem('mailflow_undo_send', String(Boolean(value)));
     set({ undoSend: Boolean(value) });
     schedulePrefSave({ undoSend: Boolean(value) });
+  },
+  // The "Message sent" toast after a delivery. Errors are always shown; this hides only the success.
+  showSentToast: localStorage.getItem('mailflow_show_sent_toast') !== 'false',
+  setShowSentToast: value => {
+    localStorage.setItem('mailflow_show_sent_toast', String(Boolean(value)));
+    set({ showSentToast: Boolean(value) });
+    schedulePrefSave({ showSentToast: Boolean(value) });
   },
   // Read receipts (MDN): ask for one on every message sent (off), and how to answer the requests
   // received: 'ask' (the banner), 'always' or 'never'.
@@ -1250,6 +1257,10 @@ export const useStore = create((set, get) => ({
       if (typeof prefs.undoSend === 'boolean') {
         localStorage.setItem('mailflow_undo_send', String(prefs.undoSend));
         set({ undoSend: prefs.undoSend });
+      }
+      if (typeof prefs.showSentToast === 'boolean') {
+        localStorage.setItem('mailflow_show_sent_toast', String(prefs.showSentToast));
+        set({ showSentToast: prefs.showSentToast });
       }
       if (typeof prefs.readReceiptRequestAlways === 'boolean') {
         localStorage.setItem('mailflow_read_receipt_request', String(prefs.readReceiptRequestAlways));

@@ -161,7 +161,9 @@
       "unknownBody": "Prüfen Sie den Ordner Gesendet, bevor Sie sie erneut senden.",
       "reopen": "Wieder öffnen",
       "tooLate": "Zu spät zum Rückgängigmachen: Die Nachricht wird bereits gesendet",
-      "undoFailed": "Rückgängigmachen nicht möglich: keine Antwort vom Server"
+      "undoFailed": "Rückgängigmachen nicht möglich: keine Antwort vom Server",
+      "sendNow": "Jetzt senden",
+      "sendNowFailed": "Sofortiges Senden nicht möglich. Die Nachricht wird nach Ablauf der Verzögerung gesendet."
     },
     "toolbar": {
       "removeTable": "Tabelle entfernen",
@@ -1420,7 +1422,9 @@
       "readReceiptAlways": "Immer senden",
       "readReceiptAlwaysDesc": "Beim Öffnen der Nachricht sofort antworten, es sei denn, die Anfrage wirkt verdächtig.",
       "readReceiptNever": "Nie senden",
-      "readReceiptNeverDesc": "Nie antworten und den Hinweis nicht anzeigen."
+      "readReceiptNeverDesc": "Nie antworten und den Hinweis nicht anzeigen.",
+      "showSentToast": "Bestätigung „Nachricht gesendet“ anzeigen",
+      "showSentToastDesc": "Zeigt eine Benachrichtigung, sobald die Nachricht zugestellt wurde. Fehler werden immer angezeigt."
     },
     "notifications": {
       "title": "Benachrichtigungen",

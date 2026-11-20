@@ -56,6 +56,7 @@ const send = (extra = {}, key = 'send1') => fetch(`${base}/api/mail/send`, {
   body: JSON.stringify({ accountId: 'a1', to: ['you@example.com'], subject: 'Test', body: 'Hello', ...extra }),
 });
 const status = (id, user = 'u1') => fetch(`${base}/api/mail/send/${id}`, { headers: { 'x-test-user': user } }).then(r => r.json());
+const sendNowReq = (id, user = 'u1') => fetch(`${base}/api/mail/send/${id}/now`, { method: 'POST', headers: { 'x-test-user': user } });
 const cancel = (id, user = 'u1') => fetch(`${base}/api/mail/send/${id}/cancel`, { method: 'POST', headers: { 'x-test-user': user } });
 
 describe('send with an undo window', () => {
@@ -87,6 +88,28 @@ describe('send with an undo window', () => {
     await flushHeldSends();
     expect(sendMail).not.toHaveBeenCalled();
     expect(await status(pendingId)).toEqual({ status: 'cancelled' });
+  });
+
+  it('send now delivers at once, once, and a second press or a late Undo cannot send again or cancel', async () => {
+    const { pendingId } = await (await send({ undoSeconds: 10 })).json();
+    const [a, b] = await Promise.all([sendNowReq(pendingId), sendNowReq(pendingId)]);
+    const results = [await a.json(), await b.json()];
+    expect(results.filter(r => r.started)).toHaveLength(1);
+    await flushHeldSends();
+    expect(sendMail).toHaveBeenCalledOnce();
+    expect(await (await cancel(pendingId)).json()).toMatchObject({ cancelled: false });
+    expect(await status(pendingId)).toMatchObject({ status: 'sent' });
+    expect(sendMail).toHaveBeenCalledOnce();
+  });
+
+  it('send now after Undo does not send the cancelled message; another user cannot send it now', async () => {
+    const first = await (await send({ undoSeconds: 10 })).json();
+    expect(await (await sendNowReq(first.pendingId, 'u2')).json()).toMatchObject({ started: false });
+    await cancel(first.pendingId);
+    expect(await (await sendNowReq(first.pendingId)).json()).toEqual({ started: false, status: 'cancelled' });
+    await flushHeldSends();
+    expect(sendMail).not.toHaveBeenCalled();
+    expect((await sendNowReq('abc')).status).toBe(400);
   });
 
   it('too late to undo: says so and reports what happened', async () => {

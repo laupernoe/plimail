@@ -161,7 +161,9 @@
       "unknownBody": "Vérifiez le dossier Envoyés avant de le renvoyer.",
       "reopen": "Rouvrir",
       "tooLate": "Trop tard pour annuler : le message est déjà en cours d'envoi",
-      "undoFailed": "Impossible d'annuler : le serveur n'a pas répondu"
+      "undoFailed": "Impossible d'annuler : le serveur n'a pas répondu",
+      "sendNow": "Envoyer maintenant",
+      "sendNowFailed": "Envoi immédiat impossible. Le message partira à la fin du délai."
     },
     "toolbar": {
       "removeTable": "Supprimer le tableau",
@@ -1495,7 +1497,9 @@
       "readReceiptAlways": "Toujours envoyer",
       "readReceiptAlwaysDesc": "Répondre dès l’ouverture du message, sauf si la demande semble suspecte.",
       "readReceiptNever": "Ne jamais envoyer",
-      "readReceiptNeverDesc": "Ne jamais répondre et ne pas afficher le bandeau."
+      "readReceiptNeverDesc": "Ne jamais répondre et ne pas afficher le bandeau.",
+      "showSentToast": "Afficher une confirmation « Message envoyé »",
+      "showSentToastDesc": "Affiche une notification une fois le message envoyé. Les erreurs sont toujours affichées."
     },
     "notifications": {
       "title": "Notifications",

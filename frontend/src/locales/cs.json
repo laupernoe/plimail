@@ -746,7 +746,9 @@
       "unknownBody": "Než ji odešlete znovu, zkontrolujte složku Odeslané.",
       "reopen": "Znovu otevřít",
       "tooLate": "Na vrácení je pozdě: zpráva se už odesílá",
-      "undoFailed": "Nepodařilo se vrátit zpět: server neodpověděl"
+      "undoFailed": "Nepodařilo se vrátit zpět: server neodpověděl",
+      "sendNow": "Odeslat hned",
+      "sendNowFailed": "Okamžité odeslání se nezdařilo. Zpráva odejde po uplynutí prodlevy."
     },
     "toolbar": {
       "removeTable": "Odebrat tabulku",
@@ -1714,7 +1716,9 @@
       "readReceiptAlways": "Vždy odeslat",
       "readReceiptAlwaysDesc": "Odpovědět hned po otevření zprávy, pokud žádost nevypadá podezřele.",
       "readReceiptNever": "Nikdy neodesílat",
-      "readReceiptNeverDesc": "Nikdy neodpovídat a upozornění nezobrazovat."
+      "readReceiptNeverDesc": "Nikdy neodpovídat a upozornění nezobrazovat.",
+      "showSentToast": "Zobrazit potvrzení „Zpráva odeslána“",
+      "showSentToastDesc": "Zobrazí oznámení po doručení zprávy. Chyby se zobrazují vždy."
     },
     "lock": {
       "title": "Zámek obrazovky",

@@ -91,6 +91,18 @@ export async function cancelSend(userId, id) {
   return { cancelled: false, ...(await getSendStatus(userId, id)) };
 }
 
+// Skips what is left of the window and delivers now. The same synchronous state check as Undo
+// (cancelSend) decides: whichever reaches a pending job first wins, and the other is told what
+// happened, so a message is never both cancelled and sent, nor sent twice.
+export async function sendHeldNow(userId, id) {
+  const job = jobs.get(id);
+  if (job && job.userId === userId && job.state === 'pending') {
+    start(id);
+    return { started: true, status: 'sending' };
+  }
+  return { started: false, ...(await getSendStatus(userId, id)) };
+}
+
 // { status: 'pending' | 'sending' | 'sent' | 'failed' | 'cancelled' | 'lost' | 'unknown', ... }
 export async function getSendStatus(userId, id) {
   const job = jobs.get(id);

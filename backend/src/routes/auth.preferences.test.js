@@ -314,6 +314,21 @@ describe('PATCH /auth/preferences undoSend (#769)', () => {
   });
 });
 
+describe('PATCH /auth/preferences showSentToast', () => {
+  const res = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn() });
+  for (const value of [true, false]) it(`persists explicit ${value}`, async () => {
+    await patchPreferences({ session: { userId: 'user-1' }, body: { showSentToast: value } }, res());
+    expect(query.mock.calls[0][0]).toContain("jsonb_build_object('showSentToast', $53::boolean)");
+    expect(query.mock.calls[0][1][52]).toBe(value);
+  });
+  it('rejects a nonboolean without a write', async () => {
+    const r = res();
+    await patchPreferences({ session: { userId: 'user-1' }, body: { showSentToast: 'no' } }, r);
+    expect(r.status).toHaveBeenCalledWith(400);
+    expect(query).not.toHaveBeenCalled();
+  });
+});
+
 describe('PATCH /auth/preferences pgpAutoEncrypt', () => {
   const res = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn() });
   for (const value of [true, false]) it(`persists explicit ${value}`, async () => {

@@ -162,6 +162,18 @@ function ActionBar({ notification, onDismiss, isMobile }) {
         </button>
       )}
 
+      {notification.onSendNow && (
+        <button
+          onClick={() => { notification.onSendNow(); dismiss(); }}
+          style={{
+            background: 'none', border: 'none', color: 'var(--text-secondary)',
+            fontSize: 12, fontWeight: 600, padding: '4px 8px', cursor: 'pointer', flexShrink: 0,
+          }}
+        >
+          {t('compose.undoSend.sendNow')}
+        </button>
+      )}
+
       <button
         onClick={handleUndo}
         style={{

@@ -161,7 +161,9 @@
       "unknownBody": "Sprawdź folder Wysłane, zanim wyślesz ją ponownie.",
       "reopen": "Otwórz ponownie",
       "tooLate": "Za późno na cofnięcie: wiadomość jest już wysyłana",
-      "undoFailed": "Nie udało się cofnąć: serwer nie odpowiedział"
+      "undoFailed": "Nie udało się cofnąć: serwer nie odpowiedział",
+      "sendNow": "Wyślij teraz",
+      "sendNowFailed": "Nie można wysłać teraz. Wiadomość zostanie wysłana po upływie opóźnienia."
     },
     "toolbar": {
       "removeTable": "Usuń tabelę",
@@ -1514,7 +1516,9 @@
       "readReceiptAlways": "Zawsze wysyłaj",
       "readReceiptAlwaysDesc": "Odpowiadaj po otwarciu wiadomości, chyba że prośba wygląda podejrzanie.",
       "readReceiptNever": "Nigdy nie wysyłaj",
-      "readReceiptNeverDesc": "Nigdy nie odpowiadaj i nie pokazuj komunikatu."
+      "readReceiptNeverDesc": "Nigdy nie odpowiadaj i nie pokazuj komunikatu.",
+      "showSentToast": "Pokazuj potwierdzenie „Wiadomość wysłana”",
+      "showSentToastDesc": "Pokazuje powiadomienie po dostarczeniu wiadomości. Błędy są zawsze wyświetlane."
     },
     "notifications": {
       "title": "Powiadomienia",
