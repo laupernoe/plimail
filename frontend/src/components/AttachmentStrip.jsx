@@ -5,6 +5,7 @@ import { classifyAttachmentRisk } from '../utils/attachmentRisk.js';
 import { previewKind } from '../utils/attachmentPreview.js';
 import { fileIcon, formatBytes } from '../utils/attachmentUi.jsx';
 import { isCollapsible, visibleAttachments } from '../utils/attachmentCollapse.js';
+import { attachmentDownloadUrl, setAttachmentDragData, supportsDownloadUrlDrag } from '../utils/attachmentDrag.js';
 
 // riskArmed value for the "Download all" link. A Symbol, so no attachment part can ever equal it.
 const DOWNLOAD_ALL = Symbol('download-all');
@@ -36,6 +37,7 @@ export default function AttachmentStrip({ messageId, attachments, style }) {
   const collapsible = isCollapsible(list);
   const shown = visibleAttachments(list, expanded, isRisky);
   const downloadAllArmed = riskArmed === DOWNLOAD_ALL;
+  const canDragOut = supportsDownloadUrlDrag();
   const downloadAllUrl = `/api/mail/messages/${messageId}/attachments.zip`;
   const confirmDownloadAll = () => {
     if (!downloadAllArmed) { setRiskArmed(DOWNLOAD_ALL); return; }
@@ -133,10 +135,18 @@ export default function AttachmentStrip({ messageId, attachments, style }) {
           const riskText = risk.level === 'ok' ? '' : risk.doubleExt
             ? t('message.attachmentRisk.doubleExt', { ext: risk.doubleExt })
             : t(`message.attachmentRisk.${risk.level}`, { ext: risk.ext });
+          // A drop saves the file without the click-again confirmation, so a risky file stays put.
+          const draggable = canDragOut && !risky;
+          const title = [canPreview && t('message.preview.open'), draggable && t('message.dragToSave')]
+            .filter(Boolean).join(' · ') || undefined;
           return (
           <button
             key={att.part}
-            title={canPreview ? t('message.preview.open') : undefined}
+            title={title}
+            draggable={draggable || undefined}
+            onDragStart={draggable ? e => setAttachmentDragData(e.dataTransfer, {
+              type: att.type, filename: att.filename, url: attachmentDownloadUrl(messageId, att.part, window.location.href),
+            }) : undefined}
             onClick={() => {
               if (risky && !armed) { setRiskArmed(att.part); return; }
               setRiskArmed(null);

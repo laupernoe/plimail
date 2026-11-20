@@ -48,7 +48,7 @@ globalThis.__VITE_ENV__ = { MODE: 'test', DEV: false, PROD: true };
 
 const { createElement, act } = await import('react');
 const { createRoot } = await import('react-dom/client');
-const { default: PgpMessageView, decryptedFrameDocument, DECRYPTED_FRAME_SANDBOX, ATTACHMENT_BLOB_TYPE, autocryptOffer } = await import('./PgpMessageView.jsx');
+const { default: PgpMessageView, DecryptedBody, decryptedFrameDocument, DECRYPTED_FRAME_SANDBOX, ATTACHMENT_BLOB_TYPE, autocryptOffer } = await import('./PgpMessageView.jsx');
 const { encryptMime, generateKeyPair } = await import('../utils/pgp.js');
 const { buildMimeEntity, entityBytes } = await import('../utils/mimeBuild.js');
 const { forgetAllUnlockedKeys, isUnlocked } = await import('../utils/pgpSession.js');
@@ -154,6 +154,31 @@ test('a cid: that does not decode does not break the message', () => {
 
 test('decrypted files download as octet-stream, whatever type the sender declared', () => {
   assert.equal(ATTACHMENT_BLOB_TYPE, 'application/octet-stream');
+});
+
+test('a decrypted file drags out from its local blob: URL, never as a link to the server', async () => {
+  Object.defineProperty(globalThis.navigator, 'userAgentData', {
+    value: { brands: [{ brand: 'Chromium', version: '140' }] }, configurable: true,
+  });
+  try {
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const r = createRoot(box);
+    const content = { text: 'x', attachments: [{ filename: 'contrat: signé.pdf', mimeType: 'application/pdf', data: new Uint8Array([1, 2, 3]) }] };
+    await act(async () => { r.render(createElement(DecryptedBody, { content, subject: 's' })); });
+    const link = box.querySelector('a[download]');
+    const data = {};
+    const ev = new window.Event('dragstart', { bubbles: true, cancelable: true });
+    ev.dataTransfer = { effectAllowed: 'all', setData(k, v) { data[k] = v; } };
+    await act(async () => { link.dispatchEvent(ev); });
+    assert.ok(link.href.startsWith('blob:'));
+    assert.deepEqual(Object.keys(data), ['DownloadURL']);
+    assert.equal(data.DownloadURL, `application/octet-stream:contrat_ signé.pdf:${link.href}`);
+    act(() => r.unmount());
+    box.remove();
+  } finally {
+    Object.defineProperty(globalThis.navigator, 'userAgentData', { value: undefined, configurable: true });
+  }
 });
 
 test('never takes an Autocrypt key without asking, whatever the headers claim', async () => {

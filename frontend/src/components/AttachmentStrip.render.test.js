@@ -102,3 +102,51 @@ describe('AttachmentStrip collapsing (#653)', () => {
     assert.ok(text().includes('setup.exe'));
   });
 });
+
+describe('AttachmentStrip drag-out to the desktop', () => {
+  const setChromium = (on) => {
+    Object.defineProperty(globalThis.navigator, 'userAgentData', {
+      value: on ? { brands: [{ brand: 'Chromium', version: '140' }] } : undefined, configurable: true,
+    });
+  };
+  const dragStart = async (el) => {
+    const data = {};
+    const ev = new dom.window.Event('dragstart', { bubbles: true, cancelable: true });
+    ev.dataTransfer = { effectAllowed: 'all', setData(k, v) { data[k] = v; } };
+    await React.act(async () => { el.dispatchEvent(ev); });
+    return data;
+  };
+  const chip = (name) => chips().find(b => b.textContent.includes(name));
+
+  test('on Chromium a chip drags out as a download of the attachment, under its own name', async () => {
+    setChromium(true);
+    await render([
+      { part: '1.2', filename: 'Re: devis 10:30 — été.pdf', type: 'application/pdf', size: 1000 },
+    ]);
+    const el = chip('devis');
+    assert.equal(el.getAttribute('draggable'), 'true');
+    assert.ok(el.title.includes('message.dragToSave'));
+    const data = await dragStart(el);
+    assert.equal(data.DownloadURL,
+      'application/pdf:Re_ devis 10_30 — été.pdf:https://mail.example.invalid/api/mail/messages/m1/attachments/1.2');
+    assert.equal(data['text/plain'], 'https://mail.example.invalid/api/mail/messages/m1/attachments/1.2');
+  });
+
+  test('a risky file does not drag out, since a drop would skip the confirmation', async () => {
+    setChromium(true);
+    await render(mk(['a.pdf', 'setup.exe']));
+    assert.equal(chip('a.pdf').getAttribute('draggable'), 'true');
+    const exe = chip('setup.exe');
+    assert.equal(exe.getAttribute('draggable'), null);
+    assert.deepEqual(await dragStart(exe), {});
+  });
+
+  test('outside Chromium a chip is not draggable and drags carry nothing', async () => {
+    setChromium(false);
+    await render(mk(['a.pdf']));
+    const el = chip('a.pdf');
+    assert.equal(el.getAttribute('draggable'), null);
+    assert.ok(!(el.title || '').includes('message.dragToSave'));
+    assert.deepEqual(await dragStart(el), {});
+  });
+});

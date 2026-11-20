@@ -372,6 +372,7 @@
     "downloadAll": "모두 다운로드",
     "attachmentsShowAll": "모두 보기 ({{count}})",
     "attachmentsShowFewer": "간략히 보기",
+    "dragToSave": "바탕 화면이나 폴더로 끌어 저장",
     "remoteImagesBlocked": "원격 이미지가 차단되었습니다.",
     "noContent": "메시지 내용을 찾을 수 없습니다.",
     "forward": "전달",

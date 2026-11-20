@@ -372,6 +372,7 @@
     "downloadAll": "Скачать все",
     "attachmentsShowAll": "Показать все ({{count}})",
     "attachmentsShowFewer": "Показать меньше",
+    "dragToSave": "Перетащите на рабочий стол или в папку, чтобы сохранить",
     "reply": "Ответить",
     "replyAll": "Ответить всем",
     "replyOptions": "Параметры ответа",
