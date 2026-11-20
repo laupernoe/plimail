@@ -20,7 +20,7 @@ const ACCOUNT = {
   imap_skip_tls_verify: false, smtp_host: 'smtp.example.com', smtp_port: 587, smtp_tls: 'STARTTLS', auth_user: 'maria',
   smtp_auth_user: 'maria', oauth_provider: null, oauth_public_client: false, enabled: true, include_in_unified_inbox: true, notifications_muted: false,
   last_sync: new Date('2026-10-14T10:00:00Z'), sync_error: null, sync_error_code: null, sort_order: 0, folder_mappings: { archive: 'Archive' },
-  signature: '<p>Maria</p>', signature_enabled: true,
+  signature: '<p>Maria</p>', signature_id: '33333333-3333-4333-8333-333333333333', signature_enabled: true,
   created_at: new Date('2026-01-01T00:00:00Z'), categorization_enabled: true,
   auto_cc_addresses: [], auto_bcc_addresses: ['archive@example.com'],
 };

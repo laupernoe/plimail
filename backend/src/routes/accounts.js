@@ -14,6 +14,7 @@ import { reportConnect } from '../services/connectReport.js';
 import { findOwnedAccount, findOwnedAlias } from '../services/ownership.js';
 import { NEXT_ACCOUNT_SORT_ORDER, setAccountOrder } from '../services/accountOrder.js';
 import { discoverAccountSettings } from '../services/accountAutodiscover.js';
+import { adoptSignature, signatureNameFor } from '../services/signatureLibrary.js';
 import { consume } from '../services/rateLimiter.js';
 
 // Serialize an account's reconnect triggers so a rapid settings change (e.g. an
@@ -78,12 +79,13 @@ export const SAFE_FIELDS = [
   'auth_user', 'smtp_auth_user', 'oauth_provider', 'oauth_public_client', 'enabled',
   'include_in_unified_inbox', 'notifications_muted',
   'last_sync', 'sync_error', 'sync_error_code', 'sort_order', 'folder_mappings',
-  'signature', 'signature_enabled', 'created_at', 'categorization_enabled',
+  'signature', 'signature_id', 'signature_enabled', 'created_at', 'categorization_enabled',
   'auto_cc_addresses', 'auto_bcc_addresses',
 ];
 // Columns PUT /:id may write. The settings form sends back what GET returned, so every
 // non-secret one must be in SAFE_FIELDS or saving an unrelated edit would write it as empty.
-export const ACCOUNT_UPDATE_FIELDS = ['name', 'sender_name', 'color', 'icon', 'enabled', 'include_in_unified_inbox', 'notifications_muted', 'auth_user', 'auth_pass', 'sort_order', 'imap_host', 'imap_port', 'imap_tls', 'imap_skip_tls_verify', 'smtp_host', 'smtp_port', 'smtp_tls', 'smtp_auth_user', 'smtp_auth_pass', 'folder_mappings', 'signature', 'signature_enabled', 'categorization_enabled', 'auto_cc_addresses', 'auto_bcc_addresses'];
+// The signature is not one of them: it is assigned from the library (routes/signatures.js).
+export const ACCOUNT_UPDATE_FIELDS = ['name', 'sender_name', 'color', 'icon', 'enabled', 'include_in_unified_inbox', 'notifications_muted', 'auth_user', 'auth_pass', 'sort_order', 'imap_host', 'imap_port', 'imap_tls', 'imap_skip_tls_verify', 'smtp_host', 'smtp_port', 'smtp_tls', 'smtp_auth_user', 'smtp_auth_pass', 'folder_mappings', 'signature_enabled', 'categorization_enabled', 'auto_cc_addresses', 'auto_bcc_addresses'];
 // What an API token sees of an account (#617): enough to name it, pick a From and draft as the
 // composer does (signature on or off, the automatic Cc and Bcc), and nothing of its settings:
 // no hosts, ports, TLS or login names, signatures or folder mappings.
@@ -125,7 +127,7 @@ router.get('/', async (req, res) => {
   let aliasMap = {};
   if (accountIds.length) {
     const aliasResult = await query(
-      `SELECT id, account_id, name, email, reply_to, signature, created_at
+      `SELECT id, account_id, name, email, reply_to, signature, signature_id, created_at
        FROM account_aliases WHERE account_id = ANY($1) ORDER BY created_at`,
       [accountIds]
     );
@@ -200,7 +202,13 @@ router.post('/', async (req, res) => {
       sanitizeSignature(signature) || null, signature_enabled !== false, iconValue
     ]);
 
-    const account = result.rows[0];
+    let account = result.rows[0];
+    if (account.signature) {
+      const entry = await adoptOwnSignature(req.session.userId, {
+        accountId: account.id, name: signatureNameFor(account.name, account.email_address), html: account.signature,
+      });
+      if (entry) account = { ...account, signature_id: entry.id, signature: entry.html || null };
+    }
 
     // Immediately try to connect — needs full credentials from DB row
     if (protocol === 'imap') {
@@ -286,6 +294,27 @@ export function passwordMissingForNewHost(stored, updates) {
   return null;
 }
 
+// Signatures are edited in the library and assigned from it (routes/signatures.js). A browser
+// still running the old settings form sends the signature back with every save: unchanged, it is
+// ignored; changed, it is refused, so the edit is not dropped without a word.
+const SIGNATURE_MOVED = { error: 'Signatures are now edited in Settings > Signatures. Reload the page to use it.', code: 'signature_moved' };
+function signatureChanged(stored, sent) {
+  return (sanitizeSignature(sent || '') || null) !== (sanitizeSignature(stored || '') || null);
+}
+
+// An account or alias created with a signature (an API client, or the old settings form) gets it
+// as a library entry assigned to it, as migration 0105 did for the ones that existed then.
+async function adoptOwnSignature(userId, { accountId, aliasId = null, name, html }) {
+  try {
+    return await adoptSignature(userId, { accountId, aliasId, name, html });
+  } catch (err) {
+    // It keeps the signature it was created with and sends with it; only the library entry is
+    // missing, so the user can still make one and assign it.
+    console.warn(`Account ${accountId}${aliasId ? ` alias ${aliasId}` : ''}: could not add its signature to the library:`, err.message);
+    return null;
+  }
+}
+
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const updates = { ...req.body };
@@ -293,6 +322,11 @@ router.put('/:id', async (req, res) => {
   // Verify ownership.
   const owned = await findOwnedAccount(req.session.userId, id, { columns: 'id, oauth_provider, imap_host, smtp_host, smtp_auth_pass' });
   if (!owned) return res.status(404).json({ error: 'Account not found' });
+  if ('signature' in updates) {
+    const { rows: [stored] } = await query('SELECT signature FROM email_accounts WHERE id = $1', [id]);
+    if (signatureChanged(stored?.signature, updates.signature)) return res.status(409).json(SIGNATURE_MOVED);
+    delete updates.signature;
+  }
   if (owned.oauth_provider) {
     for (const field of OAUTH_OWNED_FIELDS) delete updates[field];
     // An empty mailbox is not a login: ignored, the stored one stays.
@@ -366,7 +400,6 @@ router.put('/:id', async (req, res) => {
       sets.push(`${key} = $${i++}`);
       const value = ((key === 'auth_pass' || key === 'smtp_auth_pass') && updates[key]) ? encrypt(updates[key])
         : (key === 'smtp_auth_user' || key === 'smtp_auth_pass') ? (updates[key] || null)
-        : (key === 'signature') ? sanitizeSignature(updates[key]) || null
         : (key === 'include_in_unified_inbox' || key === 'notifications_muted') ? !!updates[key]
         : updates[key];
       values.push(value);
@@ -463,7 +496,7 @@ router.get('/:id/aliases', async (req, res) => {
   if (!(await findOwnedAccount(req.session.userId, id, { columns: 'id' }))) return res.status(404).json({ error: 'Account not found' });
 
   const result = await query(
-    'SELECT id, account_id, name, email, reply_to, signature, created_at FROM account_aliases WHERE account_id = $1 ORDER BY created_at',
+    'SELECT id, account_id, name, email, reply_to, signature, signature_id, created_at FROM account_aliases WHERE account_id = $1 ORDER BY created_at',
     [id]
   );
   res.json(result.rows.map(alias => ({
@@ -486,7 +519,12 @@ router.post('/:id/aliases', async (req, res) => {
     'INSERT INTO account_aliases (account_id, name, email, reply_to, signature) VALUES ($1, $2, $3, $4, $5) RETURNING *',
     [id, name, email, reply_to || null, sanitizeSignature(signature) || null]
   );
-  res.json(result.rows[0]);
+  let alias = result.rows[0];
+  if (alias.signature) {
+    const entry = await adoptOwnSignature(req.session.userId, { accountId: id, aliasId: alias.id, name: signatureNameFor(name, email), html: alias.signature });
+    if (entry) alias = { ...alias, signature_id: entry.id, signature: entry.html || null };
+  }
+  res.json(alias);
 });
 
 router.put('/:id/aliases/:aliasId', async (req, res) => {
@@ -499,10 +537,14 @@ router.put('/:id/aliases/:aliasId', async (req, res) => {
 
   const alias = await findOwnedAlias(req.session.userId, id, aliasId);
   if (!alias) return res.status(404).json({ error: 'Alias not found' });
+  if (signature !== undefined) {
+    const { rows: [stored] } = await query('SELECT signature FROM account_aliases WHERE id = $1', [aliasId]);
+    if (signatureChanged(stored?.signature, signature)) return res.status(409).json(SIGNATURE_MOVED);
+  }
 
   const result = await query(
-    'UPDATE account_aliases SET name = $1, email = $2, reply_to = $3, signature = $4 WHERE id = $5 RETURNING *',
-    [name, email, reply_to || null, sanitizeSignature(signature) || null, aliasId]
+    'UPDATE account_aliases SET name = $1, email = $2, reply_to = $3 WHERE id = $4 RETURNING *',
+    [name, email, reply_to || null, aliasId]
   );
   res.json(result.rows[0]);
 });

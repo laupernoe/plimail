@@ -12,6 +12,7 @@ const started = Date.now();
 const iso = ms => new Date(ms).toISOString();
 let seq = 9000;
 const newId = () => `00000000-0000-4000-8000-${String(++seq).padStart(12, '0')}`;
+const DEMO_SIGNATURE = { id: '00000000-0000-4000-8000-5160a7a00001', name: 'Brightwater Studio', html: '<p>Maya Lindqvist<br>Design lead, Brightwater Studio</p>' };
 
 const db = {
   prefs: {
@@ -29,10 +30,11 @@ const db = {
     include_in_unified_inbox: true, notifications_muted: false, last_sync: iso(started - 40_000),
     sync_error: null, sync_error_code: null, sort_order: i,
     folder_mappings: { sent: 'Sent', drafts: 'Drafts', trash: 'Trash', spam: 'Junk', archive: 'Archive' },
-    signature: i === 0 ? '<p>Maya Lindqvist<br>Design lead, Brightwater Studio</p>' : null,
+    signature: i === 0 ? DEMO_SIGNATURE.html : null, signature_id: i === 0 ? DEMO_SIGNATURE.id : null,
     signature_enabled: i === 0, created_at: '2026-01-12T10:00:00.000Z', categorization_enabled: true,
     auto_cc_addresses: [], auto_bcc_addresses: [], aliases: [], connected: true,
   })),
+  signatures: [{ ...DEMO_SIGNATURE, created_at: '2026-01-12T10:00:00.000Z', updated_at: '2026-01-12T10:00:00.000Z' }],
   folders: {},
   messages: buildMessages(started),
   contacts: CONTACTS.map(c => ({ ...c })),
@@ -428,6 +430,30 @@ on('POST', '/accounts/:id/reconnect', () => ok({ connected: true }));
 on('POST', '/accounts/:id/reindex', () => ok({ alreadyRunning: false }));
 on('GET', '/accounts/:id/folders', ({ params }) => (db.folders[params.id] || notFound()).map(f => folderRow(params.id, f)));
 on('GET', '/accounts/:id/aliases', () => []);
+
+// The signature library, with each assigned account keeping its copy, as routes/signatures.js does.
+const copySignatures = () => db.accounts.forEach(a => {
+  const entry = db.signatures.find(s => s.id === a.signature_id);
+  if (!entry) a.signature_id = null;
+  a.signature = entry?.html || null;
+});
+on('GET', '/signatures', () => [...db.signatures].sort((a, b) => a.name.localeCompare(b.name)));
+on('POST', '/signatures', ({ body }) => { const s = { id: newId(), name: String(body?.name || '').trim() || 'Signature', html: body?.html || '', created_at: iso(Date.now()), updated_at: iso(Date.now()) }; db.signatures.push(s); return s; });
+on('PUT', '/signatures/assignment', ({ body }) => {
+  const a = accountById(body?.accountId) || notFound();
+  a.signature_id = body?.signatureId || null;
+  copySignatures();
+  return { accountId: a.id, aliasId: null, signatureId: a.signature_id, signature: a.signature };
+});
+on('PUT', '/signatures/:id', ({ params, body }) => {
+  const s = db.signatures.find(x => x.id === params.id) || notFound();
+  if (body?.name !== undefined) s.name = String(body.name).trim() || s.name;
+  if (body?.html !== undefined) s.html = body.html || '';
+  s.updated_at = iso(Date.now());
+  copySignatures();
+  return s;
+});
+on('DELETE', '/signatures/:id', ({ params }) => { db.signatures = db.signatures.filter(s => s.id !== params.id); copySignatures(); return ok(); });
 on('POST', '/mail/folders', ({ body }) => {
   const list = db.folders[body.accountId] || notFound();
   const path = body.parentPath ? `${body.parentPath}/${body.name}` : body.name;

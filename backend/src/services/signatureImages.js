@@ -130,11 +130,11 @@ export async function inlineSignatureImages(html, userId, { queryFn = query } = 
   });
 }
 
-// An image is kept while any signature, of any account or alias, still names its id, and for a
-// week after upload, which covers one inserted in an editor and not saved yet. A user with a
-// scheduled send not yet settled keeps all theirs: its signature is in an encrypted payload,
-// put in only when it goes out, and losing an image from it would go unnoticed. Drafts on IMAP
-// already carry the bytes. Matching the bare id anywhere in the HTML errs towards keeping.
+// An image is kept while any signature, of any account or alias or in the signature library,
+// still names its id, and for a week after upload, which covers one inserted in an editor and not
+// saved yet. A user with a scheduled send not yet settled keeps all theirs: its signature is in an
+// encrypted payload, put in only when it goes out, and losing an image from it would go
+// unnoticed. Drafts on IMAP already carry the bytes. Matching the bare id anywhere in the HTML errs towards keeping.
 export const UNREFERENCED_GRACE = '7 days';
 const CLEANUP_MS = 6 * 60 * 60 * 1000;
 let cleanupTimer = null;
@@ -145,6 +145,7 @@ export async function deleteUnreferencedSignatureImages({ queryFn = query } = {}
       WHERE si.created_at < NOW() - $1::interval
         AND NOT EXISTS (SELECT 1 FROM email_accounts a WHERE strpos(lower(a.signature), si.id::text) > 0)
         AND NOT EXISTS (SELECT 1 FROM account_aliases al WHERE strpos(lower(al.signature), si.id::text) > 0)
+        AND NOT EXISTS (SELECT 1 FROM signatures s WHERE strpos(lower(s.html), si.id::text) > 0)
         AND NOT EXISTS (SELECT 1 FROM scheduled_messages sm
                          WHERE sm.user_id = si.user_id AND sm.status NOT IN ('sent', 'cancelled'))`,
     [UNREFERENCED_GRACE],

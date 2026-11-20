@@ -108,6 +108,8 @@
     "bcc": "숨은참조",
     "send": "보내기",
     "insertSignature": "서명 삽입",
+    "chooseSignature": "서명 선택",
+    "noSignature": "서명 없음",
     "sending": "보내는 중…",
     "discard": "삭제",
     "discardFailed": "초안을 삭제하지 못했습니다. 다시 시도해 주세요.",
@@ -1164,7 +1166,8 @@
       "secureMessages": "보호된 메시지",
       "pgp": "암호화 (PGP)",
       "serverFilters": "서버 필터",
-      "vacation": "부재중"
+      "vacation": "부재중",
+      "signatures": "서명"
     },
     "close": "닫기",
     "rules": {
@@ -1351,12 +1354,33 @@
       "saving": "저장 중…",
       "deleteConfirmLabel": "삭제",
       "replyToPh": "별칭 주소를 사용하려면 비워 두세요.",
-      "signatureNote": "선택 사항 - 계정 서명을 상속하려면 비워 두세요.",
       "deleteConfirmBody": "이 별칭은 영구적으로 제거됩니다. 이 작업은 취소할 수 없습니다.",
       "errorRequired": "이름과 이메일은 필수입니다",
       "deleteConfirmTitle": "별칭을 삭제하시겠습니까?",
       "save": "별칭 저장",
       "replyToLabel": "회신 주소:"
+    },
+    "signatures": {
+      "title": "서명",
+      "intro": "여기서 서명을 한 번 작성한 뒤 각 계정과 별칭이 사용할 서명을 고르세요. 작성 창에서 언제든 다른 서명으로 바꿀 수 있습니다.",
+      "new": "새 서명",
+      "empty": "아직 서명이 없습니다.",
+      "name": "이름",
+      "namePh": "예: 업무, 짧게, 격식",
+      "duplicate": "복제",
+      "confirmDelete": "영구 삭제",
+      "copyName": "{{name}} (사본)",
+      "usedBy": "사용 중: {{list}}",
+      "unused": "사용하는 주소 없음",
+      "assignTitle": "주소별 서명",
+      "assignIntro": "주소에서 보내는 새 메일, 답장, 전달은 여기서 고른 서명으로 시작합니다.",
+      "none": "서명 없음",
+      "sameAsAccount": "계정과 동일",
+      "loadFailed": "서명을 불러오지 못했습니다.",
+      "saveFailed": "서명을 저장하지 못했습니다.",
+      "errorName": "서명 이름을 입력하세요.",
+      "managedThere": "서명은 별도의 설정 페이지에서 작성하고 지정합니다.",
+      "open": "서명 열기"
     },
     "appearance": {
       "title": "화면 및 모양",

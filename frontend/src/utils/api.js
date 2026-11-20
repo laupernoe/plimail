@@ -498,6 +498,14 @@ export const api = {
   updateAlias: (accountId, aliasId, data) => request('PUT', `/accounts/${accountId}/aliases/${aliasId}`, data),
   deleteAlias: (accountId, aliasId) => request('DELETE', `/accounts/${accountId}/aliases/${aliasId}`),
 
+  // The signature library (routes/signatures.js). An assignment with signatureId null is none
+  // (for an alias: its account's).
+  getSignatures: () => request('GET', '/signatures'),
+  createSignature: (data) => request('POST', '/signatures', data),
+  updateSignature: (id, data) => request('PUT', `/signatures/${id}`, data),
+  deleteSignature: (id) => request('DELETE', `/signatures/${id}`),
+  assignSignature: ({ accountId, aliasId = null, signatureId = null }) => request('PUT', '/signatures/assignment', { accountId, aliasId, signatureId }),
+
   // Mail
   getMessages: (params) => {
     const qs = new URLSearchParams(params).toString();

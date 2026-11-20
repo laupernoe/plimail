@@ -48,6 +48,7 @@ export const SETUP_TABLES = [
   'scheduled_message_attachments',
   'scheduled_messages',
   'signature_images',
+  'signatures',
   'snoozed_messages',
   'system_settings',
   'trusted_devices',

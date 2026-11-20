@@ -27,11 +27,12 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('signature image storag
       height integer NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`);
     await database.query('CREATE TEMP TABLE email_accounts (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid, signature text)');
     await database.query('CREATE TEMP TABLE account_aliases (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), account_id uuid, signature text)');
+    await database.query('CREATE TEMP TABLE signatures (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid, html text)');
     await database.query('CREATE TEMP TABLE scheduled_messages (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid, status text)');
   });
   afterAll(async () => { await database?.end(); });
   beforeEach(async () => {
-    await database.query('TRUNCATE signature_images, email_accounts, account_aliases, scheduled_messages');
+    await database.query('TRUNCATE signature_images, email_accounts, account_aliases, signatures, scheduled_messages');
   });
 
   it(`refuses image ${MAX_IMAGES_PER_USER + 1} of a user, and only for that user`, async () => {
@@ -49,14 +50,16 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('signature image storag
     await expect(saveSignatureImage(U1, image(1), { queryFn })).rejects.toMatchObject({ status: 409 });
   });
 
-  it('deletes only week-old images that no account or alias signature names', async () => {
+  it('deletes only week-old images that no account, alias or library signature names', async () => {
     const used = (await saveSignatureImage(U1, image(), { queryFn })).id;
     const byAlias = (await saveSignatureImage(U1, image(), { queryFn })).id;
+    // In a library signature assigned to nothing yet: still the user's to pick in the composer.
+    const byLibrary = (await saveSignatureImage(U1, image(), { queryFn })).id;
     const unused = (await saveSignatureImage(U1, image(), { queryFn })).id;
     const recent = (await saveSignatureImage(U1, image(), { queryFn })).id;
     // An admin can put an image into another user's account signature; it is still in use.
     const elsewhere = (await saveSignatureImage(U2, image(), { queryFn })).id;
-    for (const id of [used, byAlias, unused, elsewhere]) await age(id, 8);
+    for (const id of [used, byAlias, byLibrary, unused, elsewhere]) await age(id, 8);
     await age(recent, 6);
     const { rows: [acct] } = await database.query(
       'INSERT INTO email_accounts (user_id, signature) VALUES ($1, $2) RETURNING id',
@@ -64,9 +67,11 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('signature image storag
     await database.query('INSERT INTO account_aliases (account_id, signature) VALUES ($1, $2)',
       [acct.id, `<img src="/api/signature-images/${byAlias}">`]);
     await database.query('INSERT INTO email_accounts (user_id, signature) VALUES ($1, NULL)', [U2]);
+    await database.query('INSERT INTO signatures (user_id, html) VALUES ($1, $2)',
+      [U1, `<p>Formal</p><img src="/api/signature-images/${byLibrary}">`]);
 
     expect(await deleteUnreferencedSignatureImages({ queryFn })).toBe(1);
-    expect((await ids()).sort()).toEqual([used, byAlias, recent, elsewhere].sort());
+    expect((await ids()).sort()).toEqual([used, byAlias, byLibrary, recent, elsewhere].sort());
   });
 
   it('keeps every image of a user with a scheduled send not yet settled', async () => {
