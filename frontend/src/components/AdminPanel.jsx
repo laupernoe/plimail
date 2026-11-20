@@ -61,6 +61,7 @@ import VacationSection from './VacationSection.jsx';
 import { CalendarAccountsTab, CalendarListTab } from './calendar/AccountsModal.jsx';
 import CalendarOffer from './calendar/CalendarOffer.jsx';
 import { MoreMenu } from './MessageActions.jsx';
+import ComposeFontSetting from './ComposeFontSetting.jsx';
 import { ICON, ICON_SMALL, iconButtonBox } from '../utils/uiSizes.js';
 
 // ─── Shared field component ───────────────────────────────────────────────────
@@ -2338,6 +2339,13 @@ function BehaviorTab() {
             { id: true,  label: t('admin.messageList.composePlainText'), desc: t('admin.messageList.composePlainTextDesc') },
           ]} />
         </SettingRow>
+
+        {/* Plain text has no font to carry. */}
+        {!plaintextEmail && (
+          <SettingRow label={t('admin.messageList.composeFont')} desc={t('admin.messageList.composeFontDesc')}>
+            <ComposeFontSetting selectStyle={selectStyle} />
+          </SettingRow>
+        )}
 
         {/* Default sender (#417) */}
         <SettingRow label={t('admin.messageList.defaultSender')} desc={t('admin.messageList.defaultSenderDesc')}>
@@ -8160,6 +8168,7 @@ function makeSearchIndex(t) {
     { label: t('admin.messageList.defaultReplyAction'), keywords: ['reply', 'reply all', 'default reply'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.afterRemove'), keywords: ['next message', 'auto advance', 'after delete', 'after archive', 'open next', 'previous message'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.markReadBehavior'), keywords: ['mark read', 'mark as read', 'read delay', 'auto read', 'manual read', 'unread'], tab: 'behavior', breadcrumb: behaviorCrumb },
+    { label: t('admin.messageList.composeFont'), keywords: ['font', 'default font', 'typeface', 'font size', 'text size', 'writing', 'compose', 'arial', 'calibri'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.defaultSender'), keywords: ['from', 'sender', 'default sender', 'send from', 'alias', 'identity'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.messageList.defaultMailApp'), keywords: ['mailto', 'default app', 'default email', 'protocol handler', 'links'], tab: 'behavior', breadcrumb: behaviorCrumb },
     { label: t('admin.install.title'), keywords: ['install', 'app', 'desktop', 'window'], tab: 'behavior', breadcrumb: behaviorCrumb },

@@ -369,3 +369,30 @@ describe('PATCH /auth/preferences read receipts', () => {
     expect(query).not.toHaveBeenCalled();
   });
 });
+
+describe('PATCH /auth/preferences default writing font', () => {
+  const res = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn() });
+  it('persists the family and size, with "" meaning Default', async () => {
+    await patchPreferences({ session: { userId: 'user-1' }, body: { composeFontFamily: '"Trebuchet MS", Helvetica, sans-serif', composeFontSize: '11px' } }, res());
+    expect(query.mock.calls[0][0]).toContain("jsonb_build_object('composeFontFamily', $51::text)");
+    expect(query.mock.calls[0][0]).toContain("jsonb_build_object('composeFontSize', $52::text)");
+    expect(query.mock.calls[0][1][50]).toBe("'Trebuchet MS', Helvetica, sans-serif");
+    expect(query.mock.calls[0][1][51]).toBe('11px');
+    query.mockClear();
+    await patchPreferences({ session: { userId: 'user-1' }, body: { composeFontFamily: '', composeFontSize: '' } }, res());
+    expect(query.mock.calls[0][1].slice(50, 52)).toEqual(['', '']);
+    query.mockClear();
+    await patchPreferences({ session: { userId: 'user-1' }, body: { theme: 'system' } }, res());
+    expect(query.mock.calls[0][1].slice(50, 52)).toEqual([null, null]);
+  });
+
+  it('refuses a family or size it would not send', async () => {
+    for (const body of [{ composeFontFamily: 'Arial;color:red' }, { composeFontSize: '200px' }, { composeFontSize: 11 }]) {
+      query.mockClear();
+      const r = res();
+      await patchPreferences({ session: { userId: 'user-1' }, body }, r);
+      expect(r.status).toHaveBeenCalledWith(400);
+      expect(query).not.toHaveBeenCalled();
+    }
+  });
+});

@@ -213,6 +213,6 @@ export async function encryptedSendPayload({ payload, attachments = [], forwarde
 
   // What the server needs and nothing more: no body, signature, quote or files in the clear.
   const rest = { ...payload };
-  for (const key of ['body', 'bodyIsHtml', 'attachments', 'forwardedAttachments', 'forwardedMessages', 'quotedBody', 'quotedBodyHtml', 'editedSignature']) delete rest[key];
+  for (const key of ['body', 'bodyIsHtml', 'attachments', 'forwardedAttachments', 'forwardedMessages', 'quotedBody', 'quotedBodyHtml', 'editedSignature', 'composeFont']) delete rest[key];
   return { ...rest, body: '', editedSignature: '', pgp: { encrypted: armored } };
 }
