@@ -818,12 +818,15 @@ export async function patchPreferences(req, res) {
           folderOrder, senderFavicons, showMessagePreviews, defaultSender,
           conversationMode, hoverActionSet, autoOpenReplyDrafts, afterRemove, darkEmailBodies, listSort,
           timeFormat, undoSend, pgpAutoEncrypt, pgpAutoKeys,
-          readReceiptRequestAlways, readReceiptReply, composeFontFamily, composeFontSize } = req.body;
+          readReceiptRequestAlways, readReceiptReply, composeFontFamily, composeFontSize, showSentToast } = req.body;
   if (autoOpenReplyDrafts !== undefined && typeof autoOpenReplyDrafts !== 'boolean') {
     return res.status(400).json({ error: 'autoOpenReplyDrafts must be a boolean' });
   }
   if (undoSend !== undefined && typeof undoSend !== 'boolean') {
     return res.status(400).json({ error: 'undoSend must be a boolean' });
+  }
+  if (showSentToast !== undefined && typeof showSentToast !== 'boolean') {
+    return res.status(400).json({ error: 'showSentToast must be a boolean' });
   }
   if (pgpAutoEncrypt !== undefined && typeof pgpAutoEncrypt !== 'boolean') {
     return res.status(400).json({ error: 'pgpAutoEncrypt must be a boolean' });
@@ -971,6 +974,7 @@ export async function patchPreferences(req, res) {
       || CASE WHEN $50::text IS NOT NULL THEN jsonb_build_object('readReceiptReply', $50::text) ELSE '{}'::jsonb END
       || CASE WHEN $51::text IS NOT NULL THEN jsonb_build_object('composeFontFamily', $51::text) ELSE '{}'::jsonb END
       || CASE WHEN $52::text IS NOT NULL THEN jsonb_build_object('composeFontSize', $52::text) ELSE '{}'::jsonb END
+      || CASE WHEN $53::boolean IS NOT NULL THEN jsonb_build_object('showSentToast', $53::boolean) ELSE '{}'::jsonb END
     WHERE id = $1
   `, [req.session.userId, themeVal, font ?? null, layout ?? null, notificationSound ?? null,
       pageSize ?? null, scrollMode ?? null, syncInterval ?? null,
@@ -983,7 +987,7 @@ export async function patchPreferences(req, res) {
       showMobileAvatars ?? null, gravatarAvatars ?? null, folderSyncIntervalVal, folderOrderJson, senderFaviconsVal,
       showMessagePreviews ?? null, defaultSenderVal, conversationModeVal, hoverActionSetJson, autoOpenReplyDrafts ?? null,
       afterRemoveVal, darkEmailBodies ?? null, listSortJson, timeFormatVal, undoSend ?? null, pgpAutoEncrypt ?? null, pgpAutoKeys ?? null,
-      readReceiptRequestAlways ?? null, readReceiptReply ?? null, composeFontFamilyVal, composeFontSizeVal]);
+      readReceiptRequestAlways ?? null, readReceiptReply ?? null, composeFontFamilyVal, composeFontSizeVal, showSentToast ?? null]);
 
   if (syncInterval != null) {
     const ms = parseInt(syncInterval) * 1000;

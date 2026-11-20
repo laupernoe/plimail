@@ -9,6 +9,10 @@ export const UNDO_SEND_SECONDS = 10;
 // user turned undo send off (#769). 0 makes the server send straight away.
 export const undoSendSeconds = (enabled) => (enabled === false ? 0 : UNDO_SEND_SECONDS);
 
+// Whether a delivered message gets its "Message sent" toast. The setting hides only that
+// confirmation: a Sent copy that could not be saved is a problem to report, so it always shows.
+export const showSentConfirmation = (enabled, sentCopyFailed = false) => enabled !== false || sentCopyFailed === true;
+
 // Delivery can outlast the window by a lot (a large attachment over a slow server), so a send
 // still in progress is asked about again rather than given up on straight away.
 export const POLL_INTERVAL_MS = 2000;
@@ -58,7 +62,7 @@ export function reopenCompose(store, data) {
 // the next user must not be asked about, or handed back, the previous user's message. Returns the
 // undo action for the Undo button.
 export function trackHeldSend({ pendingId, undoMs, subject }, { restore, onSent }, deps) {
-  const { getStatus, cancel, notify, dismissUndo, t, onOwnerChange, schedule = setTimeout, unschedule = clearTimeout, now = Date.now } = deps;
+  const { getStatus, cancel, sendNow: requestSendNow, notify, dismissUndo, t, onOwnerChange, schedule = setTimeout, unschedule = clearTimeout, now = Date.now } = deps;
   const deadline = now() + undoMs + GIVE_UP_AFTER_MS;
   let settled = false;
   let undoing = false;
@@ -122,7 +126,28 @@ export function trackHeldSend({ pendingId, undoMs, subject }, { restore, onSent 
   };
   nextPoll = schedule(poll, undoMs + 1000);
 
-  return async function undo() {
+  let sendingNow = false;
+  // Send now: the server skips the rest of the window (the one place that owns the hold, so a
+  // second press, an Undo racing it and a closed tab cannot send twice or send what was undone),
+  // and this goes on to ask how it ended without waiting for the window to run out.
+  async function sendNow() {
+    if (settled || undoing || sendingNow) return;
+    sendingNow = true;
+    try {
+      const result = await requestSendNow(pendingId);
+      if (settled) return;
+      unschedule(nextPoll);
+      // 'sending' (or a later outcome) is what the server answers a send it started; if Undo won
+      // the race the answer says cancelled and the message reopens as after an Undo.
+      if (!settle(result)) { dismissUndo(); await poll(); }
+    } catch {
+      if (settled) return;
+      sendingNow = false;
+      notify({ type: 'error', title: t('compose.undoSend.sendNowFailed'), body: subject });
+    }
+  }
+
+  async function undo() {
     if (settled || undoing) return;
     undoing = true;
     try {
@@ -141,5 +166,7 @@ export function trackHeldSend({ pendingId, undoMs, subject }, { restore, onSent 
     } finally {
       undoing = false;
     }
-  };
+  }
+  undo.sendNow = sendNow;
+  return undo;
 }

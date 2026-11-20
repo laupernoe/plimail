@@ -163,7 +163,9 @@
       "unknownBody": "Check your Sent folder before sending it again.",
       "reopen": "Reopen",
       "tooLate": "Too late to undo: the message is already being sent",
-      "undoFailed": "Could not undo: no response from the server"
+      "undoFailed": "Could not undo: no response from the server",
+      "sendNow": "Send now",
+      "sendNowFailed": "Could not send now. It will still be sent when the delay ends."
     },
     "toolbar": {
       "removeTable": "Remove table",
@@ -1519,7 +1521,9 @@
       "readReceiptAlways": "Send always",
       "readReceiptAlwaysDesc": "Reply as soon as you open the message, unless the request looks suspicious.",
       "readReceiptNever": "Never send",
-      "readReceiptNeverDesc": "Never answer, and do not show the notice."
+      "readReceiptNeverDesc": "Never answer, and do not show the notice.",
+      "showSentToast": "Show a “Message sent” confirmation",
+      "showSentToastDesc": "Show a notification once a message has been delivered. Errors are always shown."
     },
     "notifications": {
       "title": "Notifications",
@@ -1538,7 +1542,10 @@
       "faviconBadge": "Browser tab badge",
       "faviconBadgeDesc": "Unread count on the browser tab icon.",
       "badgeOn": "Enabled",
-      "badgeOff": "Disabled"
+      "badgeOff": "Disabled",
+      "mailboxesTitle": "Mailboxes",
+      "mailboxesDescription": "Choose which mailboxes alert you to new mail with a sound, a desktop or push notification. Unread counts and badges are not affected.",
+      "mailboxesError": "Could not save the change"
     },
     "push": {
       "title": "Push Notifications",

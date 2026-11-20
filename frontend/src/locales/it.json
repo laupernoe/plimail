@@ -163,7 +163,9 @@
       "unknownBody": "Controlla la cartella Inviati prima di inviarlo di nuovo.",
       "reopen": "Riapri",
       "tooLate": "Troppo tardi per annullare: il messaggio è già in fase di invio",
-      "undoFailed": "Impossibile annullare: il server non ha risposto"
+      "undoFailed": "Impossibile annullare: il server non ha risposto",
+      "sendNow": "Invia ora",
+      "sendNowFailed": "Impossibile inviare subito. Il messaggio partirà alla fine dell’attesa."
     },
     "toolbar": {
       "removeTable": "Rimuovi tabella",
@@ -1519,7 +1521,9 @@
       "readReceiptAlways": "Invia sempre",
       "readReceiptAlwaysDesc": "Rispondi appena apri il messaggio, a meno che la richiesta non sembri sospetta.",
       "readReceiptNever": "Non inviare mai",
-      "readReceiptNeverDesc": "Non rispondere mai e non mostrare l’avviso."
+      "readReceiptNeverDesc": "Non rispondere mai e non mostrare l’avviso.",
+      "showSentToast": "Mostra la conferma «Messaggio inviato»",
+      "showSentToastDesc": "Mostra una notifica quando il messaggio è stato consegnato. Gli errori vengono sempre mostrati."
     },
     "notifications": {
       "title": "Notifiche",
@@ -1538,7 +1542,10 @@
       "faviconBadge": "Badge scheda browser",
       "faviconBadgeDesc": "Non letti sull'icona della scheda del browser.",
       "badgeOn": "Attivato",
-      "badgeOff": "Disattivato"
+      "badgeOff": "Disattivato",
+      "mailboxesTitle": "Caselle",
+      "mailboxesDescription": "Scegli quali caselle ti avvisano dei nuovi messaggi con suono, notifica desktop o push. Contatori e badge non cambiano.",
+      "mailboxesError": "Impossibile salvare la modifica"
     },
     "push": {
       "title": "Notifiche push",

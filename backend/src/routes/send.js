@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { redisClient } from '../services/redis.js';
-import { holdSend, cancelSend, getSendStatus } from '../services/sendHold.js';
+import { holdSend, cancelSend, sendHeldNow, getSendStatus } from '../services/sendHold.js';
 import {
   UUID_RE, SendError, sanitizeSmtpError, publicSendCode, missingSendFields, validateSendInput,
   resolveIdentity, resolveForwarded, prepareDelivery, deliverAndRecord,
@@ -229,6 +229,12 @@ router.get('/send/:id', async (req, res) => {
 router.post('/send/:id/cancel', async (req, res) => {
   if (!UUID_RE.test(req.params.id)) return res.status(400).json({ error: 'Invalid id' });
   res.json(await cancelSend(req.session.userId, req.params.id));
+});
+
+// Send now: skips what is left of the undo window.
+router.post('/send/:id/now', async (req, res) => {
+  if (!UUID_RE.test(req.params.id)) return res.status(400).json({ error: 'Invalid id' });
+  res.json(await sendHeldNow(req.session.userId, req.params.id));
 });
 
 export default router;

@@ -163,7 +163,9 @@
       "unknownBody": "Confira a pasta Enviados antes de enviá-la de novo.",
       "reopen": "Reabrir",
       "tooLate": "Tarde demais para desfazer: a mensagem já está sendo enviada",
-      "undoFailed": "Não foi possível desfazer: o servidor não respondeu"
+      "undoFailed": "Não foi possível desfazer: o servidor não respondeu",
+      "sendNow": "Enviar agora",
+      "sendNowFailed": "Não foi possível enviar agora. A mensagem será enviada quando o atraso terminar."
     },
     "toolbar": {
       "removeTable": "Remover tabela",
@@ -1519,7 +1521,9 @@
       "readReceiptAlways": "Enviar sempre",
       "readReceiptAlwaysDesc": "Responder ao abrir a mensagem, a menos que o pedido pareça suspeito.",
       "readReceiptNever": "Nunca enviar",
-      "readReceiptNeverDesc": "Nunca responder e não mostrar o aviso."
+      "readReceiptNeverDesc": "Nunca responder e não mostrar o aviso.",
+      "showSentToast": "Mostrar confirmação de “Mensagem enviada”",
+      "showSentToastDesc": "Mostra uma notificação quando a mensagem for entregue. Os erros sempre são mostrados."
     },
     "notifications": {
       "title": "Notificações",
@@ -1538,7 +1542,10 @@
       "faviconBadge": "Selo na aba do navegador",
       "faviconBadgeDesc": "Contagem de não lidas no ícone da aba do navegador.",
       "badgeOn": "Ativado",
-      "badgeOff": "Desativado"
+      "badgeOff": "Desativado",
+      "mailboxesTitle": "Caixas de correio",
+      "mailboxesDescription": "Escolha quais caixas avisam sobre novos e-mails com som, notificação de desktop ou push. Contadores e selos não mudam.",
+      "mailboxesError": "Não foi possível salvar a alteração"
     },
     "push": {
       "title": "Notificações push",

@@ -63,6 +63,18 @@ export default function UndoBar({ notification, onDismiss, showTopBorder }) {
           {notification.actionLabel || t('common.view')}
         </button>
       )}
+      {notification.onSendNow && (
+        <button
+          onClick={() => { notification.onSendNow(); dismiss(); }}
+          style={{
+            background: 'none', border: 'none',
+            color: 'var(--text-secondary)', fontSize: 13, fontWeight: 600,
+            cursor: 'pointer', padding: '2px 4px', flexShrink: 0,
+          }}
+        >
+          {t('compose.undoSend.sendNow')}
+        </button>
+      )}
       <button
         onClick={handleUndo}
         style={{

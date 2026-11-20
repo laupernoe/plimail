@@ -163,7 +163,9 @@
       "unknownBody": "Vérifiez le dossier Envoyés avant de le renvoyer.",
       "reopen": "Rouvrir",
       "tooLate": "Trop tard pour annuler : le message est déjà en cours d'envoi",
-      "undoFailed": "Impossible d'annuler : le serveur n'a pas répondu"
+      "undoFailed": "Impossible d'annuler : le serveur n'a pas répondu",
+      "sendNow": "Envoyer maintenant",
+      "sendNowFailed": "Envoi immédiat impossible. Le message partira à la fin du délai."
     },
     "toolbar": {
       "removeTable": "Supprimer le tableau",
@@ -1519,7 +1521,9 @@
       "readReceiptAlways": "Toujours envoyer",
       "readReceiptAlwaysDesc": "Répondre dès l’ouverture du message, sauf si la demande semble suspecte.",
       "readReceiptNever": "Ne jamais envoyer",
-      "readReceiptNeverDesc": "Ne jamais répondre et ne pas afficher le bandeau."
+      "readReceiptNeverDesc": "Ne jamais répondre et ne pas afficher le bandeau.",
+      "showSentToast": "Afficher une confirmation « Message envoyé »",
+      "showSentToastDesc": "Affiche une notification une fois le message envoyé. Les erreurs sont toujours affichées."
     },
     "notifications": {
       "title": "Notifications",
@@ -1538,7 +1542,10 @@
       "faviconBadge": "Badge de l'onglet du navigateur",
       "faviconBadgeDesc": "Non lus sur l'icône de l'onglet du navigateur.",
       "badgeOn": "Activé",
-      "badgeOff": "Désactivé"
+      "badgeOff": "Désactivé",
+      "mailboxesTitle": "Boîtes mail",
+      "mailboxesDescription": "Choisissez les boîtes qui vous alertent des nouveaux messages par un son, une notification de bureau ou push. Les compteurs et badges ne changent pas.",
+      "mailboxesError": "Impossible d’enregistrer la modification"
     },
     "push": {
       "title": "Notifications push",

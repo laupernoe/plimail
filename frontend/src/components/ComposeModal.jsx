@@ -33,7 +33,7 @@ import { initialComposeFocus, isComposeSendShortcut, isSendLaterShortcut } from 
 import { unproxyImages } from '../utils/imageProxy.js';
 import { autoListsOf, openAutoRecipients, replyTypeFields, swapAccountFields } from '../utils/autoRecipients.js';
 import { resolveSignatureEnabled } from '../utils/composeSignature.js';
-import { undoSendSeconds, undoWindowMs, trackHeldSend, reopenCompose, sendErrorText } from '../utils/heldSend.js';
+import { undoSendSeconds, undoWindowMs, showSentConfirmation, trackHeldSend, reopenCompose, sendErrorText } from '../utils/heldSend.js';
 import ReadReceiptToggle from './ReadReceiptToggle.jsx';
 import { composeReadReceipt } from '../utils/readReceipt.js';
 import { openSentMessage } from '../utils/openSentMessage.js';
@@ -1432,16 +1432,18 @@ export default function ComposeModal() {
         // The message was delivered; sentCopySaved:false means it couldn't be saved to the
         // account's Sent folder — tell the user so they know their record is incomplete.
         const sentCopyFailed = result?.sentCopySaved === false;
-        addNotification({
-          title: sentCopyFailed ? t('compose.sent.noCopy') : t('compose.sent.title'),
-          body: subject || t('common.noSubject'),
-          // When the Sent copy wasn't saved, omit the "View" action — it would navigate to a
-          // Sent folder that doesn't contain the message.
-          ...(sentCopyFailed ? {} : {
-            onAction: () => openSentMessage(useStore, { accountId, folder: sentFolder, messageId: result?.messageId }),
-            actionLabel: t('compose.sent.action'),
-          }),
-        });
+        if (showSentConfirmation(useStore.getState().showSentToast, sentCopyFailed)) {
+          addNotification({
+            title: sentCopyFailed ? t('compose.sent.noCopy') : t('compose.sent.title'),
+            body: subject || t('common.noSubject'),
+            // When the Sent copy wasn't saved, omit the "View" action — it would navigate to a
+            // Sent folder that doesn't contain the message.
+            ...(sentCopyFailed ? {} : {
+              onAction: () => openSentMessage(useStore, { accountId, folder: sentFolder, messageId: result?.messageId }),
+              actionLabel: t('compose.sent.action'),
+            }),
+          });
+        }
         // The server refused some recipients at RCPT but took the rest, so the send succeeded
         // for everyone else. Keep this up until dismissed; a toast that times out is too easy
         // to miss for mail that never reached someone.
@@ -1486,6 +1488,7 @@ export default function ComposeModal() {
           {
             getStatus: api.getSendStatus,
             cancel: api.cancelSend,
+            sendNow: api.sendHeldNow,
             notify,
             dismissUndo: () => {
               for (const n of useStore.getState().notifications) {
@@ -1500,7 +1503,7 @@ export default function ComposeModal() {
           },
         );
         // The subject tells several held sends apart.
-        notify({ title: t('compose.undoSend.sending', { subject: shownSubject }), heldSendId: pendingId, undoMs, onUndo: undo });
+        notify({ title: t('compose.undoSend.sending', { subject: shownSubject }), heldSendId: pendingId, undoMs, onUndo: undo, onSendNow: undo.sendNow });
         return;
       }
 

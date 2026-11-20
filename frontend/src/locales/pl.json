@@ -163,7 +163,9 @@
       "unknownBody": "Sprawdź folder Wysłane, zanim wyślesz ją ponownie.",
       "reopen": "Otwórz ponownie",
       "tooLate": "Za późno na cofnięcie: wiadomość jest już wysyłana",
-      "undoFailed": "Nie udało się cofnąć: serwer nie odpowiedział"
+      "undoFailed": "Nie udało się cofnąć: serwer nie odpowiedział",
+      "sendNow": "Wyślij teraz",
+      "sendNowFailed": "Nie można wysłać teraz. Wiadomość zostanie wysłana po upływie opóźnienia."
     },
     "toolbar": {
       "removeTable": "Usuń tabelę",
@@ -1538,7 +1540,9 @@
       "readReceiptAlways": "Zawsze wysyłaj",
       "readReceiptAlwaysDesc": "Odpowiadaj po otwarciu wiadomości, chyba że prośba wygląda podejrzanie.",
       "readReceiptNever": "Nigdy nie wysyłaj",
-      "readReceiptNeverDesc": "Nigdy nie odpowiadaj i nie pokazuj komunikatu."
+      "readReceiptNeverDesc": "Nigdy nie odpowiadaj i nie pokazuj komunikatu.",
+      "showSentToast": "Pokazuj potwierdzenie „Wiadomość wysłana”",
+      "showSentToastDesc": "Pokazuje powiadomienie po dostarczeniu wiadomości. Błędy są zawsze wyświetlane."
     },
     "notifications": {
       "title": "Powiadomienia",
@@ -1557,7 +1561,10 @@
       "faviconBadge": "Odznaka karty przeglądarki",
       "faviconBadgeDesc": "Licznik nieprzeczytanych wiadomości na ikonie karty przeglądarki.",
       "badgeOn": "Włączone",
-      "badgeOff": "Wyłączone"
+      "badgeOff": "Wyłączone",
+      "mailboxesTitle": "Skrzynki",
+      "mailboxesDescription": "Wybierz, które skrzynki powiadamiają o nowej poczcie dźwiękiem, powiadomieniem na pulpicie lub push. Liczniki i plakietki się nie zmieniają.",
+      "mailboxesError": "Nie udało się zapisać zmiany"
     },
     "push": {
       "title": "Powiadomienia push",

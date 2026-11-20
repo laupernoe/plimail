@@ -120,3 +120,21 @@ test('on a phone the action bars and toasts are said the same way', async () => 
   assert.deepEqual(said('alert'), ['Could not restore it']);
   assert.deepEqual([...document.querySelectorAll('[role="status"], [role="alert"]')].map(el => el.dataset.announce), ['status', 'alert']);
 });
+
+test('Send now shows on the undo-send bar, on the list bar and on a phone, and calls once', async () => {
+  let calls = 0;
+  const notification = { title: 'Sending', onUndo: () => {}, onSendNow: () => { calls++; }, undoMs: 10_000 };
+  await mount();
+  await React.act(async () => {
+    root.render(React.createElement(UndoBar, { notification, onDismiss: () => {} }));
+  });
+  const press = () => [...document.querySelectorAll('button')].find(b => b.textContent === 'compose.undoSend.sendNow');
+  await React.act(async () => { press().click(); });
+  assert.equal(calls, 1);
+  await React.act(async () => root.unmount());
+  await mount({ mobile: true });
+  await add(notification);
+  assert.ok(press(), 'the action bar has it too');
+  await add({ title: 'Deleted', onUndo: () => {} });
+  assert.equal([...document.querySelectorAll('button')].filter(b => b.textContent === 'compose.undoSend.sendNow').length, 1, 'only undo-send brings it');
+});
