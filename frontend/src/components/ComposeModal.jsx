@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useLayoutEffect, useCallback, forwardRef }
 import { flushSync } from 'react-dom';
 import { createComposeSwitch } from '../utils/composeSwitch.js';
 import { shouldAutosave, isAutosaveDue } from '../utils/draftAutosave.js';
+import { fitTextarea } from '../utils/fitTextarea.js';
 import { useTranslation } from 'react-i18next';
 import DOMPurify from 'dompurify';
 import { sanitizeEmailForApp } from '../utils/appEmailHtml.js';
@@ -490,6 +491,7 @@ export default function ComposeModal() {
   const imageInputRef = useRef(null);
   const signatureRef = useRef(null);
   const quotedHtmlRef = useRef(null);
+  const quotedTextRef = useRef(null);
   const composeWindowRef = useRef(null);
   const posRef = useRef(null);
   const customSizeRef = useRef(null);
@@ -768,6 +770,14 @@ export default function ComposeModal() {
     captureEl.addEventListener('pointercancel', cleanupNoCommit);
     window.addEventListener('blur', cleanupNoCommit);
   }, [maximized]);
+
+  // Grow the plain-text quote with its content (and on maximize / window resize).
+  useLayoutEffect(() => {
+    const fit = () => fitTextarea(quotedTextRef.current, 120);
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, [quotedBody, maximized, plaintextEmail, quotedBodyHtml]);
 
   const handleResizeDragStart = useCallback((e) => {
     if (e.button !== 0) return;
@@ -3111,6 +3121,7 @@ export default function ComposeModal() {
               />
             ) : (
               <textarea
+                ref={quotedTextRef}
                 value={quotedBody}
                 onChange={e => setQuotedBody(e.target.value)}
                 style={{
@@ -3119,7 +3130,7 @@ export default function ComposeModal() {
                   background: 'transparent',
                   border: 'none', borderTop: '1px solid var(--border-subtle)',
                   color: 'var(--text-tertiary)', fontSize: 13, lineHeight: 1.6,
-                  resize: 'none', outline: 'none',
+                  resize: 'none', overflow: 'hidden', outline: 'none',
                   fontFamily: 'var(--font-sans)',
                   boxSizing: 'border-box', whiteSpace: 'pre-wrap',
                 }}
@@ -3753,6 +3764,7 @@ export default function ComposeModal() {
             />
           ) : (
             <textarea
+              ref={quotedTextRef}
               value={quotedBody}
               onChange={e => setQuotedBody(e.target.value)}
               style={{
@@ -3762,7 +3774,7 @@ export default function ComposeModal() {
                 borderTop: '1px solid var(--border-subtle)', borderBottom: 'none',
                 borderLeft: 'none', borderRight: 'none',
                 color: 'var(--text-tertiary)', fontSize: 12, lineHeight: 1.6,
-                resize: 'vertical', outline: 'none',
+                resize: 'none', overflow: 'hidden', outline: 'none',
                 fontFamily: 'var(--font-sans)',
                 boxSizing: 'border-box', whiteSpace: 'pre-wrap',
               }}
