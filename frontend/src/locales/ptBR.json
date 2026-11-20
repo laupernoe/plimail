@@ -575,7 +575,11 @@
       "body": "Removidas.",
       "failTitle": "Falha ao excluir",
       "failBody_one": "Não foi possível excluir {{count}} mensagem.",
-      "failBody_other": "Não foi possível excluir {{count}} mensagens."
+      "failBody_other": "Não foi possível excluir {{count}} mensagens.",
+      "noTrash_one": "Nenhuma pasta Lixeira definida para esta conta, então {{count}} mensagem foi mantida. Escolha uma nas configurações da conta.",
+      "noTrash_other": "Nenhuma pasta Lixeira definida para esta conta, então {{count}} mensagens foram mantidas. Escolha uma nas configurações da conta.",
+      "offline_one": "Não foi possível contatar o servidor; {{count}} mensagem foi mantida.",
+      "offline_other": "Não foi possível contatar o servidor; {{count}} mensagens foram mantidas."
     },
     "bulkMoved": {
       "title_one": "{{count}} mensagem movida",
@@ -686,7 +690,10 @@
     "categoryCountTitle": "Mensagens: {{total}} · Não lidas: {{unread}}",
     "emptyCategory": "Nada em {{category}}",
     "emptyCategoryOthers": "As outras categorias ainda têm e-mails.",
-    "emptyCategoryNone": "A caixa de entrada está vazia."
+    "emptyCategoryNone": "A caixa de entrada está vazia.",
+    "deleteForever": "Excluir definitivamente",
+    "confirmPermanentDelete_one": "Excluir definitivamente {{count}} mensagem? Ela já está na lixeira e não poderá ser recuperada.",
+    "confirmPermanentDelete_other": "Excluir definitivamente {{count}} mensagens? Elas já estão na lixeira e não poderão ser recuperadas."
   },
   "lockScreen": {
     "subtitle": "Digite seu PIN para desbloquear",
@@ -939,7 +946,9 @@
       "favorites": "Favoritas",
       "search": "Pesquisar pastas…"
     },
-    "exportSelection": "Exportar as mensagens selecionadas (.mbox)"
+    "exportSelection": "Exportar as mensagens selecionadas (.mbox)",
+    "deleteSelection_one": "Excluir {{count}} mensagem",
+    "deleteSelection_other": "Excluir {{count}} mensagens"
   },
   "commandPalette": {
     "labelPicker": {

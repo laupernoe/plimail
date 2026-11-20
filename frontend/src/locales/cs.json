@@ -365,7 +365,11 @@
       "failBody_one": "Nepodařilo se smazat {{count}} zprávu.",
       "failBody_few": "Nepodařilo se smazat {{count}} zprávy.",
       "failBody_many": "Nepodařilo se smazat {{count}} zprávy.",
-      "failBody_other": "Nepodařilo se smazat {{count}} zpráv."
+      "failBody_other": "Nepodařilo se smazat {{count}} zpráv.",
+      "noTrash_one": "Tento účet nemá nastavenou složku Koš, proto byly zprávy ponechány ({{count}}). Vyberte ji v nastavení účtu.",
+      "noTrash_other": "Tento účet nemá nastavenou složku Koš, proto byly ponechány zprávy: {{count}}. Vyberte ji v nastavení účtu.",
+      "offline_one": "Server je nedostupný; ponechané zprávy: {{count}}.",
+      "offline_other": "Server je nedostupný, ponechané zprávy: {{count}}."
     },
     "bulkMoved": {
       "title_one": "Přesunuta {{count}} zpráva",
@@ -484,7 +488,10 @@
     "categoryCountTitle": "Zprávy: {{total}} · Nepřečtené: {{unread}}",
     "emptyCategory": "V kategorii {{category}} nic není",
     "emptyCategoryOthers": "V ostatních kategoriích pošta je.",
-    "emptyCategoryNone": "Doručená pošta je prázdná."
+    "emptyCategoryNone": "Doručená pošta je prázdná.",
+    "deleteForever": "Smazat natrvalo",
+    "confirmPermanentDelete_one": "Natrvalo smazat zprávy ({{count}})? Zpráva už je v koši a nepůjde obnovit.",
+    "confirmPermanentDelete_other": "Natrvalo smazat zprávy ({{count}})? Zprávy už jsou v koši a nepůjdou obnovit."
   },
   "message": {
     "find": {
@@ -1022,7 +1029,9 @@
       "favorites": "Oblíbené",
       "search": "Hledat složky…"
     },
-    "exportSelection": "Exportovat vybrané zprávy (.mbox)"
+    "exportSelection": "Exportovat vybrané zprávy (.mbox)",
+    "deleteSelection_one": "Smazat zprávy ({{count}})",
+    "deleteSelection_other": "Smazat vybrané zprávy ({{count}})"
   },
   "shortcuts": {
     "title": "Klávesové zkratky",

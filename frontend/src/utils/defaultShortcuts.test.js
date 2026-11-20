@@ -1,7 +1,7 @@
 // Run with: node --test src/utils/defaultShortcuts.test.js
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildKeyMap, buildModKeyMap, getShortcutConflicts, resolveShortcutAction, shortcutBindingFromEvent } from './defaultShortcuts.js';
+import { buildKeyMap, buildModKeyMap, deleteKeyAction, getShortcutConflicts, resolveShortcutAction, shortcutBindingFromEvent } from './defaultShortcuts.js';
 
 const keyEvent = (key, modifiers = {}) => ({ key, ctrlKey: false, metaKey: false, shiftKey: false, altKey: false, ...modifiers });
 
@@ -114,5 +114,19 @@ describe('modifier shortcuts', () => {
     assert.deepEqual(getShortcutConflicts({ toggleStar: 'shift+ctrl+U' }), [
       { key: 'ctrl+shift+u', loser: 'unsubscribe', winner: 'toggleStar' },
     ]);
+  });
+});
+
+describe('the Delete and Backspace keys', () => {
+  it('delete, beside whatever key the delete action is bound to', () => {
+    assert.equal(deleteKeyAction(keyEvent('Delete')), 'delete');
+    assert.equal(deleteKeyAction(keyEvent('Backspace')), 'delete');
+    assert.equal(deleteKeyAction(keyEvent('Delete'), { delete: 'd' }), 'delete');
+  });
+  it('leave other keys, modified presses and a user binding of the key alone', () => {
+    assert.equal(deleteKeyAction(keyEvent('#')), null);
+    assert.equal(deleteKeyAction(keyEvent('Delete', { shiftKey: true })), null);
+    assert.equal(deleteKeyAction(keyEvent('Backspace', { metaKey: true })), null);
+    assert.equal(deleteKeyAction(keyEvent('Delete'), { archive: 'Delete' }), null);
   });
 });

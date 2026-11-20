@@ -575,7 +575,11 @@
       "body": "Removed.",
       "failTitle": "Delete failed",
       "failBody_one": "Could not delete {{count}} message.",
-      "failBody_other": "Could not delete {{count}} messages."
+      "failBody_other": "Could not delete {{count}} messages.",
+      "noTrash_one": "No Trash folder is set for this account, so {{count}} message was kept. Choose one in the account settings.",
+      "noTrash_other": "No Trash folder is set for this account, so {{count}} messages were kept. Choose one in the account settings.",
+      "offline_one": "The server could not be reached; {{count}} message was kept.",
+      "offline_other": "The server could not be reached; {{count}} messages were kept."
     },
     "bulkMoved": {
       "title_one": "{{count}} message moved",
@@ -686,7 +690,10 @@
     "categoryCountTitle": "Messages: {{total}} · Unread: {{unread}}",
     "emptyCategory": "Nothing in {{category}}",
     "emptyCategoryOthers": "Other categories still have mail.",
-    "emptyCategoryNone": "The Inbox is empty."
+    "emptyCategoryNone": "The Inbox is empty.",
+    "deleteForever": "Delete forever",
+    "confirmPermanentDelete_one": "Permanently delete {{count}} message? It is already in Trash and cannot be recovered.",
+    "confirmPermanentDelete_other": "Permanently delete {{count}} messages? They are already in Trash and cannot be recovered."
   },
   "lockScreen": {
     "subtitle": "Enter your PIN to unlock",
@@ -939,7 +946,9 @@
       "favorites": "Favorites",
       "search": "Search folders…"
     },
-    "exportSelection": "Export selected messages (.mbox)"
+    "exportSelection": "Export selected messages (.mbox)",
+    "deleteSelection_one": "Delete {{count}} message",
+    "deleteSelection_other": "Delete {{count}} messages"
   },
   "commandPalette": {
     "labelPicker": {

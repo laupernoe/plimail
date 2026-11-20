@@ -572,7 +572,11 @@
       "body": "제거됨.",
       "failBody_other": "{{count}} 메시지를 삭제할 수 없습니다.",
       "failBody_one": "{{count}} 메시지를 삭제할 수 없습니다.",
-      "failTitle": "삭제 실패"
+      "failTitle": "삭제 실패",
+      "noTrash_one": "이 계정에 휴지통 폴더가 설정되지 않아 메시지 {{count}}개가 유지되었습니다. 계정 설정에서 선택하세요.",
+      "noTrash_other": "이 계정에 휴지통 폴더가 지정되지 않아 메시지 {{count}}개가 유지되었습니다. 계정 설정에서 선택하세요.",
+      "offline_one": "서버에 연결할 수 없어 메시지 {{count}}개가 유지되었습니다.",
+      "offline_other": "서버에 연결하지 못해 메시지 {{count}}개가 유지되었습니다."
     },
     "moveToFolderDisabled": "이동할 한 계정의 메시지를 선택하세요.",
     "clearSelection": "선택 취소",
@@ -686,7 +690,10 @@
     "categoryCountTitle": "메시지: {{total}} · 읽지 않음: {{unread}}",
     "emptyCategory": "{{category}}에 메일이 없습니다",
     "emptyCategoryOthers": "다른 카테고리에는 메일이 있습니다.",
-    "emptyCategoryNone": "받은편지함이 비어 있습니다."
+    "emptyCategoryNone": "받은편지함이 비어 있습니다.",
+    "deleteForever": "영구 삭제",
+    "confirmPermanentDelete_one": "메시지 {{count}}개를 영구 삭제할까요? 이미 휴지통에 있어 복구할 수 없습니다.",
+    "confirmPermanentDelete_other": "메시지 {{count}}개를 영구히 삭제할까요? 이미 휴지통에 있어 복구할 수 없습니다."
   },
   "lockScreen": {
     "unlockButton": "잠금 해제",
@@ -939,7 +946,9 @@
       "back": "폴더로 이동",
       "search": "폴더 검색…"
     },
-    "exportSelection": "선택한 메일 내보내기 (.mbox)"
+    "exportSelection": "선택한 메일 내보내기 (.mbox)",
+    "deleteSelection_one": "메시지 {{count}}개 삭제",
+    "deleteSelection_other": "선택한 메시지 {{count}}개 삭제"
   },
   "commandPalette": {
     "labelPicker": {

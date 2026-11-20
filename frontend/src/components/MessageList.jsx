@@ -49,6 +49,7 @@ import { createLatestRequest } from '../utils/latestRequest.js';
 import { refreshListWindow, createTrailingRefresh } from '../utils/listRefresh.js';
 import { applyReadGuard as guardReads, clearReadGuard, failMarkRead, setPending, settleMarkRead } from '../utils/pendingReads.js';
 import { applyDeleteGuard, clearDeleteGuard, clearPendingDelete, setCompletedDelete, setPendingDelete, threadDeleteGuardKey } from '../utils/pendingDeletes.js';
+import { BULK_DELETE_BATCH, bulkDeleteFailureBody, deleteInBatches, isInTrash } from '../utils/bulkDelete.js';
 import {
   archiveInChunks,
   archiveTargetGroupsForRows,
@@ -259,6 +260,8 @@ function MailboxList() {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [selectionModeActive, setSelectionModeActive] = useState(false);
   const [showFolderPicker, setShowFolderPicker] = useState(false);
+  // { ids, msgs, count }: a delete that would expunge mail already in Trash, waiting for a yes.
+  const [confirmPermanent, setConfirmPermanent] = useState(null);
   const [pickerFolders, setPickerFolders] = useState([]);
   const [pickerLoading, setPickerLoading] = useState(false);
   const [pickerSearch, setPickerSearch] = useState('');
@@ -355,7 +358,10 @@ function MailboxList() {
   // Ref that always holds the latest values needed by shortcut handlers.
   // Updated synchronously on every render so handlers are never stale.
   const scRef = useRef({});
-  scRef.current = { messages, selectedIds, setSelectedIds, updateMessage, decrementUnread, addNotification };
+  scRef.current = {
+    messages, selectedIds, setSelectedIds, updateMessage, decrementUnread, addNotification,
+    endSelection: () => { setSelectedIds(new Set()); setSelectionModeActive(false); },
+  };
   const tRef = useRef(t);
   useEffect(() => { tRef.current = t; }, [t]);
 
@@ -1087,10 +1093,9 @@ function MailboxList() {
       pendingDeleteTimers.current.delete(key);
       try {
         if (ids.length > 1) {
-          const result = await api.bulkDelete(ids);
-          const deletedSet = new Set(result.deleted ?? []);
+          const { deleted: deletedSet, failed } = await deleteInBatches(ids, api.bulkDelete);
           ids.forEach(id => (deletedSet.has(id) ? setCompletedDelete(id) : clearDeleteGuard(id)));
-          const failedIds = ids.filter(id => !deletedSet.has(id));
+          const failedIds = failed.map(f => f.id);
           if (failedIds.length > 0) {
             const idToMsg = new Map(deleteMessages.map(m => [m.id, m]));
             const failedUnreadDelta = failedIds.filter(id => idToMsg.has(id) && !idToMsg.get(id).is_read).length;
@@ -1099,7 +1104,7 @@ function MailboxList() {
             addNotification({
               type: 'error',
               title: t('messageList.bulkDeleted.failTitle'),
-              body: t('messageList.bulkDeleted.failBody', { count: failedIds.length }),
+              body: bulkDeleteFailureBody(t, failed),
             });
           }
         } else {
@@ -1235,13 +1240,16 @@ function MailboxList() {
         const deleteIds = ids?.length ? ids : [message.id];
         try {
           if (deleteIds.length > 1) {
-            fetch('/api/mail/messages/bulk-delete', {
-              method: 'POST',
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'Plimail' },
-              body: JSON.stringify({ ids: deleteIds }),
-              keepalive: true,
-            });
+            // The server refuses more than a batch per request, which would keep every one.
+            for (let i = 0; i < deleteIds.length; i += BULK_DELETE_BATCH) {
+              fetch('/api/mail/messages/bulk-delete', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'Plimail' },
+                body: JSON.stringify({ ids: deleteIds.slice(i, i + BULK_DELETE_BATCH) }),
+                keepalive: true,
+              });
+            }
           } else {
             fetch(`/api/mail/messages/${deleteIds[0]}`, {
               method: 'DELETE',
@@ -1271,11 +1279,11 @@ function MailboxList() {
         const deleteIds = ids?.length ? ids : [message.id];
         const deletePromise =
           deleteIds.length > 1
-            ? api.bulkDelete(deleteIds)
+            ? deleteInBatches(deleteIds, api.bulkDelete)
             : api.deleteMessage(deleteIds[0]);
         deletePromise
           .then(result => {
-            const actuallyDeleted = new Set(result?.deleted ?? deleteIds);
+            const actuallyDeleted = result?.deleted instanceof Set ? result.deleted : new Set(result?.deleted ?? deleteIds);
             deleteIds.forEach(id => (actuallyDeleted.has(id) ? setCompletedDelete(id) : clearDeleteGuard(id)));
           })
           .catch(() => { deleteIds.forEach((id) => clearDeleteGuard(id)); });
@@ -1561,27 +1569,17 @@ function MailboxList() {
     const timer = setTimeout(async () => {
       pendingDeleteTimers.current.delete(key);
       if (undone) return;
-      const chunks = [];
-      for (let i = 0; i < deleteIds.length; i += 500) chunks.push(deleteIds.slice(i, i + 500));
-      const results = await Promise.allSettled(chunks.map(chunk => api.bulkDelete(chunk)));
-      results
-        .filter(r => r.status === 'rejected')
-        .forEach(r => console.error('Bulk delete failed:', r.reason?.message));
-      const deleted = results
-        .filter(r => r.status === 'fulfilled')
-        .flatMap(r => r.value.deleted ?? []);
-      const deletedSet = new Set(deleted);
+      const { deleted: deletedSet, failed } = await deleteInBatches(deleteIds, api.bulkDelete);
       deleteIds.forEach(id => (deletedSet.has(id) ? setCompletedDelete(id) : clearDeleteGuard(id)));
-      const failedIds = deleteIds.filter(id => !deletedSet.has(id));
-      if (failedIds.length > 0) {
-        const failedSet = new Set(failedIds);
+      if (failed.length > 0) {
+        const failedSet = new Set(failed.map(f => f.id));
         const failedMsgs = msgs.filter(msg => failedSet.has(msg.id));
         useStore.getState().restoreMessages(failedMsgs);
         failedMsgs.forEach(msg => {
           const delta = parseInt(msg.unread_count) || (msg.is_read ? 0 : 1);
           if (delta > 0) incrementUnread(msg.account_id, delta);
         });
-        addNotification({ type: 'error', title: t('messageList.bulkDeleted.failTitle'), body: t('messageList.bulkDeleted.failBody', { count: failedIds.length }) });
+        addNotification({ type: 'error', title: t('messageList.bulkDeleted.failTitle'), body: bulkDeleteFailureBody(t, failed) });
       }
       if (useStore.getState().searchQuery.trim()) {
         setSearchReloadToken(token => token + 1);
@@ -1607,6 +1605,19 @@ function MailboxList() {
       },
     });
   }, [searchHasMore, removeMessage, prefetchSearchAfterRemoval, resolveMessagesForThreadAction, decrementUnread, incrementUnread, addNotification, t]);
+
+  // Every bulk delete goes through here: the toolbar, the Delete key and the context menu.
+  // Deleting mail already in Trash expunges it on the server, so that asks first.
+  const requestBulkDelete = useCallback((ids, msgs) => {
+    if (!ids.length) return;
+    const { folders, accounts } = useStore.getState();
+    const permanent = msgs.filter(m => isInTrash(m, { folders, accounts })).length;
+    if (permanent > 0) {
+      setConfirmPermanent({ ids, msgs, count: permanent });
+      return;
+    }
+    handleBulkDelete(ids, msgs);
+  }, [handleBulkDelete]);
 
   const handleBulkMove = useCallback(async (ids, msgs, folder) => {
     // Selected thread rows move the whole conversation. A folder path is
@@ -1685,6 +1696,13 @@ function MailboxList() {
     }
     e.dataTransfer.setData('application/x-mailflow-message', JSON.stringify(payload));
     e.dataTransfer.effectAllowed = 'move';
+    // Dropping a checked row on a folder ends selection mode at once, as the bulk buttons do;
+    // the undo toast still brings the messages back.
+    if (selectedIds.has(message.id)) {
+      document.addEventListener('dragend', (end) => {
+        if (end.dataTransfer?.dropEffect && end.dataTransfer.dropEffect !== 'none') scRef.current.endSelection?.();
+      }, { once: true });
+    }
   }, []);
 
   const handleBulkArchive = useCallback((ids, msgs) => {
@@ -1974,10 +1992,10 @@ function MailboxList() {
   const contextActionRef = useRef(null);
   // handleContextAction is not memoized, so refresh the ref every render.
   useEffect(() => { contextActionRef.current = handleContextAction; });
-  const bulkDeleteRef    = useRef(handleBulkDelete);
+  const bulkDeleteRef    = useRef(requestBulkDelete);
   const bulkArchiveRef   = useRef(handleBulkArchive);
   const scheduleDeleteRef = useRef(scheduleDelete);
-  useEffect(() => { bulkDeleteRef.current    = handleBulkDelete;  }, [handleBulkDelete]);
+  useEffect(() => { bulkDeleteRef.current    = requestBulkDelete; }, [requestBulkDelete]);
   useEffect(() => { bulkArchiveRef.current   = handleBulkArchive; }, [handleBulkArchive]);
   useEffect(() => { archiveVisibleMessageRef.current = archiveVisibleMessage; }, [archiveVisibleMessage]);
   useEffect(() => { scheduleDeleteRef.current = scheduleDelete;   }, [scheduleDelete]);
@@ -2477,7 +2495,7 @@ function MailboxList() {
       case 'delete':
         if (selectedIds.size > 1 && selectedIds.has(message.id)) {
           const bulkMsgs = displayMessages.filter(m => selectedIds.has(m.id));
-          handleBulkDelete([...selectedIds], bulkMsgs);
+          requestBulkDelete([...selectedIds], bulkMsgs);
         } else {
           scheduleDelete(message);
         }
@@ -2770,6 +2788,7 @@ function MailboxList() {
   const selectedMsgs = displayMessages.filter(m => selectedIds.has(m.id));
   const selectedCount = selectedIds.size;
   const allSelected = displayMessages.length > 0 && selectedIds.size === displayMessages.length;
+  const selectedInTrash = selectedMsgs.length > 0 && selectedMsgs.some(m => isInTrash(m, { folders, accounts }));
   const selectedAccountIds = [...new Set(selectedMsgs.map(m => m.account_id))];
   const canMove = selectedAccountIds.length === 1;
   const bulkMarkAsRead = selectedMsgs.some(m => !m.is_read);
@@ -3514,6 +3533,7 @@ function MailboxList() {
               checked={allSelected}
               onChange={e => e.target.checked ? selectAll(displayMessages) : clearSelection()}
               title={allSelected ? t('messageList.deselectAll') : t('messageList.selectAll')}
+              aria-label={allSelected ? t('messageList.deselectAll') : t('messageList.selectAll')}
               style={{ cursor: 'pointer', accentColor: 'var(--accent)', flexShrink: 0 }}
             />
             <span style={{ fontSize: 12, color: 'var(--text-secondary)', flex: 1, userSelect: 'none' }}>
@@ -3563,10 +3583,12 @@ function MailboxList() {
               </svg>
             </BulkBtn>
 
-            {/* Delete button */}
+            {/* Delete button: labelled, the one action people look for first */}
             <BulkBtn
-              title={t('messageList.deleteSelected')}
-              onClick={() => handleBulkDelete([...selectedIds], selectedMsgs)}
+              title={selectedInTrash ? t('messageList.deleteForever') : t('messageList.deleteSelected')}
+              label={selectedInTrash ? t('messageList.deleteForever') : t('contextMenu.delete')}
+              onClick={() => requestBulkDelete([...selectedIds], selectedMsgs)}
+              disabled={selectedCount === 0}
               danger
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -3896,6 +3918,49 @@ function MailboxList() {
               />
             );
           })
+        )}
+
+        {confirmPermanent && (
+          <div
+            onClick={() => setConfirmPermanent(null)}
+            onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); setConfirmPermanent(null); } }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 9000,
+              background: 'rgba(0,0,0,0.55)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+            }}
+          >
+            <div
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="confirm-permanent-delete"
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)',
+                borderRadius: 12, padding: '24px 24px 20px', maxWidth: 380, width: '100%',
+                boxShadow: 'var(--shadow-modal)',
+              }}
+            >
+              <p id="confirm-permanent-delete" style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.5 }}>
+                {t('messageList.confirmPermanentDelete', { count: confirmPermanent.count })}
+              </p>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button autoFocus onClick={() => setConfirmPermanent(null)} className="btn-press" style={{
+                  padding: '7px 16px', borderRadius: 7, border: '1px solid var(--border-subtle)',
+                  background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 13,
+                }}>{t('common.cancel')}</button>
+                <button
+                  data-confirm-permanent-delete
+                  onClick={() => { const { ids, msgs } = confirmPermanent; setConfirmPermanent(null); handleBulkDelete(ids, msgs); }}
+                  className="btn-press"
+                  style={{
+                    padding: '7px 16px', borderRadius: 7, border: 'none',
+                    background: 'var(--red)', color: 'var(--status-text)', cursor: 'pointer', fontSize: 13, fontWeight: 500,
+                  }}
+                >{t('messageList.deleteForever')}</button>
+              </div>
+            </div>
+          </div>
         )}
 
         {contextMenu && (
@@ -4909,18 +4974,20 @@ function MessageRow({ message, selected, lastViewed, isChecked, selectionMode, s
   );
 }
 
-function BulkBtn({ children, onClick, title, disabled, danger }) {
+function BulkBtn({ children, onClick, title, label, disabled, danger }) {
   const [hov, setHov] = useState(false);
   return (
     <button
       onClick={onClick}
       title={title}
+      aria-label={title}
       disabled={disabled}
       onMouseEnter={() => { if (!disabled) setHov(true); }}
       onMouseLeave={() => setHov(false)}
       style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
         padding: '5px 7px', borderRadius: 6,
+        fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap',
         cursor: disabled ? 'not-allowed' : 'pointer',
         border: `1px solid ${hov && !disabled ? (danger ? 'var(--red, #ef4444)' : 'var(--accent)') : 'var(--border)'}`,
         background: hov && !disabled ? (danger ? 'rgba(239,68,68,0.1)' : 'var(--accent-dim)') : 'var(--bg-tertiary)',
@@ -4931,6 +4998,7 @@ function BulkBtn({ children, onClick, title, disabled, danger }) {
       }}
     >
       {children}
+      {label && <span>{label}</span>}
     </button>
   );
 }

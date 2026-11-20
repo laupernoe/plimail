@@ -575,7 +575,11 @@
       "body": "Movido a la papelera.",
       "failTitle": "Error al eliminar",
       "failBody_one": "No se pudo eliminar {{count}} mensaje.",
-      "failBody_other": "No se pudieron eliminar {{count}} mensajes."
+      "failBody_other": "No se pudieron eliminar {{count}} mensajes.",
+      "noTrash_one": "Esta cuenta no tiene carpeta Papelera, así que se conservó {{count}} mensaje. Elige una en los ajustes de la cuenta.",
+      "noTrash_other": "Esta cuenta no tiene carpeta Papelera, así que se conservaron {{count}} mensajes. Elige una en los ajustes de la cuenta.",
+      "offline_one": "No se pudo contactar con el servidor; se conservó {{count}} mensaje.",
+      "offline_other": "No se pudo contactar con el servidor; se conservaron {{count}} mensajes."
     },
     "bulkMoved": {
       "title_one": "{{count}} mensaje movido",
@@ -686,7 +690,10 @@
     "categoryCountTitle": "Mensajes: {{total}} · Sin leer: {{unread}}",
     "emptyCategory": "No hay nada en {{category}}",
     "emptyCategoryOthers": "Las otras categorías todavía tienen correo.",
-    "emptyCategoryNone": "La bandeja de entrada está vacía."
+    "emptyCategoryNone": "La bandeja de entrada está vacía.",
+    "deleteForever": "Eliminar definitivamente",
+    "confirmPermanentDelete_one": "¿Eliminar definitivamente {{count}} mensaje? Ya está en la papelera y no se podrá recuperar.",
+    "confirmPermanentDelete_other": "¿Eliminar definitivamente {{count}} mensajes? Ya están en la papelera y no se podrán recuperar."
   },
   "lockScreen": {
     "subtitle": "Introduce tu PIN para desbloquear",
@@ -939,7 +946,9 @@
       "favorites": "Favoritos",
       "search": "Buscar carpetas…"
     },
-    "exportSelection": "Exportar los mensajes seleccionados (.mbox)"
+    "exportSelection": "Exportar los mensajes seleccionados (.mbox)",
+    "deleteSelection_one": "Eliminar {{count}} mensaje",
+    "deleteSelection_other": "Eliminar {{count}} mensajes"
   },
   "commandPalette": {
     "labelPicker": {

@@ -575,7 +575,11 @@
       "body": "In den Papierkorb verschoben.",
       "failTitle": "Löschen fehlgeschlagen",
       "failBody_one": "{{count}} Nachricht konnte nicht gelöscht werden.",
-      "failBody_other": "{{count}} Nachrichten konnten nicht gelöscht werden."
+      "failBody_other": "{{count}} Nachrichten konnten nicht gelöscht werden.",
+      "noTrash_one": "Für dieses Konto ist kein Papierkorb festgelegt, daher wurde {{count}} Nachricht behalten. Wählen Sie einen in den Kontoeinstellungen.",
+      "noTrash_other": "Für dieses Konto ist kein Papierkorb festgelegt, daher wurden {{count}} Nachrichten behalten. Wählen Sie einen in den Kontoeinstellungen.",
+      "offline_one": "Der Server war nicht erreichbar; {{count}} Nachricht wurde behalten.",
+      "offline_other": "Der Server war nicht erreichbar; {{count}} Nachrichten wurden behalten."
     },
     "bulkMoved": {
       "title_one": "{{count}} Nachricht verschoben",
@@ -686,7 +690,10 @@
     "categoryCountTitle": "Nachrichten: {{total}} · Ungelesen: {{unread}}",
     "emptyCategory": "Nichts in {{category}}",
     "emptyCategoryOthers": "Andere Kategorien enthalten noch Nachrichten.",
-    "emptyCategoryNone": "Der Posteingang ist leer."
+    "emptyCategoryNone": "Der Posteingang ist leer.",
+    "deleteForever": "Endgültig löschen",
+    "confirmPermanentDelete_one": "{{count}} Nachricht endgültig löschen? Sie liegt bereits im Papierkorb und kann nicht wiederhergestellt werden.",
+    "confirmPermanentDelete_other": "{{count}} Nachrichten endgültig löschen? Sie liegen bereits im Papierkorb und können nicht wiederhergestellt werden."
   },
   "lockScreen": {
     "subtitle": "Gib deine PIN zum Entsperren ein",
@@ -939,7 +946,9 @@
     "addToBlockList": "Zur Blockliste hinzufügen",
     "markAsSpam": "Als Spam markieren",
     "markAsHam": "Als kein Spam markieren",
-    "exportSelection": "Ausgewählte Nachrichten exportieren (.mbox)"
+    "exportSelection": "Ausgewählte Nachrichten exportieren (.mbox)",
+    "deleteSelection_one": "{{count}} Nachricht löschen",
+    "deleteSelection_other": "{{count}} Nachrichten löschen"
   },
   "commandPalette": {
     "labelPicker": {

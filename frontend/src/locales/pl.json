@@ -581,7 +581,11 @@
       "failBody_one": "Nie udało się usunąć {{count}} wiadomości.",
       "failBody_few": "Nie udało się usunąć {{count}} wiadomości.",
       "failBody_many": "Nie udało się usunąć {{count}} wiadomości.",
-      "failBody_other": "Nie udało się usunąć {{count}} wiadomości."
+      "failBody_other": "Nie udało się usunąć {{count}} wiadomości.",
+      "noTrash_one": "To konto nie ma ustawionego folderu Kosz, więc zachowano wiadomości: {{count}}. Wybierz go w ustawieniach konta.",
+      "noTrash_other": "To konto nie ma ustawionego folderu Kosz, więc zachowano wiadomości: {{count}}. Wybierz folder w ustawieniach konta.",
+      "offline_one": "Nie udało się połączyć z serwerem; zachowano wiadomości: {{count}}.",
+      "offline_other": "Nie udało się połączyć z serwerem, zachowano wiadomości: {{count}}."
     },
     "bulkMoved": {
       "title_one": "Przeniesiono {{count}} wiadomość",
@@ -700,7 +704,10 @@
     "categoryCountTitle": "Wiadomości: {{total}} · Nieprzeczytane: {{unread}}",
     "emptyCategory": "Brak wiadomości w kategorii {{category}}",
     "emptyCategoryOthers": "W innych kategoriach są jeszcze wiadomości.",
-    "emptyCategoryNone": "Skrzynka odbiorcza jest pusta."
+    "emptyCategoryNone": "Skrzynka odbiorcza jest pusta.",
+    "deleteForever": "Usuń na zawsze",
+    "confirmPermanentDelete_one": "Usunąć na zawsze wiadomości: {{count}}? Jest już w koszu i nie da się jej odzyskać.",
+    "confirmPermanentDelete_other": "Usunąć na zawsze wiadomości: {{count}}? Są już w koszu i nie da się ich odzyskać."
   },
   "lockScreen": {
     "subtitle": "Wpisz swój PIN aby odblokować",
@@ -955,7 +962,9 @@
       "search": "Szukaj folderów…"
     },
     "copyLink": "Kopiuj link",
-    "exportSelection": "Eksportuj zaznaczone wiadomości (.mbox)"
+    "exportSelection": "Eksportuj zaznaczone wiadomości (.mbox)",
+    "deleteSelection_one": "Usuń wiadomości: {{count}}",
+    "deleteSelection_other": "Usuń zaznaczone wiadomości ({{count}})"
   },
   "commandPalette": {
     "labelPicker": {
