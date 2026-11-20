@@ -1660,3 +1660,60 @@ describe('the composer toolbar\'s More formatting menu', () => {
     }
   });
 });
+
+describe('Open in new window (pop-out)', () => {
+  const replyData = {
+    accountId: 'A', isReply: true, subject: 'Re: Plan', body: '', inReplyTo: '<orig@example.invalid>',
+    references: '<orig@example.invalid>', to: ['Bob <bob@example.invalid>'], quotedBody: 'the original text',
+  };
+  const accounts = [{ id: 'A', enabled: true, email_address: 'a@example.invalid', name: 'A', color: '#fff' }];
+  let realOpen;
+  let unmount;
+  const popOutButton = () => document.querySelector('button[title="compose.toolbar.popOut"]');
+  const handoffKeys = () => Object.keys(localStorage).filter(k => k.startsWith('mailflow_compose_handoff_'));
+
+  before(() => { globalThis.requestAnimationFrame ??= cb => setTimeout(() => cb(Date.now()), 0); realOpen = window.open; });
+  after(() => { window.open = realOpen; });
+
+  async function mountReply() {
+    localStorage.clear();
+    useStore.setState({ plaintextEmail: false, accounts, selectedAccountId: 'A', defaultSender: '', composing: false, composeData: null, prepareComposeSwitch: null });
+    useStore.getState().openCompose(replyData);
+    const root = createRoot(document.getElementById('root'));
+    await React.act(async () => { root.render(React.createElement(ComposeModal)); });
+    await React.act(async () => {});
+    unmount = () => React.act(async () => root.unmount());
+  }
+  const click = el => React.act(async () => { el.dispatchEvent(new window.MouseEvent('click', { bubbles: true })); });
+
+  test('a blocked popup leaves the composer as it was and says so', async () => {
+    window.open = () => null;
+    await mountReply();
+    await click(popOutButton());
+    assert.equal(useStore.getState().composing, true);
+    assert.ok(document.body.textContent.includes('compose.popOut.failed'));
+    assert.deepEqual(handoffKeys(), []);
+    await unmount();
+    useStore.setState({ composing: false, composeData: null });
+  });
+
+  test('the reply moves whole, and closes here only once the window has taken it', async () => {
+    const opened = [];
+    window.open = (url) => { opened.push(url); return { close() {} }; };
+    await mountReply();
+    await click(popOutButton());
+    assert.equal(opened.length, 1);
+    const id = new URL(opened[0], 'https://x.invalid').searchParams.get('handoff');
+    const data = JSON.parse(localStorage.getItem(`mailflow_compose_handoff_${id}`));
+    assert.equal(data.inReplyTo, '<orig@example.invalid>');
+    assert.equal(data.references, '<orig@example.invalid>');
+    assert.equal(data.quotedBody, 'the original text');
+    assert.equal(data.subject, 'Re: Plan');
+    assert.equal(useStore.getState().composing, true);
+    const { announceHandoffTaken } = await import('../utils/composeWindow.js');
+    announceHandoffTaken(id);
+    await React.act(async () => { await new Promise(r => setTimeout(r, 100)); });
+    assert.equal(useStore.getState().composing, false);
+    await unmount();
+  });
+});

@@ -72,7 +72,7 @@ import { ensureKeySecret, requestKeyUnlock, unlockOwnKey } from '../utils/pgpUnl
 import { SecureSendError, secureSettingsProblem, sendProtected } from '../utils/secureSend.js';
 import { htmlLang } from '../utils/browserLanguage.js';
 import { FONT_GROUPS, FONT_SIZES, composeFontPayload, composeFontVars, knownFontFamily } from '../utils/composeFont.js';
-import { isComposeWindow } from '../utils/composeWindow.js';
+import { isComposeWindow, popOutCompose } from '../utils/composeWindow.js';
 import { addSuggestionChips, mergeGroupSuggestions, suggestionKey } from '../utils/groupRecipients.js';
 
 // Resize an image blob/file to max maxW pixels wide, preserving aspect ratio.
@@ -2379,6 +2379,24 @@ export default function ComposeModal() {
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, []);
 
+  // Move this composer to a window of its own (utils/composeWindow.js). It closes here only once the
+  // window has taken the message; until then, and if anything fails, it stays as it is.
+  const popOutRef = useRef(null);
+  popOutRef.current = () => {
+    if (sendingRef.current || scheduledEdit || inWindow) return;
+    const { accountId, aliasId } = resolveFrom(fromValue);
+    let data;
+    try { data = buildRestoreData(buildSendPayload(accountId, aliasId)); } catch { setError(t('compose.popOut.failed')); return; }
+    popOutCompose({
+      data,
+      onTaken: () => {
+        const active = useStore.getState();
+        if (active.composing && active.composeSession === composeSession) closeCompose();
+      },
+      onFailed: () => setError(t('compose.popOut.failed')),
+    });
+  };
+
   const handleSaveDraft = (closeAfter = false) => {
     if ((attachments.length > 0 || fwdAttachments.length > 0) && !showAttachWarnForDraft) {
       setAttachWarnDraftCloseAfter(closeAfter);
@@ -3545,6 +3563,11 @@ export default function ComposeModal() {
         )}
 
         <div style={{ display: 'flex', gap: 4 }}>
+          {!inWindow && !scheduledEdit && <TitleBtn onClick={() => popOutRef.current()} title={t('compose.toolbar.popOut')}>
+            <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          </TitleBtn>}
           {!inWindow && <TitleBtn onClick={() => setMinimized(true)} title={t('compose.toolbar.minimize')}>
             <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="5" y1="12" x2="19" y2="12"/>

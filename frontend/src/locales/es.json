@@ -215,7 +215,8 @@
       "aiReplyLeftOut": "Basada en los {{count}} mensajes más recientes de la conversación: los más antiguos se dejaron fuera.",
       "aiTooLong": "este borrador tiene {{count}} caracteres, más de los {{max}} que admite la IA. Acórtalo o elimina el texto citado y vuelve a intentarlo.",
       "aiNotAllowed": "tu administrador ha desactivado la IA en tu cuenta.",
-      "aiFeatureOff": "tu administrador ha desactivado el asistente de redacción con IA."
+      "aiFeatureOff": "tu administrador ha desactivado el asistente de redacción con IA.",
+      "popOut": "Abrir en una ventana nueva"
     },
     "messageOptions": "Opciones del mensaje",
     "priority": "Prioridad",
@@ -336,6 +337,9 @@
     "readReceiptHint": "Pide al programa de correo del destinatario que confirme que abrió el mensaje. Puede rechazarlo.",
     "window": {
       "loadFailed": "No se pudieron cargar tus cuentas. Cierra esta ventana e inténtalo de nuevo."
+    },
+    "popOut": {
+      "failed": "No se pudo mover este mensaje a una ventana nueva. Sigue abierto aquí."
     }
   },
   "message": {

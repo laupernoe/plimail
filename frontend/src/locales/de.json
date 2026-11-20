@@ -215,7 +215,8 @@
       "aiReplyLeftOut": "Basiert auf den {{count}} neuesten Nachrichten der Unterhaltung: Ältere wurden weggelassen.",
       "aiTooLong": "Dieser Entwurf hat {{count}} Zeichen, mehr als die {{max}}, die die KI verarbeiten kann. Kürzen Sie ihn oder entfernen Sie den zitierten Text und versuchen Sie es erneut.",
       "aiNotAllowed": "Ihr Administrator hat KI für Ihr Konto ausgeschaltet.",
-      "aiFeatureOff": "Ihr Administrator hat den KI-Schreibassistenten ausgeschaltet."
+      "aiFeatureOff": "Ihr Administrator hat den KI-Schreibassistenten ausgeschaltet.",
+      "popOut": "In neuem Fenster öffnen"
     },
     "messageOptions": "Nachrichtenoptionen",
     "priority": "Priorität",
@@ -336,6 +337,9 @@
     "readReceiptHint": "Bittet das Mailprogramm des Empfängers, das Öffnen der Nachricht zu bestätigen. Der Empfänger kann ablehnen.",
     "window": {
       "loadFailed": "Ihre Konten konnten nicht geladen werden. Schließen Sie dieses Fenster und versuchen Sie es erneut."
+    },
+    "popOut": {
+      "failed": "Die Nachricht konnte nicht in ein neues Fenster verschoben werden. Sie bleibt hier geöffnet."
     }
   },
   "message": {

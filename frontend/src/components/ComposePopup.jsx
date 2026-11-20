@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/index.js';
 import { api } from '../utils/api.js';
-import { announceComposeChange } from '../utils/composeWindow.js';
+import { announceComposeChange, announceHandoffTaken, takeHandoff } from '../utils/composeWindow.js';
 import NotificationToasts from './NotificationToasts.jsx';
 
 const ComposeModal = lazy(() => import('./ComposeModal.jsx'));
@@ -42,7 +42,11 @@ export default function ComposePopup() {
         if (started()) { setReady(true); return; }
         const account = new URLSearchParams(window.location.search).get('account');
         if (account && accounts.some(a => a.id === account)) useStore.setState({ selectedAccountId: account });
-        useStore.getState().openCompose({});
+        // A composer popped out of the main window arrives whole; otherwise a blank message.
+        const handoff = new URLSearchParams(window.location.search).get('handoff');
+        const data = takeHandoff(handoff);
+        useStore.getState().openCompose(data || {});
+        if (data) announceHandoffTaken(handoff);
         setReady(true);
       })
       .catch(err => { if (!cancelled && err?.status !== 401) setFailed(true); });

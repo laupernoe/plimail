@@ -115,4 +115,23 @@ describe('ComposePopup', () => {
     await settle(1600);
     assert.equal(closed.length, 1);
   });
+
+  test('a composer popped out of the main window opens with what it held, and the main window is told', async () => {
+    await React.act(async () => root.unmount());
+    localStorage.setItem('mailflow_compose_handoff_h1', JSON.stringify({ subject: 'Re: Plan', inReplyTo: '<o@x>', isReply: true }));
+    dom.window.history.pushState({}, '', '/compose?handoff=h1');
+    const heard = [];
+    const listener = new BroadcastChannel('plimail-compose');
+    listener.onmessage = e => heard.push(e.data);
+    useStore.setState({ composing: false, composeSession: 0, composeData: null, notifications: [] });
+    root = createRoot(document.getElementById('root'));
+    await React.act(async () => root.render(React.createElement(ComposePopup)));
+    await settle(150);
+    listener.close();
+    assert.equal(useStore.getState().composeData.inReplyTo, '<o@x>');
+    assert.equal(useStore.getState().composeData.subject, 'Re: Plan');
+    assert.equal(localStorage.getItem('mailflow_compose_handoff_h1'), null);
+    assert.deepEqual(heard.find(m => m.type === 'handoff-taken'), { type: 'handoff-taken', id: 'h1' });
+    dom.window.history.pushState({}, '', '/compose?account=acc2');
+  });
 });

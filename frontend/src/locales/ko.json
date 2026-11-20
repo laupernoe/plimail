@@ -201,7 +201,8 @@
       "alignCenter": "가운데 정렬",
       "alignRight": "오른쪽 정렬",
       "htmlSource": "HTML 소스 편집",
-      "aiPanelTitle": "AI 제안"
+      "aiPanelTitle": "AI 제안",
+      "popOut": "새 창에서 열기"
     },
     "messageOptions": "메시지 옵션",
     "priority": "우선순위",
@@ -336,6 +337,9 @@
     "readReceiptHint": "수신자의 메일 프로그램에 메시지를 열었는지 확인해 달라고 요청합니다. 수신자는 거절할 수 있습니다.",
     "window": {
       "loadFailed": "계정을 불러올 수 없습니다. 이 창을 닫고 다시 시도하세요."
+    },
+    "popOut": {
+      "failed": "이 메시지를 새 창으로 옮기지 못했습니다. 여기에 그대로 열려 있습니다."
     }
   },
   "message": {

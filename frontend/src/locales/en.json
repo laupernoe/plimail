@@ -215,7 +215,8 @@
       "aiReplyLeftOut": "Based on the latest {{count}} messages of the conversation: older ones were left out.",
       "aiTooLong": "this draft has {{count}} characters, more than the {{max}} the AI can take. Shorten it or remove the quoted text, then try again.",
       "aiNotAllowed": "your administrator has turned AI off for your account.",
-      "aiFeatureOff": "your administrator has turned the AI writing assistant off."
+      "aiFeatureOff": "your administrator has turned the AI writing assistant off.",
+      "popOut": "Open in new window"
     },
     "messageOptions": "Message options",
     "priority": "Priority",
@@ -336,6 +337,9 @@
     "readReceiptHint": "Asks the recipient’s mail program to confirm that the message was opened. They can decline.",
     "window": {
       "loadFailed": "Could not load your accounts. Close this window and try again."
+    },
+    "popOut": {
+      "failed": "Could not move this message to a new window. It is still open here."
     }
   },
   "message": {

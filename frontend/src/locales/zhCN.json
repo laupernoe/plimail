@@ -215,7 +215,8 @@
       "aiReplyLeftOut": "基于对话中最近的 {{count}} 封邮件：更早的邮件未包含在内。",
       "aiTooLong": "此草稿有 {{count}} 个字符，超过 AI 可接受的 {{max}} 个。请缩短内容或删除引用的文字后重试。",
       "aiNotAllowed": "管理员已为您的账户关闭 AI。",
-      "aiFeatureOff": "管理员已关闭 AI 写作助手。"
+      "aiFeatureOff": "管理员已关闭 AI 写作助手。",
+      "popOut": "在新窗口中打开"
     },
     "messageOptions": "邮件选项",
     "priority": "优先级",
@@ -336,6 +337,9 @@
     "readReceiptHint": "请收件人的邮件程序确认已打开该邮件。对方可以拒绝。",
     "window": {
       "loadFailed": "无法加载您的账户。请关闭此窗口后重试。"
+    },
+    "popOut": {
+      "failed": "无法将此邮件移到新窗口。它仍在此处打开。"
     }
   },
   "message": {

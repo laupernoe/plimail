@@ -802,7 +802,8 @@
       "aiReplyLeftOut": "Podle {{count}} nejnovějších zpráv konverzace: starší byly vynechány.",
       "aiTooLong": "tento koncept má {{count}} znaků, víc než {{max}}, které AI zpracuje. Zkraťte ho nebo odstraňte citovaný text a zkuste to znovu.",
       "aiNotAllowed": "správce vypnul AI pro váš účet.",
-      "aiFeatureOff": "správce vypnul asistenta psaní AI."
+      "aiFeatureOff": "správce vypnul asistenta psaní AI.",
+      "popOut": "Otevřít v novém okně"
     },
     "messageOptions": "Možnosti zprávy",
     "priority": "Priorita",
@@ -923,6 +924,9 @@
     "readReceiptHint": "Požádá poštovní program příjemce o potvrzení, že zprávu otevřel. Příjemce může odmítnout.",
     "window": {
       "loadFailed": "Účty se nepodařilo načíst. Zavřete toto okno a zkuste to znovu."
+    },
+    "popOut": {
+      "failed": "Zprávu se nepodařilo přesunout do nového okna. Zůstává otevřená zde."
     }
   },
   "notifications": {
