@@ -1091,7 +1091,7 @@
     "italic": "기울임꼴(Ctrl+I)",
     "bold": "굵게(Ctrl+B)",
     "textColor": "텍스트 색상",
-    "link": "링크 삽입",
+    "link": "링크 삽입 (웹사이트, 이메일 주소 또는 전화번호)",
     "imageUrl": "URL의 이미지",
     "underline": "밑줄(Ctrl+U)",
     "strikethrough": "취소선",
@@ -1118,7 +1118,14 @@
     "imageSmall": "작게",
     "imageMedium": "중간",
     "imageFull": "원본 크기",
-    "imageRemove": "삭제"
+    "imageRemove": "삭제",
+    "fontFamily": "글꼴",
+    "fontFamilyHint": "글꼴 (선택 영역 또는 서명 전체에 적용)",
+    "fontSize": "크기",
+    "fontSizeHint": "글자 크기 (선택 영역 또는 서명 전체에 적용)",
+    "linkPlaceholder": "https://example.com 또는 name@example.com",
+    "linkApply": "링크 추가",
+    "linkInvalid": "웹 주소, 이메일 주소 또는 전화번호를 입력하세요"
   },
   "profile": {
     "displayName": "표시 이름",

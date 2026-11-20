@@ -1151,7 +1151,7 @@
     "underline": "Podtržení (Ctrl+U)",
     "strikethrough": "Přeškrtnutí",
     "textColor": "Barva textu",
-    "link": "Vložit odkaz",
+    "link": "Vložit odkaz (web, e-mailová adresa nebo telefon)",
     "imageUrl": "Obrázek z URL",
     "imageUpload": "Vložit obrázek (PNG, JPEG, GIF nebo WebP)",
     "imageUploading": "Nahrávání obrázku…",
@@ -1176,7 +1176,14 @@
     "imageSmall": "Malá",
     "imageMedium": "Střední",
     "imageFull": "Plná velikost",
-    "imageRemove": "Odebrat"
+    "imageRemove": "Odebrat",
+    "fontFamily": "Písmo",
+    "fontFamilyHint": "Písmo (platí pro výběr, nebo pro celý podpis)",
+    "fontSize": "Velikost",
+    "fontSizeHint": "Velikost písma (platí pro výběr, nebo pro celý podpis)",
+    "linkPlaceholder": "https://priklad.cz nebo jmeno@priklad.cz",
+    "linkApply": "Přidat odkaz",
+    "linkInvalid": "Zadejte webovou adresu, e-mailovou adresu nebo telefonní číslo"
   },
   "spam": {
     "movedToSpam": "Přesunuto do spamu",

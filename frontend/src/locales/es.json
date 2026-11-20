@@ -1093,7 +1093,7 @@
     "underline": "Subrayado (Ctrl+U)",
     "strikethrough": "Tachado",
     "textColor": "Color de texto",
-    "link": "Insertar enlace",
+    "link": "Insertar enlace (sitio web, correo electrónico o teléfono)",
     "imageUrl": "Imagen desde URL",
     "imageUpload": "Insertar imagen (PNG, JPEG, GIF o WebP)",
     "imageUploading": "Subiendo imagen…",
@@ -1118,7 +1118,14 @@
     "imageSmall": "Pequeña",
     "imageMedium": "Mediana",
     "imageFull": "Tamaño original",
-    "imageRemove": "Quitar"
+    "imageRemove": "Quitar",
+    "fontFamily": "Fuente",
+    "fontFamilyHint": "Fuente (se aplica a la selección o a toda la firma)",
+    "fontSize": "Tamaño",
+    "fontSizeHint": "Tamaño de fuente (se aplica a la selección o a toda la firma)",
+    "linkPlaceholder": "https://ejemplo.es o nombre@ejemplo.es",
+    "linkApply": "Añadir enlace",
+    "linkInvalid": "Introduce una dirección web, un correo electrónico o un teléfono"
   },
   "profile": {
     "title": "Editar perfil",

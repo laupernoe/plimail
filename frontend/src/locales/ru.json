@@ -1093,7 +1093,7 @@
     "underline": "Подчёркивание (Ctrl+U)",
     "strikethrough": "Зачёркивание",
     "textColor": "Цвет текста",
-    "link": "Вставить ссылку",
+    "link": "Вставить ссылку (сайт, адрес e-mail или телефон)",
     "imageUrl": "Изображение по URL",
     "imageUpload": "Вставить изображение (PNG, JPEG, GIF или WebP)",
     "imageUploading": "Загрузка изображения…",
@@ -1118,7 +1118,14 @@
     "imageSmall": "Маленький",
     "imageMedium": "Средний",
     "imageFull": "Исходный размер",
-    "imageRemove": "Удалить"
+    "imageRemove": "Удалить",
+    "fontFamily": "Шрифт",
+    "fontFamilyHint": "Шрифт (для выделения или всей подписи)",
+    "fontSize": "Размер",
+    "fontSizeHint": "Размер шрифта (для выделения или всей подписи)",
+    "linkPlaceholder": "https://example.com или name@example.com",
+    "linkApply": "Добавить ссылку",
+    "linkInvalid": "Введите адрес сайта, e-mail или номер телефона"
   },
   "profile": {
     "title": "Редактировать профиль",

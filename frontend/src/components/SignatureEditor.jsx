@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/index.js';
 import { pasteWithoutPageColors } from '../utils/contentEditablePaste.js';
 import { api } from '../utils/api.js';
+import { FONT_GROUPS, FONT_SIZES } from '../utils/composeFont.js';
+import { signatureLinkHref, signatureLinkLabel } from '../utils/signatureLink.js';
 
 // What the server takes (routes/signatureImages.js): it scales the image to 600 px wide at most.
 const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
@@ -48,6 +50,11 @@ function ToolBtn({ onClick, title, active, disabled, children }) {
   );
 }
 
+const PICKER = {
+  background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 5,
+  color: 'var(--text-primary)', fontSize: 12, padding: '3px 4px', cursor: 'pointer', outline: 'none',
+};
+
 function Sep() {
   return <div style={{ width: 1, height: 16, background: 'var(--border)', margin: '0 3px', flexShrink: 0 }} />;
 }
@@ -90,11 +97,69 @@ export default function SignatureEditor({ value, onChange }) {
     emit();
   };
 
-  const insertLink = () => {
-    const saved = saveSelection();
-    const url = window.prompt(t('signatureEditor.linkPrompt'));
-    restoreSelection(saved);
-    if (url) exec('createLink', url.match(/^https?:\/\//) ? url : 'https://' + url);
+  // The selection the pickers and the link box act on, kept because focus leaves the editor.
+  const savedRange = useRef(null);
+  const [linkBox, setLinkBox] = useState(null); // { value, invalid } while the link box is open
+  const remember = () => {
+    const range = saveSelection();
+    if (range && editorRef.current?.contains(range.commonAncestorContainer)) savedRange.current = range;
+  };
+
+  // Font family and size go on the selection as inline styles on a span, which is what mail
+  // clients keep (<font size=1-7> is not). With nothing selected they apply to the whole signature.
+  const applyFont = (prop, value) => {
+    const editor = editorRef.current;
+    if (!editor || !value) return;
+    editor.focus();
+    const range = savedRange.current && editor.contains(savedRange.current.commonAncestorContainer)
+      ? savedRange.current : null;
+    if (range && !range.collapsed) restoreSelection(range);
+    else {
+      const all = document.createRange();
+      all.selectNodeContents(editor);
+      restoreSelection(all);
+    }
+    const sel = window.getSelection();
+    const holder = document.createElement('div');
+    holder.appendChild(sel.getRangeAt(0).cloneContents());
+    // Whatever the selection already says about this property would win over the new span.
+    holder.querySelectorAll('[style]').forEach(el => {
+      el.style.removeProperty(prop);
+      if (!el.getAttribute('style')) el.removeAttribute('style');
+    });
+    if (prop === 'font-family') holder.querySelectorAll('font[face]').forEach(el => el.removeAttribute('face'));
+    else holder.querySelectorAll('font[size]').forEach(el => el.removeAttribute('size'));
+    const span = document.createElement('span');
+    span.style.setProperty(prop, value);
+    span.innerHTML = holder.innerHTML;
+    document.execCommand('insertHTML', false, span.outerHTML);
+    savedRange.current = null;
+    editor.focus();
+    emit();
+  };
+
+  const openLinkBox = () => {
+    remember();
+    setLinkBox({ value: '', invalid: false });
+  };
+
+  const submitLink = () => {
+    const href = signatureLinkHref(linkBox?.value);
+    if (!href) { setLinkBox(box => ({ ...box, invalid: true })); return; }
+    const editor = editorRef.current;
+    editor?.focus();
+    const range = savedRange.current;
+    if (range && editor?.contains(range.commonAncestorContainer)) restoreSelection(range);
+    else placeCaretAtEnd(editor);
+    setLinkBox(null);
+    if (window.getSelection().isCollapsed) {
+      const a = document.createElement('a');
+      a.setAttribute('href', href);
+      a.textContent = signatureLinkLabel(href);
+      document.execCommand('insertHTML', false, a.outerHTML);
+      emit();
+    } else exec('createLink', href);
+    savedRange.current = null;
   };
 
   const insertImageFromUrl = () => {
@@ -240,6 +305,37 @@ export default function SignatureEditor({ value, onChange }) {
         padding: '5px 8px', borderBottom: '1px solid var(--border-subtle)',
         flexWrap: 'wrap', gap: 2,
       }}>
+        <select
+          aria-label={t('signatureEditor.fontFamily')}
+          title={t('signatureEditor.fontFamilyHint')}
+          value=""
+          disabled={showSource}
+          onMouseDown={remember}
+          onChange={e => applyFont('font-family', e.target.value)}
+          style={{ ...PICKER, maxWidth: 120 }}
+        >
+          <option value="">{t('signatureEditor.fontFamily')}</option>
+          {FONT_GROUPS.map(g => (
+            <optgroup key={g.label} label={g.label}>
+              {g.fonts.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+            </optgroup>
+          ))}
+        </select>
+        <select
+          aria-label={t('signatureEditor.fontSize')}
+          title={t('signatureEditor.fontSizeHint')}
+          value=""
+          disabled={showSource}
+          onMouseDown={remember}
+          onChange={e => applyFont('font-size', e.target.value)}
+          style={{ ...PICKER, width: 56 }}
+        >
+          <option value="">{t('signatureEditor.fontSize')}</option>
+          {FONT_SIZES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+        </select>
+
+        <Sep />
+
         <ToolBtn title={t('signatureEditor.bold')} onClick={() => exec('bold')}>
           <strong style={{ fontSize: 13 }}>B</strong>
         </ToolBtn>
@@ -274,7 +370,7 @@ export default function SignatureEditor({ value, onChange }) {
 
         <Sep />
 
-        <ToolBtn title={t('signatureEditor.link')} onClick={insertLink}>
+        <ToolBtn title={t('signatureEditor.link')} active={Boolean(linkBox)} disabled={showSource} onClick={() => (linkBox ? setLinkBox(null) : openLinkBox())}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
             <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
@@ -309,6 +405,36 @@ export default function SignatureEditor({ value, onChange }) {
           </svg>
         </ToolBtn>
       </div>
+
+      {linkBox && !showSource && (
+        <form
+          onSubmit={e => { e.preventDefault(); submitLink(); }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
+            padding: '5px 8px', borderBottom: '1px solid var(--border-subtle)',
+          }}
+        >
+          <input
+            autoFocus
+            value={linkBox.value}
+            onChange={e => setLinkBox({ value: e.target.value, invalid: false })}
+            onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); setLinkBox(null); editorRef.current?.focus(); } }}
+            placeholder={t('signatureEditor.linkPlaceholder')}
+            aria-label={t('signatureEditor.linkPrompt')}
+            aria-invalid={linkBox.invalid || undefined}
+            style={{
+              flex: '1 1 180px', minWidth: 0, background: 'var(--bg-primary)',
+              border: `1px solid ${linkBox.invalid ? 'var(--red)' : 'var(--border)'}`,
+              borderRadius: 5, color: 'var(--text-primary)', fontSize: 12, padding: '4px 8px', outline: 'none',
+            }}
+          />
+          <button type="submit" style={{
+            background: 'var(--accent)', color: 'var(--accent-text, #fff)', border: 'none',
+            borderRadius: 5, padding: '4px 10px', fontSize: 12, cursor: 'pointer',
+          }}>{t('signatureEditor.linkApply')}</button>
+          {linkBox.invalid && <span role="alert" style={{ fontSize: 12, color: 'var(--red)' }}>{t('signatureEditor.linkInvalid')}</span>}
+        </form>
+      )}
 
       {/* The image clicked in the editor: its size, or take it out */}
       {selectedImg && !showSource && (
