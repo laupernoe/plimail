@@ -1105,7 +1105,7 @@
     "underline": "Underline (Ctrl+U)",
     "strikethrough": "Strikethrough",
     "textColor": "Text color",
-    "link": "Insert link",
+    "link": "Insert link (website, email address or phone number)",
     "imageUrl": "Image from URL",
     "imageUpload": "Insert image (PNG, JPEG, GIF or WebP)",
     "imageUploading": "Uploading image…",
@@ -1130,7 +1130,14 @@
     "imageSmall": "Small",
     "imageMedium": "Medium",
     "imageFull": "Full size",
-    "imageRemove": "Remove"
+    "imageRemove": "Remove",
+    "fontFamily": "Font",
+    "fontFamilyHint": "Font family (applies to the selection, or the whole signature)",
+    "fontSize": "Size",
+    "fontSizeHint": "Font size (applies to the selection, or the whole signature)",
+    "linkPlaceholder": "https://example.com or name@example.com",
+    "linkApply": "Add link",
+    "linkInvalid": "Enter a web address, an email address or a phone number"
   },
   "profile": {
     "title": "Edit Profile",

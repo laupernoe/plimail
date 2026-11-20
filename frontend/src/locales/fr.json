@@ -1105,7 +1105,7 @@
     "underline": "Souligné (Ctrl+U)",
     "strikethrough": "Barré",
     "textColor": "Couleur du texte",
-    "link": "Insérer un lien",
+    "link": "Insérer un lien (site web, adresse e-mail ou numéro de téléphone)",
     "imageUrl": "Image depuis une URL",
     "imageUpload": "Insérer une image (PNG, JPEG, GIF ou WebP)",
     "imageUploading": "Envoi de l'image…",
@@ -1130,7 +1130,14 @@
     "imageSmall": "Petite",
     "imageMedium": "Moyenne",
     "imageFull": "Taille réelle",
-    "imageRemove": "Retirer"
+    "imageRemove": "Retirer",
+    "fontFamily": "Police",
+    "fontFamilyHint": "Police (s'applique à la sélection, ou à toute la signature)",
+    "fontSize": "Taille",
+    "fontSizeHint": "Taille du texte (s'applique à la sélection, ou à toute la signature)",
+    "linkPlaceholder": "https://exemple.ch ou nom@exemple.ch",
+    "linkApply": "Ajouter le lien",
+    "linkInvalid": "Saisissez une adresse web, une adresse e-mail ou un numéro de téléphone"
   },
   "profile": {
     "title": "Modifier le profil",

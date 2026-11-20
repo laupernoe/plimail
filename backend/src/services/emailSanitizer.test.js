@@ -1087,3 +1087,23 @@ describe('sanitizeEmail data: backgrounds', () => {
       .toContain('background="https://example.com/bg.jpg"');
   });
 });
+
+describe('sanitizeSignature keeps what the signature editor writes', () => {
+  const html = '<p><span style="font-family:\'Segoe UI\', system-ui, sans-serif;font-size:18px">Name</span> '
+    + '<a href="mailto:a@example.com">a@example.com</a> <a href="tel:+41791234567">call</a></p>';
+  it('keeps font-family and font-size styles, and mailto: and tel: links', () => {
+    const out = sanitizeSignature(html);
+    expect(out).toContain('font-size:18px');
+    expect(out).toContain("font-family:'Segoe UI', system-ui, sans-serif");
+    expect(out).toContain('href="mailto:a@example.com"');
+    expect(out).toContain('href="tel:+41791234567"');
+  });
+  it('keeps a font stack written with double quotes (as the editor serializes it)', () => {
+    const out = sanitizeSignature('<span style="font-family: &quot;Segoe UI&quot;, system-ui, sans-serif; font-size: 14px;">x</span>');
+    expect(out).toMatch(/font-family:\s*(?:&quot;|')Segoe UI/);
+    expect(out).toContain('14px');
+  });
+  it('still drops a javascript: link target', () => {
+    expect(sanitizeSignature('<a href="javascript:alert(1)">x</a>')).not.toContain('javascript');
+  });
+});

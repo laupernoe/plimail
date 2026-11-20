@@ -1121,7 +1121,7 @@
     "underline": "Podkreślenie (Ctrl+U)",
     "strikethrough": "Przekreślenie",
     "textColor": "Kolor tekstu",
-    "link": "Wstaw link",
+    "link": "Wstaw link (strona WWW, adres e-mail lub numer telefonu)",
     "imageUrl": "Obraz z adresu URL",
     "imageUpload": "Wstaw obraz (PNG, JPEG, GIF lub WebP)",
     "imageUploading": "Przesyłanie obrazu…",
@@ -1146,7 +1146,14 @@
     "imageSmall": "Mały",
     "imageMedium": "Średni",
     "imageFull": "Pełny rozmiar",
-    "imageRemove": "Usuń"
+    "imageRemove": "Usuń",
+    "fontFamily": "Czcionka",
+    "fontFamilyHint": "Czcionka (dotyczy zaznaczenia lub całego podpisu)",
+    "fontSize": "Rozmiar",
+    "fontSizeHint": "Rozmiar czcionki (dotyczy zaznaczenia lub całego podpisu)",
+    "linkPlaceholder": "https://przyklad.pl lub imie@przyklad.pl",
+    "linkApply": "Dodaj link",
+    "linkInvalid": "Wpisz adres WWW, adres e-mail lub numer telefonu"
   },
   "profile": {
     "title": "Edytuj profil",
