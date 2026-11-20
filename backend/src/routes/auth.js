@@ -26,6 +26,7 @@ import { rateLimitAddress } from '../utils/rateLimitAddress.js';
 import { passwordProblem } from '../utils/passwordPolicy.js';
 import { PgpRequestError, setKeysProtection } from '../services/pgpKeyring.js';
 import { RECEIPT_REPLY_MODES } from '../services/readReceipts.js';
+import { normalizeFontFamily, normalizeFontSize } from '../services/composeFont.js';
 
 const router = Router();
 
@@ -817,7 +818,7 @@ export async function patchPreferences(req, res) {
           folderOrder, senderFavicons, showMessagePreviews, defaultSender,
           conversationMode, hoverActionSet, autoOpenReplyDrafts, afterRemove, darkEmailBodies, listSort,
           timeFormat, undoSend, pgpAutoEncrypt, pgpAutoKeys,
-          readReceiptRequestAlways, readReceiptReply } = req.body;
+          readReceiptRequestAlways, readReceiptReply, composeFontFamily, composeFontSize } = req.body;
   if (autoOpenReplyDrafts !== undefined && typeof autoOpenReplyDrafts !== 'boolean') {
     return res.status(400).json({ error: 'autoOpenReplyDrafts must be a boolean' });
   }
@@ -835,6 +836,15 @@ export async function patchPreferences(req, res) {
   }
   if (readReceiptReply !== undefined && !RECEIPT_REPLY_MODES.includes(readReceiptReply)) {
     return res.status(400).json({ error: 'readReceiptReply must be ask, always or never' });
+  }
+  // The default writing font: '' is "Default" and is stored, so choosing it clears an earlier font.
+  const composeFontFamilyVal = composeFontFamily === undefined ? null : normalizeFontFamily(composeFontFamily);
+  if (composeFontFamilyVal === undefined) {
+    return res.status(400).json({ error: 'composeFontFamily must be "" or a CSS font stack' });
+  }
+  const composeFontSizeVal = composeFontSize === undefined ? null : normalizeFontSize(composeFontSize);
+  if (composeFontSizeVal === undefined) {
+    return res.status(400).json({ error: 'composeFontSize must be "" or a size from "8px" to "72px"' });
   }
   if (darkEmailBodies !== undefined && typeof darkEmailBodies !== 'boolean') {
     return res.status(400).json({ error: 'darkEmailBodies must be a boolean' });
@@ -959,6 +969,8 @@ export async function patchPreferences(req, res) {
       || CASE WHEN $48::boolean IS NOT NULL THEN jsonb_build_object('pgpAutoKeys', $48::boolean) ELSE '{}'::jsonb END
       || CASE WHEN $49::boolean IS NOT NULL THEN jsonb_build_object('readReceiptRequestAlways', $49::boolean) ELSE '{}'::jsonb END
       || CASE WHEN $50::text IS NOT NULL THEN jsonb_build_object('readReceiptReply', $50::text) ELSE '{}'::jsonb END
+      || CASE WHEN $51::text IS NOT NULL THEN jsonb_build_object('composeFontFamily', $51::text) ELSE '{}'::jsonb END
+      || CASE WHEN $52::text IS NOT NULL THEN jsonb_build_object('composeFontSize', $52::text) ELSE '{}'::jsonb END
     WHERE id = $1
   `, [req.session.userId, themeVal, font ?? null, layout ?? null, notificationSound ?? null,
       pageSize ?? null, scrollMode ?? null, syncInterval ?? null,
@@ -971,7 +983,7 @@ export async function patchPreferences(req, res) {
       showMobileAvatars ?? null, gravatarAvatars ?? null, folderSyncIntervalVal, folderOrderJson, senderFaviconsVal,
       showMessagePreviews ?? null, defaultSenderVal, conversationModeVal, hoverActionSetJson, autoOpenReplyDrafts ?? null,
       afterRemoveVal, darkEmailBodies ?? null, listSortJson, timeFormatVal, undoSend ?? null, pgpAutoEncrypt ?? null, pgpAutoKeys ?? null,
-      readReceiptRequestAlways ?? null, readReceiptReply ?? null]);
+      readReceiptRequestAlways ?? null, readReceiptReply ?? null, composeFontFamilyVal, composeFontSizeVal]);
 
   if (syncInterval != null) {
     const ms = parseInt(syncInterval) * 1000;

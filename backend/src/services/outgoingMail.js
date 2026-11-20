@@ -19,6 +19,7 @@ import { PGP_ENCRYPTED_SNIPPET } from './pgpDetect.js';
 import { autocryptFor } from './autocrypt.js';
 import { readReceiptHeaders } from './readReceipts.js';
 import { recordOwnReaction } from './reactions.js';
+import { normalizeComposeFont, wrapComposeFont } from './composeFont.js';
 
 // The user's "encrypt automatically when every recipient has a key" setting, on unless turned off.
 export const pgpPreferEncrypt = preferences => preferences?.pgpAutoEncrypt !== false;
@@ -219,6 +220,8 @@ export function validateSendInput(body) {
   const missing = missingSendFields(body);
   if (missing) throw new SendError(400, missing);
   const pgp = validatePgp(body.pgp, body);
+  const composeFont = normalizeComposeFont(body.composeFont);
+  if (composeFont === undefined) throw new SendError(400, 'composeFont must be { family, size } with a CSS font stack and a size such as "11px"');
 
   if (attachments !== undefined) {
     if (!Array.isArray(attachments)) throw new SendError(400, 'attachments must be an array');
@@ -268,6 +271,7 @@ export function validateSendInput(body) {
     forwardedMessages,
     priority: VALID_PRIORITIES.has(priority) ? priority : 'normal',
     ...(readReceipt === true ? { readReceipt: true } : {}),
+    ...(composeFont ? { composeFont } : {}),
     ...(pgp ? { pgp } : {}),
   };
 }
@@ -485,10 +489,11 @@ export function buildMailOptions(input, identity, forwarded = { attachments: [],
 
   let inlineImageAttachments = [];
   if (!plaintextEmail && !input.pgp) {
-    const rawHtml = bodyToHtml(body, bodyIsHtml) +
+    // The signature inherits the writing font's family; its block keeps its own size and colour.
+    const rawHtml = wrapComposeFont(bodyToHtml(body, bodyIsHtml) +
       (signature
         ? '<div style="margin-top:16px;color:#555;font-size:13px">' + signature + '</div>'
-        : '') +
+        : ''), input.composeFont) +
       (quotedBodyHtml || (quotedBody ? textToHtml(quotedBody) : ''));
     const embedded = embedInlineDataImages(rawHtml);
     mailOptions.html = embedded.html;

@@ -287,4 +287,10 @@ describe('a scheduled message that asks for a read receipt', () => {
     const { input } = await buildFrom({});
     expect(input.readReceipt).toBeUndefined();
   });
+
+  it('goes out in the font it was scheduled with', async () => {
+    const { input, identity } = await buildFrom({ bodyIsHtml: true, body: '<p>Hello</p>', composeFont: { family: 'Georgia, serif', size: '12px' } });
+    const options = buildMailOptions(input, identity, { attachments: [], messages: [] });
+    expect(options.html).toContain('<div style="font-family:Georgia, serif;font-size:12px"><p>Hello</p>');
+  });
 });

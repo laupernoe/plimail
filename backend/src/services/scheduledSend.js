@@ -642,6 +642,7 @@ export class ScheduledSender {
       priority: payload.priority,
       ...(pgp ? { pgp } : {}),
       readReceipt: payload.readReceipt,
+      composeFont: payload.composeFont,
     });
     const identity = await this.identityFor(account, payload);
     const attachments = pgp ? [] : mailAttachments(stored);

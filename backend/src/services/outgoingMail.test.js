@@ -214,6 +214,26 @@ describe('buildMailOptions', () => {
     }
   });
 
+  it('wraps the body and signature in the writing font, leaving the quote outside', () => {
+    const html = buildMailOptions(
+      valid({ bodyIsHtml: true, body: '<p>Hello</p>', quotedBodyHtml: '<blockquote>old</blockquote>', composeFont: { family: 'Arial, Helvetica, sans-serif', size: '11px' } }),
+      identity({ signature: '<i>S</i>' }),
+    ).html;
+    expect(html).toBe('<div style="font-family:Arial, Helvetica, sans-serif;font-size:11px"><p>Hello</p>'
+      + '<div style="margin-top:16px;color:#555;font-size:13px"><i>S</i></div></div><blockquote>old</blockquote>');
+  });
+
+  it('adds no wrapper when no font is chosen', () => {
+    for (const composeFont of [undefined, null, { family: '', size: '' }]) {
+      const html = buildMailOptions(valid({ bodyIsHtml: true, body: '<p>Hello</p>', composeFont }), identity()).html;
+      expect(html).toBe('<p>Hello</p>');
+    }
+  });
+
+  it('refuses a malformed font with a 400', () => {
+    expect(thrown(() => valid({ composeFont: { family: 'Arial;color:red' } }))).toMatchObject({ status: 400 });
+  });
+
   it('sends no HTML part for a plain-text user', () => {
     expect(buildMailOptions(valid(), identity({ plaintextEmail: true })).html).toBeUndefined();
   });

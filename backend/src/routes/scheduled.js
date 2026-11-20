@@ -171,6 +171,7 @@ async function buildSpec(userId, body, { messageId } = {}) {
     // below, sent as it is at the time. The server never has its text.
     ...(input.pgp ? { pgp: true } : {}),
     ...(input.readReceipt ? { readReceipt: true } : {}),
+    ...(input.composeFont ? { composeFont: input.composeFont } : {}),
     ...(body.compose && typeof body.compose === 'object' && !Array.isArray(body.compose) ? { compose: body.compose } : {}),
   };
   if (Buffer.byteLength(JSON.stringify(payload), 'utf8') > LIMITS.payloadBytes) {
