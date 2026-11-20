@@ -11,6 +11,10 @@ const NewWindowIcon = () => (
 // The Compose button with an arrow beside it: the button composes in the app, the arrow offers the
 // same in a window of its own. With no `onComposeWindow` (a phone, where a popup is no use) it is
 // the plain button.
+// menuItemStyle sets `font: inherit` after its fontSize, which would bring back the sidebar's
+// larger text, so the shorthand is dropped here.
+const itemStyle = { ...menuItemStyle({ padding: '9px 12px', lineHeight: 1.35 }), font: undefined, fontFamily: 'inherit', fontSize: 13, fontWeight: 400 };
+
 export default function ComposeSplitButton({ icon, collapsed = false, onCompose, onComposeWindow }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -80,7 +84,7 @@ export default function ComposeSplitButton({ icon, collapsed = false, onCompose,
               type="button"
               role="menuitem"
               onClick={() => choose(onComposeWindow)}
-              style={menuItemStyle({ padding: '9px 12px', fontSize: 13, lineHeight: 1.35 })}
+              style={itemStyle}
               {...hoverBg}
             >
               <span aria-hidden="true" style={{ display: 'inline-flex', flexShrink: 0, color: 'var(--text-secondary)' }}><NewWindowIcon /></span>
