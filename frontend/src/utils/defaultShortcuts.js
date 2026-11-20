@@ -181,6 +181,15 @@ export function resolveShortcutAction(event, userOverrides = {}) {
   return found;
 }
 
+// The Delete and Backspace keys delete, as in every desktop mail client, whatever key the
+// delete action is bound to ('#' by default, which several layouts only reach through AltGr).
+// A user binding of either key to another action wins.
+export function deleteKeyAction(event, userOverrides = {}) {
+  if (!event || (event.key !== 'Delete' && event.key !== 'Backspace')) return null;
+  if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return null;
+  return resolveShortcutAction(event, userOverrides) ? null : 'delete';
+}
+
 const GENERAL_ACTION_TEXT = {
   toggleLeftSidebar: ['Toggle left sidebar', 'Hide or show the left sidebar'],
   openLabelPicker: ['Open label picker', 'Copy the selected message to a folder'],

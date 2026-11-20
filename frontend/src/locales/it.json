@@ -574,7 +574,11 @@
       "body": "Spostato nel Cestino.",
       "failTitle": "Eliminazione fallita",
       "failBody_one": "Impossibile eliminare {{count}} messaggio.",
-      "failBody_other": "Impossibile eliminare {{count}} messaggi."
+      "failBody_other": "Impossibile eliminare {{count}} messaggi.",
+      "noTrash_one": "Nessuna cartella Cestino impostata per questo account, quindi {{count}} messaggio è stato mantenuto. Sceglila nelle impostazioni dell'account.",
+      "noTrash_other": "Nessuna cartella Cestino impostata per questo account, quindi {{count}} messaggi sono stati mantenuti. Sceglila nelle impostazioni dell'account.",
+      "offline_one": "Impossibile raggiungere il server; {{count}} messaggio è stato mantenuto.",
+      "offline_other": "Impossibile raggiungere il server; {{count}} messaggi sono stati mantenuti."
     },
     "bulkMoved": {
       "title_one": "{{count}} messaggio spostato",
@@ -685,7 +689,10 @@
     "categoryCountTitle": "Messaggi: {{total}} · Da leggere: {{unread}}",
     "emptyCategory": "Niente in {{category}}",
     "emptyCategoryOthers": "Le altre categorie contengono ancora messaggi.",
-    "emptyCategoryNone": "La posta in arrivo è vuota."
+    "emptyCategoryNone": "La posta in arrivo è vuota.",
+    "deleteForever": "Elimina definitivamente",
+    "confirmPermanentDelete_one": "Eliminare definitivamente {{count}} messaggio? È già nel cestino e non potrà essere recuperato.",
+    "confirmPermanentDelete_other": "Eliminare definitivamente {{count}} messaggi? Sono già nel cestino e non potranno essere recuperati."
   },
   "lockScreen": {
     "subtitle": "Inserisci il PIN per sbloccare",
@@ -938,7 +945,9 @@
       "favorites": "Preferiti",
       "search": "Cerca cartelle…"
     },
-    "exportSelection": "Esporta i messaggi selezionati (.mbox)"
+    "exportSelection": "Esporta i messaggi selezionati (.mbox)",
+    "deleteSelection_one": "Elimina {{count}} messaggio",
+    "deleteSelection_other": "Elimina {{count}} messaggi"
   },
   "commandPalette": {
     "labelPicker": {

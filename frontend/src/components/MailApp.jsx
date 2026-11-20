@@ -16,7 +16,7 @@ import { runMailboxShortcut, canRunMailboxShortcut, browserShortcutFallback } fr
 import { canRunSelectedAction } from '../utils/shortcutApplicability.js';
 import { selectedPickerMessage } from '../utils/labelPicker.js';
 import { applyMarkRead } from '../utils/markRead.js';
-import { buildKeyMap, resolveShortcutAction, shortcutActionText, getEffectiveShortcuts, getGroupedActions, parseModKey, modLabel, SPECIAL_KEYS, SPECIAL_KEY_LABELS } from '../utils/defaultShortcuts.js';
+import { buildKeyMap, deleteKeyAction, resolveShortcutAction, shortcutActionText, getEffectiveShortcuts, getGroupedActions, parseModKey, modLabel, SPECIAL_KEYS, SPECIAL_KEY_LABELS } from '../utils/defaultShortcuts.js';
 import Sidebar from './Sidebar.jsx';
 import MessageList from './MessageList.jsx';
 import ReadingPane from './ReadingPane.jsx';
@@ -549,7 +549,8 @@ export default function MailApp() {
       // Check the keymap first — bound actions take priority, including special
       // keys like Delete that would otherwise be skipped below.
       const action = resolved.length > 1 && !SPECIAL_KEYS.has(resolved)
-        ? keyMap[resolved] || browserShortcutFallback(resolved) : resolveShortcutAction(e, shortcuts);
+        ? keyMap[resolved] || browserShortcutFallback(resolved)
+        : resolveShortcutAction(e, shortcuts) || deleteKeyAction(e, shortcuts);
       if (action && canRun(action)) {
         e.preventDefault();
         shortcutBus.emit(action);

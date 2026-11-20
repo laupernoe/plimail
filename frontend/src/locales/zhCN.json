@@ -574,7 +574,11 @@
       "body": "已移至废件箱。",
       "failTitle": "删除失败",
       "failBody_one": "无法删除 {{count}} 封邮件。",
-      "failBody_other": "无法删除 {{count}} 封邮件。"
+      "failBody_other": "无法删除 {{count}} 封邮件。",
+      "noTrash_one": "此账户未设置废纸篓文件夹，已保留 {{count}} 封邮件。请在账户设置中选择一个。",
+      "noTrash_other": "此账户未设置废纸篓文件夹，因此保留了 {{count}} 封邮件。请在账户设置中选择一个。",
+      "offline_one": "无法连接服务器，已保留 {{count}} 封邮件。",
+      "offline_other": "无法连接到服务器，已保留 {{count}} 封邮件。"
     },
     "bulkMoved": {
       "title_one": "已移动 {{count}} 封邮件",
@@ -685,7 +689,10 @@
     "categoryCountTitle": "邮件：{{total}} · 未读：{{unread}}",
     "emptyCategory": "{{category}}中没有邮件",
     "emptyCategoryOthers": "其他类别中仍有邮件。",
-    "emptyCategoryNone": "收件箱为空。"
+    "emptyCategoryNone": "收件箱为空。",
+    "deleteForever": "永久删除",
+    "confirmPermanentDelete_one": "永久删除 {{count}} 封邮件？它已在废纸篓中，删除后无法恢复。",
+    "confirmPermanentDelete_other": "永久删除 {{count}} 封邮件？它们已在废纸篓中，删除后无法恢复。"
   },
   "lockScreen": {
     "subtitle": "输入 PIN 码以解锁",
@@ -938,7 +945,9 @@
       "favorites": "收藏夹",
       "search": "搜索文件夹…"
     },
-    "exportSelection": "导出所选邮件 (.mbox)"
+    "exportSelection": "导出所选邮件 (.mbox)",
+    "deleteSelection_one": "删除 {{count}} 封邮件",
+    "deleteSelection_other": "删除所选的 {{count}} 封邮件"
   },
   "commandPalette": {
     "labelPicker": {

@@ -574,7 +574,11 @@
       "body": "Déplacé vers la corbeille.",
       "failTitle": "Échec de la suppression",
       "failBody_one": "Impossible de supprimer {{count}} message.",
-      "failBody_other": "Impossible de supprimer {{count}} messages."
+      "failBody_other": "Impossible de supprimer {{count}} messages.",
+      "noTrash_one": "Aucun dossier Corbeille n'est défini pour ce compte : {{count}} message a été conservé. Choisissez-en un dans les réglages du compte.",
+      "noTrash_other": "Aucun dossier Corbeille n'est défini pour ce compte : {{count}} messages ont été conservés. Choisissez-en un dans les réglages du compte.",
+      "offline_one": "Le serveur est injoignable ; {{count}} message a été conservé.",
+      "offline_other": "Le serveur est injoignable ; {{count}} messages ont été conservés."
     },
     "bulkMoved": {
       "title_one": "{{count}} message déplacé",
@@ -685,7 +689,10 @@
     "categoryCountTitle": "Messages : {{total}} · Non lus : {{unread}}",
     "emptyCategory": "Rien dans {{category}}",
     "emptyCategoryOthers": "Les autres catégories contiennent encore des messages.",
-    "emptyCategoryNone": "La boîte de réception est vide."
+    "emptyCategoryNone": "La boîte de réception est vide.",
+    "deleteForever": "Supprimer définitivement",
+    "confirmPermanentDelete_one": "Supprimer définitivement {{count}} message ? Il est déjà dans la corbeille et ne pourra pas être récupéré.",
+    "confirmPermanentDelete_other": "Supprimer définitivement {{count}} messages ? Ils sont déjà dans la corbeille et ne pourront pas être récupérés."
   },
   "lockScreen": {
     "subtitle": "Saisissez votre PIN pour déverrouiller",
@@ -938,7 +945,9 @@
       "favorites": "Favoris",
       "search": "Rechercher des dossiers…"
     },
-    "exportSelection": "Exporter les messages sélectionnés (.mbox)"
+    "exportSelection": "Exporter les messages sélectionnés (.mbox)",
+    "deleteSelection_one": "Supprimer {{count}} message",
+    "deleteSelection_other": "Supprimer {{count}} messages"
   },
   "commandPalette": {
     "labelPicker": {

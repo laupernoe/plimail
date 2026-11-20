@@ -128,6 +128,13 @@ describe('ContextMenu — export of a selection', () => {
     assert.deepEqual(calls, [['exportSelection']]);
   });
 
+  test('with several selected, Delete says it takes them all', async () => {
+    const calls = await openMenu(MESSAGE, { selectionCount: 3 });
+    assert.equal(byText('contextMenu.delete'), undefined);
+    await click('contextMenu.deleteSelection');
+    assert.deepEqual(calls, [['delete']]);
+  });
+
   test('a single message has its .eml download only', async () => {
     await openMenu(MESSAGE, { selectionCount: 1 });
     assert.equal(byText('contextMenu.exportSelection'), undefined);
