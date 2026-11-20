@@ -69,10 +69,10 @@ export default function ComposeSplitButton({ icon, collapsed = false, onCompose,
           onClose={() => setOpen(false)}
           zIndex={100}
           style={{
-            top: '100%', right: 0, marginTop: 4,
+            top: '100%', left: 0, right: 0, marginTop: 4,
             background: 'var(--bg-elevated)', border: '1px solid var(--border)',
             borderRadius: 8, overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.4)', minWidth: 200,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
           }}
         >
           {choose => (
@@ -80,10 +80,10 @@ export default function ComposeSplitButton({ icon, collapsed = false, onCompose,
               type="button"
               role="menuitem"
               onClick={() => choose(onComposeWindow)}
-              style={menuItemStyle({ padding: '9px 14px', whiteSpace: 'nowrap' })}
+              style={menuItemStyle({ padding: '9px 12px', fontSize: 13, lineHeight: 1.35 })}
               {...hoverBg}
             >
-              <span aria-hidden="true" style={{ display: 'inline-flex', color: 'var(--text-secondary)' }}><NewWindowIcon /></span>
+              <span aria-hidden="true" style={{ display: 'inline-flex', flexShrink: 0, color: 'var(--text-secondary)' }}><NewWindowIcon /></span>
               {t('sidebar.composeNewWindow')}
             </button>
           )}
