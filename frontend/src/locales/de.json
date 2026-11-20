@@ -333,7 +333,10 @@
     "sendWithPassword": "Mit Passwort senden",
     "sendWithPasswordShort": "Geschützt senden",
     "readReceipt": "Lesebestätigung anfordern",
-    "readReceiptHint": "Bittet das Mailprogramm des Empfängers, das Öffnen der Nachricht zu bestätigen. Der Empfänger kann ablehnen."
+    "readReceiptHint": "Bittet das Mailprogramm des Empfängers, das Öffnen der Nachricht zu bestätigen. Der Empfänger kann ablehnen.",
+    "window": {
+      "loadFailed": "Ihre Konten konnten nicht geladen werden. Schließen Sie dieses Fenster und versuchen Sie es erneut."
+    }
   },
   "message": {
     "find": {
@@ -763,7 +766,9 @@
     "favorites": "Favoriten",
     "reorderFolder": "Ziehen, um den Ordner zu verschieben",
     "draftsTotal": "Entwürfe: {{n}}",
-    "mail": "E-Mails"
+    "mail": "E-Mails",
+    "composeOptions": "Verfassen-Optionen",
+    "composeNewWindow": "In neuem Fenster verfassen"
   },
   "scheduled": {
     "refresh": "Aktualisieren",
@@ -969,7 +974,8 @@
       "settings": "Einstellungen öffnen",
       "themes": "Designs öffnen",
       "switchTheme": "Zu {{theme}} wechseln",
-      "accountInbox": "{{name}} — Posteingang"
+      "accountInbox": "{{name}} — Posteingang",
+      "composeWindow": "In neuem Fenster verfassen"
     }
   },
   "shortcuts": {

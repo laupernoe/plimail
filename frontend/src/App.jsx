@@ -6,6 +6,7 @@ import { applyTheme, getInitialTheme } from './themes.js';
 import { applyLayout } from './layouts.js';
 import LoginPage from './components/LoginPage.jsx';
 import MailApp from './components/MailApp.jsx';
+import ComposePopup from './components/ComposePopup.jsx';
 import LockScreen from './components/LockScreen.jsx';
 import UpdateBanner from './components/UpdateBanner.jsx';
 import OfflineBanner from './components/OfflineBanner.jsx';
@@ -122,6 +123,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
         <Route path="/register" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+        <Route path="/compose" element={user ? (isLocked ? <LockScreen /> : <ComposePopup />) : <Navigate to="/login" replace />} />
         <Route path="/*" element={user ? (isLocked ? <LockScreen /> : <MailApp />) : <Navigate to="/login" replace />} />
       </Routes>
       {user && !isLocked && <OfflineBanner />}

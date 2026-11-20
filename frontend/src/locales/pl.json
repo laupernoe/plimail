@@ -333,7 +333,10 @@
     "sendWithPassword": "Wyślij z hasłem",
     "sendWithPasswordShort": "Wyślij chronione",
     "readReceipt": "Poproś o potwierdzenie odczytu",
-    "readReceiptHint": "Prosi program pocztowy odbiorcy o potwierdzenie otwarcia wiadomości. Odbiorca może odmówić."
+    "readReceiptHint": "Prosi program pocztowy odbiorcy o potwierdzenie otwarcia wiadomości. Odbiorca może odmówić.",
+    "window": {
+      "loadFailed": "Nie udało się wczytać Twoich kont. Zamknij to okno i spróbuj ponownie."
+    }
   },
   "message": {
     "find": {
@@ -779,7 +782,9 @@
     "favorites": "Ulubione",
     "reorderFolder": "Przeciągnij, aby zmienić kolejność folderu",
     "draftsTotal": "Szkice: {{n}}",
-    "mail": "Poczta"
+    "mail": "Poczta",
+    "composeOptions": "Opcje tworzenia wiadomości",
+    "composeNewWindow": "Napisz w nowym oknie"
   },
   "scheduled": {
     "refresh": "Odśwież",
@@ -985,7 +990,8 @@
       "settings": "Otwórz ustawienia",
       "themes": "Otwórz motywy",
       "switchTheme": "Przełącz na motyw {{theme}}",
-      "accountInbox": "{{name}} — Skrzynka odbiorcza"
+      "accountInbox": "{{name}} — Skrzynka odbiorcza",
+      "composeWindow": "Napisz w nowym oknie"
     }
   },
   "shortcuts": {

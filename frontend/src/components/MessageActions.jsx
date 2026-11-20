@@ -196,7 +196,7 @@ export function ActionBtn({
 // Escape, a click outside or picking an item closes it and puts focus back on the button; Tab
 // closes it and lets focus move on. `children(choose)`: choose(run) closes, refocuses, then runs.
 // closeOnMouseLeave closes it, the same way, when the pointer leaves it.
-function MenuPopup({ triggerRef, onClose, zIndex, style, closeOnMouseLeave = false, children }) {
+export function MenuPopup({ triggerRef, onClose, zIndex, style, closeOnMouseLeave = false, children }) {
   const menuRef = useRef(null);
   const items = () => [...(menuRef.current?.querySelectorAll('[role^="menuitem"]') || [])];
   useEffect(() => { items()[0]?.focus(); }, []);
@@ -244,12 +244,12 @@ function MenuPopup({ triggerRef, onClose, zIndex, style, closeOnMouseLeave = fal
   );
 }
 
-const menuItemStyle = (extra = {}) => ({
+export const menuItemStyle = (extra = {}) => ({
   display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left',
   padding: '11px 14px', background: 'transparent', border: 'none', cursor: 'pointer',
   fontSize: 13, color: 'var(--text-primary)', font: 'inherit', ...extra,
 });
-const hoverBg = {
+export const hoverBg = {
   onMouseEnter: e => { e.currentTarget.style.background = 'var(--bg-hover)'; },
   onMouseLeave: e => { e.currentTarget.style.background = 'transparent'; },
 };

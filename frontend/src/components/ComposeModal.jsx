@@ -72,6 +72,7 @@ import { ensureKeySecret, requestKeyUnlock, unlockOwnKey } from '../utils/pgpUnl
 import { SecureSendError, secureSettingsProblem, sendProtected } from '../utils/secureSend.js';
 import { htmlLang } from '../utils/browserLanguage.js';
 import { FONT_GROUPS, FONT_SIZES, composeFontPayload, composeFontVars, knownFontFamily } from '../utils/composeFont.js';
+import { isComposeWindow } from '../utils/composeWindow.js';
 import { addSuggestionChips, mergeGroupSuggestions, suggestionKey } from '../utils/groupRecipients.js';
 
 // Resize an image blob/file to max maxW pixels wide, preserving aspect ratio.
@@ -445,6 +446,8 @@ export default function ComposeModal() {
   }).mode === 'pgp';
   const [minimized, setMinimized] = useState(false);
   const [maximized, setMaximized] = useState(false);
+  // The /compose window: the composer fills it, with nothing to minimize, move or resize.
+  const inWindow = isComposeWindow();
   const [pos, setPos] = useState(null);
   const [customSize, setCustomSize] = useState(() => {
     try {
@@ -718,7 +721,7 @@ export default function ComposeModal() {
   const handleTitleDragStart = useCallback((e) => {
     if (e.button !== 0) return;
     if (e.target.closest('button, select, a')) return;
-    if (maximized) return;
+    if (maximized || inWindow) return;
     e.preventDefault();
     const el = composeWindowRef.current;
     if (!el) return;
@@ -775,7 +778,7 @@ export default function ComposeModal() {
     captureEl.addEventListener('pointerup', cleanup);
     captureEl.addEventListener('pointercancel', cleanupNoCommit);
     window.addEventListener('blur', cleanupNoCommit);
-  }, [maximized]);
+  }, [maximized, inWindow]);
 
   // Grow the plain-text quote with its content (and on maximize / window resize).
   useLayoutEffect(() => {
@@ -3429,7 +3432,10 @@ export default function ComposeModal() {
       className="compose-window"
       onKeyDown={handleKeyDown}
       {...dropHandlers}
-      style={maximized ? {
+      style={inWindow ? {
+        position: 'fixed', inset: 0, background: 'var(--bg-secondary)',
+        zIndex: 1000, display: 'flex', flexDirection: 'column',
+      } : maximized ? {
         position: 'fixed', top: 28, left: 28, right: 28, bottom: 28,
         background: 'var(--bg-secondary)', border: '1px solid var(--border)',
         borderRadius: 12, boxShadow: 'var(--shadow-modal)',
@@ -3462,7 +3468,7 @@ export default function ComposeModal() {
         style={{
           padding: '10px 14px', display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)',
-          flexShrink: 0, cursor: maximized ? 'default' : 'grab',
+          flexShrink: 0, cursor: maximized || inWindow ? 'default' : 'grab',
         }}
       >
         {isReply ? (
@@ -3539,12 +3545,12 @@ export default function ComposeModal() {
         )}
 
         <div style={{ display: 'flex', gap: 4 }}>
-          <TitleBtn onClick={() => setMinimized(true)} title={t('compose.toolbar.minimize')}>
+          {!inWindow && <TitleBtn onClick={() => setMinimized(true)} title={t('compose.toolbar.minimize')}>
             <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
-          </TitleBtn>
-          <TitleBtn onClick={() => setMaximized(m => !m)} title={maximized ? t('compose.toolbar.restore') : t('compose.toolbar.maximize')}>
+          </TitleBtn>}
+          {!inWindow && <TitleBtn onClick={() => setMaximized(m => !m)} title={maximized ? t('compose.toolbar.restore') : t('compose.toolbar.maximize')}>
             {maximized ? (
               <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/>
@@ -3556,7 +3562,7 @@ export default function ComposeModal() {
                 <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
               </svg>
             )}
-          </TitleBtn>
+          </TitleBtn>}
           <TitleBtn onClick={handleClose} danger title={t('compose.toolbar.close')}>
             <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -3913,7 +3919,7 @@ export default function ComposeModal() {
         )}
       </div>
 
-      {!maximized && (
+      {!maximized && !inWindow && (
         <div
           onPointerDown={handleResizeDragStart}
           style={{ position: 'absolute', bottom: 0, right: 0, width: 18, height: 18, cursor: 'nwse-resize' }}

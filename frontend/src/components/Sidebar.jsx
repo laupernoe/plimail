@@ -20,6 +20,8 @@ import {
   resolveFolderOrderDrop,
 } from '../utils/sidebar.js';
 import { useMobile } from '../hooks/useMobile.js';
+import ComposeSplitButton from './ComposeSplitButton.jsx';
+import { composeInNewWindow } from '../utils/composeWindow.js';
 import UpcomingPane from './calendar/UpcomingPane.jsx';
 import ProfileModal from './ProfileModal.jsx';
 import MailTransferDialog from './MailTransferDialog.jsx';
@@ -948,23 +950,12 @@ export default function Sidebar() {
 
       {/* Compose button */}
       <div style={{ padding: '12px 10px', display: showCalendar && !isMobile ? 'none' : undefined }}>
-        <button
-          onClick={() => openCompose({})}
-          className="btn-press"
-          style={{
-            width: '100%', padding: sidebarCollapsed ? '10px' : '10px 14px',
-            background: 'var(--accent)', border: 'none', borderRadius: 8,
-            color: 'var(--accent-text)', fontSize: 13, fontWeight: 500,
-            cursor: 'pointer', display: 'flex', alignItems: 'center',
-            justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-            gap: 8, transition: 'opacity 0.15s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-        >
-          {ICONS.compose}
-          {!sidebarCollapsed && t('sidebar.compose')}
-        </button>
+        <ComposeSplitButton
+          icon={ICONS.compose}
+          collapsed={sidebarCollapsed}
+          onCompose={() => openCompose({})}
+          onComposeWindow={isMobile ? undefined : () => composeInNewWindow({ openCompose, accountId: selectedAccountId })}
+        />
       </div>
 
       {/* Nav */}

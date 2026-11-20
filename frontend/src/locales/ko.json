@@ -333,7 +333,10 @@
     "sendWithPassword": "비밀번호로 보내기",
     "sendWithPasswordShort": "보호하여 보내기",
     "readReceipt": "수신 확인 요청",
-    "readReceiptHint": "수신자의 메일 프로그램에 메시지를 열었는지 확인해 달라고 요청합니다. 수신자는 거절할 수 있습니다."
+    "readReceiptHint": "수신자의 메일 프로그램에 메시지를 열었는지 확인해 달라고 요청합니다. 수신자는 거절할 수 있습니다.",
+    "window": {
+      "loadFailed": "계정을 불러올 수 없습니다. 이 창을 닫고 다시 시도하세요."
+    }
   },
   "message": {
     "printConversation": "대화 인쇄",
@@ -763,7 +766,9 @@
     "favorites": "즐겨찾기",
     "reorderFolder": "끌어서 폴더 순서 변경",
     "draftsTotal": "임시보관함: {{n}}",
-    "mail": "메일"
+    "mail": "메일",
+    "composeOptions": "작성 옵션",
+    "composeNewWindow": "새 창에서 작성"
   },
   "scheduled": {
     "refresh": "새로 고침",
@@ -962,7 +967,8 @@
       "themes": "테마 열기",
       "inbox": "받은편지함으로 이동",
       "switchTheme": "{{theme}} 테마로 전환",
-      "accountInbox": "{{name}} — 받은 편지함"
+      "accountInbox": "{{name}} — 받은 편지함",
+      "composeWindow": "새 창에서 작성"
     },
     "hint": {
       "select": "선택",

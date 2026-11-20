@@ -4,11 +4,12 @@ import { useStore } from '../store/index.js';
 import { useMobile } from '../hooks/useMobile.js';
 import { THEMES } from '../themes.js';
 import { api } from '../utils/api.js';
+import { composeInNewWindow } from '../utils/composeWindow.js';
 import { labelPickerOptions, pickerNavigationDirection, executeLabelChoice } from '../utils/labelPicker.js';
 
 const THEME_NAMES = Object.keys(THEMES);
 
-function buildActions({ t, openCompose, setSelectedAccount, setShowAdmin, setAdminTab, theme, setTheme, accounts }) {
+function buildActions({ t, isMobile, openCompose, setSelectedAccount, setShowAdmin, setAdminTab, theme, setTheme, accounts }) {
   const actions = [
     {
       id: 'compose',
@@ -16,6 +17,13 @@ function buildActions({ t, openCompose, setSelectedAccount, setShowAdmin, setAdm
       icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
       run: () => openCompose({}),
     },
+    // A phone has no second window to put it in.
+    ...(isMobile ? [] : [{
+      id: 'composeWindow',
+      label: t('commandPalette.actions.composeWindow'),
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>,
+      run: () => composeInNewWindow({ openCompose, accountId: useStore.getState().selectedAccountId }),
+    }]),
     {
       id: 'inbox',
       label: t('commandPalette.actions.inbox'),
@@ -85,7 +93,7 @@ export default function CommandPalette({ open, onClose, labelPickerMessage = nul
         run: () => executeLabelChoice(labelPickerMessage, choice,
           { getThread: api.getThread, copyMessage: api.copyMessage }),
       }))
-    : buildActions({ t, openCompose, setSelectedAccount, setShowAdmin, setAdminTab, theme, setTheme, accounts });
+    : buildActions({ t, isMobile, openCompose, setSelectedAccount, setShowAdmin, setAdminTab, theme, setTheme, accounts });
 
   const filtered = query.trim()
     ? actions.filter(a => a.label.toLowerCase().includes(query.toLowerCase()))

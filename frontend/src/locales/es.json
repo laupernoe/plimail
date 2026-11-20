@@ -333,7 +333,10 @@
     "sendWithPassword": "Enviar con contraseña",
     "sendWithPasswordShort": "Enviar protegido",
     "readReceipt": "Solicitar confirmación de lectura",
-    "readReceiptHint": "Pide al programa de correo del destinatario que confirme que abrió el mensaje. Puede rechazarlo."
+    "readReceiptHint": "Pide al programa de correo del destinatario que confirme que abrió el mensaje. Puede rechazarlo.",
+    "window": {
+      "loadFailed": "No se pudieron cargar tus cuentas. Cierra esta ventana e inténtalo de nuevo."
+    }
   },
   "message": {
     "find": {
@@ -763,7 +766,9 @@
     "favorites": "Favoritos",
     "reorderFolder": "Arrastra para reordenar la carpeta",
     "draftsTotal": "Borradores: {{n}}",
-    "mail": "Correo"
+    "mail": "Correo",
+    "composeOptions": "Opciones de redacción",
+    "composeNewWindow": "Redactar en una ventana nueva"
   },
   "scheduled": {
     "refresh": "Actualizar",
@@ -969,7 +974,8 @@
       "settings": "Abrir ajustes",
       "themes": "Abrir temas",
       "switchTheme": "Cambiar al tema {{theme}}",
-      "accountInbox": "{{name}} — Bandeja de entrada"
+      "accountInbox": "{{name}} — Bandeja de entrada",
+      "composeWindow": "Redactar en una ventana nueva"
     }
   },
   "shortcuts": {

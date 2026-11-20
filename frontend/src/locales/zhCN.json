@@ -333,7 +333,10 @@
     "sendWithPassword": "使用密码发送",
     "sendWithPasswordShort": "受保护发送",
     "readReceipt": "请求已读回执",
-    "readReceiptHint": "请收件人的邮件程序确认已打开该邮件。对方可以拒绝。"
+    "readReceiptHint": "请收件人的邮件程序确认已打开该邮件。对方可以拒绝。",
+    "window": {
+      "loadFailed": "无法加载您的账户。请关闭此窗口后重试。"
+    }
   },
   "message": {
     "find": {
@@ -763,7 +766,9 @@
     "favorites": "收藏夹",
     "reorderFolder": "拖动以调整文件夹顺序",
     "draftsTotal": "草稿：{{n}}",
-    "mail": "邮件"
+    "mail": "邮件",
+    "composeOptions": "撰写选项",
+    "composeNewWindow": "在新窗口中撰写"
   },
   "scheduled": {
     "refresh": "刷新",
@@ -969,7 +974,8 @@
       "settings": "打开设置",
       "themes": "打开主题",
       "switchTheme": "切换至「{{theme}}」主题",
-      "accountInbox": "{{name}} — 收件箱"
+      "accountInbox": "{{name}} — 收件箱",
+      "composeWindow": "在新窗口中撰写"
     }
   },
   "shortcuts": {

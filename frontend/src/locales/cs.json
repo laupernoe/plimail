@@ -175,7 +175,9 @@
     "favorites": "Oblíbené",
     "reorderFolder": "Přetažením změníte pořadí složky",
     "draftsTotal": "Koncepty: {{n}}",
-    "mail": "E-maily"
+    "mail": "E-maily",
+    "composeOptions": "Možnosti psaní zprávy",
+    "composeNewWindow": "Napsat v novém okně"
   },
   "scheduled": {
     "refresh": "Obnovit",
@@ -918,7 +920,10 @@
     "sendWithPassword": "Odeslat s heslem",
     "sendWithPasswordShort": "Odeslat chráněně",
     "readReceipt": "Požádat o potvrzení o přečtení",
-    "readReceiptHint": "Požádá poštovní program příjemce o potvrzení, že zprávu otevřel. Příjemce může odmítnout."
+    "readReceiptHint": "Požádá poštovní program příjemce o potvrzení, že zprávu otevřel. Příjemce může odmítnout.",
+    "window": {
+      "loadFailed": "Účty se nepodařilo načíst. Zavřete toto okno a zkuste to znovu."
+    }
   },
   "notifications": {
     "newMessage": "Nová zpráva"
@@ -1217,7 +1222,8 @@
       "settings": "Otevřít Nastavení",
       "themes": "Otevřít Motivy",
       "switchTheme": "Přepnout na motiv {{theme}}",
-      "accountInbox": "{{name}} — Doručené"
+      "accountInbox": "{{name}} — Doručené",
+      "composeWindow": "Napsat v novém okně"
     }
   },
   "admin": {
