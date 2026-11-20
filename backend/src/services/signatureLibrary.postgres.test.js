@@ -74,7 +74,7 @@ describe.skipIf(!process.env.MAILFLOW_TEST_DATABASE_URL)('signature library on P
     await database.query(await sql());
     await database.query(await sql());
 
-    const { rows } = await database.query('SELECT user_id, name, html FROM signatures ORDER BY name');
+    const { rows } = await database.query('SELECT user_id, name, html FROM signatures ORDER BY lower(name) COLLATE "C"');
     expect(rows).toEqual([
       { user_id: U2, name: 'Bob (bob@example.com)', html: '<p>Bob</p>' },
       { user_id: U1, name: 'jane@home.example', html: '<p>Jane</p>' },
