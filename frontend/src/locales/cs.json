@@ -175,7 +175,9 @@
     "favorites": "Oblíbené",
     "reorderFolder": "Přetažením změníte pořadí složky",
     "draftsTotal": "Koncepty: {{n}}",
-    "mail": "E-maily"
+    "mail": "E-maily",
+    "composeOptions": "Možnosti psaní zprávy",
+    "composeNewWindow": "Napsat v novém okně"
   },
   "scheduled": {
     "refresh": "Obnovit",
@@ -804,7 +806,8 @@
       "aiReplyLeftOut": "Podle {{count}} nejnovějších zpráv konverzace: starší byly vynechány.",
       "aiTooLong": "tento koncept má {{count}} znaků, víc než {{max}}, které AI zpracuje. Zkraťte ho nebo odstraňte citovaný text a zkuste to znovu.",
       "aiNotAllowed": "správce vypnul AI pro váš účet.",
-      "aiFeatureOff": "správce vypnul asistenta psaní AI."
+      "aiFeatureOff": "správce vypnul asistenta psaní AI.",
+      "popOut": "Otevřít v novém okně"
     },
     "messageOptions": "Možnosti zprávy",
     "priority": "Priorita",
@@ -922,7 +925,13 @@
     "sendWithPassword": "Odeslat s heslem",
     "sendWithPasswordShort": "Odeslat chráněně",
     "readReceipt": "Požádat o potvrzení o přečtení",
-    "readReceiptHint": "Požádá poštovní program příjemce o potvrzení, že zprávu otevřel. Příjemce může odmítnout."
+    "readReceiptHint": "Požádá poštovní program příjemce o potvrzení, že zprávu otevřel. Příjemce může odmítnout.",
+    "window": {
+      "loadFailed": "Účty se nepodařilo načíst. Zavřete toto okno a zkuste to znovu."
+    },
+    "popOut": {
+      "failed": "Zprávu se nepodařilo přesunout do nového okna. Zůstává otevřená zde."
+    }
   },
   "notifications": {
     "newMessage": "Nová zpráva"
@@ -1221,7 +1230,8 @@
       "settings": "Otevřít Nastavení",
       "themes": "Otevřít Motivy",
       "switchTheme": "Přepnout na motiv {{theme}}",
-      "accountInbox": "{{name}} — Doručené"
+      "accountInbox": "{{name}} — Doručené",
+      "composeWindow": "Napsat v novém okně"
     }
   },
   "admin": {

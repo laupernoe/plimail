@@ -219,7 +219,8 @@
       "aiReplyLeftOut": "Na podstawie {{count}} najnowszych wiadomości z rozmowy: starsze zostały pominięte.",
       "aiTooLong": "ta wersja robocza ma {{count}} znaków, więcej niż {{max}}, które przyjmuje AI. Skróć ją lub usuń cytowany tekst i spróbuj ponownie.",
       "aiNotAllowed": "administrator wyłączył AI na Twoim koncie.",
-      "aiFeatureOff": "administrator wyłączył asystenta tworzenia wiadomości AI."
+      "aiFeatureOff": "administrator wyłączył asystenta tworzenia wiadomości AI.",
+      "popOut": "Otwórz w nowym oknie"
     },
     "messageOptions": "Opcje wiadomości",
     "priority": "Priorytet",
@@ -337,7 +338,13 @@
     "sendWithPassword": "Wyślij z hasłem",
     "sendWithPasswordShort": "Wyślij chronione",
     "readReceipt": "Poproś o potwierdzenie odczytu",
-    "readReceiptHint": "Prosi program pocztowy odbiorcy o potwierdzenie otwarcia wiadomości. Odbiorca może odmówić."
+    "readReceiptHint": "Prosi program pocztowy odbiorcy o potwierdzenie otwarcia wiadomości. Odbiorca może odmówić.",
+    "window": {
+      "loadFailed": "Nie udało się wczytać Twoich kont. Zamknij to okno i spróbuj ponownie."
+    },
+    "popOut": {
+      "failed": "Nie udało się przenieść wiadomości do nowego okna. Pozostaje otwarta tutaj."
+    }
   },
   "message": {
     "find": {
@@ -783,7 +790,9 @@
     "favorites": "Ulubione",
     "reorderFolder": "Przeciągnij, aby zmienić kolejność folderu",
     "draftsTotal": "Szkice: {{n}}",
-    "mail": "Poczta"
+    "mail": "Poczta",
+    "composeOptions": "Opcje tworzenia wiadomości",
+    "composeNewWindow": "Napisz w nowym oknie"
   },
   "scheduled": {
     "refresh": "Odśwież",
@@ -989,7 +998,8 @@
       "settings": "Otwórz ustawienia",
       "themes": "Otwórz motywy",
       "switchTheme": "Przełącz na motyw {{theme}}",
-      "accountInbox": "{{name}} — Skrzynka odbiorcza"
+      "accountInbox": "{{name}} — Skrzynka odbiorcza",
+      "composeWindow": "Napisz w nowym oknie"
     }
   },
   "shortcuts": {

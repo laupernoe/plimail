@@ -31,6 +31,7 @@ import { openScheduledView } from '../utils/scheduledCompose.js';
 import { openSentMessage } from '../utils/openSentMessage.js';
 import { descaleCss } from '../utils/uiScaleCss.js';
 import { takePendingMailto } from '../utils/mailtoLink.js';
+import { listenForComposeChanges } from '../utils/composeWindow.js';
 
 // Opens the Scheduled view at one message, highlighted (a notification link or a toast's Open).
 function openScheduledMessage(id) {
@@ -368,6 +369,14 @@ export default function MailApp() {
     try { data = takePendingMailto(sessionStorage); } catch { /* no session storage */ }
     if (data) openCompose(data);
   }, [openCompose]);
+
+  // A composer window (utils/composeWindow.js) saved, sent or discarded something: the list, the
+  // counts and the reply-draft marks are read again, as on a resume.
+  useEffect(() => listenForComposeChanges(() => {
+    useStore.getState().invalidateReplyDrafts();
+    window.dispatchEvent(new CustomEvent('mailflow:refresh'));
+    window.dispatchEvent(new CustomEvent('mailflow:counts_refresh'));
+  }), []);
 
   useEffect(() => {
     // Load accounts. A failed load (the server restarting, a dropped connection) used to leave

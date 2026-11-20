@@ -219,7 +219,8 @@
       "aiReplyLeftOut": "Basée sur les {{count}} messages les plus récents de la conversation : les plus anciens ont été laissés de côté.",
       "aiTooLong": "ce brouillon contient {{count}} caractères, plus que les {{max}} que l'IA peut traiter. Raccourcissez-le ou supprimez le texte cité, puis réessayez.",
       "aiNotAllowed": "votre administrateur a désactivé l'IA pour votre compte.",
-      "aiFeatureOff": "votre administrateur a désactivé l'aide à la rédaction par IA."
+      "aiFeatureOff": "votre administrateur a désactivé l'aide à la rédaction par IA.",
+      "popOut": "Ouvrir dans une nouvelle fenêtre"
     },
     "messageOptions": "Options du message",
     "priority": "Priorité",
@@ -337,7 +338,13 @@
     "sendWithPassword": "Envoyer avec un mot de passe",
     "sendWithPasswordShort": "Envoyer protégé",
     "readReceipt": "Demander un accusé de lecture",
-    "readReceiptHint": "Demande au logiciel de messagerie du destinataire de confirmer l’ouverture du message. Il peut refuser."
+    "readReceiptHint": "Demande au logiciel de messagerie du destinataire de confirmer l’ouverture du message. Il peut refuser.",
+    "window": {
+      "loadFailed": "Impossible de charger vos comptes. Fermez cette fenêtre et réessayez."
+    },
+    "popOut": {
+      "failed": "Impossible de déplacer ce message dans une nouvelle fenêtre. Il reste ouvert ici."
+    }
   },
   "message": {
     "find": {
@@ -767,7 +774,9 @@
     "favorites": "Favoris",
     "reorderFolder": "Faites glisser pour réorganiser le dossier",
     "draftsTotal": "Brouillons : {{n}}",
-    "mail": "Mails"
+    "mail": "Mails",
+    "composeOptions": "Options de rédaction",
+    "composeNewWindow": "Rédiger dans une nouvelle fenêtre"
   },
   "scheduled": {
     "refresh": "Actualiser",
@@ -973,7 +982,8 @@
       "settings": "Ouvrir les paramètres",
       "themes": "Ouvrir les thèmes",
       "switchTheme": "Passer au thème {{theme}}",
-      "accountInbox": "{{name}} — Boîte de réception"
+      "accountInbox": "{{name}} — Boîte de réception",
+      "composeWindow": "Rédiger dans une nouvelle fenêtre"
     }
   },
   "shortcuts": {

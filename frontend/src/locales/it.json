@@ -219,7 +219,8 @@
       "aiReplyLeftOut": "Basata sui {{count}} messaggi più recenti della conversazione: i più vecchi sono stati esclusi.",
       "aiTooLong": "questa bozza ha {{count}} caratteri, più dei {{max}} che l'IA può gestire. Accorciala o rimuovi il testo citato, poi riprova.",
       "aiNotAllowed": "il tuo amministratore ha disattivato l'IA per il tuo account.",
-      "aiFeatureOff": "il tuo amministratore ha disattivato l'assistente di redazione IA."
+      "aiFeatureOff": "il tuo amministratore ha disattivato l'assistente di redazione IA.",
+      "popOut": "Apri in una nuova finestra"
     },
     "messageOptions": "Opzioni del messaggio",
     "priority": "Priorità",
@@ -337,7 +338,13 @@
     "sendWithPassword": "Invia con una password",
     "sendWithPasswordShort": "Invia protetto",
     "readReceipt": "Richiedi conferma di lettura",
-    "readReceiptHint": "Chiede al programma di posta del destinatario di confermare l’apertura del messaggio. Il destinatario può rifiutare."
+    "readReceiptHint": "Chiede al programma di posta del destinatario di confermare l’apertura del messaggio. Il destinatario può rifiutare.",
+    "window": {
+      "loadFailed": "Impossibile caricare i tuoi account. Chiudi questa finestra e riprova."
+    },
+    "popOut": {
+      "failed": "Impossibile spostare questo messaggio in una nuova finestra. Resta aperto qui."
+    }
   },
   "message": {
     "find": {
@@ -767,7 +774,9 @@
     "favorites": "Preferiti",
     "reorderFolder": "Trascina per riordinare la cartella",
     "draftsTotal": "Bozze: {{n}}",
-    "mail": "Posta"
+    "mail": "Posta",
+    "composeOptions": "Opzioni di scrittura",
+    "composeNewWindow": "Scrivi in una nuova finestra"
   },
   "scheduled": {
     "refresh": "Aggiorna",
@@ -973,7 +982,8 @@
       "settings": "Apri Impostazioni",
       "themes": "Apri Temi",
       "switchTheme": "Passa al tema {{theme}}",
-      "accountInbox": "{{name}} — Posta in arrivo"
+      "accountInbox": "{{name}} — Posta in arrivo",
+      "composeWindow": "Scrivi in una nuova finestra"
     }
   },
   "shortcuts": {

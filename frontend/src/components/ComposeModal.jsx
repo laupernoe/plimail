@@ -72,6 +72,7 @@ import { ensureKeySecret, requestKeyUnlock, unlockOwnKey } from '../utils/pgpUnl
 import { SecureSendError, secureSettingsProblem, sendProtected } from '../utils/secureSend.js';
 import { htmlLang } from '../utils/browserLanguage.js';
 import { FONT_GROUPS, FONT_SIZES, composeFontPayload, composeFontVars, knownFontFamily } from '../utils/composeFont.js';
+import { isComposeWindow, popOutCompose } from '../utils/composeWindow.js';
 import { addSuggestionChips, mergeGroupSuggestions, suggestionKey } from '../utils/groupRecipients.js';
 import SignaturePicker from './SignaturePicker.jsx';
 
@@ -446,6 +447,8 @@ export default function ComposeModal() {
   }).mode === 'pgp';
   const [minimized, setMinimized] = useState(false);
   const [maximized, setMaximized] = useState(false);
+  // The /compose window: the composer fills it, with nothing to minimize, move or resize.
+  const inWindow = isComposeWindow();
   const [pos, setPos] = useState(null);
   const [customSize, setCustomSize] = useState(() => {
     try {
@@ -730,7 +733,7 @@ export default function ComposeModal() {
   const handleTitleDragStart = useCallback((e) => {
     if (e.button !== 0) return;
     if (e.target.closest('button, select, a')) return;
-    if (maximized) return;
+    if (maximized || inWindow) return;
     e.preventDefault();
     const el = composeWindowRef.current;
     if (!el) return;
@@ -787,7 +790,7 @@ export default function ComposeModal() {
     captureEl.addEventListener('pointerup', cleanup);
     captureEl.addEventListener('pointercancel', cleanupNoCommit);
     window.addEventListener('blur', cleanupNoCommit);
-  }, [maximized]);
+  }, [maximized, inWindow]);
 
   // Grow the plain-text quote with its content (and on maximize / window resize).
   useLayoutEffect(() => {
@@ -2393,6 +2396,24 @@ export default function ComposeModal() {
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, []);
 
+  // Move this composer to a window of its own (utils/composeWindow.js). It closes here only once the
+  // window has taken the message; until then, and if anything fails, it stays as it is.
+  const popOutRef = useRef(null);
+  popOutRef.current = () => {
+    if (sendingRef.current || scheduledEdit || inWindow) return;
+    const { accountId, aliasId } = resolveFrom(fromValue);
+    let data;
+    try { data = buildRestoreData(buildSendPayload(accountId, aliasId)); } catch { setError(t('compose.popOut.failed')); return; }
+    popOutCompose({
+      data,
+      onTaken: () => {
+        const active = useStore.getState();
+        if (active.composing && active.composeSession === composeSession) closeCompose();
+      },
+      onFailed: () => setError(t('compose.popOut.failed')),
+    });
+  };
+
   const handleSaveDraft = (closeAfter = false) => {
     if ((attachments.length > 0 || fwdAttachments.length > 0) && !showAttachWarnForDraft) {
       setAttachWarnDraftCloseAfter(closeAfter);
@@ -3468,7 +3489,10 @@ export default function ComposeModal() {
       className="compose-window"
       onKeyDown={handleKeyDown}
       {...dropHandlers}
-      style={maximized ? {
+      style={inWindow ? {
+        position: 'fixed', inset: 0, background: 'var(--bg-secondary)',
+        zIndex: 1000, display: 'flex', flexDirection: 'column',
+      } : maximized ? {
         position: 'fixed', top: 28, left: 28, right: 28, bottom: 28,
         background: 'var(--bg-secondary)', border: '1px solid var(--border)',
         borderRadius: 12, boxShadow: 'var(--shadow-modal)',
@@ -3501,7 +3525,7 @@ export default function ComposeModal() {
         style={{
           padding: '10px 14px', display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)',
-          flexShrink: 0, cursor: maximized ? 'default' : 'grab',
+          flexShrink: 0, cursor: maximized || inWindow ? 'default' : 'grab',
         }}
       >
         {isReply ? (
@@ -3578,12 +3602,17 @@ export default function ComposeModal() {
         )}
 
         <div style={{ display: 'flex', gap: 4 }}>
-          <TitleBtn onClick={() => setMinimized(true)} title={t('compose.toolbar.minimize')}>
+          {!inWindow && !scheduledEdit && <TitleBtn onClick={() => popOutRef.current()} title={t('compose.toolbar.popOut')}>
+            <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          </TitleBtn>}
+          {!inWindow && <TitleBtn onClick={() => setMinimized(true)} title={t('compose.toolbar.minimize')}>
             <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
-          </TitleBtn>
-          <TitleBtn onClick={() => setMaximized(m => !m)} title={maximized ? t('compose.toolbar.restore') : t('compose.toolbar.maximize')}>
+          </TitleBtn>}
+          {!inWindow && <TitleBtn onClick={() => setMaximized(m => !m)} title={maximized ? t('compose.toolbar.restore') : t('compose.toolbar.maximize')}>
             {maximized ? (
               <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/>
@@ -3595,7 +3624,7 @@ export default function ComposeModal() {
                 <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
               </svg>
             )}
-          </TitleBtn>
+          </TitleBtn>}
           <TitleBtn onClick={handleClose} danger title={t('compose.toolbar.close')}>
             <svg width={ICON_SMALL} height={ICON_SMALL} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -3952,7 +3981,7 @@ export default function ComposeModal() {
         )}
       </div>
 
-      {!maximized && (
+      {!maximized && !inWindow && (
         <div
           onPointerDown={handleResizeDragStart}
           style={{ position: 'absolute', bottom: 0, right: 0, width: 18, height: 18, cursor: 'nwse-resize' }}

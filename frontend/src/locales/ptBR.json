@@ -219,7 +219,8 @@
       "aiReplyLeftOut": "Baseada nas {{count}} mensagens mais recentes da conversa: as mais antigas ficaram de fora.",
       "aiTooLong": "este rascunho tem {{count}} caracteres, mais do que os {{max}} que a IA aceita. Encurte-o ou remova o texto citado e tente novamente.",
       "aiNotAllowed": "o administrador desativou a IA na sua conta.",
-      "aiFeatureOff": "o administrador desativou o assistente de composição com IA."
+      "aiFeatureOff": "o administrador desativou o assistente de composição com IA.",
+      "popOut": "Abrir em uma nova janela"
     },
     "messageOptions": "Opções da mensagem",
     "priority": "Prioridade",
@@ -337,7 +338,13 @@
     "sendWithPassword": "Enviar com senha",
     "sendWithPasswordShort": "Enviar protegido",
     "readReceipt": "Solicitar confirmação de leitura",
-    "readReceiptHint": "Pede ao programa de e-mail do destinatário que confirme a abertura da mensagem. Ele pode recusar."
+    "readReceiptHint": "Pede ao programa de e-mail do destinatário que confirme a abertura da mensagem. Ele pode recusar.",
+    "window": {
+      "loadFailed": "Não foi possível carregar suas contas. Feche esta janela e tente novamente."
+    },
+    "popOut": {
+      "failed": "Não foi possível mover esta mensagem para uma nova janela. Ela continua aberta aqui."
+    }
   },
   "message": {
     "find": {
@@ -767,7 +774,9 @@
     "favorites": "Favoritos",
     "reorderFolder": "Arraste para reordenar a pasta",
     "draftsTotal": "Rascunhos: {{n}}",
-    "mail": "E-mails"
+    "mail": "E-mails",
+    "composeOptions": "Opções de redação",
+    "composeNewWindow": "Escrever em uma nova janela"
   },
   "scheduled": {
     "refresh": "Atualizar",
@@ -973,7 +982,8 @@
       "settings": "Abrir Configurações",
       "themes": "Abrir Temas",
       "switchTheme": "Mudar para o tema {{theme}}",
-      "accountInbox": "{{name}} — Caixa de entrada"
+      "accountInbox": "{{name}} — Caixa de entrada",
+      "composeWindow": "Escrever em uma nova janela"
     }
   },
   "shortcuts": {
