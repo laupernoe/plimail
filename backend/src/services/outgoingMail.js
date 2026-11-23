@@ -106,6 +106,11 @@ export function sanitizeSmtpError(err) {
   if (/535|534|530|invalid.?login|authentication.?fail|bad.*credentials|username.*password|password.*username/i.test(msg)) {
     return 'Authentication failed. Check your email account credentials.';
   }
+  // A connection cap per client address (nodemailer: "Invalid greeting ... 421 4.7.0 Too many
+  // simultaneous connections"), not a sending rate: before the rate-limit wording below.
+  if (/simultaneous|concurrent connections|too many (open )?connections|connection limit/i.test(msg)) {
+    return 'The mail server has too many open connections from your network right now. Please try again in a minute.';
+  }
   if (/throttl|rate.?limit|too many|4\.2\.|4\.7\.94/i.test(msg)) {
     return 'The mail server is rate limiting sends. Please try again shortly.';
   }

@@ -6,6 +6,13 @@ import { resolveForConnection } from './hostValidation.js';
 
 const SMTP_ATTEMPT_TIMEOUT_MS = 10_000;
 const SMTP_FAILOVER_BUDGET_MS = 45_000;
+// A server that refuses the connection itself with a temporary 421 (typically "too many
+// simultaneous connections from you", which a shared office IP trips) usually accepts the same
+// connection a few seconds later. Two more rounds, after these pauses, still fit the budget above.
+const SMTP_BUSY_RETRY_DELAYS_MS = [3000, 8000];
+const SMTP_BUSY_JITTER_MS = 1000;
+// How far the last attempt that failed with an error got, kept off the error itself.
+const failedStage = new WeakMap();
 
 // EHLO/HELO client identity (#492). nodemailer's default is os.hostname(), and when that
 // is not an FQDN — every Docker container with a default hostname — it sends
@@ -29,6 +36,16 @@ export function smtpClientName(env = process.env) {
 
 export function isPreDeliveryConnectionError(err) {
   return err?.command === 'CONN';
+}
+
+// A temporary refusal at the very start of the conversation (greeting, EHLO, STARTTLS, AUTH):
+// 421, or another 4xx at the greeting or EHLO. Only meaningful together with
+// `!stage.mailFromSent`: until MAIL FROM nothing can have been delivered, so trying again cannot
+// duplicate a message. Pure; exported for tests.
+export function isBusyRefusal(err) {
+  const code = Number(err?.responseCode) || Number(/response=(\d{3})/.exec(String(err?.message ?? ''))?.[1]) || 0;
+  if (code === 421) return true;
+  return code >= 400 && code < 500 && (err?.command === 'CONN' || err?.command === 'EHLO' || err?.command === 'LHLO');
 }
 
 // How far one SMTP attempt got, read from the client commands and server replies nodemailer
@@ -102,6 +119,33 @@ async function runWithAddressFallback({
   createTransport = nodemailer.createTransport,
   now = Date.now,
   trackStage = false,
+  sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
+  random = Math.random,
+}) {
+  const startedAt = now();
+  for (let round = 0; ; round++) {
+    try {
+      return await runAddressRound({ resolved, transportOptions, operation, createTransport, now, trackStage });
+    } catch (err) {
+      const delay = SMTP_BUSY_RETRY_DELAYS_MS[round];
+      // Only a refusal before MAIL FROM, and only while the wait plus a new round fits the budget.
+      if (delay === undefined || !err || typeof err !== 'object'
+        || failedStage.get(err)?.mailFromSent !== false || !isBusyRefusal(err)) throw err;
+      const wait = delay + Math.floor(random() * SMTP_BUSY_JITTER_MS);
+      if (now() - startedAt + wait + SMTP_ATTEMPT_TIMEOUT_MS > SMTP_FAILOVER_BUDGET_MS) throw err;
+      console.warn(`SMTP server is busy (${err.message}); retrying in ${wait} ms (retry ${round + 1} of ${SMTP_BUSY_RETRY_DELAYS_MS.length})`);
+      await sleep(wait);
+    }
+  }
+}
+
+async function runAddressRound({
+  resolved,
+  transportOptions,
+  operation,
+  createTransport,
+  now,
+  trackStage,
 }) {
   const candidates = [...new Set(
     resolved.addresses?.length ? resolved.addresses : [resolved.host]
@@ -128,7 +172,10 @@ async function runWithAddressFallback({
       return await operation(transport);
     } catch (err) {
       lastError = err;
-      if (trackStage && err && typeof err === 'object') err.smtpStage = { ...tracker.stage };
+      if (err && typeof err === 'object') {
+        failedStage.set(err, { ...tracker.stage });
+        if (trackStage) err.smtpStage = { ...tracker.stage };
+      }
       const failOver = isPreDeliveryConnectionError(err) && !tracker.stage.mailFromSent;
       if (!failOver || i === candidates.length - 1) throw err;
       console.warn('SMTP connection failed; retrying another validated address:', err.message);
@@ -140,7 +187,8 @@ async function runWithAddressFallback({
   throw lastError;
 }
 
-export function createSmtpTransport(resolved, transportOptions, createTransport = nodemailer.createTransport, { trackStage = false } = {}) {
+export function createSmtpTransport(resolved, transportOptions, createTransport = nodemailer.createTransport, { trackStage = false, sleep, random, now } = {}) {
+  const timing = { ...(sleep && { sleep }), ...(random && { random }), ...(now && { now }) };
   return {
     sendMail: mailOptions => runWithAddressFallback({
       resolved,
@@ -148,12 +196,14 @@ export function createSmtpTransport(resolved, transportOptions, createTransport 
       operation: transport => transport.sendMail(mailOptions),
       createTransport,
       trackStage,
+      ...timing,
     }),
     verify: () => runWithAddressFallback({
       resolved,
       transportOptions,
       operation: transport => transport.verify(),
       createTransport,
+      ...timing,
     }),
   };
 }
