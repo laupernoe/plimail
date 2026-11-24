@@ -14,6 +14,7 @@ const { resolveForConnection } = await import('./hostValidation.js');
 const {
   createAccountSmtpTransport,
   createSmtpTransport,
+  isBusyRefusal,
   isPreDeliveryConnectionError,
   smtpClientName,
 } = await import('./smtpTransport.js');
@@ -436,5 +437,90 @@ describe('smtpClientName (#492)', () => {
     [{}],
   ])('leaves nodemailer\'s default alone for %j', (env) => {
     expect(smtpClientName(env)).toBeUndefined();
+  });
+});
+
+describe('retry after a busy server (421 before MAIL FROM)', () => {
+  const single = { host: '203.0.113.10', addresses: ['203.0.113.10'] };
+  const busy = () => Object.assign(
+    new Error('Invalid greeting. response=421 4.7.0 Too many simultaneous connections from you'),
+    { code: 'EPROTOCOL', command: 'CONN', responseCode: 421 },
+  );
+  // Fake clock: sleeping advances it, so the budget logic runs without real waiting.
+  const clock = () => {
+    let t = 0;
+    return { now: () => t, sleep: vi.fn(async ms => { t += ms; }), random: () => 0 };
+  };
+
+  beforeEach(() => vi.spyOn(console, 'warn').mockImplementation(() => {}));
+
+  it('retries after the pause and delivers once', async () => {
+    const c = clock();
+    const sendMail = vi.fn().mockRejectedValueOnce(busy()).mockResolvedValueOnce({ accepted: ['a@b.c'] });
+    const createTransport = vi.fn(() => ({ sendMail, close: vi.fn() }));
+    const transport = createSmtpTransport(single, {}, createTransport, c);
+    await expect(transport.sendMail({ to: 'a@b.c' })).resolves.toEqual({ accepted: ['a@b.c'] });
+    expect(sendMail).toHaveBeenCalledTimes(2);
+    expect(c.sleep.mock.calls.map(([ms]) => ms)).toEqual([3000]);
+    expect(console.warn).toHaveBeenCalled();
+  });
+
+  it('gives up after two retries with the last error, backing off 3s then 8s', async () => {
+    const c = clock();
+    const sendMail = vi.fn(() => Promise.reject(busy()));
+    const createTransport = vi.fn(() => ({ sendMail, close: vi.fn() }));
+    const transport = createSmtpTransport(single, {}, createTransport, c);
+    await expect(transport.sendMail({})).rejects.toThrow(/421/);
+    expect(sendMail).toHaveBeenCalledTimes(3);
+    expect(c.sleep.mock.calls.map(([ms]) => ms)).toEqual([3000, 8000]);
+  });
+
+  it('never retries once MAIL FROM was sent', async () => {
+    const c = clock();
+    const sendMail = vi.fn();
+    const createTransport = vi.fn(options => ({
+      sendMail: async () => {
+        sendMail();
+        options.logger.debug({ tnx: 'client' }, 'MAIL FROM:<a@b.c>');
+        throw busy();
+      },
+      close: vi.fn(),
+    }));
+    const transport = createSmtpTransport(single, {}, createTransport, c);
+    await expect(transport.sendMail({})).rejects.toThrow(/421/);
+    expect(sendMail).toHaveBeenCalledTimes(1);
+    expect(c.sleep).not.toHaveBeenCalled();
+  });
+
+  it('does not retry a permanent refusal', async () => {
+    const c = clock();
+    const sendMail = vi.fn().mockRejectedValue(Object.assign(new Error('nope'), { responseCode: 554, command: 'CONN' }));
+    const transport = createSmtpTransport(single, {}, vi.fn(() => ({ sendMail, close: vi.fn() })), c);
+    await expect(transport.sendMail({})).rejects.toThrow('nope');
+    expect(sendMail).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips the retry when it would not fit the budget', async () => {
+    let t = 0;
+    const sendMail = vi.fn(async () => { t += 36_000; throw busy(); });
+    const sleep = vi.fn();
+    const transport = createSmtpTransport(single, {}, vi.fn(() => ({ sendMail, close: vi.fn() })), { now: () => t, sleep, random: () => 0 });
+    await expect(transport.sendMail({})).rejects.toThrow(/421/);
+    expect(sleep).not.toHaveBeenCalled();
+  });
+
+  it('verify() retries the same way', async () => {
+    const c = clock();
+    const verify = vi.fn().mockRejectedValueOnce(busy()).mockResolvedValueOnce(true);
+    const transport = createSmtpTransport(single, {}, vi.fn(() => ({ verify, close: vi.fn() })), c);
+    await expect(transport.verify()).resolves.toBe(true);
+    expect(verify).toHaveBeenCalledTimes(2);
+  });
+
+  it('isBusyRefusal reads the code from the response text too', () => {
+    expect(isBusyRefusal(new Error('Invalid greeting. response=421 4.7.0 x'))).toBe(true);
+    expect(isBusyRefusal(Object.assign(new Error('x'), { responseCode: 451, command: 'EHLO' }))).toBe(true);
+    expect(isBusyRefusal(Object.assign(new Error('x'), { responseCode: 451, command: 'RCPT TO' }))).toBe(false);
+    expect(isBusyRefusal(new Error('socket hang up'))).toBe(false);
   });
 });

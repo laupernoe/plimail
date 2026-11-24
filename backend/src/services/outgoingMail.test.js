@@ -20,7 +20,7 @@ import { createAccountSmtpTransport } from './smtpTransport.js';
 import { resolveSentFolder } from '../utils/mailUtils.js';
 import { deleteSentDraft } from './draftCopies.js';
 import {
-  SendError, missingSendFields, validateSendInput, resolveIdentity, resolveForwarded,
+  SendError, sanitizeSmtpError, missingSendFields, validateSendInput, resolveIdentity, resolveForwarded,
   buildMailOptions, serverAutoSavesSent, renderRawMessage, prepareDelivery, deliverAndRecord,
 } from './outgoingMail.js';
 
@@ -445,5 +445,17 @@ describe('deliverAndRecord', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(await deliverAndRecord(await message(), { onFailure })).toEqual({ ok: true, sentCopySaved: false });
     expect(onFailure).not.toHaveBeenCalled();
+  });
+});
+
+describe('sanitizeSmtpError', () => {
+  it('says a connection cap is not a sending rate limit', () => {
+    const msg = sanitizeSmtpError(new Error('Invalid greeting. response=421 4.7.0 Too many simultaneous connections from you'));
+    expect(msg).toMatch(/too many open connections/);
+    expect(msg).not.toMatch(/rate limiting/);
+  });
+  it('keeps the rate-limit wording for real throttling', () => {
+    expect(sanitizeSmtpError(new Error('451 4.7.94 throttled'))).toMatch(/rate limiting/);
+    expect(sanitizeSmtpError(new Error('Too many messages'))).toMatch(/rate limiting/);
   });
 });
