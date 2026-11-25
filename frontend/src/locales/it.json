@@ -2774,6 +2774,26 @@
       "error": "Ricerca non riuscita: {{message}}",
       "past": "Passati",
       "truncated": "Vengono mostrati solo i primi risultati. Affina la ricerca per vederne altri."
+    },
+    "invitations": {
+      "title": "Inviti",
+      "button": "Inviti in attesa: {{count}}",
+      "empty": "Nessun invito in attesa di risposta.",
+      "from": "Da {{name}}",
+      "invitedAs": "Invitato come {{email}}",
+      "conflict": "Si sovrappone a «{{title}}»",
+      "conflictMore": "Si sovrappone a «{{title}}» e ad altri {{n}}",
+      "openMail": "Apri l’email",
+      "show": "Mostra nel calendario",
+      "answered": "Risposte recenti",
+      "noSender": "Nessun account di posta invia dall’indirizzo invitato, quindi non è stato possibile inviare la risposta.",
+      "gone": "Questo invito non è più aperto: è stato annullato, modificato o ha già avuto risposta altrove.",
+      "failed": "Impossibile inviare la risposta: {{message}}",
+      "calendarFailed": "La risposta è stata inviata, ma non è stato possibile aggiungere l’evento al calendario: {{message}}",
+      "noCalendar": "La risposta è stata inviata. Nessun calendario può ricevere l’evento, quindi non è stato aggiunto.",
+      "loadFailed": "Impossibile caricare gli inviti: {{message}}",
+      "mailLabel": "Invito del calendario",
+      "yourAnswer": "La tua risposta: {{answer}}"
     }
   },
   "calendarOffer": {

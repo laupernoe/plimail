@@ -4,7 +4,7 @@ import {
   addDays, dayKey, formatClock, formatDayText, formatHour, hiddenCounts, layoutColumns, layoutWeek,
   minutesOnDay, occursOnDay, parseDay, shiftOccurrence, slotToDate, snapMinutes, compareOccurrences, SNAP_MINUTES,
 } from '../../utils/calendarDates.js';
-import { tint } from './calendarUi.jsx';
+import { awaitingAnswer, awaitingStyle, tint } from './calendarUi.jsx';
 import { canDrag, dragSession } from './dragSession.js';
 
 const ALL_DAY_LANES = 3;
@@ -189,7 +189,7 @@ export default function TimeGridView({
                     margin: `1px ${seg.after ? 0 : 3}px 1px ${seg.before ? 0 : 3}px`, padding: '0 6px',
                     display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left',
                     fontSize: 11.5, fontWeight: 500, fontFamily: 'inherit', color: 'var(--text-primary)', border: 'none',
-                    background: tint(color, 30), cursor: occ.readOnly ? 'pointer' : 'grab',
+                    ...(awaitingAnswer(occ) ? awaitingStyle(color, 30) : { background: tint(color, 30) }), cursor: occ.readOnly ? 'pointer' : 'grab',
                     borderRadius: `${seg.before ? 0 : 4}px ${seg.after ? 0 : 4}px ${seg.after ? 0 : 4}px ${seg.before ? 0 : 4}px`,
                   }}>
                   {occ.summary || t('common.noSubject')}
@@ -257,7 +257,7 @@ export default function TimeGridView({
                           left: `calc(${(pos.col / pos.cols) * 100}% + 2px)`, width: `calc(${100 / pos.cols}% - 4px)`,
                           boxSizing: 'border-box', padding: '2px 6px', textAlign: 'left', overflow: 'hidden',
                           border: 'none', borderRadius: 5, fontFamily: 'inherit', color: 'var(--text-primary)',
-                          background: tint(color, 30), boxShadow: '0 0 0 1px var(--bg-primary)',
+                          ...(awaitingAnswer(occ) ? awaitingStyle(color, 30) : { background: tint(color, 30) }), boxShadow: '0 0 0 1px var(--bg-primary)',
                           cursor: occ.readOnly ? 'pointer' : 'grab', opacity: cancelled ? 0.55 : 1,
                           textDecoration: cancelled ? 'line-through' : 'none',
                         }}>

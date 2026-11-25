@@ -2774,6 +2774,26 @@
       "error": "Échec de la recherche : {{message}}",
       "past": "Passés",
       "truncated": "Seuls les premiers résultats sont affichés. Précisez la recherche pour en voir d’autres."
+    },
+    "invitations": {
+      "title": "Invitations",
+      "button": "Invitations en attente : {{count}}",
+      "empty": "Aucune invitation n’attend de réponse.",
+      "from": "De {{name}}",
+      "invitedAs": "Invité·e en tant que {{email}}",
+      "conflict": "Chevauche « {{title}} »",
+      "conflictMore": "Chevauche « {{title}} » et {{n}} autres",
+      "openMail": "Ouvrir l’e-mail",
+      "show": "Voir dans le calendrier",
+      "answered": "Réponses récentes",
+      "noSender": "Aucun compte de messagerie n’envoie depuis l’adresse invitée : la réponse n’a pas pu être envoyée.",
+      "gone": "Cette invitation n’est plus ouverte : elle a été annulée, modifiée ou répondue ailleurs.",
+      "failed": "La réponse n’a pas pu être envoyée : {{message}}",
+      "calendarFailed": "Votre réponse a été envoyée, mais l’événement n’a pas pu être ajouté au calendrier : {{message}}",
+      "noCalendar": "Votre réponse a été envoyée. Aucun calendrier ne peut recevoir l’événement, il n’a donc pas été ajouté.",
+      "loadFailed": "Impossible de charger les invitations : {{message}}",
+      "mailLabel": "Invitation à un événement",
+      "yourAnswer": "Votre réponse : {{answer}}"
     }
   },
   "calendarOffer": {

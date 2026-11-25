@@ -2,7 +2,7 @@ import { useLayoutEffect, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatWhen } from '../../utils/calendarDates.js';
 import { ATTENDEE_KEYS, linkify, recurrenceText, reminderText } from './calendarEvents.js';
-import { Btn, ErrorBox, Icon, IconBtn, Modal } from './calendarUi.jsx';
+import { AnswerGroup, Btn, ErrorBox, Icon, IconBtn, Modal } from './calendarUi.jsx';
 import { HIT, ICON_SMALL } from '../../utils/uiSizes.js';
 
 const WIDTH = 340;
@@ -27,25 +27,12 @@ function PlainText({ text }) {
   );
 }
 
-const ANSWERS = [['ACCEPTED', 'calendar.reply.yes'], ['TENTATIVE', 'calendar.reply.maybe'], ['DECLINED', 'calendar.reply.no']];
-
 function Reply({ status, busy, onReply }) {
   const { t } = useTranslation();
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '8px 10px', borderRadius: 8, background: 'var(--bg-tertiary)' }}>
       <span style={{ flex: '1 0 auto', fontSize: 13, color: 'var(--text-primary)' }}>{t('calendar.reply.question')}</span>
-      <div role="group" aria-label={t('calendar.reply.question')} style={{ display: 'inline-flex', borderRadius: 7, border: '1px solid var(--border)', overflow: 'hidden' }}>
-        {ANSWERS.map(([value, key], i) => {
-          const on = status === value;
-          return (
-            <button key={value} type="button" aria-pressed={on} disabled={busy} onClick={() => !on && onReply(value)} style={{
-              padding: '5px 11px', fontSize: 12, fontFamily: 'inherit', cursor: busy ? 'default' : 'pointer', border: 'none',
-              borderLeft: i ? '1px solid var(--border)' : 'none',
-              background: on ? 'var(--accent)' : 'var(--bg-secondary)', color: on ? 'var(--accent-text)' : 'var(--text-primary)', fontWeight: on ? 600 : 400,
-            }}>{t(key)}</button>
-          );
-        })}
-      </div>
+      <AnswerGroup status={status} busy={busy} onAnswer={onReply} label={t('calendar.reply.question')} />
     </div>
   );
 }

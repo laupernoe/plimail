@@ -2774,6 +2774,26 @@
       "error": "Suche fehlgeschlagen: {{message}}",
       "past": "Vergangen",
       "truncated": "Nur die ersten Ergebnisse werden angezeigt. Verfeinern Sie die Suche, um mehr zu sehen."
+    },
+    "invitations": {
+      "title": "Einladungen",
+      "button": "Offene Einladungen: {{count}}",
+      "empty": "Keine Einladungen warten auf eine Antwort.",
+      "from": "Von {{name}}",
+      "invitedAs": "Eingeladen als {{email}}",
+      "conflict": "Überschneidet sich mit „{{title}}“",
+      "conflictMore": "Überschneidet sich mit „{{title}}“ und {{n}} weiteren",
+      "openMail": "E-Mail öffnen",
+      "show": "Im Kalender zeigen",
+      "answered": "Kürzlich beantwortet",
+      "noSender": "Kein E-Mail-Konto sendet von der eingeladenen Adresse, daher konnte die Antwort nicht gesendet werden.",
+      "gone": "Diese Einladung ist nicht mehr offen: Sie wurde abgesagt, geändert oder anderswo beantwortet.",
+      "failed": "Die Antwort konnte nicht gesendet werden: {{message}}",
+      "calendarFailed": "Ihre Antwort wurde gesendet, aber der Termin konnte nicht in den Kalender eingetragen werden: {{message}}",
+      "noCalendar": "Ihre Antwort wurde gesendet. Kein Kalender kann den Termin aufnehmen, daher wurde er nicht eingetragen.",
+      "loadFailed": "Die Einladungen konnten nicht geladen werden: {{message}}",
+      "mailLabel": "Kalendereinladung",
+      "yourAnswer": "Ihre Antwort: {{answer}}"
     }
   },
   "calendarOffer": {

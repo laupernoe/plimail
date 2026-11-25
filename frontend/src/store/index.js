@@ -27,6 +27,9 @@ import i18n, { initialLanguage } from '../i18n.js';
 import { createPrefSaveQueue } from '../utils/prefSaveQueue.js';
 import { compareListOrder, isDefaultListOrder, listOrderFor, listSortKey } from '../utils/listSort.js';
 
+// The invitations load under way, so the calendar and the sidebar ask once between them.
+let _invitationsLoad = null;
+
 // Accumulate rapid preference changes and flush at most once per second. The queue itself
 // lives in prefSaveQueue.js so its behaviour is testable without a network or a DOM.
 const _prefQueue = createPrefSaveQueue({
@@ -769,6 +772,24 @@ export const useStore = create((set, get) => ({
   // { day, occ }. CalendarPage takes it and clears it.
   calendarFocus: null,
   setCalendarFocus: (focus) => set({ calendarFocus: focus }),
+  // Invitations waiting for an answer (GET /calendar/invitations): { invitations, answered }, null
+  // until loaded. Shared by the calendar's inbox and the badge on the sidebar's calendar button.
+  invitations: null,
+  invitationsError: null,
+  setInvitations: (invitations) => set({ invitations }),
+  loadInvitations: () => {
+    if (!_invitationsLoad) {
+      _invitationsLoad = api.calendar.invitations()
+        .then((r) => {
+          const invitations = { invitations: r?.invitations || [], answered: r?.answered || [] };
+          set({ invitations, invitationsError: null });
+          return invitations;
+        })
+        .catch((err) => { set({ invitationsError: err?.message || String(err) }); return null; })
+        .finally(() => { _invitationsLoad = null; });
+    }
+    return _invitationsLoad;
+  },
   // The sidebar's element the open calendar draws its controls into, in place of the mail folders.
   calendarRailSlot: null,
   setCalendarRailSlot: (el) => set({ calendarRailSlot: el }),

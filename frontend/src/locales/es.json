@@ -2774,6 +2774,26 @@
       "error": "La búsqueda falló: {{message}}",
       "past": "Pasados",
       "truncated": "Solo se muestran los primeros resultados. Afina la búsqueda para ver más."
+    },
+    "invitations": {
+      "title": "Invitaciones",
+      "button": "Invitaciones pendientes: {{count}}",
+      "empty": "No hay invitaciones esperando respuesta.",
+      "from": "De {{name}}",
+      "invitedAs": "Invitado como {{email}}",
+      "conflict": "Coincide con «{{title}}»",
+      "conflictMore": "Coincide con «{{title}}» y {{n}} más",
+      "openMail": "Abrir el correo",
+      "show": "Ver en el calendario",
+      "answered": "Respondidas hace poco",
+      "noSender": "Ninguna cuenta de correo envía desde la dirección invitada, así que no se pudo enviar la respuesta.",
+      "gone": "Esta invitación ya no está abierta: se canceló, cambió o se respondió en otro sitio.",
+      "failed": "No se pudo enviar la respuesta: {{message}}",
+      "calendarFailed": "Se envió tu respuesta, pero el evento no se pudo añadir al calendario: {{message}}",
+      "noCalendar": "Se envió tu respuesta. Ningún calendario puede recibir el evento, así que no se añadió.",
+      "loadFailed": "No se pudieron cargar las invitaciones: {{message}}",
+      "mailLabel": "Invitación de calendario",
+      "yourAnswer": "Tu respuesta: {{answer}}"
     }
   },
   "calendarOffer": {

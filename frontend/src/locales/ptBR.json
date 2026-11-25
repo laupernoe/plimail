@@ -2774,6 +2774,26 @@
       "error": "Falha na pesquisa: {{message}}",
       "past": "Passados",
       "truncated": "Apenas os primeiros resultados são exibidos. Refine a pesquisa para ver mais."
+    },
+    "invitations": {
+      "title": "Convites",
+      "button": "Convites pendentes: {{count}}",
+      "empty": "Nenhum convite aguardando resposta.",
+      "from": "De {{name}}",
+      "invitedAs": "Convidado como {{email}}",
+      "conflict": "Sobrepõe “{{title}}”",
+      "conflictMore": "Sobrepõe “{{title}}” e mais {{n}}",
+      "openMail": "Abrir o e-mail",
+      "show": "Mostrar no calendário",
+      "answered": "Respondidos recentemente",
+      "noSender": "Nenhuma conta de e-mail envia a partir do endereço convidado, então a resposta não pôde ser enviada.",
+      "gone": "Este convite não está mais aberto: foi cancelado, alterado ou respondido em outro lugar.",
+      "failed": "Não foi possível enviar a resposta: {{message}}",
+      "calendarFailed": "Sua resposta foi enviada, mas o evento não pôde ser adicionado ao calendário: {{message}}",
+      "noCalendar": "Sua resposta foi enviada. Nenhum calendário pode receber o evento, então ele não foi adicionado.",
+      "loadFailed": "Não foi possível carregar os convites: {{message}}",
+      "mailLabel": "Convite de calendário",
+      "yourAnswer": "Sua resposta: {{answer}}"
     }
   },
   "calendarOffer": {

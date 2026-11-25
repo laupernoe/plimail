@@ -6,6 +6,7 @@ import { useStore } from '../store/index.js';
 import { api, setPageClosing } from '../utils/api.js';
 import { flushUndoables } from '../utils/undoableAction.js';
 import { useWebSocket } from '../hooks/useWebSocket.js';
+import { useInvitationWatch } from '../hooks/useInvitationWatch.js';
 import { useMobile } from '../hooks/useMobile.js';
 import { LAYOUTS } from '../layouts.js';
 import { closeOpenMessage } from '../utils/closeMessage.js';
@@ -259,6 +260,7 @@ export default function MailApp() {
   }, [listFirst]);
 
   const wsRef = useWebSocket();
+  useInvitationWatch();
 
   // Scheduled messages (#543, design 5.3): the list and counts follow scheduled_changed, and a
   // message the sender sent, failed or paused is told in a toast, with View or Open.

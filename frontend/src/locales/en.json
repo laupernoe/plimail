@@ -2774,6 +2774,26 @@
       "error": "Search failed: {{message}}",
       "past": "Past",
       "truncated": "Only the first results are shown. Refine the search to see more."
+    },
+    "invitations": {
+      "title": "Invitations",
+      "button": "Invitations waiting: {{count}}",
+      "empty": "No invitations are waiting for an answer.",
+      "from": "From {{name}}",
+      "invitedAs": "Invited as {{email}}",
+      "conflict": "Overlaps “{{title}}”",
+      "conflictMore": "Overlaps “{{title}}” and {{n}} more",
+      "openMail": "Open the email",
+      "show": "Show in calendar",
+      "answered": "Recently answered",
+      "noSender": "No mail account sends from the address you were invited at, so the answer could not be sent.",
+      "gone": "This invitation is no longer open: it was cancelled, changed or answered elsewhere.",
+      "failed": "The answer could not be sent: {{message}}",
+      "calendarFailed": "Your answer was sent, but the event could not be added to the calendar: {{message}}",
+      "noCalendar": "Your answer was sent. No calendar can take the event, so it was not added.",
+      "loadFailed": "Could not load the invitations: {{message}}",
+      "mailLabel": "Calendar invitation",
+      "yourAnswer": "Your answer: {{answer}}"
     }
   },
   "calendarOffer": {

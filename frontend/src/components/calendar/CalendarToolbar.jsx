@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { VIEWS } from '../../utils/calendarDates.js';
 import { SEARCH_MAX } from './eventSearch.js';
-import { Btn, Icon, IconBtn } from './calendarUi.jsx';
+import { Btn, CountBadge, Icon, IconBtn } from './calendarUi.jsx';
 import { HIT, ICON, ICON_SMALL } from '../../utils/uiSizes.js';
 
 const VIEW_KEYS = {
@@ -60,8 +60,22 @@ function SearchField({ value, onChange, inputRef, onClose, isMobile }) {
   );
 }
 
+// The invitations inbox button, its count on the corner.
+function InvitationsButton({ count, open, onToggle, size, iconSize }) {
+  const { t } = useTranslation();
+  const label = count ? t('calendar.invitations.button', { count }) : t('calendar.invitations.title');
+  return (
+    <span data-invitations-button="" style={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }}>
+      <IconBtn label={label} icon="inbox" active={open} aria-expanded={open} aria-haspopup="dialog"
+        onClick={e => onToggle(e.currentTarget.getBoundingClientRect())} size={size} iconSize={iconSize} />
+      <CountBadge count={count} style={size < HIT ? { top: 0, right: 0 } : undefined} />
+    </span>
+  );
+}
+
 export default function CalendarToolbar({
   title, view, onView, onToday, onPrev, onNext, isMobile, busy, onRail, onBack, onSync, syncing, search = '', onSearch, searchRef,
+  invitations,
 }) {
   const { t } = useTranslation();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -105,6 +119,7 @@ export default function CalendarToolbar({
             <IconBtn label={t('calendar.search.label')} icon="search" onClick={() => setSearchOpen(true)} active={Boolean(searching)}
               aria-expanded={Boolean(searching)} size={36} iconSize={18} />
           )}
+          {invitations && (invitations.count > 0 || invitations.open) && <InvitationsButton {...invitations} size={36} iconSize={18} />}
           {sync}
           <IconBtn label={t('calendar.calendars')} icon="list" onClick={onRail} size={36} iconSize={18} />
         </div>
@@ -124,6 +139,7 @@ export default function CalendarToolbar({
       {heading}
       {status}
       {field}
+      {invitations && <InvitationsButton {...invitations} size={HIT} iconSize={ICON} />}
       {sync}
       <Segmented view={view} onView={onView} />
     </div>

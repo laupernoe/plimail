@@ -603,6 +603,9 @@ const SAME_VALUE_ALLOWED = {
   'admin.tabs.groupCalendar': [['es', 'it']],
   'calendar.accounts.ignore': [['es', 'ptBR']],
   'calendar.title': [['es', 'it']],
+  // The same words in these languages: "Invitations", "From".
+  'calendar.invitations.title': [['en', 'fr']],
+  'calendar.invitations.from': [['es', 'fr', 'ptBR'], ['cs', 'pl']],
   'calendar.previous': [['es', 'ptBR']],
   'calendar.showLess': [['es', 'ptBR']],
   'calendar.views.label': [['es', 'it']],
