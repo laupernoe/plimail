@@ -12,6 +12,7 @@ import { buildPrintDocument, openPrintWindow, printInWindow } from '../utils/pri
 import { openReplyFromMessage, openForwardFromMessage } from '../utils/composeFromMessage.js';
 import { shortcutBus } from '../utils/shortcutBus.js';
 import MessageBodyView from './MessageBodyView.jsx';
+import MailInviteBar from './calendar/MailInviteBar.jsx';
 import AttachmentStrip from './AttachmentStrip.jsx';
 import { isDarkTheme, canShowDark, showDark } from '../utils/darkScheme.js';
 import AiResultBox from './AiResultBox.jsx';
@@ -439,6 +440,7 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
               })}
             </div>
           )}
+          <MailInviteBar messageId={message.id} />
           {/* The reading pane's notices, above the message as there: unsubscribe for any body,
               remote images only for HTML, which is all that has any. */}
           {body && (body.html || body.text) && message.list_unsubscribe && !message.unsubscribed_at && unsubscribeStatus !== 'done' && (

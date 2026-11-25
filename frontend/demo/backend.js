@@ -11,6 +11,7 @@ import { PGP } from './pgpFixtures.js';
 const started = Date.now();
 const iso = ms => new Date(ms).toISOString();
 let seq = 9000;
+const demoId = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const newId = () => `00000000-0000-4000-8000-${String(++seq).padStart(12, '0')}`;
 const DEMO_SIGNATURE = { id: '00000000-0000-4000-8000-5160a7a00001', name: 'Brightwater Studio', html: '<p>Maya Lindqvist<br>Design lead, Brightwater Studio</p>' };
 
@@ -593,6 +594,64 @@ on('PATCH', '/calendar/events/:id', ({ params, body }) => {
   return ok();
 });
 on('DELETE', '/calendar/events/:id', ({ params }) => { db.events = db.events.filter(e => e.eventId !== params.id); return ok(); });
+// The calendar's inbox: invitations waiting for an answer. Design critique is in the calendar and
+// came by mail (message 5); the launch retro arrived by mail alone.
+const MAYA = { name: 'Maya Lindqvist', email: ACCOUNTS[0].email };
+const RETRO = (() => {
+  const start = new Date(started);
+  start.setDate(start.getDate() + ((8 - start.getDay()) % 7 || 7) + 1);
+  start.setHours(16, 0, 0, 0);
+  return {
+    uid: 'demo-retro@harborandpine.example.com', recurrenceId: null, sequence: 0, source: 'mail', status: 'NEEDS-ACTION', answeredAt: null,
+    summary: 'Harbor & Pine launch retro', location: 'Video call', description: null, allDay: false,
+    start: start.toISOString(), end: new Date(start.getTime() + 45 * 60_000).toISOString(), timezone: null, isRecurring: false,
+    organizer: { name: 'Owen Callaghan', email: 'owen@harborandpine.example.com' }, invitedAs: MAYA.email,
+    messageId: null, messageIds: [], accountId: ACCOUNTS[0].id, accountEmail: MAYA.email, accountName: ACCOUNTS[0].name,
+    eventId: null, calendarId: null, readOnly: false, conflicts: [],
+  };
+})();
+const inbox = { answered: [], mailOnly: [RETRO] };
+function eventInvitation(e) {
+  return {
+    uid: e.uid, recurrenceId: null, sequence: 0, source: 'calendar', status: e.myStatus, answeredAt: null,
+    summary: e.summary, location: e.location, description: e.description, allDay: e.allDay, start: e.start, end: e.end,
+    timezone: e.timezone, isRecurring: false, organizer: e.organizer, invitedAs: MAYA.email,
+    messageId: e.summary === 'Design critique' ? demoId(1005) : null, messageIds: e.summary === 'Design critique' ? [demoId(1005)] : [],
+    accountId: ACCOUNTS[0].id, accountEmail: MAYA.email, accountName: ACCOUNTS[0].name,
+    eventId: e.eventId, calendarId: e.calendarId, readOnly: false,
+    conflicts: db.events.filter(o => o !== e && !o.allDay && o.start < e.end && o.end > e.start).map(o => ({ summary: o.summary, start: o.start, end: o.end })).slice(0, 3),
+  };
+}
+on('GET', '/calendar/invitations', () => ({
+  invitations: [...db.events.filter(e => e.myStatus === 'NEEDS-ACTION' && !e.organizerIsMe).map(eventInvitation), ...inbox.mailOnly]
+    .sort((a, b) => (a.start < b.start ? -1 : 1)),
+  answered: inbox.answered,
+}));
+on('POST', '/calendar/invitations/reply', ({ body }) => {
+  const status = body?.status;
+  const event = db.events.find(e => e.uid === body?.uid && e.myStatus === 'NEEDS-ACTION');
+  const mailed = inbox.mailOnly.find(i => i.uid === body?.uid);
+  if (!event && !mailed) notFound();
+  const answered = event ? eventInvitation(event) : mailed;
+  if (event) {
+    event.myStatus = status;
+    event.attendees = event.attendees.map(a => (a.email === MAYA.email ? { ...a, status } : a));
+  } else {
+    inbox.mailOnly = inbox.mailOnly.filter(i => i !== mailed);
+    if (status !== 'DECLINED') {
+      const eventId = newId();
+      db.events.push({
+        id: `${eventId}:`, eventId, calendarId: db.calendars[0].id, readOnly: false, uid: mailed.uid,
+        summary: mailed.summary, location: mailed.location, description: null, url: null, allDay: false,
+        start: mailed.start, end: mailed.end, timezone: null, status: 'CONFIRMED', organizer: mailed.organizer,
+        attendees: [{ ...MAYA, status }], reminderMinutes: null, recurrence: null, custom: false, recurrenceId: null,
+        organizerIsMe: false, myStatus: status,
+      });
+    }
+  }
+  inbox.answered.unshift({ ...answered, conflicts: undefined, status, answeredAt: new Date().toISOString() });
+  return ok({ invitesSent: 1 });
+});
 on('POST', '/calendar/events/:id/reply', ({ params, body }) => {
   for (const e of db.events.filter(x => x.eventId === params.id)) {
     e.myStatus = body?.status || body?.partstat || 'ACCEPTED';

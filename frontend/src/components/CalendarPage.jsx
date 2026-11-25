@@ -6,7 +6,7 @@ import { useStore } from '../store/index.js';
 import { useMobile } from '../hooks/useMobile.js';
 import { appLocale } from '../utils/formatDate.js';
 import {
-  AGENDA_DAYS, VIEWS, addDays, firstDayOfWeek, formatTitle, monthGrid, shiftAnchor, todayDay, visibleRange, weekDays,
+  AGENDA_DAYS, VIEWS, addDays, dayKey, firstDayOfWeek, formatTitle, monthGrid, shiftAnchor, todayDay, visibleRange, weekDays,
 } from '../utils/calendarDates.js';
 import { describeError, defaultSlot, mailMeta, movePayload, withScope } from './calendar/calendarEvents.js';
 import { useCalendarData } from './calendar/useCalendarData.js';
@@ -20,6 +20,8 @@ import EventDetail from './calendar/EventDetail.jsx';
 import EventForm from './calendar/EventForm.jsx';
 import ScopeDialog from './calendar/ScopeDialog.jsx';
 import SearchResults from './calendar/SearchResults.jsx';
+import InvitationsPanel from './calendar/InvitationsPanel.jsx';
+import { pendingCount } from './calendar/invitations.js';
 import { useEventSearch } from './calendar/useEventSearch.js';
 import { shortcutBus } from '../utils/shortcutBus.js';
 
@@ -88,6 +90,11 @@ function CalendarShell({ active }) {
   const [search, setSearch] = useState('');
   const searchRef = useRef(null);
   const found = useEventSearch(search);
+  const invitationData = useStore(s => s.invitations);
+  const invitationsError = useStore(s => s.invitationsError);
+  const loadInvitations = useStore(s => s.loadInvitations);
+  const openMessageWindow = useStore(s => s.openMessageWindow);
+  const [invitesAt, setInvitesAt] = useState(null); // the button's rect while the inbox is open
 
   const range = useMemo(() => visibleRange(view, anchor, firstDay), [view, anchor, firstDay]);
   const data = useCalendarData({ active, from: range.from, to: range.to });
@@ -113,6 +120,9 @@ function CalendarShell({ active }) {
       setSyncBusy(false);
     }
   };
+
+  useEffect(() => { if (active) loadInvitations(); }, [active, loadInvitations]);
+  const closeInvites = useCallback(() => setInvitesAt(null), []);
 
   useEffect(() => {
     if (!active) return undefined;
@@ -230,6 +240,7 @@ function CalendarShell({ active }) {
         inviteNotice(await api.calendar.replyEvent(occ.eventId, status, meta));
         setDetail(d => (d && d.occ.eventId === occ.eventId ? { ...d, occ: { ...d.occ, myStatus: status } } : d));
         await loadEvents();
+        loadInvitations();
       });
     } catch (err) {
       setDetailError(formatError(err));
@@ -405,6 +416,7 @@ function CalendarShell({ active }) {
           busy={busy > 0} onRail={() => setRailOpen(true)}
           onSync={accounts?.length ? syncAll : null} syncing={syncBusy} onBack={() => setShowCalendar(false)}
           search={search} onSearch={accounts?.length ? setSearch : null} searchRef={searchRef}
+          invitations={{ count: pendingCount(invitationData), open: Boolean(invitesAt), onToggle: rect => setInvitesAt(at => (at ? null : rect)) }}
         />
         {stack}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0 }}>{body}</div>
@@ -425,6 +437,14 @@ function CalendarShell({ active }) {
         <EventDetail
           occ={detail.occ} rect={detail.rect} isMobile={isMobile} calendar={byId.get(detail.occ.calendarId)} color={colorOf(detail.occ.calendarId)}
           locale={locale} busy={busy > 0} error={detailError} onClose={closeDetail} onEdit={requestEdit} onDelete={requestDelete} onReply={replyOcc}
+        />
+      )}
+      {invitesAt && (
+        <InvitationsPanel
+          rect={invitesAt} isMobile={isMobile} onClose={closeInvites} data={invitationData} error={invitationsError} locale={locale} meta={meta}
+          onRetry={loadInvitations} onAnswered={() => { if (accounts?.length) loadEvents(); }}
+          onOpenMail={isMobile ? null : (inv) => { closeInvites(); openMessageWindow(inv.messageId); }}
+          onShow={accounts?.length ? (inv) => { setSearch(''); setAnchor(inv.allDay ? inv.start : dayKey(new Date(inv.start))); if (isMobile) closeInvites(); } : null}
         />
       )}
       {form && (

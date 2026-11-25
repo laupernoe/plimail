@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   formatClock, formatDayText, hiddenCounts, layoutWeek, parseDay, shiftOccurrence,
 } from '../../utils/calendarDates.js';
-import { tint } from './calendarUi.jsx';
+import { awaitingAnswer, awaitingStyle, tint } from './calendarUi.jsx';
 import { canDrag, dragSession } from './dragSession.js';
 
 export default function MonthView({
@@ -129,7 +129,7 @@ export default function MonthView({
                       border: 'none', cursor: occ.readOnly ? 'pointer' : 'grab', textAlign: 'left',
                       color: 'var(--text-primary)', opacity: cancelled ? 0.55 : 1,
                       textDecoration: cancelled ? 'line-through' : 'none',
-                      background: tint(color, 30),
+                      ...(awaitingAnswer(occ) ? awaitingStyle(color, 30) : { background: tint(color, 30) }),
                       borderRadius: `${seg.before ? 0 : 4}px ${seg.after ? 0 : 4}px ${seg.after ? 0 : 4}px ${seg.before ? 0 : 4}px`,
                     }}
                   >

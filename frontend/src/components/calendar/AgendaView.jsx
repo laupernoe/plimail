@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { addDays, compareOccurrences, dayKey, formatClock, formatDayText, occursOnDay, parseDay } from '../../utils/calendarDates.js';
-import { tint } from './calendarUi.jsx';
+import { awaitingAnswer, awaitingStyle, tint } from './calendarUi.jsx';
 
 export default function AgendaView({ days, today, events, colorOf, calendarName, locale, loading, onOpen, onCreate }) {
   const { t } = useTranslation();
@@ -45,7 +45,7 @@ export default function AgendaView({ days, today, events, colorOf, calendarName,
                       style={{
                         display: 'flex', alignItems: 'stretch', gap: 12, padding: '8px 12px 8px 0', textAlign: 'left', cursor: 'pointer',
                         border: 'none', borderRadius: 8, fontFamily: 'inherit', color: 'var(--text-primary)',
-                        background: tint(color, 22), paddingLeft: 12,
+                        ...(awaitingAnswer(occ) ? awaitingStyle(color, 22) : { background: tint(color, 22) }), paddingLeft: 12,
                         opacity: cancelled ? 0.55 : 1, textDecoration: cancelled ? 'line-through' : 'none',
                       }}>
                       <span style={{ width: 'clamp(46px, 14vw, 84px)', flexShrink: 0, fontSize: 12, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums', paddingTop: 1 }}>

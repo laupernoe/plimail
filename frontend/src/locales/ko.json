@@ -2774,6 +2774,26 @@
       "error": "검색 실패: {{message}}",
       "past": "지난 일정",
       "truncated": "처음 결과만 표시됩니다. 더 보려면 검색어를 구체화하세요."
+    },
+    "invitations": {
+      "title": "초대",
+      "button": "응답 대기 중인 초대: {{count}}",
+      "empty": "응답을 기다리는 초대가 없습니다.",
+      "from": "보낸 사람: {{name}}",
+      "invitedAs": "{{email}}(으)로 초대됨",
+      "conflict": "“{{title}}”와(과) 겹침",
+      "conflictMore": "“{{title}}” 외 {{n}}개와 겹침",
+      "openMail": "이메일 열기",
+      "show": "캘린더에서 보기",
+      "answered": "최근 응답함",
+      "noSender": "초대받은 주소로 보내는 메일 계정이 없어 응답을 보낼 수 없습니다.",
+      "gone": "이 초대는 더 이상 열려 있지 않습니다. 취소되었거나 변경되었거나 다른 곳에서 응답했습니다.",
+      "failed": "응답을 보낼 수 없습니다: {{message}}",
+      "calendarFailed": "응답을 보냈지만 일정을 캘린더에 추가하지 못했습니다: {{message}}",
+      "noCalendar": "응답을 보냈습니다. 일정을 받을 수 있는 캘린더가 없어 추가하지 않았습니다.",
+      "loadFailed": "초대를 불러올 수 없습니다: {{message}}",
+      "mailLabel": "캘린더 초대",
+      "yourAnswer": "내 응답: {{answer}}"
     }
   },
   "calendarOffer": {

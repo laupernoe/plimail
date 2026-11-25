@@ -2793,6 +2793,26 @@
       "error": "Wyszukiwanie nie powiodło się: {{message}}",
       "past": "Minione",
       "truncated": "Wyświetlane są tylko pierwsze wyniki. Zawęź wyszukiwanie, aby zobaczyć więcej."
+    },
+    "invitations": {
+      "title": "Zaproszenia",
+      "button": "Oczekujące zaproszenia: {{count}}",
+      "empty": "Żadne zaproszenie nie czeka na odpowiedź.",
+      "from": "Od {{name}}",
+      "invitedAs": "Zaproszono jako {{email}}",
+      "conflict": "Nakłada się na „{{title}}”",
+      "conflictMore": "Nakłada się na „{{title}}” i inne ({{n}})",
+      "openMail": "Otwórz wiadomość",
+      "show": "Pokaż w kalendarzu",
+      "answered": "Ostatnio odpowiedziane",
+      "noSender": "Żadne konto pocztowe nie wysyła z zaproszonego adresu, więc nie udało się wysłać odpowiedzi.",
+      "gone": "To zaproszenie nie jest już otwarte: zostało odwołane, zmienione lub odpowiedziano na nie gdzie indziej.",
+      "failed": "Nie udało się wysłać odpowiedzi: {{message}}",
+      "calendarFailed": "Odpowiedź wysłano, ale nie udało się dodać wydarzenia do kalendarza: {{message}}",
+      "noCalendar": "Odpowiedź wysłano. Żaden kalendarz nie może przyjąć wydarzenia, więc go nie dodano.",
+      "loadFailed": "Nie udało się wczytać zaproszeń: {{message}}",
+      "mailLabel": "Zaproszenie z kalendarza",
+      "yourAnswer": "Twoja odpowiedź: {{answer}}"
     }
   },
   "calendarOffer": {

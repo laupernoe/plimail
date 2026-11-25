@@ -673,6 +673,8 @@ export const api = {
     deleteEvent:   (id, { scope = 'all', recurrenceId } = {}, extra) => request('DELETE',
       `/calendar/events/${encodeURIComponent(id)}?scope=${scope}${recurrenceId ? `&recurrenceId=${encodeURIComponent(recurrenceId)}` : ''}`, extra),
     replyEvent:    (id, status, extra) => request('POST', `/calendar/events/${encodeURIComponent(id)}/reply`, { ...extra, status }),
+    invitations:   ()           => request('GET',    '/calendar/invitations'),
+    replyInvitation: (inv, status, extra) => request('POST', '/calendar/invitations/reply', { ...extra, uid: inv.uid, recurrenceId: inv.recurrenceId || null, status }),
   },
 
   // Image whitelist

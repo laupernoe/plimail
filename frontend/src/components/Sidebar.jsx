@@ -32,6 +32,8 @@ import { SendLaterIcon } from './SendLater.jsx';
 import { describeAccountError, needsSignIn } from '../utils/accountErrors.js';
 import { holdUndoable, releaseUndoable, UNDO_COMMIT_DELAY_MS } from '../utils/undoableAction.js';
 import { HIT, RADIUS } from '../utils/uiSizes.js';
+import { CountBadge } from './calendar/calendarUi.jsx';
+import { pendingCount } from './calendar/invitations.js';
 
 const ICONS = {
   snoozed: (
@@ -313,6 +315,7 @@ export default function Sidebar() {
     isSidebarResizing,
     showContacts, setShowContacts, showCalendar, setShowCalendar, setCalendarRailSlot,
   } = useStore();
+  const invitationCount = useStore(s => pendingCount(s.invitations));
 
   const isMobile = useMobile();
   // On mobile the sidebar is always expanded (shown as an overlay drawer)
@@ -1943,10 +1946,11 @@ export default function Sidebar() {
             </button>
             <button
               onClick={() => { setShowCalendar(!showCalendar); if (isMobile) setMobileSidebarOpen(false); }}
-              title={t('calendar.title')}
-              aria-label={t('calendar.title')}
+              title={invitationCount ? t('calendar.invitations.button', { count: invitationCount }) : t('calendar.title')}
+              aria-label={invitationCount ? `${t('calendar.title')}, ${t('calendar.invitations.button', { count: invitationCount })}` : t('calendar.title')}
               aria-pressed={showCalendar}
               style={{
+                position: 'relative',
                 width: HIT, height: HIT, borderRadius: RADIUS,
                 border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1958,6 +1962,7 @@ export default function Sidebar() {
               onMouseLeave={e => { if (!showCalendar) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; } }}
             >
               {ICONS.calendar}
+              <CountBadge count={invitationCount} style={{ top: 0, right: 0 }} />
             </button>
           </div>
           <div style={{ padding: '8px', borderTop: '1px solid var(--border-subtle)' }}>

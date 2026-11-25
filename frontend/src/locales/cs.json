@@ -2793,6 +2793,26 @@
       "error": "Hledání selhalo: {{message}}",
       "past": "Minulé",
       "truncated": "Zobrazují se jen první výsledky. Upřesněte hledání, abyste viděli další."
+    },
+    "invitations": {
+      "title": "Pozvánky",
+      "button": "Čekající pozvánky: {{count}}",
+      "empty": "Žádné pozvánky nečekají na odpověď.",
+      "from": "Od {{name}}",
+      "invitedAs": "Pozván(a) jako {{email}}",
+      "conflict": "Překrývá se s „{{title}}“",
+      "conflictMore": "Překrývá se s „{{title}}“ a dalšími ({{n}})",
+      "openMail": "Otevřít e-mail",
+      "show": "Zobrazit v kalendáři",
+      "answered": "Nedávno zodpovězené",
+      "noSender": "Z pozvané adresy neodesílá žádný poštovní účet, odpověď proto nebylo možné odeslat.",
+      "gone": "Tato pozvánka už není otevřená: byla zrušena, změněna nebo zodpovězena jinde.",
+      "failed": "Odpověď se nepodařilo odeslat: {{message}}",
+      "calendarFailed": "Odpověď byla odeslána, ale událost se nepodařilo přidat do kalendáře: {{message}}",
+      "noCalendar": "Odpověď byla odeslána. Událost nemůže přijmout žádný kalendář, proto nebyla přidána.",
+      "loadFailed": "Pozvánky se nepodařilo načíst: {{message}}",
+      "mailLabel": "Pozvánka do kalendáře",
+      "yourAnswer": "Vaše odpověď: {{answer}}"
     }
   },
   "calendarOffer": {

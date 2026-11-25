@@ -32,6 +32,8 @@ const ICONS = {
   calendar: <><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></>,
   alert: <><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></>,
   search: <><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></>,
+  inbox: <><polyline points="22 12 16 12 14 15 10 15 8 12 2 12" /><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" /></>,
+  mail: <><rect x="2" y="4" width="20" height="16" rx="2" /><polyline points="22 6 12 13 2 6" /></>,
   sync: <><polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" /></>,
 };
 
@@ -75,6 +77,46 @@ export function IconBtn({ label, icon, onClick, active, size = HIT, iconSize = I
       }}>
       <Icon name={icon} size={iconSize} style={iconStyle} />
     </button>
+  );
+}
+
+// An event still waiting for the user's answer: hatched and outlined in its calendar's colour.
+export const awaitingAnswer = occ => occ?.myStatus === 'NEEDS-ACTION';
+export const awaitingStyle = (color, percent = 30) => ({
+  background: `repeating-linear-gradient(135deg, ${tint(color, percent)} 0 6px, ${tint(color, Math.round(percent / 2))} 6px 12px)`,
+  outline: `1px dashed ${color || 'var(--accent)'}`, outlineOffset: -1,
+});
+
+export const ANSWERS = [['ACCEPTED', 'calendar.reply.yes'], ['TENTATIVE', 'calendar.reply.maybe'], ['DECLINED', 'calendar.reply.no']];
+
+// Yes / Maybe / No, the current answer pressed. Used by the event popover and the invitations.
+export function AnswerGroup({ status, busy, onAnswer, label }) {
+  const { t } = useTranslation();
+  return (
+    <div role="group" aria-label={label} style={{ display: 'inline-flex', borderRadius: 7, border: '1px solid var(--border)', overflow: 'hidden', flexShrink: 0 }}>
+      {ANSWERS.map(([value, key], i) => {
+        const on = status === value;
+        return (
+          <button key={value} type="button" aria-pressed={on} disabled={busy} onClick={() => !on && onAnswer(value)} style={{
+            padding: '5px 11px', fontSize: 12, fontFamily: 'inherit', cursor: busy ? 'default' : 'pointer', border: 'none',
+            borderLeft: i ? '1px solid var(--border)' : 'none', opacity: busy && !on ? 0.6 : 1,
+            background: on ? 'var(--accent)' : 'var(--bg-secondary)', color: on ? 'var(--accent-text)' : 'var(--text-primary)', fontWeight: on ? 600 : 400,
+          }}>{t(key)}</button>
+        );
+      })}
+    </div>
+  );
+}
+
+// A count on a button's corner, as on the calendar's invitations button.
+export function CountBadge({ count, style }) {
+  if (!count) return null;
+  return (
+    <span aria-hidden="true" style={{
+      position: 'absolute', top: 2, right: 2, minWidth: 16, height: 16, padding: '0 4px', boxSizing: 'border-box',
+      borderRadius: 8, background: 'var(--red, #f87171)', color: 'var(--status-text, #fff)', fontSize: 10, fontWeight: 700,
+      lineHeight: '16px', textAlign: 'center', fontVariantNumeric: 'tabular-nums', pointerEvents: 'none', ...style,
+    }}>{count > 99 ? '99+' : count}</span>
   );
 }
 

@@ -2774,6 +2774,26 @@
       "error": "搜索失败：{{message}}",
       "past": "过去的日程",
       "truncated": "仅显示前面的结果。请细化搜索以查看更多。"
+    },
+    "invitations": {
+      "title": "邀请",
+      "button": "待回复的邀请：{{count}}",
+      "empty": "没有等待回复的邀请。",
+      "from": "来自 {{name}}",
+      "invitedAs": "以 {{email}} 受邀",
+      "conflict": "与“{{title}}”冲突",
+      "conflictMore": "与“{{title}}”及另外 {{n}} 项冲突",
+      "openMail": "打开邮件",
+      "show": "在日历中显示",
+      "answered": "最近已回复",
+      "noSender": "没有邮件账户可从受邀地址发送，因此无法发送回复。",
+      "gone": "此邀请已不再有效：已被取消、更改或已在别处回复。",
+      "failed": "无法发送回复：{{message}}",
+      "calendarFailed": "回复已发送，但无法将日程添加到日历：{{message}}",
+      "noCalendar": "回复已发送。没有可接收该日程的日历，因此未添加。",
+      "loadFailed": "无法加载邀请：{{message}}",
+      "mailLabel": "日历邀请",
+      "yourAnswer": "你的回复：{{answer}}"
     }
   },
   "calendarOffer": {

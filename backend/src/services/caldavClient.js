@@ -553,9 +553,12 @@ function requireVersion(etag) {
 
 // 412 is the server saying the event is not the version this edit was made from. The etag returned
 // is the one the server gave for what was sent, if it stored it unchanged, else null.
-export async function putEvent(url, ical, creds, { etag, create = false } = {}) {
+// scheduleReply false: the user's answer to an invitation is mailed from here, so a server that
+// schedules is asked not to send one of its own as well (RFC 6638 8.1, Schedule-Reply).
+export async function putEvent(url, ical, creds, { etag, create = false, scheduleReply = true } = {}) {
   if (!create) requireVersion(etag);
   const headers = create ? { 'If-None-Match': '*' } : { 'If-Match': etag };
+  if (!scheduleReply) headers['Schedule-Reply'] = 'F';
   const res = await request('PUT', url, creds, { body: ical, headers, contentType: 'text/calendar; charset=utf-8' });
   await discard(res);
   if (res.status === 412) throw Object.assign(new Error('Event changed on the server'), { conflict: true });
