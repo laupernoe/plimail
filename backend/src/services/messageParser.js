@@ -1,5 +1,6 @@
 import { Parser } from 'htmlparser2';
 import { PGP_ENCRYPTED_SNIPPET, pgpSnippet } from './pgpDetect.js';
+import { detectInviteParts } from './inviteParts.js';
 
 // Regex matching invisible / zero-width / filler Unicode chars used by email marketers
 // as "preheader killers" to prevent snippet text from leaking into mail-client previews.
@@ -920,6 +921,7 @@ export async function parseMessage(msg) {
     isBulk: detectBulkFromParsedHeaders(parsedHeaders),
     // Only a reply can react to something (RFC 9078 section 4).
     reaction: envelope.inReplyTo ? detectReactionParts(msg.bodyStructure) : null,
+    invite: detectInviteParts(msg.bodyStructure),
   };
 }
 

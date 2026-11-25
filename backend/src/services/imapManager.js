@@ -26,6 +26,8 @@ import { generateVCard } from '../utils/vcard.js';
 import { mimeToExtension, standardImageType, rasterImageTypeOfName, sniffImageType } from '../utils/inlineImages.js';
 import { truncateFilename } from '../utils/contentDisposition.js';
 import { recordReactionParts } from './reactions.js';
+import { recordInviteParts } from './mailInvites.js';
+import { detectInviteParts } from './inviteParts.js';
 import { randomBytes, randomUUID } from 'crypto';
 
 
@@ -1710,6 +1712,15 @@ async function noteReactionParts(account, folder, parsed) {
     await recordReactionParts(account.id, folder, parsed.uid, parsed.reaction);
   } catch (err) {
     console.warn(`Reaction parts not recorded for ${logAccount(account)}/${folder} uid ${parsed.uid}: ${err.message}`);
+  }
+}
+
+// Where an invitation may be (messageParser detectInviteParts), likewise secondary to the message.
+async function noteInviteParts(account, folder, uid, parts) {
+  try {
+    await recordInviteParts(account.id, folder, uid, parts);
+  } catch (err) {
+    console.warn(`Invitation parts not recorded for ${logAccount(account)}/${folder} uid ${uid}: ${err.message}`);
   }
 }
 
@@ -4909,6 +4920,7 @@ export class ImapManager {
               }
             }
             if (parsed.reaction) await noteReactionParts(account, folder, parsed);
+            if (parsed.invite) await noteInviteParts(account, folder, parsed.uid, parsed.invite);
             // Propagate resolved thread_id to any earlier messages that used this
             // message as a provisional thread root (out-of-order delivery / sync).
             //
@@ -5590,6 +5602,7 @@ export class ImapManager {
                   providerProfile(account).labelStore ? parsed.providerMsgid || null : null,
                 ]);
                 if (parsed.reaction) await noteReactionParts(account, folder, parsed);
+                if (parsed.invite) await noteInviteParts(account, folder, parsed.uid, parsed.invite);
                 backfilledRows++;
                 // Same statement as the sync path's propagation, same constraints: no
                 // is_deleted filter (deleted rows still feed computeThreadId), served by
@@ -6844,6 +6857,9 @@ export class ImapManager {
         const results = { textParts: [], attachments: [], inlineImages: [], calendarParts: [] };
         walkStructure(structure, results);
         pgp = pgpKindOfStructure(structure);
+        // Mail synced before invitations were looked for is found when it is opened.
+        const inviteParts = detectInviteParts(structure);
+        if (inviteParts) noteInviteParts(account, folder, uid, inviteParts);
 
         // Handle single-part root node (no childNodes, type is the content type)
         if (results.textParts.length === 0 && bodyFallbackApplies(results)) {

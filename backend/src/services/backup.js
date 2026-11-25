@@ -28,6 +28,8 @@ export const SETUP_TABLES = [
   'category_list_sources',
   'caldav_accounts',
   'calendar_events',
+  // The answers given to invitations: a declined one is recorded nowhere else.
+  'calendar_invite_replies',
   'calendars',
   'contacts',
   'contact_groups',
@@ -56,7 +58,7 @@ export const SETUP_TABLES = [
   'users',
 ];
 // The local copy of the mail on the IMAP servers. Synced again after a restore that leaves it out.
-export const MAIL_CACHE_TABLES = ['folders', 'messages', 'unfetchable_uids'];
+export const MAIL_CACHE_TABLES = ['folders', 'mail_invites', 'messages', 'unfetchable_uids'];
 // Short-lived tokens that are worthless minutes later, and API tokens: a restore must never
 // bring back a token revoked after the backup was taken. A restore also truncates users with
 // CASCADE, so it deletes every API token there is, and their owners have to create new ones.

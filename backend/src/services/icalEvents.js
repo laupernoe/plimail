@@ -1098,3 +1098,139 @@ export function removeOccurrence(ics, recurrenceId) {
   }
   return root.toString();
 }
+
+// ── Received invitations (iTIP, RFC 5546) ────────────────────────────────────
+
+// One occurrence's RECURRENCE-ID as the same string whoever wrote it: a date, or the UTC instant.
+// A mailed invitation and the server's copy of the same meeting name an occurrence in other zones.
+function recurrenceKeyOf(vevent, zones) {
+  const prop = vevent.getFirstProperty('recurrence-id');
+  if (!prop) return null;
+  const value = prop.getFirstValue();
+  return value.isDate ? isoDate(value) : new Date(toUtcMs(value, tzidOf(prop), zones)).toISOString();
+}
+
+const stampOf = vevent => {
+  const value = vevent.getFirstPropertyValue('dtstamp') || vevent.getFirstPropertyValue('last-modified');
+  try { return value ? value.toUnixTime() * 1000 : 0; } catch { return 0; }
+};
+
+// What an iTIP object says, component by component: who organizes, the revision, and the
+// recipient's own attendee line when one of `myEmails` is invited.
+export function itipObjects(ics, myEmails = []) {
+  return withBudget({ left: RESOURCE_INFO_STEPS }, () => {
+    const root = parseRoot(ics);
+    const zones = zonesOf(root);
+    const mine = new Set(myEmails.map(e => e.toLowerCase()));
+    const method = String(root.getFirstPropertyValue('method') || '').toUpperCase() || null;
+    const events = root.getAllSubcomponents('vevent').map((vevent) => {
+      const organizerProp = vevent.getFirstProperty('organizer');
+      const meProp = vevent.getAllProperties('attendee').find(p => mine.has(emailOf(p)));
+      return {
+        uid: String(vevent.getFirstPropertyValue('uid') || '') || null,
+        recurrenceId: recurrenceKeyOf(vevent, zones),
+        sequence: Number(vevent.getFirstPropertyValue('sequence')) || 0,
+        stamp: stampOf(vevent),
+        cancelled: text(vevent, 'status') === 'CANCELLED',
+        organizer: organizerProp ? { email: emailOf(organizerProp) || null, name: organizerProp.getParameter('cn') || null } : null,
+        me: meProp ? { email: emailOf(meProp), status: String(meProp.getParameter('partstat') || 'NEEDS-ACTION').toUpperCase() } : null,
+      };
+    });
+    return { method, events };
+  });
+}
+
+// The next occurrence an invitation is about, for showing it: one occurrence when recurrenceId
+// names one, else the series' next. Null when nothing of it is still to come.
+export function nextOccurrence(ics, recurrenceId, nowMs = Date.now()) {
+  const root = parseRoot(ics);
+  const zones = zonesOf(root);
+  if (recurrenceId) {
+    const override = masterAndOverrides(root).overrides.find(v => recurrenceKeyOf(v, zones) === recurrenceId);
+    const b = override && bounds(override, zones);
+    if (!b || b.endMs <= nowMs || text(override, 'status') === 'CANCELLED') return null;
+    return describe(override, b, b.startMs, { recurrenceId, isRecurring: true });
+  }
+  let occurrences;
+  try {
+    // No end to the window: a meeting years ahead is still to come. `limit` bounds the walk.
+    occurrences = expandResource(ics, nowMs, 8.64e15 - DAY_MS, { limit: 50 });
+  } catch (err) {
+    if (err.costly) return null;
+    throw err;
+  }
+  const endMs = o => (o.allDay ? dateToMs(o.end) : Date.parse(o.end));
+  const startMs = o => (o.allDay ? dateToMs(o.start) : Date.parse(o.start));
+  return occurrences.filter(o => endMs(o) > nowMs).sort((a, b) => startMs(a) - startMs(b))[0] || null;
+}
+
+// The components an answer covers: one occurrence's, or all of them for the series.
+function answered(root, recurrenceId, zones) {
+  const events = root.getAllSubcomponents('vevent');
+  return recurrenceId ? events.filter(v => recurrenceKeyOf(v, zones) === recurrenceId) : events;
+}
+
+// One's own answer on a copy of an invitation, kept to one occurrence when recurrenceId names one.
+export function setInviteReply(ics, myEmails, partstat, recurrenceId = null) {
+  const root = parseRoot(ics);
+  const zones = zonesOf(root);
+  root.removeAllProperties('method');
+  const mine = new Set(myEmails.map(e => e.toLowerCase()));
+  let email = null;
+  for (const vevent of answered(root, recurrenceId, zones)) {
+    for (const prop of vevent.getAllProperties('attendee')) {
+      if (!mine.has(emailOf(prop))) continue;
+      email ||= emailOf(prop);
+      prop.setParameter('partstat', partstat);
+      prop.removeParameter('rsvp');
+    }
+  }
+  if (!email) throw Object.assign(new Error('You are not invited to this event'), { notFound: true });
+  return { ical: root.toString(), email };
+}
+
+// The REPLY for an answer (RFC 5546 3.2.3): the components answered, with only the one answering
+// among the attendees and a fresh DTSTAMP.
+export function replyMessage(ics, email, recurrenceId = null) {
+  const root = parseRoot(ics);
+  const zones = zonesOf(root);
+  const keep = new Set(answered(root, recurrenceId, zones));
+  for (const vevent of root.getAllSubcomponents('vevent')) {
+    if (!keep.has(vevent)) { root.removeSubcomponent(vevent); continue; }
+    vevent.updatePropertyWithValue('dtstamp', ICAL.Time.fromJSDate(new Date(), true));
+  }
+  return itipMessage(root.toString(), 'REPLY', { only: [email] });
+}
+
+// The calendar copy of a newer invitation: the object as the organizer sent it, or, for one
+// occurrence, the existing copy with that occurrence replaced. Alarms the user set are kept.
+export function mergeInvite(existing, incoming, recurrenceId = null) {
+  const inRoot = parseRoot(incoming);
+  inRoot.removeAllProperties('method');
+  if (!existing) return inRoot.toString();
+  const root = parseRoot(existing);
+  const zones = zonesOf(root);
+  const inZones = zonesOf(inRoot);
+  const alarms = new Map(root.getAllSubcomponents('vevent').map(v => [recurrenceKeyOf(v, zones) || '', v.getAllSubcomponents('valarm')]));
+  const takeAlarms = (vevent, key) => {
+    if (vevent.getAllSubcomponents('valarm').length) return;
+    for (const alarm of alarms.get(key) || alarms.get('') || []) vevent.addSubcomponent(new ICAL.Component(JSON.parse(JSON.stringify(alarm.toJSON()))));
+  };
+  if (!recurrenceId) {
+    for (const v of inRoot.getAllSubcomponents('vevent')) takeAlarms(v, recurrenceKeyOf(v, inZones) || '');
+    return inRoot.toString();
+  }
+  for (const v of root.getAllSubcomponents('vevent')) {
+    if (recurrenceKeyOf(v, zones) === recurrenceId) root.removeSubcomponent(v);
+  }
+  const have = new Set(root.getAllSubcomponents('vtimezone').map(z => z.getFirstPropertyValue('tzid')));
+  for (const vtz of inRoot.getAllSubcomponents('vtimezone')) {
+    if (!have.has(vtz.getFirstPropertyValue('tzid'))) root.addSubcomponent(new ICAL.Component(JSON.parse(JSON.stringify(vtz.toJSON()))));
+  }
+  for (const v of answered(inRoot, recurrenceId, inZones)) {
+    const copy = new ICAL.Component(JSON.parse(JSON.stringify(v.toJSON())));
+    takeAlarms(copy, recurrenceId);
+    root.addSubcomponent(copy);
+  }
+  return root.toString();
+}

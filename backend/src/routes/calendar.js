@@ -14,8 +14,10 @@ import { consume } from '../services/rateLimiter.js';
 import { discoverAccountSettings } from '../services/accountAutodiscover.js';
 import { discoverCalendars, findCalDavServer, getEvent, putEvent, deleteEvent, moveEvent } from '../services/caldavClient.js';
 import { syncAccount, credentialsFor, isSyncing, forgetDiscovery, noteRemoved } from '../services/caldavSync.js';
-import { applyEdit, buildEvent, eventLoopYielder, eventTimes, expandResourceAsync, inviteContent, inviteInfo, occurrenceOnly, removeOccurrence, resourceInfo, seriesMarkers, setReply } from '../services/icalEvents.js';
-import { forgetScheduling, knownAddresses, mailItip, mailLabels, planInvites } from '../services/calendarInvites.js';
+import { applyEdit, buildEvent, eventLoopYielder, eventTimes, expandResourceAsync, inviteContent, inviteInfo, mergeInvite, occurrenceOnly, removeOccurrence, replyMessage, resourceInfo, seriesMarkers, setInviteReply, setReply } from '../services/icalEvents.js';
+import { forgetScheduling, knownAddresses, mailItip, mailLabels, ownAddresses, planInvites } from '../services/calendarInvites.js';
+import { invitations, publicInvitation } from '../services/calendarInbox.js';
+import { invitationMail, readPendingObjects } from '../services/mailInvites.js';
 import { SQL_SEARCHABLE, TRANSLATE_FROM, TRANSLATE_TO, bySearchOrder, fold, likePattern, mayMatch, searchOccurrence } from '../services/calendarSearch.js';
 
 const router = Router();
@@ -747,7 +749,24 @@ router.delete('/events/:eventId', async (req, res) => {
   }
 });
 
-// The user's answer to an invitation from someone else, for the whole series.
+// The user's answer to an invitation from someone else, on the calendar's copy: for the whole
+// series, or for the one occurrence recurrenceId names.
+async function answerEvent(userId, event, partstat, opts, recurrenceId = null) {
+  const { creds, plan } = await planFor(userId, event);
+  const { organizer } = inviteInfo(event.ical);
+  if (!organizer || plan.myEmails.includes(organizer)) {
+    throw Object.assign(new Error('This is not an invitation from someone else'), { badRequest: true });
+  }
+  const { ical, email } = recurrenceId
+    ? setInviteReply(event.ical, plan.myEmails, partstat, recurrenceId)
+    : setReply(event.ical, plan.myEmails, partstat);
+  await putEvent(event.href, ical, creds, { etag: await versionOf(event, creds) });
+  await storeFromServer(event.calendar_id, event.user_id, event.href, ical, creds);
+  return mailAfterWrite(userId, { ...plan, organizer: plan.organizer || { email } }, [
+    { from: email, to: [organizer], method: 'REPLY', ics: recurrenceId ? replyMessage(ical, email, recurrenceId) : ical, kind: partstat.toLowerCase(), only: [email] },
+  ], opts);
+}
+
 router.post('/events/:eventId/reply', async (req, res) => {
   const event = await loadEvent(req.session.userId, req.params.eventId);
   if (!event) return res.status(404).json({ error: 'Event not found' });
@@ -756,18 +775,207 @@ router.post('/events/:eventId/reply', async (req, res) => {
   if (!PARTSTATS.includes(partstat)) return badRequest(res, 'Invalid answer');
   if (badZone(req.body)) return badRequest(res, 'Invalid time zone');
   try {
-    const { creds, plan } = await planFor(req.session.userId, event);
-    const { organizer } = inviteInfo(event.ical);
-    if (!organizer || plan.myEmails.includes(organizer)) return badRequest(res, 'This is not an invitation from someone else');
-    const { ical, email } = setReply(event.ical, plan.myEmails, partstat);
-    await putEvent(event.href, ical, creds, { etag: await versionOf(event, creds) });
-    await storeFromServer(event.calendar_id, event.user_id, event.href, ical, creds);
-    const mailed = await mailAfterWrite(req.session.userId, { ...plan, organizer: plan.organizer || { email } }, [
-      { from: email, to: [organizer], method: 'REPLY', ics: ical, kind: partstat.toLowerCase(), only: [email] },
-    ], mailOptions(req));
-    res.json({ ok: true, ...mailed });
+    res.json({ ok: true, ...await answerEvent(req.session.userId, event, partstat, mailOptions(req)) });
   } catch (err) {
+    if (err.badRequest) return badRequest(res, err.message);
     await sendWriteError(res, err, event.account_id);
+  }
+});
+
+// ── Invitations waiting for an answer ──────────────────────────────────────────
+
+const MAX_UID = 1000;
+const RECENT_ANSWERS_MS = 7 * 86400000;
+const MAX_CONFLICT_CHECKS = 30;
+
+// Every invitation to the user still to come, from mail and from the calendars, one per meeting.
+async function loadInvitations(userId) {
+  const mail = await invitationMail(userId);
+  const mailUids = [...new Set(mail.map(r => r.uid))];
+  const calendar = await query(
+    `SELECT e.id, e.calendar_id, e.uid, e.ical, c.read_only
+       FROM calendar_events e JOIN calendars c ON c.id = e.calendar_id
+      WHERE e.user_id = $1 AND NOT c.ignored AND (e.range_end IS NULL OR e.range_end > NOW())
+        AND (e.uid = ANY($2::text[]) OR e.ical LIKE '%NEEDS-ACTION%')`,
+    [userId, mailUids],
+  );
+  const uids = [...new Set([...mailUids, ...calendar.rows.map(r => r.uid).filter(Boolean)])];
+  const replies = uids.length
+    ? (await query('SELECT uid, recurrence_id, sequence, partstat, answered_at FROM calendar_invite_replies WHERE user_id = $1 AND uid = ANY($2::text[])', [userId, uids])).rows
+    : [];
+  return invitations({ mail, calendar: calendar.rows, replies, myEmails: await knownAddresses(userId) });
+}
+
+// Events of the user's own that overlap a timed invitation, a few by title. Events they declined
+// and the invitation's own copy do not count.
+async function conflictsOf(userId, inv, mine) {
+  if (inv.allDay) return [];
+  const fromMs = Date.parse(inv.start);
+  const toMs = Date.parse(inv.end);
+  const r = await query(
+    `SELECT e.uid, e.ical FROM calendar_events e JOIN calendars c ON c.id = e.calendar_id
+      WHERE e.user_id = $1 AND c.visible AND NOT c.ignored AND e.range_start < $3 AND (e.range_end IS NULL OR e.range_end > $2)
+        AND e.uid IS DISTINCT FROM $4`,
+    [userId, new Date(fromMs), new Date(toMs), inv.uid],
+  );
+  const out = [];
+  const pause = eventLoopYielder();
+  for (const row of r.rows) {
+    try {
+      for (const occ of await expandResourceAsync(row.ical, fromMs, toMs, {}, pause)) {
+        if (occ.allDay || occ.status === 'CANCELLED') continue;
+        if (Date.parse(occ.start) >= toMs || Date.parse(occ.end) <= fromMs) continue;
+        if (roleOf(occ, mine).myStatus === 'DECLINED') continue;
+        out.push({ summary: occ.summary, start: occ.start, end: occ.end });
+      }
+    } catch { /* an event that cannot be read is no conflict */ }
+    if (out.length >= 3) break;
+  }
+  return out;
+}
+
+router.get('/invitations', async (req, res) => {
+  const userId = req.session.userId;
+  try {
+    // Objects not read yet are read first, for a while: what is not ready is listed next time.
+    await readPendingObjects(userId, { engine: req.app.get('imapManager'), timeoutMs: 4000 });
+    const all = await loadInvitations(userId);
+    const pending = all.filter(i => i.status === 'NEEDS-ACTION');
+    const mine = new Set(await knownAddresses(userId));
+    const listed = [];
+    for (const [n, inv] of pending.entries()) {
+      listed.push({ ...publicInvitation(inv), conflicts: n < MAX_CONFLICT_CHECKS ? await conflictsOf(userId, inv, mine) : [] });
+    }
+    const now = Date.now();
+    const answered = all
+      .filter(i => i.status !== 'NEEDS-ACTION' && i.answeredAt && now - new Date(i.answeredAt).getTime() < RECENT_ANSWERS_MS)
+      .sort((a, b) => new Date(b.answeredAt) - new Date(a.answeredAt))
+      .map(publicInvitation);
+    res.json({ invitations: listed, answered });
+  } catch (err) {
+    console.warn(`Calendar: invitations failed: ${err.message}`);
+    res.status(500).json({ error: 'Could not load invitations' });
+  }
+});
+
+// The calendar a mailed invitation goes into: the one asked for, else the first writable calendar
+// of the server that knows the invited address, else the first writable one at all.
+async function targetCalendar(userId, invitedAs, calendarId) {
+  if (calendarId) {
+    const asked = await loadCalendar(userId, calendarId);
+    if (!asked || asked.read_only) return null;
+    return asked;
+  }
+  const r = await query(
+    `SELECT c.*, a.server_url, a.username, a.password
+       FROM calendars c JOIN caldav_accounts a ON a.id = c.account_id
+      WHERE c.user_id = $1 AND NOT c.ignored AND NOT c.read_only
+      ORDER BY (lower(a.username) = $2 OR $2 = ANY(a.calendar_addresses)) DESC, c.visible DESC, a.created_at, COALESCE(c.display_name, c.name)
+      LIMIT 1`,
+    [userId, invitedAs],
+  );
+  return r.rows[0] || null;
+}
+
+// The answer written into the calendar: over the copy there, brought up to the mailed revision,
+// or as a new event. A server that schedules is asked not to answer too: the reply is mailed.
+async function writeInvite(userId, inv, partstat, myEmails, calendarId) {
+  const existing = inv.eventId ? await loadEvent(userId, inv.eventId) : null;
+  if (existing && !existing.read_only) {
+    const { ical } = setInviteReply(mergeInvite(existing.ical, inv.ical, inv.recurrenceId), myEmails, partstat, inv.recurrenceId);
+    const creds = await credentialsFor(existing);
+    await putEvent(existing.href, ical, creds, { etag: await versionOf(existing, creds), scheduleReply: false });
+    await storeFromServer(existing.calendar_id, existing.user_id, existing.href, ical, creds);
+    return { eventId: existing.id, calendarId: existing.calendar_id };
+  }
+  // A declined invitation is not added; one already in a calendar keeps the answer on it.
+  if (partstat === 'DECLINED') return {};
+  const calendar = await targetCalendar(userId, inv.invitedAs, calendarId);
+  if (!calendar) return { noCalendar: true };
+  const { ical } = setInviteReply(mergeInvite(null, inv.ical, inv.recurrenceId), myEmails, partstat, inv.recurrenceId);
+  const creds = await credentialsFor(calendar);
+  const href = new URL(`${encodeURIComponent(inv.uid)}.ics`, calendar.url.endsWith('/') ? calendar.url : `${calendar.url}/`).href;
+  const { url, etag } = await putEvent(href, ical, creds, { create: true, scheduleReply: false });
+  return { eventId: await storeFromServer(calendar.id, calendar.user_id, url, ical, creds, etag), calendarId: calendar.id };
+}
+
+// The address the answer is mailed from: the one invited when it is the user's mail account or
+// alias, else the account the invitation arrived in. The REPLY names the invited address either way.
+async function replySender(userId, inv) {
+  const own = new Set((await ownAddresses(userId)).map(o => o.email));
+  if (own.has(inv.invitedAs)) return inv.invitedAs;
+  const received = String(inv.accountEmail || '').toLowerCase();
+  return own.has(received) ? received : null;
+}
+
+// An invitation known only from mail: the REPLY goes out first, as it is what the organizer
+// waits for, then the answer is recorded and the event written into the calendar. A calendar that
+// refuses it leaves the answer sent and says so.
+async function answerMail(userId, inv, partstat, opts, calendarId) {
+  const from = await replySender(userId, inv);
+  if (!from) throw Object.assign(new Error('No mail account sends from the invited address'), { code: 'no_sender' });
+  const { ical, email } = setInviteReply(inv.ical, [inv.invitedAs], partstat, inv.recurrenceId);
+  const sent = await mailItip({
+    userId, from, to: [inv.organizer.email], method: 'REPLY', ics: replyMessage(ical, email, inv.recurrenceId),
+    kind: partstat.toLowerCase(), only: [email], ...opts,
+  });
+  if (!sent.sent) throw new Error(sent.rejected.length ? 'The organizer address was refused' : 'The answer could not be sent');
+  await query(
+    `INSERT INTO calendar_invite_replies (user_id, uid, recurrence_id, sequence, partstat, summary)
+     VALUES ($1,$2,$3,$4,$5,$6)
+     ON CONFLICT (user_id, uid, recurrence_id) DO UPDATE SET
+       sequence = EXCLUDED.sequence, partstat = EXCLUDED.partstat, summary = EXCLUDED.summary, answered_at = NOW()`,
+    [userId, inv.uid, inv.recurrenceId || '', inv.sequence, partstat, inv.summary || null],
+  );
+  try {
+    const written = await writeInvite(userId, inv, partstat, await knownAddresses(userId), calendarId);
+    return { invitesSent: sent.sent, ...written };
+  } catch (err) {
+    console.warn(`Calendar: an answered invitation could not be written to the calendar: ${err.message}`);
+    return { invitesSent: sent.sent, calendarError: err.conflict ? 'This event changed on the server' : err.message };
+  }
+}
+
+// One answer per invitation at a time: a second click while the first is out is refused, and an
+// answer the invitation already has is not sent again.
+const answering = new Set();
+
+router.post('/invitations/reply', async (req, res) => {
+  const userId = req.session.userId;
+  const { uid, recurrenceId = null, status: partstat, calendarId } = req.body || {};
+  if (typeof uid !== 'string' || !uid || uid.length > MAX_UID) return badRequest(res, 'Invalid invitation');
+  if (recurrenceId !== null && (typeof recurrenceId !== 'string' || recurrenceId.length > 40)) return badRequest(res, 'Invalid occurrence');
+  if (!PARTSTATS.includes(partstat)) return badRequest(res, 'Invalid answer');
+  if (calendarId != null && !UUID_RE.test(calendarId)) return badRequest(res, 'Invalid calendar');
+  if (badZone(req.body)) return badRequest(res, 'Invalid time zone');
+  const lock = `${userId}\n${uid}\n${recurrenceId || ''}`;
+  if (answering.has(lock)) return res.status(409).json({ error: 'This invitation is being answered', code: 'busy' });
+  answering.add(lock);
+  try {
+    const inv = (await loadInvitations(userId)).find(i => i.uid === uid && (i.recurrenceId || null) === recurrenceId);
+    if (!inv) return res.status(404).json({ error: 'This invitation is no longer open', code: 'gone' });
+    if (inv.status === partstat) return res.json({ ok: true, unchanged: true });
+    if (inv.source === 'calendar') {
+      const event = await loadEvent(userId, inv.eventId);
+      if (!event) return res.status(404).json({ error: 'Event not found', code: 'gone' });
+      try {
+        return res.json({ ok: true, ...await answerEvent(userId, event, partstat, mailOptions(req), inv.recurrenceId) });
+      } catch (err) {
+        if (err.badRequest) return badRequest(res, err.message);
+        return await sendWriteError(res, err, event.account_id);
+      }
+    }
+    try {
+      return res.json({ ok: true, ...await answerMail(userId, inv, partstat, mailOptions(req), calendarId) });
+    } catch (err) {
+      if (err.code === 'no_sender') return res.status(400).json({ error: err.message, code: 'no_sender' });
+      return res.status(502).json({ error: err.message });
+    }
+  } catch (err) {
+    console.warn(`Calendar: answering an invitation failed: ${err.message}`);
+    return res.status(500).json({ error: 'Could not answer the invitation' });
+  } finally {
+    answering.delete(lock);
   }
 });
 

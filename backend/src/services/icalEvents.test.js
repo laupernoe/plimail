@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import ICAL from 'ical.js';
-import { applyEdit, buildEvent, expandResource, inviteInfo, itipMessage, removeOccurrence, resourceInfo, seriesMarkers, setReply, vtimezoneBlock } from './icalEvents.js';
+import { applyEdit, buildEvent, expandResource, inviteInfo, itipMessage, mergeInvite, removeOccurrence, replyMessage, resourceInfo, seriesMarkers, setInviteReply, setReply, vtimezoneBlock } from './icalEvents.js';
 
 const range = (from, to) => [Date.parse(from), Date.parse(to)];
 const cal = (...lines) => ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//t//EN', ...lines, 'END:VCALENDAR'].join('\r\n');
@@ -479,5 +479,39 @@ describe('a series switched to or from all-day', () => {
     expect(expandResource(allDay, ...window).map(o => o.start)).toEqual(['2026-10-19', '2026-11-02']);
     const timed = applyEdit(allDay, { allDay: false, start: '2026-10-19T08:00:00Z', end: '2026-10-19T09:00:00Z', timezone: 'Europe/Zurich' }, { scope: 'all' });
     expect(expandResource(timed, ...window).map(o => o.start)).toEqual(['2026-10-19T08:00:00.000Z', '2026-11-02T09:00:00.000Z']);
+  });
+});
+
+describe('answering a received invitation', () => {
+  const series = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//t//EN', 'METHOD:REQUEST', 'BEGIN:VEVENT', 'UID:s1', 'DTSTAMP:20270101T000000Z',
+    'DTSTART:20270301T090000Z', 'DTEND:20270301T100000Z', 'RRULE:FREQ=WEEKLY;COUNT=4', 'SUMMARY:Weekly', 'ORGANIZER:mailto:boss@example.com',
+    'ATTENDEE;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:noe@example.com', 'ATTENDEE;PARTSTAT=ACCEPTED:mailto:ana@example.com', 'END:VEVENT',
+    'BEGIN:VEVENT', 'UID:s1', 'DTSTAMP:20270101T000000Z', 'RECURRENCE-ID:20270315T090000Z', 'DTSTART:20270315T110000Z', 'DTEND:20270315T120000Z',
+    'SUMMARY:Weekly (late)', 'ORGANIZER:mailto:boss@example.com', 'ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:noe@example.com', 'END:VEVENT',
+    'END:VCALENDAR', ''].join('\r\n');
+
+  it('answers one occurrence alone when asked to', () => {
+    const { ical, email } = setInviteReply(series, ['noe@example.com'], 'DECLINED', '2027-03-15T09:00:00.000Z');
+    expect(email).toBe('noe@example.com');
+    expect(ical).not.toMatch(/METHOD:/);
+    expect(ical.match(/PARTSTAT=DECLINED/g)).toHaveLength(1);
+    const reply = replyMessage(ical, email, '2027-03-15T09:00:00.000Z');
+    expect(reply).toMatch(/METHOD:REPLY/);
+    expect(reply.match(/BEGIN:VEVENT/g)).toHaveLength(1);
+    expect(reply).toMatch(/RECURRENCE-ID:20270315T090000Z/);
+    expect(reply).not.toMatch(/ana@example\.com/);
+  });
+
+  it('brings a calendar copy to the new revision and keeps the alarm the user set', () => {
+    const mine = series.replace('METHOD:REQUEST\r\n', '').replace('ATTENDEE;PARTSTAT=ACCEPTED:mailto:ana@example.com\r\n',
+      'ATTENDEE;PARTSTAT=ACCEPTED:mailto:ana@example.com\r\nBEGIN:VALARM\r\nACTION:DISPLAY\r\nTRIGGER:-PT15M\r\nEND:VALARM\r\n');
+    const merged = mergeInvite(mine, series.replace('SUMMARY:Weekly\r\n', 'SUMMARY:Weekly sync\r\n'));
+    expect(merged).toMatch(/SUMMARY:Weekly sync/);
+    expect(merged).toMatch(/TRIGGER:-PT15M/);
+    expect(merged).not.toMatch(/METHOD:/);
+    const one = mergeInvite(mine, series.replace('SUMMARY:Weekly (late)', 'SUMMARY:Weekly (later)'), '2027-03-15T09:00:00.000Z');
+    expect(one).toMatch(/SUMMARY:Weekly\r\n/);
+    expect(one).toMatch(/SUMMARY:Weekly \(later\)/);
+    expect(one.match(/BEGIN:VEVENT/g)).toHaveLength(2);
   });
 });
